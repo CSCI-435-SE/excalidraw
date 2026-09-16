@@ -47,6 +47,10 @@ export const Range = ({
 }: RangeProps) => {
   const rangeRef = React.useRef<HTMLInputElement>(null);
   const valueRef = React.useRef<HTMLDivElement>(null);
+  const minLabelRef = React.useRef<HTMLDivElement>(null);
+
+  const displayValue = formatValue ? formatValue(value) : value;
+  const showsValue = alwaysShowValue || value !== min;
 
   useEffect(() => {
     if (rangeRef.current && valueRef.current) {
@@ -65,9 +69,18 @@ export const Range = ({
       valueElement.style.left = `${position}px`;
       rangeElement.style.background = `linear-gradient(to right, var(--color-slider-track) 0%, var(--color-slider-track) ${progress}%, var(--button-bg) ${progress}%, var(--button-bg) 100%)`;
     }
-  }, [max, min, value]);
 
-  const displayValue = formatValue ? formatValue(value) : value;
+    if (valueRef.current && minLabelRef.current) {
+      const minLabelElement = minLabelRef.current;
+      // hide the min-value tick label whenever the value bubble would render
+      // on top of (or right next to) it, so the two never overlap
+      const overlapping =
+        showsValue &&
+        valueRef.current.getBoundingClientRect().left <
+          minLabelElement.getBoundingClientRect().right + 4;
+      minLabelElement.style.visibility = overlapping ? "hidden" : "visible";
+    }
+  }, [max, min, value, showsValue]);
 
   return (
     <label className="control-label">
@@ -106,9 +119,11 @@ export const Range = ({
           data-testid={testId}
         />
         <div className="value-bubble" ref={valueRef}>
-          {alwaysShowValue || value !== min ? displayValue : null}
+          {showsValue ? displayValue : null}
         </div>
-        <div className="zero-label">{minLabel}</div>
+        <div className="zero-label" ref={minLabelRef}>
+          {minLabel}
+        </div>
       </div>
     </label>
   );
