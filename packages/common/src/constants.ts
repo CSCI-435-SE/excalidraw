@@ -404,47 +404,49 @@ export const ROUGHNESS = {
   cartoonist: 2,
 } as const;
 
-export type StrokeWidthKey = "thin" | "medium" | "bold";
-
-export const STROKE_WIDTH_KEYS: readonly StrokeWidthKey[] = [
-  "thin",
-  "medium",
-  "bold",
-];
-
 export const STROKE_WIDTH: Readonly<
-  Record<StrokeWidthKey | "extraBold", ExcalidrawElement["strokeWidth"]>
+  Record<
+    "thin" | "medium" | "bold" | "extraBold",
+    ExcalidrawElement["strokeWidth"]
+  >
 > = {
   thin: 1,
   medium: 2,
   bold: 4,
-  extraBold: 8, // unused (may be introduced in the future)
+  extraBold: 8,
 };
+
+export const MIN_STROKE_WIDTH = 0.5;
+export const MAX_STROKE_WIDTH = STROKE_WIDTH.extraBold;
+export const STROKE_WIDTH_STEP = 0.5;
+
+export const DEFAULT_ELEMENT_STROKE_WIDTH: ExcalidrawElement["strokeWidth"] =
+  STROKE_WIDTH.medium;
 
 // freedraw schema 2.0 uses thinner stroke, but to maintain backwards and
 // forwards compatibility, instead of changing the shape renderer, we scale
 // the stroke width by 1/2 (previous, thin was 1, medium 2 etc.)
-//
-// note that in the UI, STROKE_WIDTH.thin == FREEDRAW_STROKE_WIDTH.thin still
-export const FREEDRAW_STROKE_WIDTH: Readonly<
-  Record<StrokeWidthKey | "extraBold", ExcalidrawElement["strokeWidth"]>
-> = {
-  thin: 0.5,
-  medium: 1,
-  bold: 2,
-  extraBold: 4, // legacy (may be used again in the future)
-};
+export const FREEDRAW_STROKE_WIDTH_SCALE = 0.5;
 
-export const getStrokeWidthByKey = (
+/** maps a base (UI/slider) stroke width to the value actually stored on the element */
+export const getEffectiveStrokeWidth = (
   elementType: ExcalidrawElement["type"],
-  strokeWidthKey: StrokeWidthKey,
+  baseStrokeWidth: number,
 ): ExcalidrawElement["strokeWidth"] => {
   return elementType === "freedraw"
-    ? FREEDRAW_STROKE_WIDTH[strokeWidthKey]
-    : STROKE_WIDTH[strokeWidthKey];
+    ? baseStrokeWidth * FREEDRAW_STROKE_WIDTH_SCALE
+    : baseStrokeWidth;
 };
 
-export const DEFAULT_ELEMENT_STROKE_WIDTH_KEY: StrokeWidthKey = "medium";
+/** inverse of getEffectiveStrokeWidth — maps an element's stored strokeWidth back to the base/UI scale */
+export const getBaseStrokeWidth = (
+  elementType: ExcalidrawElement["type"],
+  strokeWidth: number,
+): number => {
+  return elementType === "freedraw"
+    ? strokeWidth / FREEDRAW_STROKE_WIDTH_SCALE
+    : strokeWidth;
+};
 
 export const DEFAULT_ELEMENT_PROPS: {
   strokeColor: ExcalidrawElement["strokeColor"];
@@ -459,7 +461,7 @@ export const DEFAULT_ELEMENT_PROPS: {
   strokeColor: COLOR_PALETTE.black,
   backgroundColor: COLOR_PALETTE.transparent,
   fillStyle: "solid",
-  strokeWidth: STROKE_WIDTH[DEFAULT_ELEMENT_STROKE_WIDTH_KEY],
+  strokeWidth: DEFAULT_ELEMENT_STROKE_WIDTH,
   strokeStyle: "solid",
   roughness: ROUGHNESS.artist,
   opacity: 100,

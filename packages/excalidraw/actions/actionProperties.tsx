@@ -12,7 +12,6 @@ import {
   DEFAULT_FONT_SIZE,
   FONT_FAMILY,
   ROUNDNESS,
-  STROKE_WIDTH_KEYS,
   VERTICAL_ALIGN,
   KEYS,
   randomInteger,
@@ -20,11 +19,15 @@ import {
   getFontFamilyString,
   getLineHeight,
   isTransparent,
-  getStrokeWidthByKey,
+  STROKE_WIDTH,
+  MIN_STROKE_WIDTH,
+  MAX_STROKE_WIDTH,
+  STROKE_WIDTH_STEP,
+  getEffectiveStrokeWidth,
+  getBaseStrokeWidth,
   reduceToCommonValue,
   invariant,
   FONT_SIZES,
-  type StrokeWidthKey,
 } from "@excalidraw/common";
 
 import {
@@ -568,24 +571,12 @@ export const actionChangeFillStyle = register<ExcalidrawElement["fillStyle"]>({
   },
 });
 
-const getStrokeWidthKeyForElement = (
-  element: ExcalidrawElement,
-): StrokeWidthKey | null => {
-  return (
-    STROKE_WIDTH_KEYS.find(
-      (key) => getStrokeWidthByKey(element.type, key) === element.strokeWidth,
-    ) ?? null
-  );
+const formatStrokeWidth = (value: number) => {
+  const rounded = Math.round(value * 10) / 10;
+  return rounded % 1 === 0 ? rounded.toString() : rounded.toFixed(1);
 };
 
-const getStrokeWidthForElement = (
-  element: ExcalidrawElement,
-  strokeWidthKey: StrokeWidthKey,
-): ExcalidrawElement["strokeWidth"] => {
-  return getStrokeWidthByKey(element.type, strokeWidthKey);
-};
-
-export const actionChangeStrokeWidth = register<StrokeWidthKey>({
+export const actionChangeStrokeWidth = register<number>({
   name: "changeStrokeWidth",
   label: "labels.strokeWidth",
   trackEvent: false,
@@ -595,52 +586,57 @@ export const actionChangeStrokeWidth = register<StrokeWidthKey>({
     return {
       elements: changeProperty(elements, appState, (el) =>
         newElementWith(el, {
-          strokeWidth: getStrokeWidthForElement(el, value),
+          strokeWidth: getEffectiveStrokeWidth(el.type, value),
         }),
       ),
-      appState: { ...appState, currentItemStrokeWidthKey: value },
+      appState: { ...appState, currentItemStrokeWidth: value },
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
     };
   },
-  PanelComponent: ({ elements, appState, updateData, app, data }) => (
-    <fieldset>
-      <legend>{t("labels.strokeWidth")}</legend>
-      <div className="buttonList">
-        <RadioSelection<StrokeWidthKey>
-          group="stroke-width"
-          options={[
-            {
-              value: "thin",
-              text: t("labels.thin"),
-              icon: StrokeWidthBaseIcon,
-              testId: "strokeWidth-thin",
-            },
-            {
-              value: "medium",
-              text: t("labels.medium"),
-              icon: StrokeWidthBoldIcon,
-              testId: "strokeWidth-medium",
-            },
-            {
-              value: "bold",
-              text: t("labels.bold"),
-              icon: StrokeWidthExtraBoldIcon,
-              testId: "strokeWidth-bold",
-            },
-          ]}
-          value={getFormValue(
-            elements,
-            app,
-            getStrokeWidthKeyForElement,
-            (element) => element.hasOwnProperty("strokeWidth"),
-            (hasSelection) =>
-              hasSelection ? null : appState.currentItemStrokeWidthKey,
-          )}
-          onChange={(value) => updateData(value)}
-        />
-      </div>
-    </fieldset>
-  ),
+  PanelComponent: ({ elements, appState, updateData, app }) => {
+    const strokeWidth = getFormValue(
+      elements,
+      app,
+      (element) => getBaseStrokeWidth(element.type, element.strokeWidth),
+      (element) => element.hasOwnProperty("strokeWidth"),
+      (hasSelection) => (hasSelection ? null : appState.currentItemStrokeWidth),
+    );
+
+    return (
+      <Range
+        label={t("labels.strokeWidth")}
+        value={strokeWidth ?? appState.currentItemStrokeWidth}
+        hasCommonValue={strokeWidth !== null}
+        onChange={updateData}
+        min={MIN_STROKE_WIDTH}
+        max={MAX_STROKE_WIDTH}
+        step={STROKE_WIDTH_STEP}
+        formatValue={formatStrokeWidth}
+        alwaysShowValue
+        testId="strokeWidth"
+        notches={[
+          {
+            value: STROKE_WIDTH.thin,
+            icon: StrokeWidthBaseIcon,
+            label: t("labels.thin"),
+            testId: "strokeWidth-thin",
+          },
+          {
+            value: STROKE_WIDTH.medium,
+            icon: StrokeWidthBoldIcon,
+            label: t("labels.medium"),
+            testId: "strokeWidth-medium",
+          },
+          {
+            value: STROKE_WIDTH.bold,
+            icon: StrokeWidthExtraBoldIcon,
+            label: t("labels.bold"),
+            testId: "strokeWidth-bold",
+          },
+        ]}
+      />
+    );
+  },
 });
 
 export const actionChangeSloppiness = register<ExcalidrawElement["roughness"]>({

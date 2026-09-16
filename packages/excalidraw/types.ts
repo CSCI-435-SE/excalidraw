@@ -4,7 +4,6 @@ import type {
   throttleRAF,
   MIME_TYPES,
   EditorInterface,
-  StrokeWidthKey,
 } from "@excalidraw/common";
 
 import type { LinearElementEditor } from "@excalidraw/element";
@@ -402,7 +401,7 @@ export interface AppState {
   currentItemStrokeColor: string;
   currentItemBackgroundColor: string;
   currentItemFillStyle: ExcalidrawElement["fillStyle"];
-  currentItemStrokeWidthKey: StrokeWidthKey;
+  currentItemStrokeWidth: number;
   currentItemStrokeStyle: ExcalidrawElement["strokeStyle"];
   currentItemRoughness: number;
   currentItemStrokeVariability: StrokeVariability;

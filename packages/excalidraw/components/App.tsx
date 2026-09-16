@@ -110,7 +110,7 @@ import {
   setDesktopUIMode,
   isSelectionLikeTool,
   oneOf,
-  getStrokeWidthByKey,
+  getEffectiveStrokeWidth,
 } from "@excalidraw/common";
 
 import {
@@ -9746,9 +9746,9 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   private getCurrentItemStrokeWidth(elementType: ExcalidrawElement["type"]) {
-    return getStrokeWidthByKey(
+    return getEffectiveStrokeWidth(
       elementType,
-      this.state.currentItemStrokeWidthKey,
+      this.state.currentItemStrokeWidth,
     );
   }
 
