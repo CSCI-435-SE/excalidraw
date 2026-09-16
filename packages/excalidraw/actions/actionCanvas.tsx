@@ -163,7 +163,56 @@ export const actionZoomIn = register({
   },
   keyTest: (event) =>
     (event.code === CODES.EQUAL || event.code === CODES.NUM_ADD) &&
-    (event[KEYS.CTRL_OR_CMD] || event.shiftKey),
+    event[KEYS.CTRL_OR_CMD] &&
+    !event.shiftKey &&
+    !event.altKey,
+});
+
+export const actionZoomInFine = register({
+  name: "zoomInFine",
+  label: "buttons.zoomIn",
+  viewMode: true,
+  icon: ZoomInIcon,
+  trackEvent: { category: "canvas" },
+  perform: (_elements, appState, _, app) => {
+    const nextState = {
+      ...appState,
+      ...getStateForZoom(
+        {
+          viewportX: appState.width / 2 + appState.offsetLeft,
+          viewportY: appState.height / 2 + appState.offsetTop,
+          nextZoom: getNormalizedZoom(appState.zoom.value + ZOOM_STEP * 0.1),
+        },
+        appState,
+      ),
+      userToFollow: null,
+    };
+    return {
+      appState: { ...nextState, ...constrainScrollState(nextState) },
+      captureUpdate: CaptureUpdateAction.EVENTUALLY,
+    };
+  },
+  PanelComponent: ({ updateData }) => {
+    const zoomValue = useAppStateValue((appState) => appState.zoom.value);
+    return (
+      <IconButton
+        type="button"
+        className="zoom-in-button zoom-button"
+        icon={ZoomInIcon}
+        title={`${t("buttons.zoomIn")} — ${getShortcutKey("CtrlOrCmd++")}`}
+        aria-label={t("buttons.zoomIn")}
+        disabled={zoomValue >= MAX_ZOOM}
+        onClick={() => {
+          updateData(null);
+        }}
+      />
+    );
+  },
+  keyTest: (event) =>
+    (event.code === CODES.EQUAL || event.code === CODES.NUM_ADD) &&
+    event.shiftKey &&
+    !event[KEYS.CTRL_OR_CMD] &&
+    !event.altKey,
 });
 
 export const actionZoomOut = register({
@@ -208,7 +257,56 @@ export const actionZoomOut = register({
   },
   keyTest: (event) =>
     (event.code === CODES.MINUS || event.code === CODES.NUM_SUBTRACT) &&
-    (event[KEYS.CTRL_OR_CMD] || event.shiftKey),
+    event[KEYS.CTRL_OR_CMD] &&
+    !event.shiftKey &&
+    !event.altKey,
+});
+
+export const actionZoomOutFine = register({
+  name: "zoomOutFine",
+  label: "buttons.zoomOut",
+  icon: ZoomOutIcon,
+  viewMode: true,
+  trackEvent: { category: "canvas" },
+  perform: (_elements, appState, _, app) => {
+    const nextState = {
+      ...appState,
+      ...getStateForZoom(
+        {
+          viewportX: appState.width / 2 + appState.offsetLeft,
+          viewportY: appState.height / 2 + appState.offsetTop,
+          nextZoom: getNormalizedZoom(appState.zoom.value - ZOOM_STEP * 0.1),
+        },
+        appState,
+      ),
+      userToFollow: null,
+    };
+    return {
+      appState: { ...nextState, ...constrainScrollState(nextState) },
+      captureUpdate: CaptureUpdateAction.EVENTUALLY,
+    };
+  },
+  PanelComponent: ({ updateData }) => {
+    const zoomValue = useAppStateValue((appState) => appState.zoom.value);
+    return (
+      <IconButton
+        type="button"
+        className="zoom-out-button zoom-button"
+        icon={ZoomOutIcon}
+        title={`${t("buttons.zoomOut")} — ${getShortcutKey("CtrlOrCmd+-")}`}
+        aria-label={t("buttons.zoomOut")}
+        disabled={zoomValue <= MIN_ZOOM}
+        onClick={() => {
+          updateData(null);
+        }}
+      />
+    );
+  },
+  keyTest: (event) =>
+    (event.code === CODES.MINUS || event.code === CODES.NUM_SUBTRACT) &&
+    event.shiftKey &&
+    !event[KEYS.CTRL_OR_CMD] &&
+    !event.altKey,
 });
 
 export const actionResetZoom = register({
