@@ -891,77 +891,79 @@ export const actionChangeFontSize = register<ExcalidrawTextElement["fontSize"]>(
     },
     PanelComponent: ({ elements, appState, updateData, app, data }) => {
       const { isCompact } = getStylesPanelInfo(app);
+      const fontSize = getFormValue(
+        elements,
+        app,
+        (element) => {
+          if (isTextElement(element)) {
+            return element.fontSize;
+          }
+          const boundTextElement = getBoundTextElement(
+            element,
+            app.scene.getNonDeletedElementsMap(),
+          );
+          if (boundTextElement) {
+            return boundTextElement.fontSize;
+          }
+          return null;
+        },
+        (element) =>
+          isTextElement(element) ||
+          getBoundTextElement(
+            element,
+            app.scene.getNonDeletedElementsMap(),
+          ) !== null,
+        (hasSelection) =>
+          hasSelection
+            ? null
+            : appState.currentItemFontSize || DEFAULT_FONT_SIZE,
+      );
 
       return (
-        <fieldset>
-          <legend>{t("labels.fontSize")}</legend>
-          <div className="buttonList">
-            <RadioSelection
-              group="font-size"
-              options={[
-                {
-                  value: FONT_SIZES.sm,
-                  text: t("labels.small"),
-                  icon: FontSizeSmallIcon,
-                  testId: "fontSize-small",
-                },
-                {
-                  value: FONT_SIZES.md,
-                  text: t("labels.medium"),
-                  icon: FontSizeMediumIcon,
-                  testId: "fontSize-medium",
-                },
-                {
-                  value: FONT_SIZES.lg,
-                  text: t("labels.large"),
-                  icon: FontSizeLargeIcon,
-                  testId: "fontSize-large",
-                },
-                {
-                  value: FONT_SIZES.xl,
-                  text: t("labels.veryLarge"),
-                  icon: FontSizeExtraLargeIcon,
-                  testId: "fontSize-veryLarge",
-                },
-              ]}
-              value={getFormValue(
-                elements,
-                app,
-                (element) => {
-                  if (isTextElement(element)) {
-                    return element.fontSize;
-                  }
-                  const boundTextElement = getBoundTextElement(
-                    element,
-                    app.scene.getNonDeletedElementsMap(),
-                  );
-                  if (boundTextElement) {
-                    return boundTextElement.fontSize;
-                  }
-                  return null;
-                },
-                (element) =>
-                  isTextElement(element) ||
-                  getBoundTextElement(
-                    element,
-                    app.scene.getNonDeletedElementsMap(),
-                  ) !== null,
-                (hasSelection) =>
-                  hasSelection
-                    ? null
-                    : appState.currentItemFontSize || DEFAULT_FONT_SIZE,
-              )}
-              onChange={(value) => {
-                withCaretPositionPreservation(
-                  () => updateData(value),
-                  isCompact,
-                  !!appState.editingTextElement,
-                  data?.onPreventClose,
-                );
-              }}
-            />
-          </div>
-        </fieldset>
+        <Range
+          label={t("labels.fontSize")}
+          value={fontSize ?? appState.currentItemFontSize}
+          min={FONT_SIZES.sm}
+          max={FONT_SIZES.xl}
+          step={1}
+          alwaysShowValue
+          hasCommonValue={fontSize !== null}
+          onChange={(value) => {
+            withCaretPositionPreservation(
+              () => updateData(value),
+              isCompact,
+              !!appState.editingTextElement,
+              data?.onPreventClose,
+            );
+          }}
+          testId="fontSize"
+          notches={[
+            {
+              value: FONT_SIZES.sm,
+              icon: FontSizeSmallIcon,
+              label: t("labels.small"),
+              testId: "fontSize-small",
+            },
+            {
+              value: FONT_SIZES.md,
+              icon: FontSizeMediumIcon,
+              label: t("labels.medium"),
+              testId: "fontSize-medium",
+            },
+            {
+              value: FONT_SIZES.lg,
+              icon: FontSizeLargeIcon,
+              label: t("labels.large"),
+              testId: "fontSize-large",
+            },
+            {
+              value: FONT_SIZES.xl,
+              icon: FontSizeExtraLargeIcon,
+              label: t("labels.veryLarge"),
+              testId: "fontSize-veryLarge",
+            },
+          ]}
+        />
       );
     },
   },
