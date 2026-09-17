@@ -25,6 +25,7 @@ import {
 import {
   ArrowToolButton,
   DiamondToolButton,
+  TriangleToolButton,
   EllipseToolButton,
   EraserToolButton,
   FreedrawToolButton,
@@ -231,6 +232,7 @@ export const Toolbar = ({
         )}
         <RectangleToolButton {...toolProps} />
         <DiamondToolButton {...toolProps} />
+        <TriangleToolButton {...toolProps} />
         <EllipseToolButton {...toolProps} />
         <ArrowToolButton {...toolProps} />
         <LineToolButton {...toolProps} />
