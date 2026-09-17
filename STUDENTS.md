@@ -1,8 +1,6 @@
 # Excalidraw — Student Setup Guide
 
-This is a **course fork of [excalidraw/excalidraw](https://github.com/excalidraw/excalidraw)** — the
-open-source **virtual whiteboard** for sketching hand-drawn-style diagrams (React + TypeScript,
-Vite, Yarn workspaces). The same code powers <https://excalidraw.com>.
+This is a **course fork of [excalidraw/excalidraw](https://github.com/excalidraw/excalidraw)** — the open-source **virtual whiteboard** for sketching hand-drawn-style diagrams (React + TypeScript, Vite, Yarn workspaces). The same code powers <https://excalidraw.com>.
 
 📚 **Official documentation:** <https://docs.excalidraw.com>
 
@@ -14,7 +12,7 @@ Vite, Yarn workspaces). The same code powers <https://excalidraw.com>.
 | --- | --- | --- |
 | **Node.js** | **18 or newer** (LTS recommended) | Check with `node -v`. |
 | **Yarn** | **1.22 (classic)** | Pinned via `packageManager` — just run `corepack enable` once and the right version is used automatically. |
-| **Git** | any recent | |
+| **Git** | any recent |  |
 
 > 💡 **New to the Canvas API?** Excalidraw draws every shape directly onto an HTML `<canvas>` element rather than using the DOM. MDN's [Canvas tutorial](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/tutorial) is a concise intro to how it works — worth 30 minutes before reading the renderer code.
 
@@ -35,8 +33,7 @@ yarn                 # install dependencies
 yarn start           # dev server for the app
 ```
 
-Open the URL Vite prints (typically **http://localhost:3000**) — you get the full whiteboard,
-hot-reloading as you edit the code.
+Open the URL Vite prints (typically **http://localhost:3000**) — you get the full whiteboard, hot-reloading as you edit the code.
 
 Useful variants:
 
@@ -103,11 +100,11 @@ After pushing, GitHub shows a **"Compare & pull request"** banner on the reposit
 
 **Branch naming:**
 
-| Prefix | Use for |
-|---|---|
-| `feat/issue-<N>-short-description` | new features |
-| `fix/issue-<N>-short-description` | bug fixes |
-| `chore/short-description` | docs, config, dependency updates |
+| Prefix                             | Use for                          |
+| ---------------------------------- | -------------------------------- |
+| `feat/issue-<N>-short-description` | new features                     |
+| `fix/issue-<N>-short-description`  | bug fixes                        |
+| `chore/short-description`          | docs, config, dependency updates |
 
 > ⚠️ **`main` is protected — direct pushes are blocked.** All changes go through a reviewed PR. If you accidentally commit to `main` locally, move your changes to a branch before pushing:
 >
@@ -127,11 +124,9 @@ git branch -d feat/issue-17-dark-mode
 
 ## 4. Project documentation & policies (required reading)
 
-📚 **Official documentation:** <https://docs.excalidraw.com> — the developer docs for the editor
-package and the app (press **`?`** inside the app for the shortcut list).
+📚 **Official documentation:** <https://docs.excalidraw.com> — the developer docs for the editor package and the app (press **`?`** inside the app for the shortcut list).
 
-Excalidraw has its own established contribution processes. They are **not restated here** — you
-are responsible for finding, reading, and following them from the sources below:
+Excalidraw has its own established contribution processes. They are **not restated here** — you are responsible for finding, reading, and following them from the sources below:
 
 | You must take care of | Where to find it |
 | --- | --- |
