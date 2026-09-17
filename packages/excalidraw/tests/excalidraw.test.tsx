@@ -416,7 +416,7 @@ describe("<Excalidraw/>", () => {
 
     it("should NOT show toast when export is cancelled", async () => {
       // Mock exportCanvas directly to simulate an aborted export
-      const dataModule = await import("../data")
+      const dataModule = await import("../data");
       vi.spyOn(dataModule, "exportCanvas").mockRejectedValue(
         Object.assign(new Error("Aborted"), { name: "AbortError" }),
       );
@@ -444,7 +444,7 @@ describe("<Excalidraw/>", () => {
       });
     });
   });
-  
+
   describe("Test name prop", () => {
     it("should allow editing name", async () => {
       const { container } = await render(<Excalidraw />);
