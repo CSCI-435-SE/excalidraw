@@ -18,6 +18,8 @@ export type ShortcutName =
       | "paste"
       | "copyStyles"
       | "pasteStyles"
+      | "copyStrokeWidth"
+      | "pasteStrokeWidth"
       | "selectAll"
       | "deleteSelectedElements"
       | "duplicateSelection"
@@ -70,6 +72,8 @@ const shortcutMap: Record<ShortcutName, string[]> = {
   paste: [getShortcutKey("CtrlOrCmd+V")],
   copyStyles: [getShortcutKey("CtrlOrCmd+Alt+C")],
   pasteStyles: [getShortcutKey("CtrlOrCmd+Alt+V")],
+  copyStrokeWidth: [getShortcutKey("CtrlOrCmd+Alt+Shift+C")],
+  pasteStrokeWidth: [getShortcutKey("CtrlOrCmd+Alt+Shift+V")],
   selectAll: [getShortcutKey("CtrlOrCmd+A")],
   deleteSelectedElements: [getShortcutKey("Delete")],
   duplicateSelection: [
