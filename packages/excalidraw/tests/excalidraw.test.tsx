@@ -16,6 +16,20 @@ import {
   waitFor,
 } from "./test-utils";
 
+vi.mock("../data/filesystem.ts", async (importOriginal) => {
+  const module = await importOriginal();
+  return {
+    __esmodule: true,
+    //@ts-ignore
+    ...module,
+    get nativeFileSystemSupported() {
+      //@ts-ignore
+      return module.nativeFileSystemSupported;
+    },
+    fileSave: vi.fn().mockResolvedValue(undefined),
+  };
+});
+
 const { h } = window;
 
 describe("<Excalidraw/>", () => {
@@ -354,6 +368,83 @@ describe("<Excalidraw/>", () => {
     });
   });
 
+  describe("Test export confirmation message", () => {
+    beforeEach(async () => {
+      const filesystem = await import("../data/filesystem");
+      Object.defineProperty(filesystem, "nativeFileSystemSupported", {
+        value: true,
+        configurable: true,
+      });
+      (filesystem.fileSave as ReturnType<typeof vi.fn>).mockResolvedValue(
+        undefined,
+      );
+    });
+
+    afterEach(async () => {
+      const filesystem = await import("../data/filesystem");
+      Object.defineProperty(filesystem, "nativeFileSystemSupported", {
+        value: false,
+        configurable: true,
+      });
+      vi.restoreAllMocks();
+    });
+
+    it("should show toast after successful PNG export", async () => {
+      const { container } = await render(<Excalidraw />);
+
+      toggleMenu(container);
+      fireEvent.click(queryByTestId(container, "image-export-button")!);
+
+      const exportButton = queryByText(
+        document.body,
+        t("imageExportDialog.button.exportToPng"),
+      );
+      expect(exportButton).not.toBeNull();
+
+      await act(async () => {
+        fireEvent.click(exportButton!);
+      });
+
+      await waitFor(() => {
+        const toast = queryByText(document.body, (content) =>
+          content.toLowerCase().includes("exported"),
+        );
+        expect(toast).not.toBeNull();
+        expect(toast).toBeInTheDocument();
+      });
+    });
+
+    it("should NOT show toast when export is cancelled", async () => {
+      // Mock exportCanvas directly to simulate an aborted export
+      const dataModule = await import("../data")
+      vi.spyOn(dataModule, "exportCanvas").mockRejectedValue(
+        Object.assign(new Error("Aborted"), { name: "AbortError" }),
+      );
+
+      const { container } = await render(<Excalidraw />);
+
+      toggleMenu(container);
+      fireEvent.click(queryByTestId(container, "image-export-button")!);
+
+      const exportButton = queryByText(
+        document.body,
+        t("imageExportDialog.button.exportToPng"),
+      );
+      expect(exportButton).not.toBeNull();
+
+      await act(async () => {
+        fireEvent.click(exportButton!);
+      });
+
+      await waitFor(() => {
+        const toast = queryByText(document.body, (content) =>
+          content.toLowerCase().includes("exported"),
+        );
+        expect(toast).toBeNull();
+      });
+    });
+  });
+  
   describe("Test name prop", () => {
     it("should allow editing name", async () => {
       const { container } = await render(<Excalidraw />);
