@@ -108,6 +108,10 @@ export type ExcalidrawDiamondElement = _ExcalidrawElementBase & {
   type: "diamond";
 };
 
+export type ExcalidrawTriangleElement = _ExcalidrawElementBase & {
+  type: "triangle";
+};
+
 export type ExcalidrawEllipseElement = _ExcalidrawElementBase & {
   type: "ellipse";
 };
@@ -196,7 +200,8 @@ export type ExcalidrawGenericElement =
   | ExcalidrawSelectionElement
   | ExcalidrawRectangleElement
   | ExcalidrawDiamondElement
-  | ExcalidrawEllipseElement;
+  | ExcalidrawEllipseElement
+  | ExcalidrawTriangleElement;
 
 export type ExcalidrawFlowchartNodeElement =
   | ExcalidrawRectangleElement
@@ -295,6 +300,7 @@ export type ExcalidrawBindableElement =
   | ExcalidrawStickyNoteElement
   | ExcalidrawDiamondElement
   | ExcalidrawEllipseElement
+  | ExcalidrawTriangleElement
   | ExcalidrawTextElement
   | ExcalidrawImageElement
   | ExcalidrawIframeElement
@@ -307,6 +313,7 @@ export type ExcalidrawTextContainer =
   | ExcalidrawStickyNoteElement
   | ExcalidrawDiamondElement
   | ExcalidrawEllipseElement
+  | ExcalidrawTriangleElement
   | ExcalidrawArrowElement;
 
 export type ExcalidrawTextElementWithContainer = {

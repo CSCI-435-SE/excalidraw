@@ -149,6 +149,7 @@ export type ToolType =
   | "lasso"
   | "rectangle"
   | "diamond"
+  | "triangle"
   | "ellipse"
   | "arrow"
   | "line"

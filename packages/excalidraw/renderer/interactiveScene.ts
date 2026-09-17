@@ -25,6 +25,7 @@ import {
 import {
   deconstructDiamondElement,
   deconstructRectanguloidElement,
+  deconstructTriangleElement,
   elementCenterPoint,
   getDiamondBaseCorners,
   FOCUS_POINT_SIZE,
@@ -426,6 +427,47 @@ const renderBindingHighlightForBindableElement_simple = (
           }
 
           break;
+        case "triangle":
+          {
+            const [segments, curves] = deconstructTriangleElement(
+              suggestedBinding.element,
+            );
+
+            // Draw each line segment individually
+            segments.forEach((segment) => {
+              context.beginPath();
+              context.moveTo(
+                segment[0][0] - suggestedBinding.element.x,
+                segment[0][1] - suggestedBinding.element.y,
+              );
+              context.lineTo(
+                segment[1][0] - suggestedBinding.element.x,
+                segment[1][1] - suggestedBinding.element.y,
+              );
+              context.stroke();
+            });
+
+            // Draw each curve individually (for rounded corners)
+            curves.forEach((curve) => {
+              const [start, control1, control2, end] = curve;
+              context.beginPath();
+              context.moveTo(
+                start[0] - suggestedBinding.element.x,
+                start[1] - suggestedBinding.element.y,
+              );
+              context.bezierCurveTo(
+                control1[0] - suggestedBinding.element.x,
+                control1[1] - suggestedBinding.element.y,
+                control2[0] - suggestedBinding.element.x,
+                control2[1] - suggestedBinding.element.y,
+                end[0] - suggestedBinding.element.x,
+                end[1] - suggestedBinding.element.y,
+              );
+              context.stroke();
+            });
+          }
+
+          break;
         default:
           {
             const [segments, curves] = deconstructRectanguloidElement(
@@ -725,6 +767,48 @@ const renderBindingHighlightForBindableElement_complex = (
         case "diamond":
           {
             const [segments, curves] = deconstructDiamondElement(
+              element,
+              offset,
+            );
+
+            // Draw each line segment individually
+            segments.forEach((segment) => {
+              context.beginPath();
+              context.moveTo(
+                segment[0][0] - element.x + offset,
+                segment[0][1] - element.y + offset,
+              );
+              context.lineTo(
+                segment[1][0] - element.x + offset,
+                segment[1][1] - element.y + offset,
+              );
+              context.stroke();
+            });
+
+            // Draw each curve individually (for rounded corners)
+            curves.forEach((curve) => {
+              const [start, control1, control2, end] = curve;
+              context.beginPath();
+              context.moveTo(
+                start[0] - element.x + offset,
+                start[1] - element.y + offset,
+              );
+              context.bezierCurveTo(
+                control1[0] - element.x + offset,
+                control1[1] - element.y + offset,
+                control2[0] - element.x + offset,
+                control2[1] - element.y + offset,
+                end[0] - element.x + offset,
+                end[1] - element.y + offset,
+              );
+              context.stroke();
+            });
+          }
+
+          break;
+        case "triangle":
+          {
+            const [segments, curves] = deconstructTriangleElement(
               element,
               offset,
             );

@@ -10449,6 +10449,7 @@ class App extends React.Component<AppProps, AppState> {
       | "rectangle"
       | "stickynote"
       | "diamond"
+      | "triangle"
       | "ellipse"
       | "iframe"
       | "embeddable",

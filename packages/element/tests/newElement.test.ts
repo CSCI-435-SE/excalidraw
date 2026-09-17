@@ -13,6 +13,7 @@ describe("element creation time", () => {
   it.each([
     "rectangle",
     "diamond",
+    "triangle",
     "ellipse",
     "text",
     "line",
