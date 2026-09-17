@@ -24,6 +24,8 @@
     "delete": "Delete",
     "copyStyles": "Copy styles",
     "pasteStyles": "Paste styles",
+    "copyStrokeWidth": "Copy stroke width",
+    "pasteStrokeWidth": "Paste stroke width",
     "stroke": "Stroke",
     "changeStroke": "Change stroke color",
     "background": "Background",
@@ -554,6 +556,7 @@
   "toast": {
     "addedToLibrary": "Added to library",
     "copyStyles": "Copied styles.",
+    "copyStrokeWidth": "Copied stroke width.",
     "copyToClipboard": "Copied to clipboard.",
     "copyToClipboardAsPng": "Copied {{exportSelection}} to clipboard as PNG\n({{exportColorScheme}})",
     "copyToClipboardAsSvg": "Copied {{exportSelection}} to clipboard as SVG\n({{exportColorScheme}})",
