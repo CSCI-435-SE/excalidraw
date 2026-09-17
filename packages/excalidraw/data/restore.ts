@@ -1,4 +1,9 @@
-import { isFiniteNumber, isValidPoint, pointFrom } from "@excalidraw/math";
+import {
+  clamp,
+  isFiniteNumber,
+  isValidPoint,
+  pointFrom,
+} from "@excalidraw/math";
 
 import {
   type CombineBrandsIfNeeded,
@@ -20,8 +25,8 @@ import {
   normalizeLink,
   getLineHeight,
   STROKE_WIDTH,
-  STROKE_WIDTH_KEYS,
-  type StrokeWidthKey,
+  MIN_STROKE_WIDTH,
+  MAX_STROKE_WIDTH,
 } from "@excalidraw/common";
 import {
   calculateFixedPointForNonElbowArrowBinding,
@@ -239,12 +244,6 @@ const restoreStrokeVariability = (
     ALLOWED_STROKE_VARIABILITIES.has(variability as StrokeVariability)
     ? (variability as StrokeVariability)
     : defaultValue;
-};
-
-const getStrokeWidthKey = (strokeWidth: unknown): StrokeWidthKey | null => {
-  return isFiniteNumber(strokeWidth)
-    ? STROKE_WIDTH_KEYS.find((key) => STROKE_WIDTH[key] === strokeWidth) ?? null
-    : null;
 };
 
 const restoreFreedrawStrokeOptions = (
@@ -1109,12 +1108,19 @@ export const restoreAppState = (
     nextAppState.boxSelectionMode = boxSelectionMode;
   }
 
-  // legacy
-  if ((appState as any).currentItemStrokeWidth !== undefined) {
-    nextAppState.currentItemStrokeWidthKey =
-      getStrokeWidthKey((appState as any).currentItemStrokeWidth) ??
-      defaultAppState.currentItemStrokeWidthKey;
-  }
+  // legacy: `currentItemStrokeWidthKey` ("thin" | "medium" | "bold") predates
+  // the numeric currentItemStrokeWidth slider value
+  const legacyStrokeWidthKey = (appState as any).currentItemStrokeWidthKey;
+  const strokeWidth =
+    typeof legacyStrokeWidthKey === "string" &&
+    legacyStrokeWidthKey in STROKE_WIDTH
+      ? STROKE_WIDTH[legacyStrokeWidthKey as keyof typeof STROKE_WIDTH]
+      : nextAppState.currentItemStrokeWidth;
+
+  // clamp in case an old/corrupted export carries an out-of-range numeric value
+  nextAppState.currentItemStrokeWidth = isFiniteNumber(strokeWidth)
+    ? clamp(strokeWidth, MIN_STROKE_WIDTH, MAX_STROKE_WIDTH)
+    : defaultAppState.currentItemStrokeWidth;
 
   return {
     ...nextAppState,

@@ -1,6 +1,17 @@
 import React, { useEffect } from "react";
 
+import { RadioButton } from "./RadioButton";
+
 import "./Range.scss";
+
+import type { JSX } from "react";
+
+export type RangeNotch = {
+  value: number;
+  icon: JSX.Element;
+  label: string;
+  testId?: string;
+};
 
 export type RangeProps = {
   label: React.ReactNode;
@@ -12,6 +23,12 @@ export type RangeProps = {
   minLabel?: React.ReactNode;
   hasCommonValue?: boolean;
   testId?: string;
+  /** exact, directly-selectable presets rendered as a row above the track, equally spaced */
+  notches?: RangeNotch[];
+  /** formats the live numeric value shown above the thumb */
+  formatValue?: (value: number) => React.ReactNode;
+  /** show the value bubble even when value === min (default: hidden at min) */
+  alwaysShowValue?: boolean;
 };
 
 export const Range = ({
@@ -24,9 +41,16 @@ export const Range = ({
   minLabel = min,
   hasCommonValue = true,
   testId,
+  notches,
+  formatValue,
+  alwaysShowValue = false,
 }: RangeProps) => {
   const rangeRef = React.useRef<HTMLInputElement>(null);
   const valueRef = React.useRef<HTMLDivElement>(null);
+  const minLabelRef = React.useRef<HTMLDivElement>(null);
+
+  const displayValue = formatValue ? formatValue(value) : value;
+  const showsValue = alwaysShowValue || value !== min;
 
   useEffect(() => {
     if (rangeRef.current && valueRef.current) {
@@ -45,12 +69,37 @@ export const Range = ({
       valueElement.style.left = `${position}px`;
       rangeElement.style.background = `linear-gradient(to right, var(--color-slider-track) 0%, var(--color-slider-track) ${progress}%, var(--button-bg) ${progress}%, var(--button-bg) 100%)`;
     }
-  }, [max, min, value]);
+
+    if (valueRef.current && minLabelRef.current) {
+      const minLabelElement = minLabelRef.current;
+      // hide the min-value tick label whenever the value bubble would render
+      // on top of (or right next to) it, so the two never overlap
+      const overlapping =
+        showsValue &&
+        valueRef.current.getBoundingClientRect().left <
+          minLabelElement.getBoundingClientRect().right + 4;
+      minLabelElement.style.visibility = overlapping ? "hidden" : "visible";
+    }
+  }, [max, min, value, showsValue]);
 
   return (
     <label className="control-label">
       {label}
       <div className="range-wrapper">
+        {notches && notches.length > 0 && (
+          <div className="range-notches">
+            {notches.map((notch) => (
+              <RadioButton
+                key={notch.value}
+                icon={notch.icon}
+                title={notch.label}
+                testId={notch.testId}
+                active={hasCommonValue && value === notch.value}
+                onClick={() => onChange(notch.value)}
+              />
+            ))}
+          </div>
+        )}
         <input
           style={{
             ["--color-slider-track" as string]: hasCommonValue
@@ -70,9 +119,11 @@ export const Range = ({
           data-testid={testId}
         />
         <div className="value-bubble" ref={valueRef}>
-          {value !== min ? value : null}
+          {showsValue ? displayValue : null}
         </div>
-        <div className="zero-label">{minLabel}</div>
+        <div className="zero-label" ref={minLabelRef}>
+          {minLabel}
+        </div>
       </div>
     </label>
   );

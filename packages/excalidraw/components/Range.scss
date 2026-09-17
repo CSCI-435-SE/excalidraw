@@ -9,6 +9,16 @@
     padding-bottom: 25px;
   }
 
+  .range-notches {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+
+    button {
+      @include outlineButtonIconStyles;
+    }
+  }
+
   .range-input {
     width: 100%;
     height: 4px;

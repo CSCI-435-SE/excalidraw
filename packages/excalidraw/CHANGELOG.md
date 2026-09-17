@@ -15,6 +15,15 @@ Please add the latest change on the top under the correct section.
 
 ## Excalidraw API
 
+### Stroke width slider
+
+The three-option stroke width picker (thin/medium/bold radio buttons) was replaced by a slider that supports arbitrary values, with the three original presets available as clickable/keyboard-selectable notches and the current numeric value displayed on the track.
+
+#### Breaking changes
+
+- `AppState.currentItemStrokeWidthKey: "thin" | "medium" | "bold"` was replaced by `AppState.currentItemStrokeWidth: number`. Persisted scenes/localStorage using the old field are migrated automatically on load.
+- `@excalidraw/common` no longer exports `StrokeWidthKey`, `STROKE_WIDTH_KEYS`, `FREEDRAW_STROKE_WIDTH`, `DEFAULT_ELEMENT_STROKE_WIDTH_KEY`, or `getStrokeWidthByKey`. Use `STROKE_WIDTH`, `DEFAULT_ELEMENT_STROKE_WIDTH`, and the new `getEffectiveStrokeWidth(elementType, baseStrokeWidth)` / `getBaseStrokeWidth(elementType, strokeWidth)` helpers instead. `getEffectiveStrokeWidth` replaces `getStrokeWidthByKey` in the `@excalidraw/excalidraw` public API.
+
 ### Tool system & toolbar rework
 
 The toolbar UI was rewritten from hidden radio/checkbox inputs to real `<button>` elements composed from a central tool registry, and all tool activation now goes through a single `setActiveTool` code path.

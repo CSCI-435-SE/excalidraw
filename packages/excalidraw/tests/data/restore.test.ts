@@ -1,7 +1,14 @@
 import { pointFrom } from "@excalidraw/math";
 import { vi } from "vitest";
 
-import { DEFAULT_SIDEBAR, FONT_FAMILY, ROUNDNESS } from "@excalidraw/common";
+import {
+  DEFAULT_SIDEBAR,
+  FONT_FAMILY,
+  ROUNDNESS,
+  STROKE_WIDTH,
+  MIN_STROKE_WIDTH,
+  MAX_STROKE_WIDTH,
+} from "@excalidraw/common";
 
 import { newElementWith } from "@excalidraw/element";
 import * as sizeHelpers from "@excalidraw/element";
@@ -799,11 +806,11 @@ describe("restoreAppState", () => {
     expect(restoredAppState.name).toBe(stubImportedAppState.name);
   });
 
-  it("should migrate legacy current item stroke width to stroke width key", () => {
+  it("should migrate legacy current item stroke width key to numeric stroke width", () => {
     const stubImportedAppState = {
       ...getDefaultAppState(),
-      currentItemStrokeWidth: 4,
-      currentItemStrokeWidthKey: undefined,
+      currentItemStrokeWidth: undefined,
+      currentItemStrokeWidthKey: "bold",
     } as any;
 
     const restoredAppState = restore.restoreAppState(
@@ -811,7 +818,35 @@ describe("restoreAppState", () => {
       null,
     );
 
-    expect(restoredAppState.currentItemStrokeWidthKey).toBe("bold");
+    expect(restoredAppState.currentItemStrokeWidth).toBe(STROKE_WIDTH.bold);
+  });
+
+  it("should clamp an out-of-range numeric current item stroke width", () => {
+    const stubImportedAppState = {
+      ...getDefaultAppState(),
+      currentItemStrokeWidth: MAX_STROKE_WIDTH + 100,
+    } as any;
+
+    const restoredAppState = restore.restoreAppState(
+      stubImportedAppState,
+      null,
+    );
+
+    expect(restoredAppState.currentItemStrokeWidth).toBe(MAX_STROKE_WIDTH);
+
+    const stubImportedAppStateNegative = {
+      ...getDefaultAppState(),
+      currentItemStrokeWidth: -5,
+    } as any;
+
+    const restoredAppStateNegative = restore.restoreAppState(
+      stubImportedAppStateNegative,
+      null,
+    );
+
+    expect(restoredAppStateNegative.currentItemStrokeWidth).toBe(
+      MIN_STROKE_WIDTH,
+    );
   });
 
   it("should restore with current app state when imported data state is undefined", () => {
