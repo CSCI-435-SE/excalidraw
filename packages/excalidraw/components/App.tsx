@@ -909,32 +909,40 @@ class App extends React.Component<AppProps, AppState> {
     return result;
   };
 
-// Issue 8 (Cashen Croft)
+  // Issue 8 (Cashen Croft)
   private updateKeyboardPan = () => {
-  if (this.activePanKeys.size === 0 || !this.state.viewModeEnabled) {
-    this.panAnimationFrameId = null;
-    return;
-  }
+    if (this.activePanKeys.size === 0 || !this.state.viewModeEnabled) {
+      this.panAnimationFrameId = null;
+      return;
+    }
 
-  const isShiftPressed = this.activePanKeys.has("Shift");
-  const baseStep = isShiftPressed ? 10 : 2;
-  const STEP = baseStep / this.state.zoom.value;
-  let deltaX = 0;
-  let deltaY = 0;
+    const isShiftPressed = this.activePanKeys.has("Shift");
+    const baseStep = isShiftPressed ? 10 : 2;
+    const STEP = baseStep / this.state.zoom.value;
+    let deltaX = 0;
+    let deltaY = 0;
 
-  if (this.activePanKeys.has("ArrowLeft")) deltaX += STEP;
-  if (this.activePanKeys.has("ArrowRight")) deltaX -= STEP;
-  if (this.activePanKeys.has("ArrowUp")) deltaY += STEP;
-  if (this.activePanKeys.has("ArrowDown")) deltaY -= STEP;
+    if (this.activePanKeys.has("ArrowLeft")) {
+      deltaX += STEP;
+    }
+    if (this.activePanKeys.has("ArrowRight")) {
+      deltaX -= STEP;
+    }
+    if (this.activePanKeys.has("ArrowUp")) {
+      deltaY += STEP;
+    }
+    if (this.activePanKeys.has("ArrowDown")) {
+      deltaY -= STEP;
+    }
 
-  if (deltaX !== 0 || deltaY !== 0) {
-    this.setState((prevState) => ({
-      scrollX: prevState.scrollX + deltaX,
-      scrollY: prevState.scrollY + deltaY,
-    }));
-  }
+    if (deltaX !== 0 || deltaY !== 0) {
+      this.setState((prevState) => ({
+        scrollX: prevState.scrollX + deltaX,
+        scrollY: prevState.scrollY + deltaY,
+      }));
+    }
 
-  this.panAnimationFrameId = requestAnimationFrame(this.updateKeyboardPan);
+    this.panAnimationFrameId = requestAnimationFrame(this.updateKeyboardPan);
   };
 
   private onWindowMessage(event: MessageEvent) {
@@ -5042,33 +5050,32 @@ class App extends React.Component<AppProps, AppState> {
   // Input handling
   private onKeyDown = withBatchedUpdates(
     (event: React.KeyboardEvent | KeyboardEvent) => {
-      
-      if (
-      event.key === "Shift") {
-        this.activePanKeys.add(event.key); 
+      if (event.key === "Shift") {
+        this.activePanKeys.add(event.key);
       }
 
       if (
-      event.key === "ArrowLeft" ||
-      event.key === "ArrowRight" ||
-      event.key === "ArrowUp" ||
-      event.key === "ArrowDown"
-    ) {
-      if (
-        this.state.viewModeEnabled &&
-        !isInputLike(event.target) &&
-        !this.state.openMenu &&
-        !this.state.openDialog
-
+        event.key === "ArrowLeft" ||
+        event.key === "ArrowRight" ||
+        event.key === "ArrowUp" ||
+        event.key === "ArrowDown"
       ) {
-        event.preventDefault();
-        this.activePanKeys.add(event.key);
+        if (
+          this.state.viewModeEnabled &&
+          !isInputLike(event.target) &&
+          !this.state.openMenu &&
+          !this.state.openDialog
+        ) {
+          event.preventDefault();
+          this.activePanKeys.add(event.key);
 
-        if (this.panAnimationFrameId === null) {
-          this.panAnimationFrameId = requestAnimationFrame(this.updateKeyboardPan);
+          if (this.panAnimationFrameId === null) {
+            this.panAnimationFrameId = requestAnimationFrame(
+              this.updateKeyboardPan,
+            );
+          }
         }
       }
-    }
       // normalize `event.key` when CapsLock is pressed #2372
 
       if (
@@ -5553,11 +5560,10 @@ class App extends React.Component<AppProps, AppState> {
   );
 
   private onKeyUp = withBatchedUpdates((event: KeyboardEvent) => {
-    if (
-      event.key === "Shift") {
-        this.activePanKeys.delete(event.key); 
-      }
-    
+    if (event.key === "Shift") {
+      this.activePanKeys.delete(event.key);
+    }
+
     if (
       event.key === "ArrowLeft" ||
       event.key === "ArrowRight" ||

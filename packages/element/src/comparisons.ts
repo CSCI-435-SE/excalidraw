@@ -8,6 +8,7 @@ export const hasBackground = (type: ElementOrToolType) =>
   type === "diamond" ||
   type === "triangle" ||
   type === "line" ||
+  type === "arrow" ||
   type === "freedraw";
 
 export const hasStrokeColor = (type: ElementOrToolType) =>
