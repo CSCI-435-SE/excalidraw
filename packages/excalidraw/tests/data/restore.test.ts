@@ -633,15 +633,20 @@ describe("restoreElements", () => {
     expect(restoredLine_1.y).toBe(lineElement_1.y + offsetY);
   });
 
-  it("should restore correctly with rectangle, ellipse and diamond elements", () => {
-    const types = ["rectangle", "ellipse", "diamond"];
+  it("should restore correctly with rectangle, ellipse, diamond and triangle elements", () => {
+    const types = ["rectangle", "ellipse", "diamond", "triangle"];
 
     const elements: ExcalidrawElement[] = [];
     let idCount = 0;
     types.forEach((elType) => {
       idCount += 1;
       const element = API.createElement({
-        type: elType as "rectangle" | "ellipse" | "diamond" | "embeddable",
+        type: elType as
+          | "rectangle"
+          | "ellipse"
+          | "diamond"
+          | "triangle"
+          | "embeddable",
         id: idCount.toString(),
         fillStyle: "cross-hatch",
         strokeWidth: 2,
@@ -663,6 +668,11 @@ describe("restoreElements", () => {
 
     const restoredElements = restore.restoreElements(elements, null);
 
+    // guards against a type silently getting dropped by restoreElement's
+    // explicit type whitelist (it doesn't use a default case, on purpose,
+    // so a missing case filters the element out rather than throwing)
+    expect(restoredElements.length).toBe(types.length);
+
     expect(restoredElements[0]).toMatchSnapshot({
       seed: expect.any(Number),
       versionNonce: expect.any(Number),
@@ -672,6 +682,10 @@ describe("restoreElements", () => {
       versionNonce: expect.any(Number),
     });
     expect(restoredElements[2]).toMatchSnapshot({
+      seed: expect.any(Number),
+      versionNonce: expect.any(Number),
+    });
+    expect(restoredElements[3]).toMatchSnapshot({
       seed: expect.any(Number),
       versionNonce: expect.any(Number),
     });
