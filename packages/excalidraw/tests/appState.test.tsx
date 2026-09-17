@@ -79,10 +79,15 @@ describe("appState", () => {
     fireEvent.click(queryByTestId(container, "fontSize-small")!);
     expect(h.state.currentItemFontSize).toBe(16);
 
+    fireEvent.change(queryByTestId(container, "fontSize")!, {
+      target: { value: "24" },
+    });
+    expect(h.state.currentItemFontSize).toBe(24);
+
     const mouse = new Pointer("mouse");
 
     mouse.clickAt(100, 100);
 
-    expect((h.elements[0] as ExcalidrawTextElement).fontSize).toBe(16);
+    expect((h.elements[0] as ExcalidrawTextElement).fontSize).toBe(24);
   });
 });
