@@ -78,7 +78,6 @@ import {
   updateObject,
   updateActiveTool,
   isTransparent,
-  muteFSAbortError,
   isTestEnv,
   isDevEnv,
   updateStable,
@@ -2554,30 +2553,38 @@ class App extends React.Component<AppProps, AppState> {
     opts: { exportingFrame: NonDeleted<ExcalidrawFrameLikeElement> | null },
   ) => {
     trackEvent("export", type, "ui");
-    const fileHandle = await exportCanvas(
-      type,
-      elements,
-      this.state,
-      this.files,
-      {
-        exportBackground: this.state.exportBackground,
-        name: this.getName(),
-        viewBackgroundColor: this.state.viewBackgroundColor,
-        exportingFrame: opts.exportingFrame,
-      },
-    )
-      .catch(muteFSAbortError)
-      .catch((error) => {
-        console.error(error);
-        this.setState({ errorMessage: error.message });
-      });
+    try {
+      const fileHandle = await exportCanvas(
+        type,
+        elements,
+        this.state,
+        this.files,
+        {
+          exportBackground: this.state.exportBackground,
+          name: this.getName(),
+          viewBackgroundColor: this.state.viewBackgroundColor,
+          exportingFrame: opts.exportingFrame,
+        },
+      );
 
-    if (
-      this.state.exportEmbedScene &&
-      fileHandle &&
-      isImageFileHandle(fileHandle)
-    ) {
-      this.setState({ fileHandle });
+      if (
+        this.state.exportEmbedScene &&
+        fileHandle &&
+        isImageFileHandle(fileHandle)
+      ) {
+        this.setState({ fileHandle });
+      }
+
+      return { success: true };
+    } catch (error: any) {
+      if (error?.name === "AbortError") {
+        return { canceled: true };
+      }
+
+      // Handle non-abort actual errors
+      console.error(error);
+      this.setState({ errorMessage: error.message });
+      return { success: false };
     }
   };
 
