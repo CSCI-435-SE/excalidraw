@@ -82,17 +82,13 @@ import type {
 } from "./types";
 
 export const shouldTestInside = (element: ExcalidrawElement) => {
-  if (element.type === "arrow") {
-    return false;
-  }
-
   const isDraggableFromInside =
     (hasBackground(element.type) && !isTransparent(element.backgroundColor)) ||
     hasBoundTextElement(element) ||
     isIframeLikeElement(element) ||
     isTextElement(element);
 
-  if (element.type === "line") {
+  if (element.type === "line" || element.type === "arrow") {
     return isDraggableFromInside && isPathALoop(element.points);
   }
 
