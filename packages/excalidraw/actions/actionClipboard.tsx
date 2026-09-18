@@ -247,7 +247,11 @@ export const actionCopyAsPng = register({
   predicate: (elements) => {
     return probablySupportsClipboardBlob && elements.length > 0;
   },
-  keyTest: (event) => event.code === CODES.C && event.altKey && event.shiftKey,
+  keyTest: (event) =>
+    !event[KEYS.CTRL_OR_CMD] &&
+    event.code === CODES.C &&
+    event.altKey &&
+    event.shiftKey,
   keywords: ["png", "clipboard", "copy"],
 });
 
