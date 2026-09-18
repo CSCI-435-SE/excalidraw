@@ -255,6 +255,58 @@ exports[`contextMenu element > right-clicking on a group should select whole gro
               d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4"
             />
             <path
+              d="M20 15h-1a2 2 0 0 0 -2 2v2a2 2 0 0 0 2 2h1v-3"
+            />
+            <path
+              d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6"
+            />
+            <path
+              d="M11 21v-6l3 6v-6"
+            />
+          </g>
+        </svg>,
+        "keywords": [
+          "png",
+          "clipboard",
+          "copy",
+          "transparent",
+        ],
+        "label": "labels.copyAsPngTransparent",
+        "name": "copyAsPngTransparent",
+        "perform": [Function],
+        "predicate": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
+      {
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <g
+            strokeWidth={"1.25000"}
+          >
+            <path
+              d="M0 0h24v24H0z"
+              fill="none"
+              stroke="none"
+            />
+            <path
+              d="M14 3v4a1 1 0 0 0 1 1h4"
+            />
+            <path
+              d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4"
+            />
+            <path
               d="M4 20.25c0 .414 .336 .75 .75 .75h1.25a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-1a1 1 0 0 1 -1 -1v-1a1 1 0 0 1 1 -1h1.25a.75 .75 0 0 1 .75 .75"
             />
             <path
@@ -842,6 +894,37 @@ exports[`contextMenu element > right-clicking on a group should select whole gro
         "keyTest": [Function],
         "label": "labels.duplicateSelection",
         "name": "duplicateSelection",
+        "perform": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
+      {
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 20 20"
+        >
+          <g
+            strokeWidth="1.25"
+          >
+            <path
+              d="M14.375 6.458H8.958a2.5 2.5 0 0 0-2.5 2.5v5.417a2.5 2.5 0 0 0 2.5 2.5h5.417a2.5 2.5 0 0 0 2.5-2.5V8.958a2.5 2.5 0 0 0-2.5-2.5Z"
+            />
+            <path
+              clipRule="evenodd"
+              d="M11.667 3.125c.517 0 .986.21 1.325.55.34.338.55.807.55 1.325v1.458H8.333c-.485 0-.927.185-1.26.487-.343.312-.57.75-.609 1.24l-.005 5.357H5a1.87 1.87 0 0 1-1.326-.55 1.87 1.87 0 0 1-.549-1.325V5c0-.518.21-.987.55-1.326.338-.34.807-.549 1.325-.549h6.667Z"
+            />
+          </g>
+        </svg>,
+        "label": "labels.duplicateRotated",
+        "name": "duplicateRotated",
         "perform": [Function],
         "trackEvent": {
           "category": "element",
@@ -4930,6 +5013,58 @@ exports[`contextMenu element > shows 'Group selection' in context menu for multi
               d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4"
             />
             <path
+              d="M20 15h-1a2 2 0 0 0 -2 2v2a2 2 0 0 0 2 2h1v-3"
+            />
+            <path
+              d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6"
+            />
+            <path
+              d="M11 21v-6l3 6v-6"
+            />
+          </g>
+        </svg>,
+        "keywords": [
+          "png",
+          "clipboard",
+          "copy",
+          "transparent",
+        ],
+        "label": "labels.copyAsPngTransparent",
+        "name": "copyAsPngTransparent",
+        "perform": [Function],
+        "predicate": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
+      {
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <g
+            strokeWidth={"1.25000"}
+          >
+            <path
+              d="M0 0h24v24H0z"
+              fill="none"
+              stroke="none"
+            />
+            <path
+              d="M14 3v4a1 1 0 0 0 1 1h4"
+            />
+            <path
+              d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4"
+            />
+            <path
               d="M4 20.25c0 .414 .336 .75 .75 .75h1.25a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-1a1 1 0 0 1 -1 -1v-1a1 1 0 0 1 1 -1h1.25a.75 .75 0 0 1 .75 .75"
             />
             <path
@@ -5517,6 +5652,37 @@ exports[`contextMenu element > shows 'Group selection' in context menu for multi
         "keyTest": [Function],
         "label": "labels.duplicateSelection",
         "name": "duplicateSelection",
+        "perform": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
+      {
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 20 20"
+        >
+          <g
+            strokeWidth="1.25"
+          >
+            <path
+              d="M14.375 6.458H8.958a2.5 2.5 0 0 0-2.5 2.5v5.417a2.5 2.5 0 0 0 2.5 2.5h5.417a2.5 2.5 0 0 0 2.5-2.5V8.958a2.5 2.5 0 0 0-2.5-2.5Z"
+            />
+            <path
+              clipRule="evenodd"
+              d="M11.667 3.125c.517 0 .986.21 1.325.55.34.338.55.807.55 1.325v1.458H8.333c-.485 0-.927.185-1.26.487-.343.312-.57.75-.609 1.24l-.005 5.357H5a1.87 1.87 0 0 1-1.326-.55 1.87 1.87 0 0 1-.549-1.325V5c0-.518.21-.987.55-1.326.338-.34.807-.549 1.325-.549h6.667Z"
+            />
+          </g>
+        </svg>,
+        "label": "labels.duplicateRotated",
+        "name": "duplicateRotated",
         "perform": [Function],
         "trackEvent": {
           "category": "element",
@@ -6149,6 +6315,58 @@ exports[`contextMenu element > shows 'Ungroup selection' in context menu for gro
               d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4"
             />
             <path
+              d="M20 15h-1a2 2 0 0 0 -2 2v2a2 2 0 0 0 2 2h1v-3"
+            />
+            <path
+              d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6"
+            />
+            <path
+              d="M11 21v-6l3 6v-6"
+            />
+          </g>
+        </svg>,
+        "keywords": [
+          "png",
+          "clipboard",
+          "copy",
+          "transparent",
+        ],
+        "label": "labels.copyAsPngTransparent",
+        "name": "copyAsPngTransparent",
+        "perform": [Function],
+        "predicate": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
+      {
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <g
+            strokeWidth={"1.25000"}
+          >
+            <path
+              d="M0 0h24v24H0z"
+              fill="none"
+              stroke="none"
+            />
+            <path
+              d="M14 3v4a1 1 0 0 0 1 1h4"
+            />
+            <path
+              d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4"
+            />
+            <path
               d="M4 20.25c0 .414 .336 .75 .75 .75h1.25a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-1a1 1 0 0 1 -1 -1v-1a1 1 0 0 1 1 -1h1.25a.75 .75 0 0 1 .75 .75"
             />
             <path
@@ -6742,6 +6960,37 @@ exports[`contextMenu element > shows 'Ungroup selection' in context menu for gro
         },
       },
       {
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 20 20"
+        >
+          <g
+            strokeWidth="1.25"
+          >
+            <path
+              d="M14.375 6.458H8.958a2.5 2.5 0 0 0-2.5 2.5v5.417a2.5 2.5 0 0 0 2.5 2.5h5.417a2.5 2.5 0 0 0 2.5-2.5V8.958a2.5 2.5 0 0 0-2.5-2.5Z"
+            />
+            <path
+              clipRule="evenodd"
+              d="M11.667 3.125c.517 0 .986.21 1.325.55.34.338.55.807.55 1.325v1.458H8.333c-.485 0-.927.185-1.26.487-.343.312-.57.75-.609 1.24l-.005 5.357H5a1.87 1.87 0 0 1-1.326-.55 1.87 1.87 0 0 1-.549-1.325V5c0-.518.21-.987.55-1.326.338-.34.807-.549 1.325-.549h6.667Z"
+            />
+          </g>
+        </svg>,
+        "label": "labels.duplicateRotated",
+        "name": "duplicateRotated",
+        "perform": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
+      {
         "icon": [Function],
         "keyTest": [Function],
         "label": [Function],
@@ -7237,6 +7486,58 @@ exports[`contextMenu element > shows context menu for canvas > [end of test] app
         ],
         "label": "labels.copyAsPng",
         "name": "copyAsPng",
+        "perform": [Function],
+        "predicate": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
+      {
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <g
+            strokeWidth={"1.25000"}
+          >
+            <path
+              d="M0 0h24v24H0z"
+              fill="none"
+              stroke="none"
+            />
+            <path
+              d="M14 3v4a1 1 0 0 0 1 1h4"
+            />
+            <path
+              d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4"
+            />
+            <path
+              d="M20 15h-1a2 2 0 0 0 -2 2v2a2 2 0 0 0 2 2h1v-3"
+            />
+            <path
+              d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6"
+            />
+            <path
+              d="M11 21v-6l3 6v-6"
+            />
+          </g>
+        </svg>,
+        "keywords": [
+          "png",
+          "clipboard",
+          "copy",
+          "transparent",
+        ],
+        "label": "labels.copyAsPngTransparent",
+        "name": "copyAsPngTransparent",
         "perform": [Function],
         "predicate": [Function],
         "trackEvent": {
@@ -8110,6 +8411,58 @@ exports[`contextMenu element > shows context menu for element > [end of test] ap
               d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4"
             />
             <path
+              d="M20 15h-1a2 2 0 0 0 -2 2v2a2 2 0 0 0 2 2h1v-3"
+            />
+            <path
+              d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6"
+            />
+            <path
+              d="M11 21v-6l3 6v-6"
+            />
+          </g>
+        </svg>,
+        "keywords": [
+          "png",
+          "clipboard",
+          "copy",
+          "transparent",
+        ],
+        "label": "labels.copyAsPngTransparent",
+        "name": "copyAsPngTransparent",
+        "perform": [Function],
+        "predicate": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
+      {
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <g
+            strokeWidth={"1.25000"}
+          >
+            <path
+              d="M0 0h24v24H0z"
+              fill="none"
+              stroke="none"
+            />
+            <path
+              d="M14 3v4a1 1 0 0 0 1 1h4"
+            />
+            <path
+              d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4"
+            />
+            <path
               d="M4 20.25c0 .414 .336 .75 .75 .75h1.25a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-1a1 1 0 0 1 -1 -1v-1a1 1 0 0 1 1 -1h1.25a.75 .75 0 0 1 .75 .75"
             />
             <path
@@ -8697,6 +9050,37 @@ exports[`contextMenu element > shows context menu for element > [end of test] ap
         "keyTest": [Function],
         "label": "labels.duplicateSelection",
         "name": "duplicateSelection",
+        "perform": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
+      {
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 20 20"
+        >
+          <g
+            strokeWidth="1.25"
+          >
+            <path
+              d="M14.375 6.458H8.958a2.5 2.5 0 0 0-2.5 2.5v5.417a2.5 2.5 0 0 0 2.5 2.5h5.417a2.5 2.5 0 0 0 2.5-2.5V8.958a2.5 2.5 0 0 0-2.5-2.5Z"
+            />
+            <path
+              clipRule="evenodd"
+              d="M11.667 3.125c.517 0 .986.21 1.325.55.34.338.55.807.55 1.325v1.458H8.333c-.485 0-.927.185-1.26.487-.343.312-.57.75-.609 1.24l-.005 5.357H5a1.87 1.87 0 0 1-1.326-.55 1.87 1.87 0 0 1-.549-1.325V5c0-.518.21-.987.55-1.326.338-.34.807-.549 1.325-.549h6.667Z"
+            />
+          </g>
+        </svg>,
+        "label": "labels.duplicateRotated",
+        "name": "duplicateRotated",
         "perform": [Function],
         "trackEvent": {
           "category": "element",
@@ -9103,6 +9487,58 @@ exports[`contextMenu element > shows context menu for element > [end of test] ap
               d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4"
             />
             <path
+              d="M20 15h-1a2 2 0 0 0 -2 2v2a2 2 0 0 0 2 2h1v-3"
+            />
+            <path
+              d="M5 18h1.5a1.5 1.5 0 0 0 0 -3h-1.5v6"
+            />
+            <path
+              d="M11 21v-6l3 6v-6"
+            />
+          </g>
+        </svg>,
+        "keywords": [
+          "png",
+          "clipboard",
+          "copy",
+          "transparent",
+        ],
+        "label": "labels.copyAsPngTransparent",
+        "name": "copyAsPngTransparent",
+        "perform": [Function],
+        "predicate": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
+      {
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <g
+            strokeWidth={"1.25000"}
+          >
+            <path
+              d="M0 0h24v24H0z"
+              fill="none"
+              stroke="none"
+            />
+            <path
+              d="M14 3v4a1 1 0 0 0 1 1h4"
+            />
+            <path
+              d="M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4"
+            />
+            <path
               d="M4 20.25c0 .414 .336 .75 .75 .75h1.25a1 1 0 0 0 1 -1v-1a1 1 0 0 0 -1 -1h-1a1 1 0 0 1 -1 -1v-1a1 1 0 0 1 1 -1h1.25a.75 .75 0 0 1 .75 .75"
             />
             <path
@@ -9690,6 +10126,37 @@ exports[`contextMenu element > shows context menu for element > [end of test] ap
         "keyTest": [Function],
         "label": "labels.duplicateSelection",
         "name": "duplicateSelection",
+        "perform": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
+      {
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 20 20"
+        >
+          <g
+            strokeWidth="1.25"
+          >
+            <path
+              d="M14.375 6.458H8.958a2.5 2.5 0 0 0-2.5 2.5v5.417a2.5 2.5 0 0 0 2.5 2.5h5.417a2.5 2.5 0 0 0 2.5-2.5V8.958a2.5 2.5 0 0 0-2.5-2.5Z"
+            />
+            <path
+              clipRule="evenodd"
+              d="M11.667 3.125c.517 0 .986.21 1.325.55.34.338.55.807.55 1.325v1.458H8.333c-.485 0-.927.185-1.26.487-.343.312-.57.75-.609 1.24l-.005 5.357H5a1.87 1.87 0 0 1-1.326-.55 1.87 1.87 0 0 1-.549-1.325V5c0-.518.21-.987.55-1.326.338-.34.807-.549 1.325-.549h6.667Z"
+            />
+          </g>
+        </svg>,
+        "label": "labels.duplicateRotated",
+        "name": "duplicateRotated",
         "perform": [Function],
         "trackEvent": {
           "category": "element",

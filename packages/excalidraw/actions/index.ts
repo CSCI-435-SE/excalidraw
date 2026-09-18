@@ -7,6 +7,7 @@ export {
 } from "./actionZindex";
 export { actionSelectAll } from "./actionSelectAll";
 export { actionDuplicateSelection } from "./actionDuplicateSelection";
+export { actionDuplicateRotated } from "./actionDuplicateRotated";
 export {
   actionChangeStrokeColor,
   actionChangeBackgroundColor,
@@ -79,6 +80,7 @@ export {
   actionCopy,
   actionCut,
   actionCopyAsPng,
+  actionCopyAsPngTransparent,
   actionCopyAsSvg,
   copyText,
 } from "./actionClipboard";

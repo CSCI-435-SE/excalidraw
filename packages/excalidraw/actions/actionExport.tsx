@@ -13,7 +13,7 @@ import { IconButton } from "../components/IconButton";
 import { Tooltip } from "../components/Tooltip";
 import { ExportIcon, questionCircle, saveAs } from "../components/icons";
 import { loadFromJSON, saveAsJSON } from "../data";
-import { isImageFileHandle } from "../data/blob";
+import { getNameWithoutExtension, isImageFileHandle } from "../data/blob";
 import { nativeFileSystemSupported } from "../data/filesystem";
 
 import { resaveAsImageWithScene } from "../data/resave";
@@ -291,6 +291,9 @@ export const actionSaveToActiveFile = register({
         captureUpdate: CaptureUpdateAction.NEVER,
         appState: {
           fileHandle,
+          name: fileHandle?.name
+            ? getNameWithoutExtension(fileHandle.name)
+            : filename,
           toast: {
             message:
               previousFileHandle && fileHandle?.name
@@ -340,10 +343,12 @@ export const actionSaveFileToDisk = register({
     const { abortController, data: exportedDataPromise } =
       prepareDataForJSONExport(elements, appState, app.files, app);
 
+    const filename = app.getName();
+
     try {
       const { fileHandle: savedFileHandle } = await saveAsJSON({
         data: exportedDataPromise,
-        filename: app.getName(),
+        filename,
         fileHandle: null,
       });
 
@@ -352,6 +357,11 @@ export const actionSaveFileToDisk = register({
         appState: {
           openDialog: null,
           fileHandle: savedFileHandle,
+          // the native save dialog may let the user pick a different name
+          // than the one we suggested, so prefer the handle's actual name
+          name: savedFileHandle?.name
+            ? getNameWithoutExtension(savedFileHandle.name)
+            : filename,
           toast: { message: t("toast.fileSaved"), duration: 3000 },
         },
       };

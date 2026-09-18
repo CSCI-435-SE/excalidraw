@@ -136,7 +136,7 @@ export const exportCanvas = async (
     );
 
     if (type === "svg") {
-      return fileSave(
+      return await fileSave(
         svgPromise.then((svg) => {
           // adding SVG preamble so that older software parse the SVG file
           // properly
@@ -184,7 +184,7 @@ export const exportCanvas = async (
       );
     }
 
-    return fileSave(blob, {
+    return await fileSave(blob, {
       description: "Export to PNG",
       name,
       extension: appState.exportEmbedScene ? "excalidraw.png" : "png",
