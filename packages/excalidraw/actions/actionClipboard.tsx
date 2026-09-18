@@ -251,6 +251,65 @@ export const actionCopyAsPng = register({
   keywords: ["png", "clipboard", "copy"],
 });
 
+export const actionCopyAsPngTransparent = register({
+  name: "copyAsPngTransparent",
+  label: "labels.copyAsPngTransparent",
+  icon: pngIcon,
+  trackEvent: { category: "element" },
+  perform: async (elements, appState, _data, app) => {
+    if (!app.canvas) {
+      return {
+        captureUpdate: CaptureUpdateAction.EVENTUALLY,
+      };
+    }
+    const selectedElements = app.scene.getSelectedElements({
+      selectedElementIds: appState.selectedElementIds,
+      includeBoundTextElement: true,
+      includeElementsInFrames: true,
+    });
+
+    const { exportedElements, exportingFrame } = prepareElementsForExport(
+      elements,
+      appState,
+      true,
+    );
+    try {
+      await exportCanvas("clipboard", exportedElements, appState, app.files, {
+        ...appState,
+        exportBackground: false,
+        exportingFrame,
+        name: app.getName(),
+      });
+      return {
+        appState: {
+          ...appState,
+          toast: {
+            message: t("toast.copyToClipboardAsPngTransparent", {
+              exportSelection: selectedElements.length
+                ? t("toast.selection")
+                : t("toast.canvas"),
+            }),
+          },
+        },
+        captureUpdate: CaptureUpdateAction.EVENTUALLY,
+      };
+    } catch (error: any) {
+      console.error(error);
+      return {
+        appState: {
+          ...appState,
+          errorMessage: error.message,
+        },
+        captureUpdate: CaptureUpdateAction.EVENTUALLY,
+      };
+    }
+  },
+  predicate: (elements) => {
+    return probablySupportsClipboardBlob && elements.length > 0;
+  },
+  keywords: ["png", "clipboard", "copy", "transparent"],
+});
+
 export const copyText = register({
   name: "copyText",
   label: "labels.copyText",
