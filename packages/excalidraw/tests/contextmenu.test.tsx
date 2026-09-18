@@ -136,6 +136,7 @@ describe("contextMenu element", () => {
       "sendToBack",
       "bringToFront",
       "duplicateSelection",
+      "duplicateRotated",
       "hyperlink",
       "copyElementLink",
       "toggleElementLock",
@@ -237,7 +238,7 @@ describe("contextMenu element", () => {
     ];
 
     expect(contextMenu).not.toBeNull();
-    expect(contextMenuOptions?.length).toBe(expectedShortcutNames.length);
+    expect(contextMenuOptions?.length).toBe(expectedShortcutNames.length + 1);
     expectedShortcutNames.forEach((shortcutName) => {
       expect(
         contextMenu?.querySelector(`li[data-testid="${shortcutName}"]`),
@@ -293,6 +294,7 @@ describe("contextMenu element", () => {
       "sendToBack",
       "bringToFront",
       "duplicateSelection",
+      "duplicateRotated",
       "toggleElementLock",
     ];
 

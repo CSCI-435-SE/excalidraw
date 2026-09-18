@@ -297,6 +297,7 @@ import {
   actionBringToFront,
   actionCopy,
   actionCopyAsPng,
+  actionCopyAsPngTransparent,
   actionCopyAsSvg,
   copyText,
   actionCopyStyles,
@@ -304,6 +305,7 @@ import {
   actionCut,
   actionDeleteSelected,
   actionDuplicateSelection,
+  actionDuplicateRotated,
   actionFinalize,
   actionFlipHorizontal,
   actionFlipVertical,
@@ -13016,7 +13018,7 @@ class App extends React.Component<AppProps, AppState> {
   ): ContextMenuItems => {
     const options: ContextMenuItems = [];
 
-    options.push(actionCopyAsPng, actionCopyAsSvg);
+    options.push(actionCopyAsPng, actionCopyAsPngTransparent, actionCopyAsSvg);
 
     // canvas contextMenu
     // -------------------------------------------------------------------------
@@ -13036,6 +13038,7 @@ class App extends React.Component<AppProps, AppState> {
         actionPaste,
         CONTEXT_MENU_SEPARATOR,
         actionCopyAsPng,
+        actionCopyAsPngTransparent,
         actionCopyAsSvg,
         copyText,
         CONTEXT_MENU_SEPARATOR,
@@ -13110,6 +13113,7 @@ class App extends React.Component<AppProps, AppState> {
       actionCopyElementLink,
       CONTEXT_MENU_SEPARATOR,
       actionDuplicateSelection,
+      actionDuplicateRotated,
       actionToggleElementLock,
       CONTEXT_MENU_SEPARATOR,
       actionDeleteSelected,
