@@ -135,6 +135,10 @@ export const isSupportedImageFile = (
   return isSupportedImageFileType(type);
 };
 
+/** strips the extension (e.g. ".excalidraw") off an on-disk file name */
+export const getNameWithoutExtension = (name: string) =>
+  name.replace(/\.[^./\\]+$/, "");
+
 export const loadSceneOrLibraryFromBlob = async (
   blob: Blob | File,
   /** @see restore.localAppState */
@@ -158,6 +162,10 @@ export const loadSceneOrLibraryFromBlob = async (
       throw error;
     }
     if (isValidExcalidrawData(data)) {
+      const cleanedAppState = cleanAppStateForExport(data.appState || {});
+      // the name isn't retained across export/import, so derive it from the
+      // opened file itself (native file handle, or the input's file name)
+      const openedFileName = fileHandle?.name || blob.handle?.name || blob.name;
       return {
         type: MIME_TYPES.excalidraw,
         data: {
@@ -169,7 +177,10 @@ export const loadSceneOrLibraryFromBlob = async (
             {
               theme: localAppState?.theme,
               fileHandle: fileHandle || blob.handle || null,
-              ...cleanAppStateForExport(data.appState || {}),
+              ...cleanedAppState,
+              name: openedFileName
+                ? getNameWithoutExtension(openedFileName)
+                : null,
               ...(localAppState
                 ? getScrollToContentState(data.elements || [], localAppState)
                 : {}),
