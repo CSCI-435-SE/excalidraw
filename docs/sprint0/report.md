@@ -73,12 +73,13 @@ Deviations/adaptations made by the team:
 | [#20](https://github.com/CSCI-435-SE/excalidraw/pull/20) | [#5](https://github.com/CSCI-435-SE/excalidraw/issues/5) | AntWill-08 | tristanraab | Merged | Replaced the 3-option stroke width picker with a draggable slider showing a live value. |
 | [#19](https://github.com/CSCI-435-SE/excalidraw/pull/19) | [#3](https://github.com/CSCI-435-SE/excalidraw/issues/3) | tristanraab | AntWill-08 | Merged | Split zoom shortcuts into a normal step and a 1% fine-zoom step. |
 | [#41](https://github.com/CSCI-435-SE/excalidraw/pull/41) | [#31](https://github.com/CSCI-435-SE/excal
-idraw/issues/31) | NotaThomas | CashenCroft  | Reviewed | Adds a "duplicate rotated..." option to the element context menu. |
+idraw/issues/31) | NotaThomas | CashenCroft  | Merged | Adds a "duplicate rotated..." option to the element context menu. |
 | [#35](https://github.com/CSCI-435-SE/excalidraw/pull/35) | [#17](https://github.com/CSCI-435-SE/excalidraw/issues/17) | Thomas2839 | CashenCroft  | Reviewed | Web embeds default to layering under drawings instead of always on top. |
 | [#34](https://github.com/CSCI-435-SE/excalidraw/pull/34) | [#16](https://github.com/CSCI-435-SE/excalidraw/issues/16) | Thomas2839 | CashenCroft  | Reviewed | Adds a copy/paste shortcut that only transfers an element's line width. |
 
 # AI tool usage
-Alex: ---
+Alex: (@tuna-fisher)
+AI Logs Folder: ai-logs/sprint0/@tuna-fisher/
 
 Anthony Williams (@AntWill-08)
 AI Logs Folder: ai-logs/sprint0/AntWill-08/
@@ -87,7 +88,8 @@ Tools Used: Claude (Course Claude Team Plan)
 Tasks Assisted: Unit test, assist in code implementations, and git workflows and finding CI issue.
 Summary: My AI usage was primary for speeding up coding and test implementing process, helping learn to naviagte the repo, and understanding error in CI.
 
-Brian: ---
+Brian: (@Thomas2839)
+AI Logs Folder: ai-logs/sprint0/@Thomas2839/
 
 Cashen Croft (@CashenCroft)
 AI Logs Folder: ai-logs/sprint0/CashenCroft/
@@ -96,9 +98,13 @@ Tools Used: Claude (Course Claude Team Plan)
 Tasks Assisted: Unit test mocking, TypeScript fixes, and git workflows.
 Summary: Detailed session transcripts and key takeaways are documented in the folder linked above. Focused on bug fixing on test cases, with back and forth with Claude. Looked mainly into errors caused by failures in front-end information transfers.
 
-Thomas: ---
+Thomas: (@NotaThomas)
+AI Logs Folder: ai-logs/sprint0/@NotaThomas/
 
-Tristan: ---
+
+Tristan: (@tristanraab)
+AI Logs Folder: ai-logs/sprint0/@tristanraab/
+
 
 # Release
 v0.1.0-csci435-s0
