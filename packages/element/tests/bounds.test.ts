@@ -104,6 +104,25 @@ describe("getElementBounds", () => {
     expect(y2).toEqual(42.071067811865476);
   });
 
+  it("triangle falls back to the rectangle's rotated bounding box", () => {
+    // triangle has no dedicated branch in getElementBounds, so its rotated
+    // bounds are the same (slightly looser than a tight fit) as a
+    // rectangle's of the same box — matches the "rectangle" case above
+    const element = _ce({
+      x: 40,
+      y: 30,
+      w: 20,
+      h: 10,
+      a: Math.PI / 4,
+      t: "triangle",
+    });
+    const [x1, y1, x2, y2] = getElementBounds(element, arrayToMap([element]));
+    expect(x1).toEqual(39.39339828220179);
+    expect(y1).toEqual(24.393398282201787);
+    expect(x2).toEqual(60.60660171779821);
+    expect(y2).toEqual(45.60660171779821);
+  });
+
   it("ellipse", () => {
     const element = _ce({
       x: 40,

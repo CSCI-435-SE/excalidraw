@@ -34,7 +34,11 @@ import type {
   Zoom,
 } from "@excalidraw/excalidraw/types";
 
-import { elementCenterPoint, getDiamondPoints } from "./bounds";
+import {
+  elementCenterPoint,
+  getDiamondPoints,
+  getTrianglePoints,
+} from "./bounds";
 
 import { generateLinearCollisionShape } from "./shape";
 
@@ -57,6 +61,7 @@ import type {
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
   ExcalidrawRectanguloidElement,
+  ExcalidrawTriangleElement,
 } from "./types";
 
 type ElementShape = [LineSegment<GlobalPoint>[], Curve<GlobalPoint>[]];
@@ -451,6 +456,96 @@ export function deconstructDiamondElement(
     ),
     lineSegment<GlobalPoint>(
       corners[3][corners[3].length - 1][3],
+      corners[0][0][0],
+    ),
+  ];
+
+  const shape = [sides, corners.flat()] as ElementShape;
+
+  setElementShapesCacheEntry(element, shape, offset);
+
+  return shape;
+}
+
+export function getTriangleBaseCorners(
+  element: ExcalidrawTriangleElement,
+  offset: number = 0,
+): Curve<GlobalPoint>[] {
+  const [topX, topY, rightX, rightY, leftX, leftY] = getTrianglePoints(element);
+  // triangle corners are always sharp (no roundness support), but the curve
+  // control points still need a nonzero delta to avoid a degenerate curve
+  const epsilonX = Math.max((rightX - leftX) * 0.01, 0.01);
+  const epsilonY = Math.max((rightY - topY) * 0.01, 0.01);
+
+  const [top, right, left]: GlobalPoint[] = [
+    pointFrom(element.x + topX, element.y + topY),
+    pointFrom(element.x + rightX, element.y + rightY),
+    pointFrom(element.x + leftX, element.y + leftY),
+  ];
+
+  return [
+    curve(
+      pointFrom<GlobalPoint>(right[0] - epsilonX, right[1] - epsilonY),
+      right,
+      right,
+      pointFrom<GlobalPoint>(right[0] - epsilonX, right[1]),
+    ), // RIGHT
+    curve(
+      pointFrom<GlobalPoint>(left[0] + epsilonX, left[1]),
+      left,
+      left,
+      pointFrom<GlobalPoint>(left[0] + epsilonX, left[1] - epsilonY),
+    ), // LEFT
+    curve(
+      pointFrom<GlobalPoint>(top[0] - epsilonX, top[1] + epsilonY),
+      top,
+      top,
+      pointFrom<GlobalPoint>(top[0] + epsilonX, top[1] + epsilonY),
+    ), // TOP
+  ];
+}
+
+/**
+ * Get the **unrotated** building components of a triangle element
+ * in the form of line segments and curves as a tuple, in this order.
+ *
+ * @param element The element to deconstruct
+ * @param offset An optional offset
+ * @returns Tuple of line **unrotated** segments (0) and curves (1)
+ */
+export function deconstructTriangleElement(
+  element: ExcalidrawTriangleElement,
+  offset: number = 0,
+): ElementShape {
+  const cachedShape = getElementShapesCacheEntry(element, offset);
+
+  if (cachedShape) {
+    return cachedShape;
+  }
+
+  const baseCorners = getTriangleBaseCorners(element, offset);
+
+  const corners =
+    offset > 0
+      ? baseCorners.map(
+          (corner) =>
+            curveCatmullRomCubicApproxPoints(
+              curveOffsetPoints(corner, offset),
+            )!,
+        )
+      : [[baseCorners[0]], [baseCorners[1]], [baseCorners[2]]];
+
+  const sides = [
+    lineSegment<GlobalPoint>(
+      corners[0][corners[0].length - 1][3],
+      corners[1][0][0],
+    ),
+    lineSegment<GlobalPoint>(
+      corners[1][corners[1].length - 1][3],
+      corners[2][0][0],
+    ),
+    lineSegment<GlobalPoint>(
+      corners[2][corners[2].length - 1][3],
       corners[0][0][0],
     ),
   ];
