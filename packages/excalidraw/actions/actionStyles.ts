@@ -67,7 +67,10 @@ export const actionCopyStyles = register({
     };
   },
   keyTest: (event) =>
-    event[KEYS.CTRL_OR_CMD] && event.altKey && !event.shiftKey && event.code === CODES.C,
+    event[KEYS.CTRL_OR_CMD] &&
+    event.altKey &&
+    !event.shiftKey &&
+    event.code === CODES.C,
 });
 
 export const actionPasteStyles = register({
@@ -169,7 +172,10 @@ export const actionPasteStyles = register({
     };
   },
   keyTest: (event) =>
-    event[KEYS.CTRL_OR_CMD] && event.altKey && !event.shiftKey && event.code === CODES.V,
+    event[KEYS.CTRL_OR_CMD] &&
+    event.altKey &&
+    !event.shiftKey &&
+    event.code === CODES.V,
 });
 
 export const actionCopyStrokeWidth = register({
@@ -200,7 +206,10 @@ export const actionCopyStrokeWidth = register({
     };
   },
   keyTest: (event) =>
-    event[KEYS.CTRL_OR_CMD] && event.altKey && event.shiftKey && event.code === CODES.C,
+    event[KEYS.CTRL_OR_CMD] &&
+    event.altKey &&
+    event.shiftKey &&
+    event.code === CODES.C,
 });
 
 export const actionPasteStrokeWidth = register({
@@ -240,5 +249,8 @@ export const actionPasteStrokeWidth = register({
     };
   },
   keyTest: (event) =>
-    event[KEYS.CTRL_OR_CMD] && event.altKey && event.shiftKey && event.code === CODES.V,
+    event[KEYS.CTRL_OR_CMD] &&
+    event.altKey &&
+    event.shiftKey &&
+    event.code === CODES.V,
 });
