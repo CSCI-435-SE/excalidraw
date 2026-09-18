@@ -105,6 +105,10 @@ AI Logs Folder: ai-logs/sprint0/@NotaThomas/
 Tristan: (@tristanraab)
 AI Logs Folder: ai-logs/sprint0/@tristanraab/
 
+Tools Used: GitHub Copilot (VS Code)
+Tasks Assisted: Assist in code implementations and setting up SpecStory
+Summary: I wasn't planning on using AI for this section but one of my PRs was similar to one Anthony did so I wanted to see if I could use a similar prompt and get similar results. I also tried to use it to help me get the logs from SpecStory, but unfortunately it was unsucessful. That is also why there is no logs in my logs folder.
+
 
 # Release
 v0.1.0-csci435-s0
