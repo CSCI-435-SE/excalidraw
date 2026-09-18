@@ -1837,6 +1837,9 @@ class App extends React.Component<AppProps, AppState> {
                 "is-hovered": isHovered,
               })}
               style={{
+                // Keep embeds below the canvas so other elements can render above
+                // them. Raise the active embed so its iframe remains interactive.
+                zIndex: isActive ? 4 : 2,
                 transform: isVisible
                   ? `translate(${x - this.state.offsetLeft}px, ${
                       y - this.state.offsetTop

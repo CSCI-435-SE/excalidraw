@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 
 import { isShallowEqual } from "@excalidraw/common";
+import { isIframeLikeElement } from "@excalidraw/element";
 
 import type {
   NonDeletedExcalidrawElement,
@@ -32,6 +33,7 @@ type StaticCanvasProps = {
 
 const StaticCanvas = (props: StaticCanvasProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const foregroundCanvasRef = useRef<HTMLCanvasElement>(null);
   const isComponentMounted = useRef(false);
 
   useEffect(() => {
@@ -39,6 +41,12 @@ const StaticCanvas = (props: StaticCanvasProps) => {
     props.canvas.style.height = `${props.appState.height}px`;
     props.canvas.width = props.appState.width * props.scale;
     props.canvas.height = props.appState.height * props.scale;
+    if (foregroundCanvasRef.current) {
+      foregroundCanvasRef.current.style.width = `${props.appState.width}px`;
+      foregroundCanvasRef.current.style.height = `${props.appState.height}px`;
+      foregroundCanvasRef.current.width = props.appState.width * props.scale;
+      foregroundCanvasRef.current.height = props.appState.height * props.scale;
+    }
   }, [props.appState.height, props.appState.width, props.canvas, props.scale]);
 
   useEffect(() => {
@@ -69,9 +77,43 @@ const StaticCanvas = (props: StaticCanvasProps) => {
       },
       isRenderThrottlingEnabled(),
     );
+
+    if (foregroundCanvasRef.current) {
+      renderStaticScene(
+        {
+          canvas: foregroundCanvasRef.current,
+          rc: props.rc,
+          scale: props.scale,
+          elementsMap: props.elementsMap,
+          allElementsMap: props.allElementsMap,
+          visibleElements: props.visibleElements.filter(
+            (element) => !isIframeLikeElement(element),
+          ),
+          appState: {
+            ...props.appState,
+            viewBackgroundColor: "transparent",
+          },
+          renderConfig: {
+            ...props.renderConfig,
+            canvasBackgroundColor: "transparent",
+            renderGrid: false,
+          },
+        },
+        isRenderThrottlingEnabled(),
+      );
+    }
   });
 
-  return <div className="excalidraw__canvas-wrapper" ref={wrapperRef} />;
+  return (
+    <>
+      <div className="excalidraw__canvas-wrapper" ref={wrapperRef} />
+      <canvas
+        ref={foregroundCanvasRef}
+        className="excalidraw__canvas foreground"
+        aria-hidden="true"
+      />
+    </>
+  );
 };
 
 const getRelevantAppStateProps = (appState: AppState): StaticCanvasAppState => {
