@@ -46,7 +46,12 @@ export {
   actionLoadScene,
 } from "./actionExport";
 
-export { actionCopyStyles, actionPasteStyles } from "./actionStyles";
+export {
+  actionCopyStyles,
+  actionPasteStyles,
+  actionCopyStrokeWidth,
+  actionPasteStrokeWidth,
+} from "./actionStyles";
 export { actionShortcuts } from "./actionMenu";
 
 export { actionGroup, actionUngroup } from "./actionGroup";
