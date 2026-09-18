@@ -17,9 +17,7 @@ Excalidraw
 <img width="840" height="480" alt="840x560" src="https://github.com/user-attachments/assets/5158ab06-0ae6-4469-a59c-def800efddf6" />
 
 What it does / users: Excalidraw is a virtual whiteboard for sketching with real-time multi-user collaboration. Users range from individual users to teams doing brainstorming, diagramming, and remote whiteboarding
-
 Main features: shapes, freedraw, text, arrows/lines with binding, image embeds, an infinite pannable/zoomable canvas, styling (stroke/fill/opacity/fonts), grouping/layering, undo/redo history, live multiplayer collaboration, and export/import (PNG, SVG, .excalidraw JSON).
-
 Main components & interactions: the packages/excalidraw React component renders the canvas and UI and owns scene/element state; excalidraw-app wraps that component into the full excalidraw.com app, adding collaboration (sockets/server sync), local persistence, anetry, element types, math, utils) lives inpackages/common, packages/element, packages/math, and packages/utils, which both the library and app depend on.       
 Technologies: TypeScript, React, Vite (app) and esbuild (packages), Yarn workspaces, Vitest for testing, Rough.js for  the hand-drawn rendering style, and a collabrver + storage) for real-time sync inexcalidraw-app.                           
 Code organization: monorepo via Yarn workspaces — packages/excalidraw/ (published library), excalidraw-app/ (web app), packages/common|element|math|utils (core shatJS and browser-script integration samples), dev-docs/docs/codebase/ (architecture notes on elements, renderer, history, collaboration).
@@ -29,8 +27,7 @@ Issue standards: issues are filed in GitHub Issues, labeled by type (bug, enhanc
 
 # Feature Backlog Summary
 
-The team created **25 issues** during Sprint 0 (5 closed, 18 still open). Issues cluster into a few rec
-urring themes:
+The team created **25 issues** during Sprint 0 (5 closed, 18 still open). Issues cluster into a few recurring themes:
 
 - **Precision & fine-grained control** — replacing fixed presets with sliders/numeric input (stroke width -  #5, font size #23, zoom #3, line width #16, duplicate offset #31).
 - **Shape & drawing tools** — new stamps and rendering options (triangle stamp #4, shape masking #11, gradients #12, image filters #37, more fonts #40).
@@ -41,10 +38,9 @@ urring themes:
 
 Top features the team wants to pursue
 
-1. [Add element grouping system (#335-SE/excalidraw/issues/33)
+1. [Add element grouping system (#33)](https://github.com/CSCI-435-SE/excalidraw/issues/33)
 2. [Allow users to snap objects to grid (#32)](https://github.com/CSCI-435-SE/excalidraw/issues/32)
-3. [Prevent web embeds from always a//github.com/CSCI-435-SE/excalidraw/is
-sues/17)
+3. [Prevent web embeds from always appearing on top (#17)](https://github.com/CSCI-435-SE/excalidraw/issues/17)
 4. [Support for hyperlinks (#15)](htexcalidraw/issues/15)
 5. [Add "duplicate with offset" option (#31)](https://github.com/CSCI-435-SE/excalidraw/issues/31)
 
@@ -53,18 +49,15 @@ We for the most part accepted the current standards document but made a few modi
 Full document: [standards.md](standards.md)
 
 Key conventions adopted from the existing project guidelines:
-- TypeScript/React/Vite monorepo cone/ALL_CAPS naming, Prettier + ESLint e
-nforced via `yarn fix`.
-- Branch-per-issue workflow (`feat/i-...`, `chore/...`) with PRs into a pr
-otected `master`, semantic commit prefixes, and one required teammate review.
-- `yarn test:all` expected before putaging tests required before merge.
+- TypeScript/React/Vite monorepo conventions, PascalCase/camelCase/ALL_CAPS naming, Prettier + ESLint enforced via `yarn fix`.
+- Branch-per-issue workflow (`feat/issue-<N>-...`, `fix/issue-<N>-...`, `chore/...`) with PRs into a protected `master`, semantic commit prefixes, and one required teammate review.
+- `yarn test:all` expected before pushing; CI checks and manual staging tests required before merge.
 
-Deviations/adaptations made by the t
-- **AI tool use is explicitly permitted** and must be logged (code, debugging, understanding the codeba
-se, drafting docs/PRs, design discus
-- **AI usage must be disclosed in every PR description** (start or end), including a "no AI used" note
-when applicable.
+Deviations/adaptations made by the team:
+- **AI tool use is explicitly permitted** and must be logged (code, debugging, understanding the codebase, drafting docs/PRs, design discussions).
+- **AI usage must be disclosed in every PR description** (start or end), including a "no AI used" note when applicable.
 - `size-limit` CI check is currently broken and is treated as a known, ignorable failure for Sprint 0.
+
 
 # Completed PRs
 
@@ -119,35 +112,3 @@ The hardest aspect of sprint 0 was communication ,it served as a massive slowdow
 - Land the still-open Sprint 0 PRs (t 1 work starts from a clean, merged baseline.
 - Fix or replace the broken `bundle-size-check'
 - Set up a clearer AI-logging process/tooling so session logs are reliably captured and saved to `ai-logs/sprint0/<username>/`.
-
-
-
-
-
-
-
-# AI tool usage
-Alex:
-Anthony:
-
-Now let's fill Risks & Challenges and Sprint
-
-● Update(docs\sprint0\report.md)
-Added 13 lines
-
-# Risks and Challenges
-
-- The `size-limit` CI check has been broken since before Sprint 0 and had to be treated as an ignorable
- failure on nearly every PR — it hidns if left unfixed.
-- Several PRs needed a `yarn fix` pass and re-push after review because lint/formatting wasn't run befo
-re opening the PR, adding review rou
-- Two teammates independently opened PRs for the same issue (#26 and #27 both closing #4), showing a ga
-p in claiming/assigning issues befor
-- Logging AI usage was inconsistent — at least one PR author was unable to save/export their AI session
- log, so the logging workflow needs rint 1.
-- Reviews so far have been single-reviewer approvals from a small rotating set of teammates; review ban
-dwidth could become a bottleneck as
-- Testing animation/timer-driven features (e.g., `requestAnimationFrame` keyboard panning) required car
-eful fake-timer setup to avoid flaky
-
-
