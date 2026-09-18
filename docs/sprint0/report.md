@@ -86,6 +86,7 @@ Cashen Croft (@CashenCroft) AI Logs Folder: ai-logs/sprint0/CashenCroft/
 Tools Used: Claude (Course Claude Team Plan) Tasks Assisted: Unit test mocking, TypeScript fixes, and git workflows. Summary: Detailed session transcripts and key takeaways are documented in the folder linked above. Focused on bug fixing on test cases, with back and forth with Claude. Looked mainly into errors caused by failures in front-end information transfers.
 
 Thomas: (@NotaThomas) AI Logs Folder: ai-logs/sprint0/@NotaThomas/
+Tools used: Claude (Course Claude Team Plan) Tasks assisted/usage: Investigation before coding, scoping, Implementation, Test authoring and verification
 
 Tristan: (@tristanraab) AI Logs Folder: ai-logs/sprint0/@tristanraab/
 
