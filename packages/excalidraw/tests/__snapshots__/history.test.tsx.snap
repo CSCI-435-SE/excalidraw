@@ -13077,7 +13077,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on e
 
 exports[`history > singleplayer undo/redo > should create new history entry on embeddable link drag&drop > [end of test] number of elements 1`] = `1`;
 
-exports[`history > singleplayer undo/redo > should create new history entry on embeddable link drag&drop > [end of test] number of renders 1`] = `7`;
+exports[`history > singleplayer undo/redo > should create new history entry on embeddable link drag&drop > [end of test] number of renders 1`] = `10`;
 
 exports[`history > singleplayer undo/redo > should create new history entry on embeddable link drag&drop > [end of test] redo stack 1`] = `[]`;
 
@@ -13286,7 +13286,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on e
 
 exports[`history > singleplayer undo/redo > should create new history entry on embeddable link paste > [end of test] number of elements 1`] = `1`;
 
-exports[`history > singleplayer undo/redo > should create new history entry on embeddable link paste > [end of test] number of renders 1`] = `7`;
+exports[`history > singleplayer undo/redo > should create new history entry on embeddable link paste > [end of test] number of renders 1`] = `10`;
 
 exports[`history > singleplayer undo/redo > should create new history entry on embeddable link paste > [end of test] redo stack 1`] = `[]`;
 

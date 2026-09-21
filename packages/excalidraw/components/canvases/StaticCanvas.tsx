@@ -35,6 +35,7 @@ const StaticCanvas = (props: StaticCanvasProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const foregroundCanvasRef = useRef<HTMLCanvasElement>(null);
   const isComponentMounted = useRef(false);
+  const hadIframeLikeElements = useRef(false);
 
   useEffect(() => {
     props.canvas.style.width = `${props.appState.width}px`;
@@ -78,7 +79,15 @@ const StaticCanvas = (props: StaticCanvasProps) => {
       isRenderThrottlingEnabled(),
     );
 
-    if (foregroundCanvasRef.current) {
+    const hasIframeLikeElements = props.visibleElements.some(
+      isIframeLikeElement,
+    );
+
+    // The foreground canvas exists to layer non-iframe elements on top of
+    // DOM iframe overlays. Only render it when there's actually an
+    // iframe-like element in the scene, otherwise we'd be drawing the same
+    // scene onto the main canvas twice on every update for nothing.
+    if (foregroundCanvasRef.current && hasIframeLikeElements) {
       renderStaticScene(
         {
           canvas: foregroundCanvasRef.current,
@@ -101,7 +110,19 @@ const StaticCanvas = (props: StaticCanvasProps) => {
         },
         isRenderThrottlingEnabled(),
       );
+    } else if (foregroundCanvasRef.current && hadIframeLikeElements.current) {
+      // scene no longer has iframe-like elements; clear stale content left
+      // over from when it did.
+      foregroundCanvasRef.current
+        .getContext("2d")
+        ?.clearRect(
+          0,
+          0,
+          foregroundCanvasRef.current.width,
+          foregroundCanvasRef.current.height,
+        );
     }
+    hadIframeLikeElements.current = hasIframeLikeElements;
   });
 
   return (
