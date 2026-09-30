@@ -3,7 +3,7 @@
 
 :root {
   --zIndex-canvas: 1;
-  --zIndex-interactiveCanvas: 2;
+  --zIndex-interactiveCanvas: 3;
   --zIndex-svgLayer: 3;
   --zIndex-wysiwyg: 3;
   --zIndex-canvasButtons: 3;
@@ -111,6 +111,11 @@ body.excalidraw-cursor-resize * {
       // Apply theme filter only to interactive canvas for UI elements
       // (resize handles, selection boxes, etc.)
       filter: var(--theme-filter);
+    }
+
+    &.foreground {
+      z-index: var(--zIndex-interactiveCanvas);
+      pointer-events: none;
     }
 
     // Remove the main canvas from document flow to avoid resizeObserver

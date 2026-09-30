@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 
 import { isShallowEqual } from "@excalidraw/common";
+import { isIframeLikeElement } from "@excalidraw/element";
 
 import type {
   NonDeletedExcalidrawElement,
@@ -32,13 +33,21 @@ type StaticCanvasProps = {
 
 const StaticCanvas = (props: StaticCanvasProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const foregroundCanvasRef = useRef<HTMLCanvasElement>(null);
   const isComponentMounted = useRef(false);
+  const hadIframeLikeElements = useRef(false);
 
   useEffect(() => {
     props.canvas.style.width = `${props.appState.width}px`;
     props.canvas.style.height = `${props.appState.height}px`;
     props.canvas.width = props.appState.width * props.scale;
     props.canvas.height = props.appState.height * props.scale;
+    if (foregroundCanvasRef.current) {
+      foregroundCanvasRef.current.style.width = `${props.appState.width}px`;
+      foregroundCanvasRef.current.style.height = `${props.appState.height}px`;
+      foregroundCanvasRef.current.width = props.appState.width * props.scale;
+      foregroundCanvasRef.current.height = props.appState.height * props.scale;
+    }
   }, [props.appState.height, props.appState.width, props.canvas, props.scale]);
 
   useEffect(() => {
@@ -69,9 +78,63 @@ const StaticCanvas = (props: StaticCanvasProps) => {
       },
       isRenderThrottlingEnabled(),
     );
+
+    const hasIframeLikeElements = props.visibleElements.some(
+      isIframeLikeElement,
+    );
+
+    // The foreground canvas exists to layer non-iframe elements on top of
+    // DOM iframe overlays. Only render it when there's actually an
+    // iframe-like element in the scene, otherwise we'd be drawing the same
+    // scene onto the main canvas twice on every update for nothing.
+    if (foregroundCanvasRef.current && hasIframeLikeElements) {
+      renderStaticScene(
+        {
+          canvas: foregroundCanvasRef.current,
+          rc: props.rc,
+          scale: props.scale,
+          elementsMap: props.elementsMap,
+          allElementsMap: props.allElementsMap,
+          visibleElements: props.visibleElements.filter(
+            (element) => !isIframeLikeElement(element),
+          ),
+          appState: {
+            ...props.appState,
+            viewBackgroundColor: "transparent",
+          },
+          renderConfig: {
+            ...props.renderConfig,
+            canvasBackgroundColor: "transparent",
+            renderGrid: false,
+          },
+        },
+        isRenderThrottlingEnabled(),
+      );
+    } else if (foregroundCanvasRef.current && hadIframeLikeElements.current) {
+      // scene no longer has iframe-like elements; clear stale content left
+      // over from when it did.
+      foregroundCanvasRef.current
+        .getContext("2d")
+        ?.clearRect(
+          0,
+          0,
+          foregroundCanvasRef.current.width,
+          foregroundCanvasRef.current.height,
+        );
+    }
+    hadIframeLikeElements.current = hasIframeLikeElements;
   });
 
-  return <div className="excalidraw__canvas-wrapper" ref={wrapperRef} />;
+  return (
+    <>
+      <div className="excalidraw__canvas-wrapper" ref={wrapperRef} />
+      <canvas
+        ref={foregroundCanvasRef}
+        className="excalidraw__canvas foreground"
+        aria-hidden="true"
+      />
+    </>
+  );
 };
 
 const getRelevantAppStateProps = (appState: AppState): StaticCanvasAppState => {
