@@ -242,6 +242,7 @@ export const generateRoughOptions = (
       return options;
     }
     case "line":
+    case "arrow":
     case "freedraw": {
       if (isPathALoop(element.points)) {
         options.fillStyle = element.fillStyle;
@@ -252,8 +253,6 @@ export const generateRoughOptions = (
       }
       return options;
     }
-    case "arrow":
-      return options;
     default: {
       throw new Error(`Unimplemented type ${element.type}`);
     }

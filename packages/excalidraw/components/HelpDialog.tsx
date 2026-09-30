@@ -410,6 +410,14 @@ export const HelpDialog = ({ onClose }: { onClose?: () => void }) => {
               shortcuts={[getShortcutKey("CtrlOrCmd+Alt+V")]}
             />
             <Shortcut
+              label={t("labels.copyStrokeWidth")}
+              shortcuts={[getShortcutKey("CtrlOrCmd+Alt+Shift+C")]}
+            />
+            <Shortcut
+              label={t("labels.pasteStrokeWidth")}
+              shortcuts={[getShortcutKey("CtrlOrCmd+Alt+Shift+V")]}
+            />
+            <Shortcut
               label={t("labels.sendToBack")}
               shortcuts={[
                 isDarwin

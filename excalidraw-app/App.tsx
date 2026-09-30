@@ -80,6 +80,7 @@ import type { ResolutionType } from "@excalidraw/common/utility-types";
 import type { ResolvablePromise } from "@excalidraw/common/utils";
 
 import CustomStats from "./CustomStats";
+import { updateDocumentTitleAndURL } from "./data/fileTitle";
 import {
   Provider,
   useAtom,
@@ -394,6 +395,7 @@ const ExcalidrawWrapper = () => {
   }
 
   const debugCanvasRef = useRef<HTMLCanvasElement>(null);
+  const lastSyncedFileNameRef = useRef<string | null>(null);
 
   useEffect(() => {
     trackEvent("load", "frame", getFrame());
@@ -681,6 +683,11 @@ const ExcalidrawWrapper = () => {
   ) => {
     if (collabAPI?.isCollaborating()) {
       collabAPI.syncElements(elements);
+    }
+
+    if (appState.name !== lastSyncedFileNameRef.current) {
+      lastSyncedFileNameRef.current = appState.name;
+      updateDocumentTitleAndURL(appState.name);
     }
 
     // this check is redundant, but since this is a hot path, it's best

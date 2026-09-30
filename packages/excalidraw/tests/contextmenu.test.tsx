@@ -125,6 +125,8 @@ describe("contextMenu element", () => {
       "wrapSelectionInFrame",
       "copyStyles",
       "pasteStyles",
+      "copyStrokeWidth",
+      "pasteStrokeWidth",
       "deleteSelectedElements",
       "addToLibrary",
       "flipHorizontal",
@@ -134,6 +136,7 @@ describe("contextMenu element", () => {
       "sendToBack",
       "bringToFront",
       "duplicateSelection",
+      "duplicateRotated",
       "hyperlink",
       "copyElementLink",
       "toggleElementLock",
@@ -219,6 +222,8 @@ describe("contextMenu element", () => {
       "wrapSelectionInFrame",
       "copyStyles",
       "pasteStyles",
+      "copyStrokeWidth",
+      "pasteStrokeWidth",
       "deleteSelectedElements",
       "group",
       "addToLibrary",
@@ -233,7 +238,7 @@ describe("contextMenu element", () => {
     ];
 
     expect(contextMenu).not.toBeNull();
-    expect(contextMenuOptions?.length).toBe(expectedShortcutNames.length);
+    expect(contextMenuOptions?.length).toBe(expectedShortcutNames.length + 1);
     expectedShortcutNames.forEach((shortcutName) => {
       expect(
         contextMenu?.querySelector(`li[data-testid="${shortcutName}"]`),
@@ -276,6 +281,8 @@ describe("contextMenu element", () => {
       "wrapSelectionInFrame",
       "copyStyles",
       "pasteStyles",
+      "copyStrokeWidth",
+      "pasteStrokeWidth",
       "deleteSelectedElements",
       "copyElementLink",
       "ungroup",
@@ -287,6 +294,7 @@ describe("contextMenu element", () => {
       "sendToBack",
       "bringToFront",
       "duplicateSelection",
+      "duplicateRotated",
       "toggleElementLock",
     ];
 

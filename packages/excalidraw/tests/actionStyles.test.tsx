@@ -4,7 +4,7 @@ import { CODES, STROKE_WIDTH } from "@excalidraw/common";
 
 import type { NonDeletedExcalidrawElement } from "@excalidraw/element/types";
 
-import { copiedStyles } from "../actions/actionStyles";
+import { copiedStyles, copiedStrokeWidthStyles } from "../actions/actionStyles";
 import { Excalidraw } from "../index";
 import { API } from "../tests/helpers/api";
 import { Keyboard, Pointer, UI } from "../tests/helpers/ui";
@@ -84,5 +84,37 @@ describe("actionStyles", () => {
     expect(firstRect.strokeStyle).toBe("dotted");
     expect(firstRect.roughness).toBe(2); // Cartoonist: 2
     expect(firstRect.opacity).toBe(60);
+  });
+
+  it("should copy & paste only stroke width via keyboard", async () => {
+    UI.clickTool("rectangle");
+    mouse.down(10, 10);
+    mouse.up(20, 20);
+
+    UI.clickTool("rectangle");
+    mouse.down(10, 10);
+    mouse.up(20, 20);
+
+    togglePopover("Stroke");
+    UI.clickOnTestId("color-red");
+    fireEvent.click(screen.getByTitle("Bold"));
+    mouse.reset();
+
+    API.setSelectedElements([h.elements[1]] as NonDeletedExcalidrawElement[]);
+    Keyboard.withModifierKeys({ ctrl: true, alt: true, shift: true }, () => {
+      Keyboard.codeDown(CODES.C);
+    });
+    expect(JSON.parse(copiedStrokeWidthStyles)[0].strokeWidth).toBe(
+      STROKE_WIDTH.bold,
+    );
+
+    API.setSelectedElements([h.elements[0]] as NonDeletedExcalidrawElement[]);
+    Keyboard.withModifierKeys({ ctrl: true, alt: true, shift: true }, () => {
+      Keyboard.codeDown(CODES.V);
+    });
+
+    const firstRect = API.getSelectedElement();
+    expect(firstRect.strokeWidth).toBe(STROKE_WIDTH.bold);
+    expect(firstRect.strokeColor).not.toBe("#e03131");
   });
 });

@@ -7,6 +7,7 @@ export {
 } from "./actionZindex";
 export { actionSelectAll } from "./actionSelectAll";
 export { actionDuplicateSelection } from "./actionDuplicateSelection";
+export { actionDuplicateRotated } from "./actionDuplicateRotated";
 export {
   actionChangeStrokeColor,
   actionChangeBackgroundColor,
@@ -45,7 +46,12 @@ export {
   actionLoadScene,
 } from "./actionExport";
 
-export { actionCopyStyles, actionPasteStyles } from "./actionStyles";
+export {
+  actionCopyStyles,
+  actionPasteStyles,
+  actionCopyStrokeWidth,
+  actionPasteStrokeWidth,
+} from "./actionStyles";
 export { actionShortcuts } from "./actionMenu";
 
 export { actionGroup, actionUngroup } from "./actionGroup";
@@ -74,6 +80,7 @@ export {
   actionCopy,
   actionCut,
   actionCopyAsPng,
+  actionCopyAsPngTransparent,
   actionCopyAsSvg,
   copyText,
 } from "./actionClipboard";
