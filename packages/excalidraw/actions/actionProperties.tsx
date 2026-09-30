@@ -909,10 +909,8 @@ export const actionChangeFontSize = register<ExcalidrawTextElement["fontSize"]>(
         },
         (element) =>
           isTextElement(element) ||
-          getBoundTextElement(
-            element,
-            app.scene.getNonDeletedElementsMap(),
-          ) !== null,
+          getBoundTextElement(element, app.scene.getNonDeletedElementsMap()) !==
+            null,
         (hasSelection) =>
           hasSelection
             ? null

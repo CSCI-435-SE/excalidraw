@@ -214,6 +214,7 @@ const LayerUI = ({
         onExportImage={onExportImage}
         onCloseRequest={() => setAppState({ openDialog: null })}
         name={app.getName()}
+        setToast={(toast) => setAppState({ toast })}
       />
     );
   };

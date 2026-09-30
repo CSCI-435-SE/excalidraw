@@ -4,10 +4,7 @@ import { CODES, STROKE_WIDTH } from "@excalidraw/common";
 
 import type { NonDeletedExcalidrawElement } from "@excalidraw/element/types";
 
-import {
-  copiedStyles,
-  copiedStrokeWidthStyles,
-} from "../actions/actionStyles";
+import { copiedStyles, copiedStrokeWidthStyles } from "../actions/actionStyles";
 import { Excalidraw } from "../index";
 import { API } from "../tests/helpers/api";
 import { Keyboard, Pointer, UI } from "../tests/helpers/ui";

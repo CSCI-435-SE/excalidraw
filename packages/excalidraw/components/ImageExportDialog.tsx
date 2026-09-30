@@ -60,6 +60,7 @@ type ImageExportModalProps = {
   onExportImage: AppClassProperties["onExportImage"];
   name: string;
   exportWithDarkMode: boolean;
+  setToast: (toast: { message: string } | null) => void;
 };
 
 const ImageExportModal = ({
@@ -70,6 +71,7 @@ const ImageExportModal = ({
   onExportImage,
   name,
   exportWithDarkMode,
+  setToast,
 }: ImageExportModalProps) => {
   const hasSelection = isSomeElementSelected(
     elementsSnapshot,
@@ -304,11 +306,22 @@ const ImageExportModal = ({
           <FilledButton
             className="ImageExportModal__settings__buttons__button"
             label={t("imageExportDialog.title.exportToPng")}
-            onClick={() =>
-              onExportImage(EXPORT_IMAGE_TYPES.png, exportedElements, {
-                exportingFrame,
-              })
-            }
+            onClick={async () => {
+              const res = await onExportImage(
+                EXPORT_IMAGE_TYPES.png,
+                exportedElements,
+                {
+                  exportingFrame,
+                },
+              );
+              if (res && !res.canceled) {
+                setToast({
+                  message: nativeFileSystemSupported
+                    ? "Image exported successfully!"
+                    : "Image download started!",
+                });
+              }
+            }}
             icon={downloadIcon}
           >
             {t("imageExportDialog.button.exportToPng")}
@@ -316,11 +329,22 @@ const ImageExportModal = ({
           <FilledButton
             className="ImageExportModal__settings__buttons__button"
             label={t("imageExportDialog.title.exportToSvg")}
-            onClick={() =>
-              onExportImage(EXPORT_IMAGE_TYPES.svg, exportedElements, {
-                exportingFrame,
-              })
-            }
+            onClick={async () => {
+              const res = await onExportImage(
+                EXPORT_IMAGE_TYPES.svg,
+                exportedElements,
+                {
+                  exportingFrame,
+                },
+              );
+              if (res && !res.canceled) {
+                setToast({
+                  message: nativeFileSystemSupported
+                    ? "Image exported successfully!"
+                    : "Image download started!",
+                });
+              }
+            }}
             icon={downloadIcon}
           >
             {t("imageExportDialog.button.exportToSvg")}
@@ -392,6 +416,7 @@ export const ImageExportDialog = ({
   onExportImage,
   onCloseRequest,
   name,
+  setToast,
 }: {
   appState: UIAppState;
   elements: readonly NonDeletedExcalidrawElement[];
@@ -400,6 +425,7 @@ export const ImageExportDialog = ({
   onExportImage: AppClassProperties["onExportImage"];
   onCloseRequest: () => void;
   name: string;
+  setToast: (toast: { message: string } | null) => void;
 }) => {
   // we need to take a snapshot so that the exported state can't be modified
   // while the dialog is open
@@ -420,6 +446,7 @@ export const ImageExportDialog = ({
         onExportImage={onExportImage}
         name={name}
         exportWithDarkMode={appState.exportWithDarkMode}
+        setToast={setToast}
       />
     </Dialog>
   );

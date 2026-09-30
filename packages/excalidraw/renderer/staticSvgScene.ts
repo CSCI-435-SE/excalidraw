@@ -357,7 +357,7 @@ const renderElementToSvg = (
           }) rotate(${degree} ${cx} ${cy})`,
         );
         if (
-          element.type === "line" &&
+          (element.type === "line" || element.type === "arrow") &&
           isPathALoop(element.points) &&
           element.backgroundColor !== "transparent"
         ) {
