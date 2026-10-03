@@ -253,7 +253,7 @@ const getRelevantAppStateProps = (
   newElement: appState.newElement,
   isBindingEnabled: appState.isBindingEnabled,
   isMidpointSnappingEnabled: appState.isMidpointSnappingEnabled,
-  gridModeEnabled: appState.gridModeEnabled,
+  gridSnapEnabled: appState.gridSnapEnabled,
   suggestedBinding: appState.suggestedBinding,
   isRotating: appState.isRotating,
   elementsToHighlight: appState.elementsToHighlight,

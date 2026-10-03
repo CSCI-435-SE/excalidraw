@@ -316,6 +316,7 @@ import {
   actionSendBackward,
   actionSendToBack,
   actionToggleGridMode,
+  actionToggleGridSnapMode,
   actionToggleStats,
   actionToggleZenMode,
   actionUnbindText,
@@ -409,6 +410,7 @@ import {
   getReferenceSnapPoints,
   SnapCache,
   isGridModeEnabled,
+  isGridSnapEnabled,
 } from "../snapping";
 import { Renderer } from "../scene/Renderer";
 import {
@@ -1335,12 +1337,12 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   /**
-   * Returns gridSize taking into account `gridModeEnabled`.
+   * Returns gridSize taking into account `gridSnapEnabled`.
    * If disabled, returns null.
    */
   public getEffectiveGridSize = () => {
     return (
-      isGridModeEnabled(this) ? this.state.gridSize : null
+      isGridSnapEnabled(this) ? this.state.gridSize : null
     ) as NullableGridSize;
   };
 
@@ -13046,6 +13048,7 @@ class App extends React.Component<AppProps, AppState> {
         actionUnlockAllElements,
         CONTEXT_MENU_SEPARATOR,
         actionToggleGridMode,
+        actionToggleGridSnapMode,
         actionToggleObjectsSnapMode,
         actionToggleArrowBinding,
         actionToggleMidpointSnapping,

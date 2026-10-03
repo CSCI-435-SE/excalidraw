@@ -181,7 +181,7 @@ export const bindOrUnbindBindingElement = (
   const isMidpointSnappingEnabled =
     appState.isMidpointSnappingEnabled &&
     !opts?.angleLocked &&
-    !appState.gridModeEnabled;
+    !appState.gridSnapEnabled;
 
   bindOrUnbindBindingElementEdge(
     arrow,
@@ -719,7 +719,7 @@ const getBindingStrategyForDraggingBindingElementEndpoints_simple = (
     elementsMap,
   );
   const hit = getHoveredElementForBinding(
-    opts?.angleLocked || appState.gridModeEnabled
+    opts?.angleLocked || appState.gridSnapEnabled
       ? pointFrom<GlobalPoint>(scenePointerX, scenePointerY)
       : globalPoint,
     elements,
@@ -838,7 +838,7 @@ const getBindingStrategyForDraggingBindingElementEndpoints_simple = (
               arrow,
               opts?.angleLocked
                 ? globalPoint
-                : appState.gridModeEnabled
+                : appState.gridSnapEnabled
                 ? snapBoundPointToGrid(
                     pointFrom<GlobalPoint>(scenePointerX, scenePointerY),
                     hit,
@@ -858,7 +858,7 @@ const getBindingStrategyForDraggingBindingElementEndpoints_simple = (
               appState.zoom,
               appState.isMidpointSnappingEnabled &&
                 !opts?.angleLocked &&
-                !appState.gridModeEnabled,
+                !appState.gridSnapEnabled,
             ) || globalPoint,
         }
     : { mode: null };
