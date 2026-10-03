@@ -227,7 +227,7 @@ export type InteractiveCanvasAppState = Readonly<
     newElement: AppState["newElement"];
     isBindingEnabled: AppState["isBindingEnabled"];
     isMidpointSnappingEnabled: AppState["isMidpointSnappingEnabled"];
-    gridModeEnabled: AppState["gridModeEnabled"];
+    gridSnapEnabled: AppState["gridSnapEnabled"];
     suggestedBinding: AppState["suggestedBinding"];
     isRotating: AppState["isRotating"];
     elementsToHighlight: AppState["elementsToHighlight"];
@@ -471,7 +471,10 @@ export interface AppState {
   /** grid cell px size */
   gridSize: number;
   gridStep: number;
+  /** whether the grid is rendered on the canvas */
   gridModeEnabled: boolean;
+  /** whether elements snap to the grid (independent of grid visibility) */
+  gridSnapEnabled: boolean;
   viewModeEnabled: boolean;
 
   /** top-most selected groups (i.e. does not include nested groups) */

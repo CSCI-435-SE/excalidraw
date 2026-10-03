@@ -6,7 +6,13 @@ import { THEME } from "@excalidraw/common";
 import { t } from "../i18n";
 import { Excalidraw, Footer, MainMenu } from "../index";
 import { actionExportWithDarkMode } from "../actions/actionExport";
+import {
+  actionToggleGridMode,
+  actionToggleGridSnapMode,
+  actionToggleObjectsSnapMode,
+} from "../actions";
 
+import { API } from "./helpers/api";
 import {
   act,
   fireEvent,
@@ -147,6 +153,53 @@ describe("<Excalidraw/>", () => {
       const contextMenu = document.querySelector(".context-menu");
       expect(queryByText(contextMenu as HTMLElement, "Show grid")).toBe(null);
       expect(h.state.gridModeEnabled).toBe(false);
+    });
+  });
+
+  describe("Test grid visibility and grid snapping are independent", () => {
+    it("toggling the grid should not enable grid snapping or disable object snapping", async () => {
+      await render(<Excalidraw />);
+      API.setAppState({ objectsSnapModeEnabled: true });
+
+      act(() => {
+        h.app.actionManager.executeAction(actionToggleGridMode);
+      });
+      expect(h.state.gridModeEnabled).toBe(true);
+      expect(h.state.gridSnapEnabled).toBe(false);
+      expect(h.state.objectsSnapModeEnabled).toBe(true);
+      expect(h.app.getEffectiveGridSize()).toBe(null);
+    });
+
+    it("toggling grid snapping should not show the grid", async () => {
+      await render(<Excalidraw />);
+
+      act(() => {
+        h.app.actionManager.executeAction(actionToggleGridSnapMode);
+      });
+      expect(h.state.gridSnapEnabled).toBe(true);
+      expect(h.state.gridModeEnabled).toBe(false);
+      expect(h.app.getEffectiveGridSize()).toBe(h.state.gridSize);
+    });
+
+    it("grid snapping and object snapping should be mutually exclusive", async () => {
+      await render(<Excalidraw />);
+
+      act(() => {
+        h.app.actionManager.executeAction(actionToggleObjectsSnapMode);
+      });
+      expect(h.state.objectsSnapModeEnabled).toBe(true);
+
+      act(() => {
+        h.app.actionManager.executeAction(actionToggleGridSnapMode);
+      });
+      expect(h.state.gridSnapEnabled).toBe(true);
+      expect(h.state.objectsSnapModeEnabled).toBe(false);
+
+      act(() => {
+        h.app.actionManager.executeAction(actionToggleObjectsSnapMode);
+      });
+      expect(h.state.objectsSnapModeEnabled).toBe(true);
+      expect(h.state.gridSnapEnabled).toBe(false);
     });
   });
 

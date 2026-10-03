@@ -250,7 +250,7 @@ describe("adding elements to frames", () => {
 
     API.setElements([offsetFrame]);
     API.setAppState({
-      gridModeEnabled: true,
+      gridSnapEnabled: true,
     });
 
     UI.clickTool("text");

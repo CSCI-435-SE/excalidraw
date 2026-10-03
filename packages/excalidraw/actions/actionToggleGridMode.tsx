@@ -9,7 +9,7 @@ import { register } from "./register";
 export const actionToggleGridMode = register({
   name: "gridMode",
   icon: gridIcon,
-  keywords: ["snap"],
+  keywords: ["grid"],
   label: "labels.toggleGrid",
   viewMode: true,
   trackEvent: {
@@ -21,7 +21,6 @@ export const actionToggleGridMode = register({
       appState: {
         ...appState,
         gridModeEnabled: !this.checked!(appState),
-        objectsSnapModeEnabled: false,
       },
       captureUpdate: CaptureUpdateAction.EVENTUALLY,
     };

@@ -159,6 +159,9 @@ export class SnapCache {
 export const isGridModeEnabled = (app: AppClassProperties): boolean =>
   app.props.gridModeEnabled ?? app.state.gridModeEnabled;
 
+export const isGridSnapEnabled = (app: AppClassProperties): boolean =>
+  app.state.gridSnapEnabled;
+
 export const isSnappingEnabled = ({
   event,
   app,
@@ -180,7 +183,7 @@ export const isSnappingEnabled = ({
       ((app.state.objectsSnapModeEnabled && !event[KEYS.CTRL_OR_CMD]) ||
         (!app.state.objectsSnapModeEnabled &&
           event[KEYS.CTRL_OR_CMD] &&
-          !isGridModeEnabled(app)))
+          !isGridSnapEnabled(app)))
     );
   }
 

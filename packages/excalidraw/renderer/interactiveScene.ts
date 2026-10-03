@@ -457,7 +457,7 @@ const renderBindingHighlightForBindableElement_simple = (
 
   if (
     appState.isMidpointSnappingEnabled &&
-    !appState.gridModeEnabled &&
+    !appState.gridSnapEnabled &&
     !angleLocked &&
     (isFrameLikeElement(suggestedBinding.element) ||
       isBindableElement(suggestedBinding.element))
@@ -895,7 +895,7 @@ const renderBindingHighlightForBindableElement_complex = (
 
     if (
       appState.isMidpointSnappingEnabled &&
-      !appState.gridModeEnabled &&
+      !appState.gridSnapEnabled &&
       (!app.lastPointerMoveEvent ||
         !shouldRotateWithDiscreteAngle(app.lastPointerMoveEvent))
     ) {

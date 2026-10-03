@@ -17,7 +17,7 @@ import type { EditorInterface } from "@excalidraw/common";
 import { t } from "../i18n";
 import { getShortcutKey } from "../shortcut";
 import { isEraserActive } from "../appState";
-import { isGridModeEnabled } from "../snapping";
+import { isGridSnapEnabled } from "../snapping";
 
 import "./HintViewer.scss";
 
@@ -170,7 +170,7 @@ const getHints = ({
       });
     }
 
-    if (isGridModeEnabled(app) && appState.selectedElementsAreBeingDragged) {
+    if (isGridSnapEnabled(app) && appState.selectedElementsAreBeingDragged) {
       return t("hints.disableSnapping", {
         shortcut: getTaggedShortcutKey("CtrlOrCmd"),
       });

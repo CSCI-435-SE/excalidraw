@@ -15,7 +15,7 @@ import { elementsAreInSameGroup } from "@excalidraw/element";
 import type { NonDeletedExcalidrawElement } from "@excalidraw/element/types";
 
 import { t } from "../../i18n";
-import { isGridModeEnabled } from "../../snapping";
+import { isGridModeEnabled, isGridSnapEnabled } from "../../snapping";
 import { useExcalidrawAppState, useExcalidrawSetAppState } from "../App";
 import { Island } from "../Island";
 import { CloseIcon } from "../icons";
@@ -55,7 +55,9 @@ export const Stats = (props: StatsProps) => {
     selectedElementIds: appState.selectedElementIds,
     includeBoundTextElement: false,
   });
-  const gridModeEnabled = isGridModeEnabled(props.app);
+  // grid step is relevant whether the grid is shown or only snapped to
+  const gridModeEnabled =
+    isGridModeEnabled(props.app) || isGridSnapEnabled(props.app);
 
   return (
     <StatsInner

@@ -1110,6 +1110,15 @@ export const restoreAppState = (
     nextAppState.boxSelectionMode = boxSelectionMode;
   }
 
+  // grid snapping used to be implied by `gridModeEnabled`, so preserve that
+  // behavior for data saved before `gridSnapEnabled` existed
+  if (
+    appState.gridSnapEnabled === undefined &&
+    localAppState?.gridSnapEnabled === undefined
+  ) {
+    nextAppState.gridSnapEnabled = nextAppState.gridModeEnabled;
+  }
+
   // legacy: `currentItemStrokeWidthKey` ("thin" | "medium" | "bold") predates
   // the numeric currentItemStrokeWidth slider value
   const legacyStrokeWidthKey = (appState as any).currentItemStrokeWidthKey;

@@ -772,6 +772,21 @@ describe("restoreAppState", () => {
     ).toBe("variable");
   });
 
+  it("should migrate grid snapping from gridModeEnabled for legacy data", () => {
+    expect(
+      restore.restoreAppState({ gridModeEnabled: true }, null).gridSnapEnabled,
+    ).toBe(true);
+    expect(
+      restore.restoreAppState({ gridModeEnabled: false }, null).gridSnapEnabled,
+    ).toBe(false);
+    expect(
+      restore.restoreAppState(
+        { gridModeEnabled: true, gridSnapEnabled: false },
+        null,
+      ).gridSnapEnabled,
+    ).toBe(false);
+  });
+
   it("when appState is null it should return the local app state property", () => {
     const stubLocalAppState = getDefaultAppState();
     stubLocalAppState.cursorButton = "down";

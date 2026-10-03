@@ -257,7 +257,7 @@ describe("textWysiwyg", () => {
       API.setAppState({
         currentItemFontFamily: FONT_FAMILY.Cascadia,
         currentItemFontSize: 40,
-        gridModeEnabled: true,
+        gridSnapEnabled: true,
         gridSize: 24,
       });
       UI.clickTool("text");

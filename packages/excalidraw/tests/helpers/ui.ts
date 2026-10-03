@@ -517,7 +517,7 @@ export class UI {
     UI.clickTool(type);
 
     if (type === "text") {
-      const clickY = h.state.gridModeEnabled
+      const clickY = h.state.gridSnapEnabled
         ? y
         : y +
           getLineHeightInPx(

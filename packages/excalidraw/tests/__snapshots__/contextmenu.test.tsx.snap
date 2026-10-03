@@ -1092,6 +1092,7 @@ exports[`contextMenu element > right-clicking on a group should select whole gro
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -1293,6 +1294,7 @@ exports[`contextMenu element > selecting 'Add to library' in context menu adds e
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -1509,6 +1511,7 @@ exports[`contextMenu element > selecting 'Bring forward' in context menu brings 
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -1842,6 +1845,7 @@ exports[`contextMenu element > selecting 'Bring to front' in context menu brings
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -2175,6 +2179,7 @@ exports[`contextMenu element > selecting 'Copy styles' in context menu copies st
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -2391,6 +2396,7 @@ exports[`contextMenu element > selecting 'Delete' in context menu deletes elemen
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -2634,6 +2640,7 @@ exports[`contextMenu element > selecting 'Duplicate' in context menu duplicates 
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -2934,6 +2941,7 @@ exports[`contextMenu element > selecting 'Group selection' in context menu group
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -3308,6 +3316,7 @@ exports[`contextMenu element > selecting 'Paste styles' in context menu pastes s
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -3830,6 +3839,7 @@ exports[`contextMenu element > selecting 'Send backward' in context menu sends e
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -4155,6 +4165,7 @@ exports[`contextMenu element > selecting 'Send to back' in context menu sends el
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -4480,6 +4491,7 @@ exports[`contextMenu element > selecting 'Ungroup selection' in context menu ung
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -5930,6 +5942,7 @@ exports[`contextMenu element > shows 'Group selection' in context menu for multi
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -7312,6 +7325,7 @@ exports[`contextMenu element > shows 'Ungroup selection' in context menu for gro
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -8038,7 +8052,7 @@ exports[`contextMenu element > shows context menu for canvas > [end of test] app
         </svg>,
         "keyTest": [Function],
         "keywords": [
-          "snap",
+          "grid",
         ],
         "label": "labels.toggleGrid",
         "name": "gridMode",
@@ -8049,6 +8063,60 @@ exports[`contextMenu element > shows context menu for canvas > [end of test] app
           "predicate": [Function],
         },
         "viewMode": true,
+      },
+      {
+        "checked": [Function],
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <g
+            strokeWidth={"1.50000"}
+          >
+            <path
+              d="M0 0h24v24H0z"
+              fill="none"
+              stroke="none"
+            />
+            <path
+              d="M3 6h18"
+            />
+            <path
+              d="M3 12h18"
+            />
+            <path
+              d="M3 18h18"
+            />
+            <path
+              d="M6 3v18"
+            />
+            <path
+              d="M12 3v18"
+            />
+            <path
+              d="M18 3v18"
+            />
+          </g>
+        </svg>,
+        "keywords": [
+          "snap",
+        ],
+        "label": "labels.toggleGridSnap",
+        "name": "gridSnapMode",
+        "perform": [Function],
+        "trackEvent": {
+          "category": "canvas",
+          "predicate": [Function],
+        },
+        "viewMode": false,
       },
       {
         "checked": [Function],
@@ -8323,6 +8391,7 @@ exports[`contextMenu element > shows context menu for canvas > [end of test] app
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -9488,6 +9557,7 @@ exports[`contextMenu element > shows context menu for element > [end of test] ap
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},
@@ -10644,6 +10714,7 @@ exports[`contextMenu element > shows context menu for element > [end of test] ap
   "frameToHighlight": null,
   "gridModeEnabled": false,
   "gridSize": 20,
+  "gridSnapEnabled": false,
   "gridStep": 5,
   "height": 100,
   "hoveredElementIds": {},

@@ -374,7 +374,7 @@ export class LinearElementEditor {
         isMidpointSnappingEnabled:
           app.state.isMidpointSnappingEnabled &&
           !angleLocked &&
-          !app.state.gridModeEnabled,
+          !app.state.gridSnapEnabled,
       },
     );
     // Set the suggested binding from the updates if available
@@ -433,7 +433,7 @@ export class LinearElementEditor {
                 app.state.zoom,
                 app.state.isMidpointSnappingEnabled &&
                   !angleLocked &&
-                  !app.state.gridModeEnabled,
+                  !app.state.gridSnapEnabled,
               )
             : linearElementEditor.initialState.altFocusPoint,
       },
@@ -576,7 +576,7 @@ export class LinearElementEditor {
         isMidpointSnappingEnabled:
           app.state.isMidpointSnappingEnabled &&
           !angleLocked &&
-          !app.state.gridModeEnabled,
+          !app.state.gridSnapEnabled,
       },
     );
 
@@ -674,7 +674,7 @@ export class LinearElementEditor {
                 app.state.zoom,
                 app.state.isMidpointSnappingEnabled &&
                   !angleLocked &&
-                  !app.state.gridModeEnabled,
+                  !app.state.gridSnapEnabled,
               )
             : linearElementEditor.initialState.altFocusPoint,
       },

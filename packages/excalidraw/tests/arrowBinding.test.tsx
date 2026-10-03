@@ -388,7 +388,7 @@ describe("Arrow binding – non-default case (bindingPreference: disabled)", () 
       API.setElements([rect]);
       API.setAppState({
         currentItemArrowType: "elbow",
-        gridModeEnabled: false,
+        gridSnapEnabled: false,
         isMidpointSnappingEnabled: true,
       });
 
@@ -430,7 +430,7 @@ describe("Arrow binding – non-default case (bindingPreference: disabled)", () 
         height: 200,
       }) as ExcalidrawBindableElement;
       API.setElements([rect]);
-      API.setAppState({ gridModeEnabled: false, gridSize: 20 });
+      API.setAppState({ gridSnapEnabled: false, gridSize: 20 });
 
       const start = sceneCoordsToViewportCoords(
         { sceneX: 300, sceneY: 333 },
@@ -473,7 +473,7 @@ describe("Arrow binding – non-default case (bindingPreference: disabled)", () 
         angle: Math.PI / 3,
       }) as ExcalidrawBindableElement;
       API.setElements([ellipse]);
-      API.setAppState({ gridModeEnabled: true, gridSize: 20 });
+      API.setAppState({ gridSnapEnabled: true, gridSize: 20 });
 
       const start = sceneCoordsToViewportCoords(
         { sceneX: 400, sceneY: 360 },
