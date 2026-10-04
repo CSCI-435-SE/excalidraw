@@ -22,7 +22,7 @@ import {
   getOmitSidesForEditorInterface,
   canResizeFromSides,
 } from "./transformHandles";
-import { isImageElement, isLinearElement } from "./typeChecks";
+import { isImageElement, isLinearElement, isPathElement } from "./typeChecks";
 
 import type {
   TransformHandleType,
@@ -57,6 +57,15 @@ export const resizeTest = <Point extends GlobalPoint | LocalPoint>(
   editorInterface: EditorInterface,
 ): MaybeTransformHandleType => {
   if (!appState.selectedElementIds[element.id]) {
+    return false;
+  }
+
+  // paths cannot be resized at all — not via drawn handles (see
+  // getTransformHandles, which already returns {} for a path) and not via
+  // this function's own independent "grab the bounding-box edge directly"
+  // fallback below, which hit-tests the box's side line segments regardless
+  // of whether any handle was drawn there
+  if (isPathElement(element)) {
     return false;
   }
 

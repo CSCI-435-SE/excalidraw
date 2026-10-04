@@ -38,6 +38,7 @@ import {
   isFreeDrawElement,
   isLinearElement,
   isLineElement,
+  isPathElement,
   isTextElement,
   isExcalidrawElement,
 } from "./typeChecks";
@@ -59,6 +60,7 @@ import type {
   ExcalidrawEllipseElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
+  ExcalidrawPathElement,
   ExcalidrawRectanguloidElement,
   ExcalidrawTextElementWithContainer,
   NonDeleted,
@@ -250,7 +252,7 @@ export const getElementAbsoluteCoords = (
 ): [number, number, number, number, number, number] => {
   if (isFreeDrawElement(element)) {
     return getFreeDrawElementAbsoluteCoords(element);
-  } else if (isLinearElement(element)) {
+  } else if (isLinearElement(element) || isPathElement(element)) {
     return LinearElementEditor.getElementAbsoluteCoords(
       element,
       elementsMap,
@@ -1104,7 +1106,7 @@ export const getResizedElementAbsoluteCoords = (
 };
 
 export const getElementPointsCoords = (
-  element: ExcalidrawLinearElement,
+  element: ExcalidrawLinearElement | ExcalidrawPathElement,
   points: readonly (readonly [number, number])[],
 ): Bounds => {
   // This might be computationally heavey

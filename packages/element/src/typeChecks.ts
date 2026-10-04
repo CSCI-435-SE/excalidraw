@@ -29,6 +29,7 @@ import type {
   ExcalidrawLineElement,
   ExcalidrawFlowchartNodeElement,
   ExcalidrawLinearElementSubType,
+  ExcalidrawPathElement,
 } from "./types";
 
 export const isInitializedImageElement = <T extends ExcalidrawElement>(
@@ -118,6 +119,12 @@ export const isArrowElement = <T extends ExcalidrawElement>(
   element?: T | null,
 ): element is T & ExcalidrawArrowElement => {
   return element != null && element.type === "arrow";
+};
+
+export const isPathElement = <T extends ExcalidrawElement>(
+  element?: T | null,
+): element is T & ExcalidrawPathElement => {
+  return element != null && element.type === "path";
 };
 
 export const isElbowArrow = <T extends ExcalidrawElement>(
@@ -264,7 +271,8 @@ export const isExcalidrawElement = (
     case "frame":
     case "magicframe":
     case "image":
-    case "selection": {
+    case "selection":
+    case "path": {
       return true;
     }
     default: {

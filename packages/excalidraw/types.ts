@@ -34,6 +34,7 @@ import type {
   BindMode,
   ExcalidrawTextElement,
   StrokeVariability,
+  ExcalidrawPathElement,
 } from "@excalidraw/element/types";
 
 import type {
@@ -159,7 +160,8 @@ export type ToolType =
   | "frame"
   | "magicframe"
   | "embeddable"
-  | "laser";
+  | "laser"
+  | "path";
 
 export type ElementOrToolType = ExcalidrawElementType | ToolType | "custom";
 
@@ -337,8 +339,20 @@ export interface AppState {
   /**
    * multiElement is for multi-point linear element that's created by clicking as opposed to dragging
    * - when set and present, the editor will handle linear element creation logic accordingly
+   * - also used for multi-point path elements (see `pendingPathTarget` below)
    */
-  multiElement: NonDeleted<ExcalidrawLinearElement> | null;
+  multiElement: NonDeleted<
+    ExcalidrawLinearElement | ExcalidrawPathElement
+  > | null;
+  /**
+   * transient target picked by the first click of the path tool, before any
+   * point has been placed (second click creates the `path` element and
+   * `multiElement` takes over). Never persisted, never undo-tracked.
+   */
+  pendingPathTarget:
+    | { elementId: string; groupId: null }
+    | { elementId: null; groupId: GroupId }
+    | null;
   /**
    * decoupled from newElement, dragging selection only creates selectionElement
    * - set on pointer down, updated during pointer move

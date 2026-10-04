@@ -26,6 +26,7 @@ import {
   handIcon,
   frameToolIcon,
   EmbedIcon,
+  PathIcon,
 } from "./icons";
 
 import type {
@@ -133,6 +134,11 @@ export const TOOLS = defineTools({
   },
   embeddable: {
     icon: EmbedIcon,
+  },
+  path: {
+    icon: PathIcon,
+    letterKey: KEYS.M,
+    fillable: false,
   },
   laser: {
     icon: laserPointerToolIcon,
@@ -296,6 +302,7 @@ export const TextToolButton = createToolButton("text");
 export const ImageToolButton = createToolButton("image");
 export const EraserToolButton = createToolButton("eraser");
 export const FrameToolButton = createToolButton("frame");
+export const PathToolButton = createToolButton("path");
 
 /**
  * The selection tool button — pointer-clicking it while the selection tool

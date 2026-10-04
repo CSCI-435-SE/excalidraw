@@ -17,6 +17,7 @@ import type { NonDeletedExcalidrawElement } from "@excalidraw/element/types";
 
 import { unbindBindingElement, updateBoundElements } from "./binding";
 import { getCommonBounds } from "./bounds";
+import { getPathsTargetingElement, getPathTargetElements } from "./path";
 import { getPerfectElementSize } from "./sizeHelpers";
 import { getBoundTextElement } from "./textElement";
 import { getMinTextElementWidth } from "./textMeasurements";
@@ -25,6 +26,7 @@ import {
   isElbowArrow,
   isFrameLikeElement,
   isImageElement,
+  isPathElement,
   isTextElement,
 } from "./typeChecks";
 
@@ -81,6 +83,21 @@ export const dragSelectedElements = (
       if (element.frameId !== null && frames.includes(element.frameId)) {
         elementsToUpdate.add(element);
       }
+    }
+  }
+
+  // a path and its target(s) are snapped together — dragging either one
+  // must drag both, or they'd visibly drift apart
+  const elementsMap = scene.getNonDeletedElementsMap();
+  const allElements = scene.getNonDeletedElements();
+  for (const element of selectedElements) {
+    if (isPathElement(element)) {
+      for (const target of getPathTargetElements(element, elementsMap)) {
+        elementsToUpdate.add(target);
+      }
+    }
+    for (const path of getPathsTargetingElement(element, allElements)) {
+      elementsToUpdate.add(path);
     }
   }
 

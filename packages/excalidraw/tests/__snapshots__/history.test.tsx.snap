@@ -78,6 +78,7 @@ exports[`history > multiplayer undo/redo > conflicts in arrows and their bindabl
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -713,6 +714,7 @@ exports[`history > multiplayer undo/redo > conflicts in arrows and their bindabl
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -1279,6 +1281,7 @@ exports[`history > multiplayer undo/redo > conflicts in arrows and their bindabl
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -1641,6 +1644,7 @@ exports[`history > multiplayer undo/redo > conflicts in arrows and their bindabl
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -2005,6 +2009,7 @@ exports[`history > multiplayer undo/redo > conflicts in arrows and their bindabl
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -2267,6 +2272,7 @@ exports[`history > multiplayer undo/redo > conflicts in arrows and their bindabl
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -2725,6 +2731,7 @@ exports[`history > multiplayer undo/redo > conflicts in bound text elements and 
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -3030,6 +3037,7 @@ exports[`history > multiplayer undo/redo > conflicts in bound text elements and 
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -3351,6 +3359,7 @@ exports[`history > multiplayer undo/redo > conflicts in bound text elements and 
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -3647,6 +3656,7 @@ exports[`history > multiplayer undo/redo > conflicts in bound text elements and 
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -3935,6 +3945,7 @@ exports[`history > multiplayer undo/redo > conflicts in bound text elements and 
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -4172,6 +4183,7 @@ exports[`history > multiplayer undo/redo > conflicts in bound text elements and 
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -4431,6 +4443,7 @@ exports[`history > multiplayer undo/redo > conflicts in bound text elements and 
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -4704,6 +4717,7 @@ exports[`history > multiplayer undo/redo > conflicts in bound text elements and 
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -4935,6 +4949,7 @@ exports[`history > multiplayer undo/redo > conflicts in bound text elements and 
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -5166,6 +5181,7 @@ exports[`history > multiplayer undo/redo > conflicts in bound text elements and 
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -5415,6 +5431,7 @@ exports[`history > multiplayer undo/redo > conflicts in bound text elements and 
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -5673,6 +5690,7 @@ exports[`history > multiplayer undo/redo > conflicts in frames and their childre
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -5930,6 +5948,7 @@ exports[`history > multiplayer undo/redo > should iterate through the history wh
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -6261,6 +6280,7 @@ exports[`history > multiplayer undo/redo > should iterate through the history wh
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -6690,6 +6710,7 @@ exports[`history > multiplayer undo/redo > should iterate through the history wh
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -7069,6 +7090,7 @@ exports[`history > multiplayer undo/redo > should iterate through the history wh
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -7380,6 +7402,7 @@ exports[`history > multiplayer undo/redo > should iterate through the history wh
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -7674,6 +7697,7 @@ exports[`history > multiplayer undo/redo > should iterate through the history wh
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -7906,6 +7930,7 @@ exports[`history > multiplayer undo/redo > should iterate through the history wh
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -8260,6 +8285,7 @@ exports[`history > multiplayer undo/redo > should iterate through the history wh
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -8614,6 +8640,7 @@ exports[`history > multiplayer undo/redo > should not let remote changes to inte
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -9022,6 +9049,7 @@ exports[`history > multiplayer undo/redo > should not let remote changes to inte
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -9311,6 +9339,7 @@ exports[`history > multiplayer undo/redo > should not let remote changes to inte
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -9577,6 +9606,7 @@ exports[`history > multiplayer undo/redo > should not override remote changes on
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -9844,6 +9874,7 @@ exports[`history > multiplayer undo/redo > should not override remote changes on
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -10081,6 +10112,7 @@ exports[`history > multiplayer undo/redo > should override remotely added groups
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -10377,6 +10409,7 @@ exports[`history > multiplayer undo/redo > should override remotely added points
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -10696,6 +10729,7 @@ exports[`history > multiplayer undo/redo > should redistribute deltas when eleme
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -10937,6 +10971,7 @@ exports[`history > multiplayer undo/redo > should redraw arrows on undo > [end o
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -11861,6 +11896,7 @@ exports[`history > multiplayer undo/redo > should update history entries after r
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -12123,6 +12159,7 @@ exports[`history > singleplayer undo/redo > remounting undo/redo buttons should 
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -12360,6 +12397,7 @@ exports[`history > singleplayer undo/redo > should clear the redo stack on eleme
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -12599,6 +12637,7 @@ exports[`history > singleplayer undo/redo > should create entry when selecting f
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -13007,6 +13046,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on e
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -13216,6 +13256,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on e
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -13428,6 +13469,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -13728,6 +13770,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -14031,6 +14074,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on s
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -14275,6 +14319,7 @@ exports[`history > singleplayer undo/redo > should disable undo/redo buttons whe
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -14514,6 +14559,7 @@ exports[`history > singleplayer undo/redo > should end up with no history entry 
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -14753,6 +14799,7 @@ exports[`history > singleplayer undo/redo > should iterate through the history w
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -15002,6 +15049,7 @@ exports[`history > singleplayer undo/redo > should not clear the redo stack on s
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -15338,6 +15386,7 @@ exports[`history > singleplayer undo/redo > should not collapse when applying co
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -15507,6 +15556,7 @@ exports[`history > singleplayer undo/redo > should not end up with history entry
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -15796,6 +15846,7 @@ exports[`history > singleplayer undo/redo > should not end up with history entry
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -16061,6 +16112,7 @@ exports[`history > singleplayer undo/redo > should not modify anything on unrela
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -16213,6 +16265,7 @@ exports[`history > singleplayer undo/redo > should not override appstate changes
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -16500,6 +16553,7 @@ exports[`history > singleplayer undo/redo > should support appstate name or view
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -16661,6 +16715,7 @@ exports[`history > singleplayer undo/redo > should support bidirectional binding
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -17411,6 +17466,7 @@ exports[`history > singleplayer undo/redo > should support bidirectional binding
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -18059,6 +18115,7 @@ exports[`history > singleplayer undo/redo > should support bidirectional binding
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -18707,6 +18764,7 @@ exports[`history > singleplayer undo/redo > should support bidirectional binding
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -19458,6 +19516,7 @@ exports[`history > singleplayer undo/redo > should support bidirectional binding
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -20228,6 +20287,7 @@ exports[`history > singleplayer undo/redo > should support changes in elements' 
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -20710,6 +20770,7 @@ exports[`history > singleplayer undo/redo > should support duplication of groups
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -21223,6 +21284,7 @@ exports[`history > singleplayer undo/redo > should support element creation, del
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",
@@ -21684,6 +21746,7 @@ exports[`history > singleplayer undo/redo > should support linear element creati
   "originSnapOffset": null,
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": true,
     "type": "selection",

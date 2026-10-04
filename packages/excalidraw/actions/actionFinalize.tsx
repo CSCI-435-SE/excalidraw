@@ -8,10 +8,14 @@ import {
 } from "@excalidraw/element";
 
 import {
+  getBoundTextElement,
+  getPathAlignmentOffset,
+  getPathTargetElements,
   isBindingElement,
   isFreeDrawElement,
   isLinearElement,
   isLineElement,
+  isPathElement,
 } from "@excalidraw/element";
 
 import {
@@ -162,6 +166,38 @@ export const actionFinalize = register<FormData>({
 
         const activeToolLocked = appState.activeTool?.locked;
 
+        // snap the path's target(s) onto the path's start point the moment
+        // the path is confirmed, so they sit together at rest — not just
+        // during playback (see pathPlayback.ts, which uses the same
+        // alignment formula and is a no-op once this has already run)
+        if (
+          isPathElement(element) &&
+          element.points.length >= 2 &&
+          !isInvisiblySmallElement(element)
+        ) {
+          const targets = getPathTargetElements(element, elementsMap);
+          const offset = getPathAlignmentOffset(element, targets, elementsMap);
+
+          if (offset.x !== 0 || offset.y !== 0) {
+            const shiftedIds = new Set<string>();
+            for (const target of targets) {
+              shiftedIds.add(target.id);
+              const boundText = getBoundTextElement(target, elementsMap);
+              if (boundText) {
+                shiftedIds.add(boundText.id);
+              }
+            }
+            newElements = newElements.map((el) =>
+              shiftedIds.has(el.id)
+                ? newElementWith(el, {
+                    x: el.x + offset.x,
+                    y: el.y + offset.y,
+                  })
+                : el,
+            );
+          }
+        }
+
         return {
           elements:
             element.points.length < 2 || isInvisiblySmallElement(element)
@@ -175,18 +211,21 @@ export const actionFinalize = register<FormData>({
           appState: {
             ...appState,
             cursorButton: "up",
-            selectedLinearElement: activeToolLocked
-              ? null
-              : {
-                  ...linearElementEditor,
-                  selectedPointsIndices: null,
-                  isEditing: false,
-                  initialState: {
-                    ...linearElementEditor.initialState,
-                    lastClickedPoint: -1,
+            // paths are deliberately not re-editable after confirm, unlike
+            // line/arrow
+            selectedLinearElement:
+              activeToolLocked || isPathElement(element)
+                ? null
+                : {
+                    ...linearElementEditor,
+                    selectedPointsIndices: null,
+                    isEditing: false,
+                    initialState: {
+                      ...linearElementEditor.initialState,
+                      lastClickedPoint: -1,
+                    },
+                    pointerOffset: { x: 0, y: 0 },
                   },
-                  pointerOffset: { x: 0, y: 0 },
-                },
             selectionElement: null,
             suggestedBinding: null,
             newElement: null,
@@ -314,6 +353,27 @@ export const actionFinalize = register<FormData>({
             polygon: false,
           });
         }
+      } else if (isPathElement(element) && element.points.length >= 2) {
+        // snap the path's target(s) onto the path's start point the moment
+        // the path is confirmed (see the matching comment in the data-driven
+        // branch above, and pathPlayback.ts, which shares this formula)
+        const targets = getPathTargetElements(element, elementsMap);
+        const offset = getPathAlignmentOffset(element, targets, elementsMap);
+        if (offset.x !== 0 || offset.y !== 0) {
+          for (const target of targets) {
+            scene.mutateElement(target, {
+              x: target.x + offset.x,
+              y: target.y + offset.y,
+            });
+            const boundText = getBoundTextElement(target, elementsMap);
+            if (boundText) {
+              scene.mutateElement(boundText, {
+                x: boundText.x + offset.x,
+                y: boundText.y + offset.y,
+              });
+            }
+          }
+        }
       }
     }
 
@@ -339,9 +399,13 @@ export const actionFinalize = register<FormData>({
       });
     }
 
+    // paths are deliberately not re-editable after confirm (no
+    // LinearElementEditor instance), unlike line/arrow
     let selectedLinearElement =
       element && isLinearElement(element)
         ? new LinearElementEditor(element, arrayToMap(newElements)) // To select the linear element when user has finished mutipoint editing
+        : isPathElement(element)
+        ? null
         : appState.selectedLinearElement;
 
     selectedLinearElement = selectedLinearElement

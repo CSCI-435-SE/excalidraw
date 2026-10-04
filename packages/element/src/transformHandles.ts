@@ -19,6 +19,7 @@ import {
   isFrameLikeElement,
   isImageElement,
   isLinearElement,
+  isPathElement,
 } from "./typeChecks";
 
 import type {
@@ -282,7 +283,16 @@ export const getTransformHandles = (
   if (
     element.locked ||
     // Elbow arrows cannot be rotated
-    isElbowArrow(element)
+    isElbowArrow(element) ||
+    // a path's points are drawn in its own local (unrotated) coordinate
+    // space, and playback/snap-to-path positioning reads them directly from
+    // `points`/`x`/`y` — resizing stretches a shape by scaling width/height,
+    // and rotating changes `angle`, neither of which that math accounts
+    // for, so both would desync the visual line from the path's actual
+    // geometry. Resize and rotate are disabled entirely; the path can still
+    // be moved by dragging its body (see dragSelectedElements in
+    // dragElements.ts, which also drags its target along with it).
+    isPathElement(element)
   ) {
     return {};
   }

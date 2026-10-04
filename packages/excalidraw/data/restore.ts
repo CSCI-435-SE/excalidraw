@@ -224,6 +224,7 @@ export const AllowedExcalidrawActiveTools: Record<
   hand: true,
   laser: false,
   magicframe: false,
+  path: true,
 };
 
 export type RestoredDataState = {
@@ -700,6 +701,38 @@ export const restoreElement = (
       return restoreElementWithProperties(element, {
         name: element.name ?? null,
       });
+    case "path": {
+      let x = element.x;
+      let y = element.y;
+      let points = restoreLinearElementPoints(
+        element.points,
+        element.width,
+        element.height,
+      );
+
+      if (points[0][0] !== 0 || points[0][1] !== 0) {
+        ({ points, x, y } =
+          LinearElementEditor.getNormalizeElementPointsAndCoords({
+            ...element,
+            points,
+            x: x ?? 0,
+            y: y ?? 0,
+          } as unknown as ExcalidrawLinearElement));
+      }
+
+      // a dangling targetElementId/targetGroupId (referencing a since-deleted
+      // target) is tolerated, not repaired here — the same way a dangling
+      // frameId is tolerated elsewhere; resolution happens at read time via
+      // getPathTargetElements()
+      return restoreElementWithProperties(element, {
+        points,
+        x,
+        y,
+        targetElementId: element.targetElementId ?? null,
+        targetGroupId: element.targetGroupId ?? null,
+        ...getSizeFromPoints(points),
+      });
+    }
 
     // Don't use default case so as to catch a missing an element type case.
     // We also don't want to throw, but instead return void so we filter

@@ -74,6 +74,7 @@ import type {
   ExcalidrawFreeDrawElement,
   ElementsMap,
   ExcalidrawLineElement,
+  ExcalidrawPathElement,
   Arrowhead,
 } from "./types";
 
@@ -243,7 +244,8 @@ export const generateRoughOptions = (
     }
     case "line":
     case "arrow":
-    case "freedraw": {
+    case "freedraw":
+    case "path": {
       if (isPathALoop(element.points)) {
         options.fillStyle = element.fillStyle;
         options.fill =
@@ -577,7 +579,10 @@ const getArrowheadShapes = (
 };
 
 export const generateLinearCollisionShape = (
-  element: ExcalidrawLinearElement | ExcalidrawFreeDrawElement,
+  element:
+    | ExcalidrawLinearElement
+    | ExcalidrawFreeDrawElement
+    | ExcalidrawPathElement,
   elementsMap: ElementsMap,
 ): {
   op: string;
@@ -595,7 +600,8 @@ export const generateLinearCollisionShape = (
 
   switch (element.type) {
     case "line":
-    case "arrow": {
+    case "arrow":
+    case "path": {
       // points array can be empty in the beginning, so it is important to add
       // initial position to it
       const points = element.points.length
@@ -997,7 +1003,8 @@ const _generateElementShape = (
     case "frame":
     case "magicframe":
     case "text":
-    case "image": {
+    case "image":
+    case "path": {
       const shape: ElementShapes[typeof element.type] = null;
       // we return (and cache) `null` to make sure we don't regenerate
       // `element.canvas` on rerenders
@@ -1128,6 +1135,18 @@ export const getElementShape = <Point extends GlobalPoint | LocalPoint>(
         element,
         pointFrom(cx, cy),
         shouldTestInside(element),
+      );
+    }
+
+    case "path": {
+      // paths have no roughjs sketch (see generateElementShape() above) —
+      // hit-test them the same way freedraw strokes are: as an open
+      // polyline over `element.points`.
+      const [, , , , cx, cy] = getElementAbsoluteCoords(element, elementsMap);
+      return getFreedrawShape(
+        element as unknown as ExcalidrawFreeDrawElement,
+        pointFrom(cx, cy),
+        false,
       );
     }
   }
