@@ -20,12 +20,14 @@ export const ColorInput = ({
   label,
   colorPickerType,
   placeholder,
+  manageActiveSection = true,
 }: {
   color: string;
   onChange: (color: string) => void;
   label: string;
   colorPickerType: ColorPickerType;
   placeholder?: string;
+  manageActiveSection?: boolean;
 }) => {
   const editorInterface = useEditorInterface();
   const [innerValue, setInnerValue] = useState(color);
@@ -71,7 +73,9 @@ export const ColorInput = ({
     <div className="color-picker__input-label">
       <div className="color-picker__input-hash">#</div>
       <input
-        ref={activeSection === "hex" ? inputRef : undefined}
+        ref={
+          manageActiveSection && activeSection === "hex" ? inputRef : undefined
+        }
         style={{ border: 0, padding: 0 }}
         spellCheck={false}
         className="color-picker-input"
@@ -84,7 +88,11 @@ export const ColorInput = ({
           setInnerValue(color);
         }}
         tabIndex={-1}
-        onFocus={() => setActiveColorPickerSection("hex")}
+        onFocus={() => {
+          if (manageActiveSection) {
+            setActiveColorPickerSection("hex");
+          }
+        }}
         onKeyDown={(event) => {
           if (event.key === KEYS.TAB) {
             return;

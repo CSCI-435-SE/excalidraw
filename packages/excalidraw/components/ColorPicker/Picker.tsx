@@ -8,12 +8,16 @@ import {
   KEYS,
 } from "@excalidraw/common";
 
+import { getGradientColors } from "@excalidraw/element";
+
 import type { ExcalidrawElement } from "@excalidraw/element/types";
 
 import type { ColorPaletteCustom } from "@excalidraw/common";
 
 import { useAtom } from "../../editor-jotai";
 import { t } from "../../i18n";
+
+import { BackgroundGradientPicker } from "../BackgroundGradientPicker";
 
 import { CustomColorList } from "./CustomColorList";
 import PickerColorList from "./PickerColorList";
@@ -114,6 +118,9 @@ export const Picker = React.forwardRef(
           ? DEFAULT_ELEMENT_BACKGROUND_COLOR_INDEX
           : DEFAULT_ELEMENT_STROKE_COLOR_INDEX),
     );
+    const [gradientEnabled, setGradientEnabled] = useState(
+      !!color && !!getGradientColors(color),
+    );
 
     useEffect(() => {
       if (colorObj?.shade != null) {
@@ -202,7 +209,14 @@ export const Picker = React.forwardRef(
               showHotKey={showHotKey}
             />
           </div>
-          {children}
+          {type === "elementBackground" && (
+            <BackgroundGradientPicker
+              color={color}
+              onChange={onChange}
+              onEnabledChange={setGradientEnabled}
+            />
+          )}
+          {!gradientEnabled && children}
         </div>
       </div>
     );

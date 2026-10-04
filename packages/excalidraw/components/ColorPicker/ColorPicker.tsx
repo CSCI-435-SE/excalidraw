@@ -9,6 +9,8 @@ import {
   isWritableElement,
 } from "@excalidraw/common";
 
+import { getGradientColors } from "@excalidraw/element";
+
 import type { ColorTuple, ColorPaletteCustom } from "@excalidraw/common";
 
 import type { ExcalidrawElement } from "@excalidraw/element/types";
@@ -224,6 +226,7 @@ const ColorPickerTrigger = ({
   onToggle: () => void;
   editingTextElement?: boolean;
 }) => {
+  const gradientColors = color ? getGradientColors(color) : null;
   const stylesPanelMode = useStylesPanelMode();
   const isCompactMode = stylesPanelMode !== "full";
   const isMobileMode = stylesPanelMode === "mobile";
@@ -246,12 +249,29 @@ const ColorPickerTrigger = ({
       className={clsx("color-picker__button active-color properties-trigger", {
         "is-transparent": !color || color === "transparent",
         "has-outline":
-          !color || !isColorDark(color, COLOR_OUTLINE_CONTRAST_THRESHOLD),
+          !color ||
+          (gradientColors
+            ? !isColorDark(
+                gradientColors.startColor,
+                COLOR_OUTLINE_CONTRAST_THRESHOLD,
+              )
+            : !isColorDark(color, COLOR_OUTLINE_CONTRAST_THRESHOLD)),
         "compact-sizing": isCompactMode,
         "mobile-border": isMobileMode,
       })}
       aria-label={label}
-      style={color ? { "--swatch-color": color } : undefined}
+      style={
+        gradientColors
+          ? {
+              backgroundImage:
+                gradientColors.type === "linear"
+                  ? `linear-gradient(90deg, ${gradientColors.startColor}, ${gradientColors.endColor})`
+                  : `radial-gradient(circle, ${gradientColors.startColor}, ${gradientColors.endColor})`,
+            }
+          : color
+          ? { "--swatch-color": color }
+          : undefined
+      }
       title={
         type === "elementStroke"
           ? t("labels.showStroke")

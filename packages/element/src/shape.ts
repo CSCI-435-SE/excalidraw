@@ -55,6 +55,7 @@ import {
   isLinearElement,
 } from "./typeChecks";
 import { getCornerRadius, isPathALoop } from "./utils";
+import { getGradientColors } from "./gradient";
 import { headingForPointIsHorizontal } from "./heading";
 
 import { canChangeRoundness } from "./comparisons";
@@ -233,9 +234,11 @@ export const generateRoughOptions = (
     case "triangle":
     case "ellipse": {
       options.fillStyle = element.fillStyle;
-      options.fill = isTransparent(element.backgroundColor)
-        ? undefined
-        : applyDarkModeFilter(element.backgroundColor, isDarkMode);
+      options.fill =
+        isTransparent(element.backgroundColor) ||
+        getGradientColors(element.backgroundColor)
+          ? undefined
+          : applyDarkModeFilter(element.backgroundColor, isDarkMode);
       if (element.type === "ellipse") {
         options.curveFitting = 1;
       }
@@ -247,7 +250,8 @@ export const generateRoughOptions = (
       if (isPathALoop(element.points)) {
         options.fillStyle = element.fillStyle;
         options.fill =
-          element.backgroundColor === "transparent"
+          element.backgroundColor === "transparent" ||
+          getGradientColors(element.backgroundColor)
             ? undefined
             : applyDarkModeFilter(element.backgroundColor, isDarkMode);
       }
