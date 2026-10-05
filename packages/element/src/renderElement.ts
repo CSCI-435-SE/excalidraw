@@ -42,7 +42,12 @@ import type {
   InteractiveCanvasRenderConfig,
 } from "@excalidraw/excalidraw/scene/types";
 
-import { getElementAbsoluteCoords, getElementBounds } from "./bounds";
+import {
+  getDiamondPoints,
+  getElementAbsoluteCoords,
+  getElementBounds,
+  getTrianglePoints,
+} from "./bounds";
 import { getUncroppedImageElement } from "./cropElement";
 import { LinearElementEditor } from "./linearElementEditor";
 import {
@@ -65,7 +70,8 @@ import {
   isPathElement,
 } from "./typeChecks";
 import { getContainingFrame } from "./frame";
-import { getCornerRadius } from "./utils";
+import { getCornerRadius, isPathALoop } from "./utils";
+import { getGradientColors } from "./gradient";
 
 import { ShapeCache } from "./shape";
 
@@ -330,6 +336,105 @@ const drawElementOnCanvas = (
   context: CanvasRenderingContext2D,
   renderConfig: StaticCanvasRenderConfig,
 ) => {
+  const fillWithGradient = () => {
+    const gradientColors = getGradientColors(element.backgroundColor);
+    if (!gradientColors) {
+      return false;
+    }
+
+    const gradient =
+      gradientColors.type === "linear"
+        ? context.createLinearGradient(0, 0, element.width, 0)
+        : context.createRadialGradient(
+            element.width / 2,
+            element.height / 2,
+            0,
+            element.width / 2,
+            element.height / 2,
+            Math.hypot(element.width / 2, element.height / 2),
+          );
+    gradient.addColorStop(
+      0,
+      applyDarkModeFilter(
+        gradientColors.startColor,
+        renderConfig.theme === THEME.DARK,
+      ),
+    );
+    gradient.addColorStop(
+      1,
+      applyDarkModeFilter(
+        gradientColors.endColor,
+        renderConfig.theme === THEME.DARK,
+      ),
+    );
+    context.fillStyle = gradient;
+    context.beginPath();
+
+    switch (element.type) {
+      case "rectangle":
+      case "iframe":
+      case "embeddable":
+        if (element.roundness && context.roundRect) {
+          context.roundRect(
+            0,
+            0,
+            element.width,
+            element.height,
+            getCornerRadius(Math.min(element.width, element.height), element),
+          );
+        } else {
+          context.rect(0, 0, element.width, element.height);
+        }
+        break;
+      case "ellipse":
+        context.ellipse(
+          element.width / 2,
+          element.height / 2,
+          element.width / 2,
+          element.height / 2,
+          0,
+          0,
+          Math.PI * 2,
+        );
+        break;
+      case "diamond": {
+        const [topX, topY, rightX, rightY, bottomX, bottomY, leftX, leftY] =
+          getDiamondPoints(element);
+        context.moveTo(topX, topY);
+        context.lineTo(rightX, rightY);
+        context.lineTo(bottomX, bottomY);
+        context.lineTo(leftX, leftY);
+        context.closePath();
+        break;
+      }
+      case "triangle": {
+        const [topX, topY, rightX, rightY, leftX, leftY] =
+          getTrianglePoints(element);
+        context.moveTo(topX, topY);
+        context.lineTo(rightX, rightY);
+        context.lineTo(leftX, leftY);
+        context.closePath();
+        break;
+      }
+      case "line":
+      case "arrow":
+        if (!isPathALoop(element.points) || !element.points.length) {
+          return false;
+        }
+        context.moveTo(element.points[0][0], element.points[0][1]);
+        for (let index = 1; index < element.points.length; index++) {
+          context.lineTo(element.points[index][0], element.points[index][1]);
+        }
+        context.closePath();
+        break;
+      default:
+        return false;
+    }
+
+    context.fill();
+    return true;
+  };
+
   switch (element.type) {
     case "rectangle":
     case "iframe":
@@ -340,6 +445,7 @@ const drawElementOnCanvas = (
       context.lineJoin = "round";
       context.lineCap = "round";
 
+      fillWithGradient();
       rc.draw(ShapeCache.generateElementShape(element, renderConfig));
       break;
     }
@@ -348,6 +454,7 @@ const drawElementOnCanvas = (
       context.lineJoin = "round";
       context.lineCap = "round";
 
+      fillWithGradient();
       ShapeCache.generateElementShape(element, renderConfig).forEach(
         (shape) => {
           rc.draw(shape);

@@ -1,0 +1,67 @@
+.excalidraw {
+  .background-gradient-picker {
+    padding: 0 0.5rem;
+  }
+
+  .background-gradient-picker__toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+
+    .color-picker__heading {
+      padding: 0;
+    }
+  }
+
+  .background-gradient-picker__preview {
+    height: 1.5rem;
+    margin-top: 0.5rem;
+    border-radius: 4px;
+  }
+
+  .background-gradient-picker__type-switch {
+    display: flex;
+    width: fit-content;
+    margin-top: 0.5rem;
+    border: 1px solid var(--default-border-color);
+    border-radius: 4px;
+    overflow: hidden;
+
+    button {
+      padding: 0.25rem 0.5rem;
+      border: 0;
+      background: transparent;
+      color: var(--text-primary-color);
+      font: inherit;
+      cursor: pointer;
+
+      &[aria-pressed="true"] {
+        background: var(--button-hover-bg);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--focus-highlight-color);
+        outline-offset: -2px;
+      }
+    }
+  }
+
+  .background-gradient-picker__stops {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin-top: 0.25rem;
+    font-size: 0.6875rem;
+  }
+
+  .background-gradient-picker__stop {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .background-gradient-picker__stop .color-picker__input-label {
+    margin: 0;
+  }
+}
