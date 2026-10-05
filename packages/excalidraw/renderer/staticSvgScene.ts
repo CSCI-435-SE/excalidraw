@@ -382,6 +382,56 @@ const renderElementToSvg = (
       }
       break;
     }
+    case "path": {
+      // schematic, not hand-drawn — matches the canvas renderer's plain
+      // dashed polyline + waypoint dots (see renderElement.ts's `path` case)
+      const wrapper = svgRoot.ownerDocument.createElementNS(SVG_NS, "g");
+      const color = applyDarkModeFilter(
+        element.strokeColor,
+        renderConfig.theme === THEME.DARK,
+      );
+
+      if (element.points.length > 1) {
+        const linePath = svgRoot.ownerDocument.createElementNS(SVG_NS, "path");
+        const d = element.points
+          .map(([x, y], index) => `${index === 0 ? "M" : "L"}${x} ${y}`)
+          .join(" ");
+        linePath.setAttribute("d", d);
+        linePath.setAttribute("fill", "none");
+        linePath.setAttribute("stroke", color);
+        linePath.setAttribute("stroke-width", `${element.strokeWidth}`);
+        linePath.setAttribute("stroke-linecap", "round");
+        linePath.setAttribute(
+          "stroke-dasharray",
+          `${element.strokeWidth * 3} ${element.strokeWidth * 2}`,
+        );
+        wrapper.appendChild(linePath);
+      }
+
+      const dotRadius = Math.max(element.strokeWidth * 1.5, 3);
+      element.points.forEach(([x, y]) => {
+        const dot = svgRoot.ownerDocument.createElementNS(SVG_NS, "circle");
+        dot.setAttribute("cx", `${x}`);
+        dot.setAttribute("cy", `${y}`);
+        dot.setAttribute("r", `${dotRadius}`);
+        dot.setAttribute("fill", color);
+        wrapper.appendChild(dot);
+      });
+
+      if (opacity !== 1) {
+        wrapper.setAttribute("stroke-opacity", `${opacity}`);
+        wrapper.setAttribute("fill-opacity", `${opacity}`);
+      }
+      wrapper.setAttribute(
+        "transform",
+        `translate(${offsetX || 0} ${
+          offsetY || 0
+        }) rotate(${degree} ${cx} ${cy})`,
+      );
+
+      addToRoot(wrapper, element);
+      break;
+    }
     case "freedraw": {
       const wrapper = svgRoot.ownerDocument.createElementNS(SVG_NS, "g");
 

@@ -501,6 +501,7 @@ export const TOOL_TYPE = {
   magicframe: "magicframe",
   embeddable: "embeddable",
   laser: "laser",
+  path: "path",
 } as const;
 
 export const EDITOR_LS_KEYS = {
@@ -548,6 +549,10 @@ export const LINE_POLYGON_POINT_MERGE_DISTANCE = 20;
 export const DOUBLE_TAP_POSITION_THRESHOLD = 35;
 
 export const BIND_MODE_TIMEOUT = 700; // ms
+
+/** press-and-hold duration on an element with an assigned motion path
+ * before its playback preview starts */
+export const PATH_PLAYBACK_HOLD_MS = 1000; // ms
 
 // glass background for mobile action buttons
 export const MOBILE_ACTION_BUTTON_BG = {

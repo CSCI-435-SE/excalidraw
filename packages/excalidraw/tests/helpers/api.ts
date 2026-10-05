@@ -21,6 +21,7 @@ import {
   newImageElement,
   newLinearElement,
   newMagicFrameElement,
+  newPathElement,
   newTextElement,
 } from "@excalidraw/element";
 
@@ -42,6 +43,7 @@ import type {
   ExcalidrawMagicFrameElement,
   ExcalidrawElbowArrowElement,
   ExcalidrawArrowElement,
+  ExcalidrawPathElement,
   FixedSegment,
   NonDeleted,
   NonDeletedExcalidrawElement,
@@ -206,7 +208,13 @@ export class API {
     containerId?: T extends "text"
       ? ExcalidrawTextElement["containerId"]
       : never;
-    points?: T extends "arrow" | "line" | "freedraw" ? readonly LocalPoint[] : never;
+    points?: T extends "arrow" | "line" | "freedraw" | "path" ? readonly LocalPoint[] : never;
+    targetElementId?: T extends "path"
+      ? ExcalidrawPathElement["targetElementId"]
+      : never;
+    targetGroupId?: T extends "path"
+      ? ExcalidrawPathElement["targetGroupId"]
+      : never;
     strokeOptions?: T extends "freedraw"
       ? ExcalidrawFreeDrawElement["strokeOptions"]
       : never;
@@ -241,6 +249,8 @@ export class API {
       ? ExcalidrawFrameElement
       : T extends "magicframe"
       ? ExcalidrawMagicFrameElement
+      : T extends "path"
+      ? ExcalidrawPathElement
       : ExcalidrawGenericElement
   > => {
     let element: Mutable<ExcalidrawElement> = null!;
@@ -377,6 +387,19 @@ export class API {
         break;
       case "magicframe":
         element = newMagicFrameElement({ ...base, width, height });
+        break;
+      case "path":
+        element = newPathElement({
+          ...base,
+          width,
+          height,
+          points: rest.points ?? [
+            pointFrom<LocalPoint>(0, 0),
+            pointFrom<LocalPoint>(100, 100),
+          ],
+          targetElementId: rest.targetElementId ?? null,
+          targetGroupId: rest.targetGroupId ?? null,
+        });
         break;
       default:
         assertNever(

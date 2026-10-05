@@ -81,6 +81,7 @@ exports[`exportToSvg > with default arguments 1`] = `
   },
   "penDetected": false,
   "penMode": false,
+  "pendingPathTarget": null,
   "preferredSelectionTool": {
     "initialized": false,
     "type": "selection",

@@ -55,12 +55,18 @@ import {
   getElementAbsoluteCoords,
   getElementPointsCoords,
   getMinMaxXYFromCurvePathOps,
+  getBoundsFromPoints,
 } from "./bounds";
 
 import { headingIsHorizontal, vectorToHeading } from "./heading";
 import { mutateElement } from "./mutateElement";
 import { getBoundTextElement, handleBindTextResize } from "./textElement";
-import { isArrowElement, isBindingElement, isElbowArrow } from "./typeChecks";
+import {
+  isArrowElement,
+  isBindingElement,
+  isElbowArrow,
+  isPathElement,
+} from "./typeChecks";
 
 import { ShapeCache, toggleLinePolygonState } from "./shape";
 
@@ -84,7 +90,20 @@ import type {
   NonDeletedExcalidrawElement,
   Ordered,
   ExcalidrawBindableElement,
+  ExcalidrawPathElement,
 } from "./types";
+
+/**
+ * Geometry-only element shape editable via `LinearElementEditor`'s pointer
+ * handling (point add/drag/midpoint). Includes `path` alongside `line`/
+ * `arrow` since it shares the same points-based editing model, but has no
+ * bindings/arrowheads — methods that read `startBinding`/`endBinding` guard
+ * on `isBindingElement`/`element.type === "arrow"`, which is always false
+ * for a path, so those branches are naturally skipped for it.
+ */
+type EditableLinearLikeElement =
+  | ExcalidrawLinearElement
+  | ExcalidrawPathElement;
 
 /**
  * Normalizes line points so that the start point is at [0,0]. This is
@@ -162,7 +181,7 @@ export class LinearElementEditor {
   public readonly pointerDownState: never;
 
   constructor(
-    element: NonDeleted<ExcalidrawLinearElement>,
+    element: NonDeleted<EditableLinearLikeElement>,
     elementsMap: ElementsMap,
     isEditing: boolean = false,
   ) {
@@ -214,7 +233,7 @@ export class LinearElementEditor {
    * @param id the `elementId` from the instance of this class (so that we can
    *  statically guarantee this method returns an ExcalidrawLinearElement)
    */
-  static getElement<T extends ExcalidrawLinearElement>(
+  static getElement<T extends EditableLinearLikeElement>(
     id: InstanceType<typeof LinearElementEditor>["elementId"],
     elementsMap: ElementsMap,
   ): NonDeleted<T> | null {
@@ -782,7 +801,7 @@ export class LinearElementEditor {
   }
 
   static getEditorMidPoints = (
-    element: ExcalidrawLinearElement,
+    element: EditableLinearLikeElement,
     elementsMap: ElementsMap,
     appState: InteractiveCanvasAppState,
   ): (GlobalPoint | null)[] => {
@@ -906,7 +925,7 @@ export class LinearElementEditor {
   };
 
   static isSegmentTooShort<P extends GlobalPoint | LocalPoint>(
-    element: ExcalidrawLinearElement,
+    element: EditableLinearLikeElement,
     startPoint: P,
     endPoint: P,
     index: number,
@@ -947,7 +966,7 @@ export class LinearElementEditor {
   }
 
   static getSegmentMidPoint(
-    element: ExcalidrawLinearElement,
+    element: EditableLinearLikeElement,
     index: number,
     elementsMap: ElementsMap,
   ): GlobalPoint {
@@ -1267,7 +1286,7 @@ export class LinearElementEditor {
 
   /** scene coords */
   static getPointGlobalCoordinates(
-    element: ExcalidrawLinearElement,
+    element: EditableLinearLikeElement,
     p: LocalPoint,
     elementsMap: ElementsMap,
   ): GlobalPoint {
@@ -1285,7 +1304,7 @@ export class LinearElementEditor {
 
   /** scene coords */
   static getPointsGlobalCoordinates(
-    element: ExcalidrawLinearElement,
+    element: EditableLinearLikeElement,
     elementsMap: ElementsMap,
   ): GlobalPoint[] {
     const [x1, y1, x2, y2] = getElementAbsoluteCoords(element, elementsMap);
@@ -1302,7 +1321,7 @@ export class LinearElementEditor {
   }
 
   static getPointAtIndexGlobalCoordinates(
-    element: ExcalidrawLinearElement,
+    element: EditableLinearLikeElement,
     indexMaybeFromEnd: number, // -1 for last element
     elementsMap: ElementsMap,
   ): GlobalPoint {
@@ -1325,7 +1344,7 @@ export class LinearElementEditor {
   }
 
   static pointFromAbsoluteCoords(
-    element: ExcalidrawLinearElement,
+    element: EditableLinearLikeElement,
     absoluteCoords: GlobalPoint,
     elementsMap: ElementsMap,
   ): LocalPoint {
@@ -1349,7 +1368,7 @@ export class LinearElementEditor {
   }
 
   static getPointIndexUnderCursor(
-    element: ExcalidrawLinearElement,
+    element: EditableLinearLikeElement,
     elementsMap: ElementsMap,
     zoom: AppState["zoom"],
     x: number,
@@ -1377,7 +1396,7 @@ export class LinearElementEditor {
   }
 
   static createPointAt(
-    element: ExcalidrawLinearElement,
+    element: EditableLinearLikeElement,
     elementsMap: ElementsMap,
     scenePointerX: number,
     scenePointerY: number,
@@ -1403,7 +1422,9 @@ export class LinearElementEditor {
    * Also returns normalized x and y coords to account for the normalization
    * of the points.
    */
-  static getNormalizeElementPointsAndCoords(element: ExcalidrawLinearElement) {
+  static getNormalizeElementPointsAndCoords(
+    element: EditableLinearLikeElement,
+  ) {
     const { points, offsetX, offsetY } = getNormalizedPoints(element);
 
     return {
@@ -1492,7 +1513,7 @@ export class LinearElementEditor {
   }
 
   static deletePoints(
-    element: NonDeleted<ExcalidrawLinearElement>,
+    element: NonDeleted<EditableLinearLikeElement>,
     app: AppClassProperties,
     pointIndices: readonly number[],
   ) {
@@ -1536,7 +1557,7 @@ export class LinearElementEditor {
   }
 
   static addPoints(
-    element: NonDeleted<ExcalidrawLinearElement>,
+    element: NonDeleted<EditableLinearLikeElement>,
     scene: Scene,
     addedPoints: LocalPoint[],
   ) {
@@ -1565,7 +1586,7 @@ export class LinearElementEditor {
   }
 
   static movePoints(
-    element: NonDeleted<ExcalidrawLinearElement>,
+    element: NonDeleted<EditableLinearLikeElement>,
     scene: Scene,
     pointUpdates: PointsPositionUpdates,
     otherUpdates?: {
@@ -1748,7 +1769,7 @@ export class LinearElementEditor {
   }
 
   private static _updatePoints(
-    element: NonDeleted<ExcalidrawLinearElement>,
+    element: NonDeleted<EditableLinearLikeElement>,
     scene: Scene,
     nextPoints: readonly LocalPoint[],
     offsetX: number,
@@ -1811,7 +1832,7 @@ export class LinearElementEditor {
   }
 
   private static _getShiftLockedDelta(
-    element: ExcalidrawLinearElement,
+    element: EditableLinearLikeElement,
     elementsMap: ElementsMap,
     referencePoint: LocalPoint,
     scenePointer: GlobalPoint,
@@ -1853,7 +1874,7 @@ export class LinearElementEditor {
   }
 
   static getBoundTextElementPosition = (
-    element: ExcalidrawLinearElement,
+    element: EditableLinearLikeElement,
     boundTextElement: ExcalidrawTextElementWithContainer,
     elementsMap: ElementsMap,
   ): { x: number; y: number } => {
@@ -1890,7 +1911,7 @@ export class LinearElementEditor {
   };
 
   static getMinMaxXYWithBoundText = (
-    element: ExcalidrawLinearElement,
+    element: EditableLinearLikeElement,
     elementsMap: ElementsMap,
     elementBounds: Bounds,
     boundTextElement: ExcalidrawTextElementWithContainer,
@@ -1994,16 +2015,19 @@ export class LinearElementEditor {
   };
 
   static getElementAbsoluteCoords = (
-    element: ExcalidrawLinearElement,
+    element: EditableLinearLikeElement,
     elementsMap: ElementsMap,
     includeBoundText: boolean = false,
   ): [number, number, number, number, number, number] => {
-    const shape = ShapeCache.generateElementShape(element, null);
+    // paths have no roughjs render shape to derive ops from (see
+    // generateElementShape()'s `path` case) — their points are a plain
+    // polyline, so the unrotated bounding box is computed directly
+    const [minX, minY, maxX, maxY] = isPathElement(element)
+      ? getBoundsFromPoints(element.points)
+      : getMinMaxXYFromCurvePathOps(
+          getCurvePathOps(ShapeCache.generateElementShape(element, null)[0]),
+        );
 
-    // first element is always the curve
-    const ops = getCurvePathOps(shape[0]);
-
-    const [minX, minY, maxX, maxY] = getMinMaxXYFromCurvePathOps(ops);
     const x1 = minX + element.x;
     const y1 = minY + element.y;
     const x2 = maxX + element.x;
@@ -2140,7 +2164,7 @@ const pointDraggingUpdates = (
   scenePointerX: number,
   scenePointerY: number,
   elementsMap: NonDeletedSceneElementsMap,
-  element: NonDeleted<ExcalidrawLinearElement>,
+  element: NonDeleted<EditableLinearLikeElement>,
   elements: readonly Ordered<NonDeletedExcalidrawElement>[],
   app: AppClassProperties,
   angleLocked: boolean,

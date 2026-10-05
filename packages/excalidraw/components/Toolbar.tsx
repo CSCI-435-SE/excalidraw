@@ -21,6 +21,7 @@ import {
   laserPointerToolIcon,
   MagicIcon,
   mermaidLogoIcon,
+  PathIcon,
 } from "./icons";
 import {
   ArrowToolButton,
@@ -66,6 +67,7 @@ const ExtraToolsDropdown = ({
     activeTool.type === "lasso" &&
     app.state.preferredSelectionTool.type !== "lasso";
   const embeddableToolSelected = activeTool.type === "embeddable";
+  const pathToolSelected = activeTool.type === "path";
 
   return (
     <DropdownMenu open={isExtraToolsMenuOpen}>
@@ -74,6 +76,7 @@ const ExtraToolsDropdown = ({
           "App-toolbar__extra-tools-trigger--selected":
             frameToolSelected ||
             embeddableToolSelected ||
+            pathToolSelected ||
             lassoToolSelected ||
             // in collab we're already highlighting the laser button
             // outside toolbar, so let's not highlight extra-tools button
@@ -90,6 +93,8 @@ const ExtraToolsDropdown = ({
           ? frameToolIcon
           : embeddableToolSelected
           ? EmbedIcon
+          : pathToolSelected
+          ? PathIcon
           : laserToolSelected && !app.props.isCollaborating
           ? laserPointerToolIcon
           : lassoToolSelected
@@ -117,6 +122,15 @@ const ExtraToolsDropdown = ({
           selected={embeddableToolSelected}
         >
           {t("toolBar.embeddable")}
+        </DropdownMenu.Item>
+        <DropdownMenu.Item
+          onSelect={() => app.setActiveTool({ type: "path" })}
+          icon={PathIcon}
+          shortcut={KEYS.M.toLocaleUpperCase()}
+          data-testid="toolbar-path"
+          selected={pathToolSelected}
+        >
+          {t("toolBar.path")}
         </DropdownMenu.Item>
         <DropdownMenu.Item
           onSelect={() => app.setActiveTool({ type: "laser" })}

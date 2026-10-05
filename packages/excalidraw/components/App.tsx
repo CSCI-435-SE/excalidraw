@@ -95,6 +95,7 @@ import {
   MINIMUM_ARROW_SIZE,
   DOUBLE_TAP_POSITION_THRESHOLD,
   BIND_MODE_TIMEOUT,
+  PATH_PLAYBACK_HOLD_MS,
   invariant,
   getFeatureFlag,
   createUserAgentDescriptor,
@@ -257,6 +258,10 @@ import {
   isEligibleFrameChildType,
   getBindingStrategyForDraggingBindingElementEndpoints,
   isNonDeletedElement,
+  newPathElement,
+  isPathElement,
+  getPathsTargetingElement,
+  getPathTargetElements,
 } from "@excalidraw/element";
 
 import type { GlobalPoint, LocalPoint, Radians } from "@excalidraw/math";
@@ -438,6 +443,7 @@ import { isOverScrollBars } from "../scene/scrollbars";
 import { isMaybeMermaidDefinition } from "../mermaid";
 import { LassoTrail } from "../lasso";
 import { EraserTrail } from "../eraser";
+import { PathPlaybackController } from "../pathPlayback";
 import { getShortcutKey } from "../shortcut";
 import { tryParseSpreadsheet } from "../charts";
 import { AnimationController } from "../renderer/animation";
@@ -758,6 +764,20 @@ class App extends React.Component<AppProps, AppState> {
   eraserTrail = new EraserTrail(this);
   lassoTrail = new LassoTrail(this);
   cursorHints = new CursorHints(this);
+  pathPlayback = new PathPlaybackController(this);
+  private pathPlaybackArmTimer: ReturnType<typeof setTimeout> | null = null;
+  private pathPlaybackArmedAt: { x: number; y: number } | null = null;
+  private pathPlaybackJustTriggered = false;
+
+  /**
+   * Schedules the pending scene mutation as non-undoable. Exposed publicly
+   * (rather than `app.store` itself, which is private) for `pathPlayback`'s
+   * per-frame position updates, which must never create undo history or
+   * flood collab/localStorage sync with per-frame positions.
+   */
+  public scheduleNeverCapture = (): void => {
+    this.store.scheduleAction(CaptureUpdateAction.NEVER);
+  };
 
   onChangeEmitter = new Emitter<
     [
@@ -1031,7 +1051,7 @@ class App extends React.Component<AppProps, AppState> {
         this.scene.getNonDeletedElements(),
         elementsMap,
       );
-      const element = LinearElementEditor.getElement(
+      const element = LinearElementEditor.getElement<ExcalidrawLinearElement>(
         this.state.selectedLinearElement.elementId,
         elementsMap,
       );
@@ -8200,6 +8220,8 @@ class App extends React.Component<AppProps, AppState> {
     // pointerDown event, ends with a pointerUp event (or another pointerDown)
     const pointerDownState = this.initialPointerDownState(event);
 
+    this.armPathPlaybackIfApplicable(pointerDownState);
+
     this.setState({
       selectedElementsAreBeingDragged: false,
     });
@@ -8387,6 +8409,8 @@ class App extends React.Component<AppProps, AppState> {
         pointerDownState.lastCoords.x,
         pointerDownState.lastCoords.y,
       );
+    } else if (this.state.activeTool.type === "path") {
+      this.handlePathElementOnPointerDown(event, pointerDownState);
     } else if (
       this.state.activeTool.type !== "eraser" &&
       this.state.activeTool.type !== "hand" &&
@@ -9531,6 +9555,11 @@ class App extends React.Component<AppProps, AppState> {
         "selectedLinearElement is expected to be set",
       );
 
+      invariant(
+        isLinearElement(multiElement),
+        "multiElement is expected to be a linear element here — path drawing is handled by handlePathElementOnPointerDown",
+      );
+
       // finalize if completing a loop
       if (
         multiElement.type === "line" &&
@@ -9819,6 +9848,231 @@ class App extends React.Component<AppProps, AppState> {
     }
   };
 
+  /**
+   * Two-phase path-tool flow:
+   * 1. no pendingPathTarget, no multiElement — first click picks the target
+   *    element/group the path will be associated with (no element created).
+   * 2. pendingPathTarget set, no multiElement — second click creates the
+   *    path element and starts multi-point drawing (mirrors, but does not
+   *    share, handleLinearElementOnPointerDown's binding/loop-aware logic,
+   *    since paths never bind and are never closed into a loop).
+   * 3. multiElement set — subsequent clicks either finalize (clicked back
+   *    near the last committed point) or continue (point placement itself
+   *    happens continuously in the generic multiElement pointermove handler,
+   *    which is type-agnostic and already handles path via the widened
+   *    LinearElementEditor).
+   */
+  private handlePathElementOnPointerDown = (
+    event: React.PointerEvent<HTMLElement>,
+    pointerDownState: PointerDownState,
+  ): void => {
+    if (this.state.multiElement) {
+      const { multiElement, selectedLinearElement } = this.state;
+
+      invariant(
+        selectedLinearElement,
+        "selectedLinearElement is expected to be set",
+      );
+      invariant(
+        isPathElement(multiElement),
+        "multiElement is expected to be a path element here",
+      );
+
+      const { x: rx, y: ry } = multiElement;
+      const { lastCommittedPoint } = selectedLinearElement;
+      const lastCommittedPointIsInsideCommitZone =
+        lastCommittedPoint &&
+        pointDistance(
+          pointFrom(
+            pointerDownState.origin.x - rx,
+            pointerDownState.origin.y - ry,
+          ),
+          lastCommittedPoint,
+        ) < LINE_CONFIRM_THRESHOLD;
+
+      if (
+        multiElement.points.length > 1 &&
+        lastCommittedPointIsInsideCommitZone
+      ) {
+        this.actionManager.executeAction(actionFinalize, "ui", {
+          event: event.nativeEvent,
+          sceneCoords: {
+            x: pointerDownState.origin.x,
+            y: pointerDownState.origin.y,
+          },
+        });
+        return;
+      }
+
+      this.setState((prevState) => ({
+        selectedElementIds: makeNextSelectedElementIds(
+          {
+            ...prevState.selectedElementIds,
+            [multiElement.id]: true,
+          },
+          prevState,
+        ),
+      }));
+      setCursor(this.interactiveCanvas, CURSOR_TYPE.POINTER);
+      return;
+    }
+
+    if (this.state.pendingPathTarget) {
+      const { pendingPathTarget } = this.state;
+      const [gridX, gridY] = getGridPoint(
+        pointerDownState.origin.x,
+        pointerDownState.origin.y,
+        event[KEYS.CTRL_OR_CMD] ? null : this.getEffectiveGridSize(),
+      );
+
+      const element = newPathElement({
+        x: gridX,
+        y: gridY,
+        strokeColor: this.state.currentItemStrokeColor,
+        backgroundColor: this.state.currentItemBackgroundColor,
+        fillStyle: this.state.currentItemFillStyle,
+        strokeWidth: this.getCurrentItemStrokeWidth("line"),
+        strokeStyle: this.state.currentItemStrokeStyle,
+        roughness: this.state.currentItemRoughness,
+        opacity: this.state.currentItemOpacity,
+        locked: false,
+        points: [pointFrom<LocalPoint>(0, 0), pointFrom<LocalPoint>(0, 0)],
+        targetElementId: pendingPathTarget.elementId,
+        targetGroupId: pendingPathTarget.groupId,
+      });
+
+      this.insertNewElement(element);
+
+      const elementsMap = this.scene.getNonDeletedElementsMap();
+      let linearElementEditor = new LinearElementEditor(element, elementsMap);
+      linearElementEditor = {
+        ...linearElementEditor,
+        selectedPointsIndices: [1],
+        initialState: {
+          ...linearElementEditor.initialState,
+          lastClickedPoint: 1,
+          origin: pointFrom<GlobalPoint>(
+            pointerDownState.origin.x,
+            pointerDownState.origin.y,
+          ),
+        },
+      };
+
+      // deliberately NOT setting `multiElement` yet here — promotion from
+      // `newElement` to `multiElement` happens on this same click's
+      // pointerup (mirroring handleLinearElementOnPointerDown's first-click
+      // timing), so the mousemove "freeze tip, grow a new point" logic gets
+      // exactly one real intermediate position per click instead of
+      // double-counting this initial point
+      flushSync(() => {
+        this.setState((prevState) => ({
+          newElement: element,
+          selectedLinearElement: linearElementEditor,
+          selectedElementIds: makeNextSelectedElementIds(
+            { [element.id]: true },
+            prevState,
+          ),
+          pendingPathTarget: null,
+        }));
+      });
+      return;
+    }
+
+    // bounding-box hit test (not the precise shape/outline test used for
+    // normal selection clicks) — picking a path target should work from
+    // anywhere within the shape, including the interior of a transparent
+    // fill, since that's the intuitive click target for this interaction
+    const elementsMap = this.scene.getNonDeletedElementsMap();
+    const point = pointFrom<GlobalPoint>(
+      pointerDownState.origin.x,
+      pointerDownState.origin.y,
+    );
+    const elements = this.scene.getNonDeletedElements();
+    let hitElement: NonDeletedExcalidrawElement | null = null;
+    for (let i = elements.length - 1; i >= 0; i--) {
+      const candidate = elements[i];
+      if (
+        candidate.locked ||
+        isPathElement(candidate) ||
+        isFrameLikeElement(candidate)
+      ) {
+        continue;
+      }
+      if (hitElementBoundingBox(point, candidate, elementsMap)) {
+        hitElement = candidate;
+        break;
+      }
+    }
+
+    if (!hitElement) {
+      return;
+    }
+
+    const outermostGroupId =
+      hitElement.groupIds.length > 0
+        ? hitElement.groupIds[hitElement.groupIds.length - 1]
+        : null;
+
+    this.setState({
+      pendingPathTarget: outermostGroupId
+        ? { elementId: null, groupId: outermostGroupId }
+        : { elementId: hitElement.id, groupId: null },
+    });
+  };
+
+  /**
+   * Arms a press-and-hold timer (selection-mode pointerdown only) when the
+   * hit element has an assigned motion path — cancelled on pointer move past
+   * `DRAGGING_THRESHOLD` (so a real drag-to-move is never intercepted, since
+   * it naturally exceeds the threshold well before the hold duration) or on
+   * pointerup (a quick click/selection is unaffected).
+   */
+  private armPathPlaybackIfApplicable(pointerDownState: PointerDownState) {
+    if (this.state.activeTool.type !== "selection") {
+      return;
+    }
+
+    const hitElement = this.getElementAtPosition(
+      pointerDownState.origin.x,
+      pointerDownState.origin.y,
+    );
+
+    if (!hitElement) {
+      return;
+    }
+
+    const elementsMap = this.scene.getNonDeletedElementsMap();
+    const [path] = getPathsTargetingElement(hitElement, elementsMap);
+
+    if (!path || this.pathPlayback.isPlaying(path)) {
+      return;
+    }
+
+    this.pathPlaybackArmedAt = {
+      x: pointerDownState.origin.x,
+      y: pointerDownState.origin.y,
+    };
+    this.pathPlaybackArmTimer = setTimeout(() => {
+      this.pathPlaybackArmTimer = null;
+      const targets = getPathTargetElements(
+        path,
+        this.scene.getNonDeletedElementsMap(),
+      );
+      if (targets.length > 0) {
+        this.pathPlaybackJustTriggered = true;
+        this.pathPlayback.start(path, targets);
+      }
+    }, PATH_PLAYBACK_HOLD_MS);
+  }
+
+  private clearPathPlaybackArm() {
+    if (this.pathPlaybackArmTimer) {
+      clearTimeout(this.pathPlaybackArmTimer);
+      this.pathPlaybackArmTimer = null;
+    }
+    this.pathPlaybackArmedAt = null;
+  }
+
   private getCurrentItemRoundness(
     elementType:
       | "selection"
@@ -10016,6 +10270,17 @@ class App extends React.Component<AppProps, AppState> {
         return;
       }
       const pointerCoords = viewportCoordsToSceneCoords(event, this.state);
+
+      if (
+        this.pathPlaybackArmTimer &&
+        this.pathPlaybackArmedAt &&
+        pointDistance(
+          pointFrom(pointerCoords.x, pointerCoords.y),
+          pointFrom(this.pathPlaybackArmedAt.x, this.pathPlaybackArmedAt.y),
+        ) > DRAGGING_THRESHOLD
+      ) {
+        this.clearPathPlaybackArm();
+      }
 
       if (this.state.activeLockedId) {
         this.setState({
@@ -10935,6 +11200,13 @@ class App extends React.Component<AppProps, AppState> {
     pointerDownState: PointerDownState,
   ): (event: PointerEvent) => void {
     return withBatchedUpdates((childEvent: PointerEvent) => {
+      this.clearPathPlaybackArm();
+      if (this.pathPlaybackJustTriggered) {
+        this.pathPlaybackJustTriggered = false;
+        this.removePointer(childEvent);
+        return;
+      }
+
       const elementsMap = this.scene.getNonDeletedElementsMap();
 
       this.removePointer(childEvent);
@@ -11129,7 +11401,8 @@ class App extends React.Component<AppProps, AppState> {
         if (
           this.state.newElement &&
           this.state.multiElement &&
-          isLinearElement(this.state.newElement) &&
+          (isLinearElement(this.state.newElement) ||
+            isPathElement(this.state.newElement)) &&
           this.state.selectedLinearElement
         ) {
           const { multiElement } = this.state;
@@ -11197,6 +11470,21 @@ class App extends React.Component<AppProps, AppState> {
 
         this.actionManager.executeAction(actionFinalize);
 
+        return;
+      }
+
+      if (isPathElement(newElement)) {
+        // promote newElement -> multiElement on this same click's pointerup,
+        // mirroring the (isLinearElement(newElement)) "just a click, no
+        // drag" branch below — every subsequent click/point is then handled
+        // by handlePathElementOnPointerDown's `multiElement` branch. Must
+        // not fall through to the generic tool-reset tail logic below.
+        if (!this.state.multiElement) {
+          this.setState({
+            multiElement: newElement,
+            newElement,
+          });
+        }
         return;
       }
 
@@ -11888,6 +12176,11 @@ class App extends React.Component<AppProps, AppState> {
       if (
         !activeTool.locked &&
         activeTool.type !== "freedraw" &&
+        // the path tool's multi-phase interaction (pick target → draw
+        // points → finalize) spans several pointerdown/up cycles with no
+        // `newElement` during the target-pick phase; it manages its own
+        // tool-reset via actionFinalize, so must not be reset here early
+        activeTool.type !== "path" &&
         (activeTool.type !== "lasso" ||
           // if lasso is turned on but from selection => reset to selection
           (activeTool.type === "lasso" && activeTool.fromSelection))

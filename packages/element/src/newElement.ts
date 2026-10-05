@@ -49,6 +49,7 @@ import type {
   ExcalidrawArrowElement,
   ExcalidrawElbowArrowElement,
   ExcalidrawLineElement,
+  ExcalidrawPathElement,
 } from "./types";
 
 export type ElementConstructorOpts = MarkOptional<
@@ -491,6 +492,21 @@ export const newLinearElement = (
   }
 
   return element;
+};
+
+export const newPathElement = (
+  opts: {
+    points?: ExcalidrawPathElement["points"];
+    targetElementId?: ExcalidrawPathElement["targetElementId"];
+    targetGroupId?: ExcalidrawPathElement["targetGroupId"];
+  } & ElementConstructorOpts,
+): NonDeleted<ExcalidrawPathElement> => {
+  return {
+    ..._newElementBase<ExcalidrawPathElement>("path", opts),
+    points: opts.points || [],
+    targetElementId: opts.targetElementId ?? null,
+    targetGroupId: opts.targetGroupId ?? null,
+  };
 };
 
 export const newArrowElement = <T extends boolean>(

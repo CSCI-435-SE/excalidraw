@@ -218,7 +218,8 @@ export type ExcalidrawElement =
   | ExcalidrawFrameElement
   | ExcalidrawMagicFrameElement
   | ExcalidrawIframeElement
-  | ExcalidrawEmbeddableElement;
+  | ExcalidrawEmbeddableElement
+  | ExcalidrawPathElement;
 
 export type ExcalidrawNonSelectionElement = Exclude<
   ExcalidrawElement,
@@ -363,6 +364,23 @@ export type ExcalidrawArrowElement = ExcalidrawLinearElement &
   Readonly<{
     type: "arrow";
     elbowed: boolean;
+  }>;
+
+/**
+ * A motion path: an ordered sequence of points describing a trajectory that a
+ * target element (or native group) can be animated along. Structurally
+ * separate from `ExcalidrawLinearElement` (no bindings/arrowheads) so that
+ * the large family of `isLinearElement`-gated binding/arrowhead behavior
+ * never has to account for paths.
+ */
+export type ExcalidrawPathElement = _ExcalidrawElementBase &
+  Readonly<{
+    type: "path";
+    points: readonly LocalPoint[];
+    /** mutually exclusive with targetGroupId; resolved once at creation time */
+    targetElementId: string | null;
+    /** mutually exclusive with targetElementId; resolved once at creation time */
+    targetGroupId: GroupId | null;
   }>;
 
 export type ExcalidrawElbowArrowElement = Merge<

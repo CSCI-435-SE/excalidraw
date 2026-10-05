@@ -385,6 +385,21 @@ export const LineIcon = createIcon(
   modifiedTablerIconProps,
 );
 
+export const PathIcon = createIcon(
+  <g strokeWidth="1.5" fill="currentColor" stroke="none">
+    <path
+      d="M4.167 10h11.666"
+      strokeDasharray="2.5 2.5"
+      stroke="currentColor"
+      fill="none"
+    />
+    <circle cx="4.167" cy="10" r="1.5" />
+    <circle cx="10" cy="10" r="1.5" />
+    <circle cx="15.833" cy="10" r="1.5" />
+  </g>,
+  modifiedTablerIconProps,
+);
+
 export const PenModeIcon = createIcon(
   <g strokeWidth="1.25">
     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>

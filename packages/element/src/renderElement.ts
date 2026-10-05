@@ -62,6 +62,7 @@ import {
   hasBoundTextElement,
   isMagicFrameElement,
   isImageElement,
+  isPathElement,
 } from "./typeChecks";
 import { getContainingFrame } from "./frame";
 import { getCornerRadius } from "./utils";
@@ -167,11 +168,15 @@ const cappedElementCanvasSize = (
 
   const [x1, y1, x2, y2] = getElementAbsoluteCoords(element, elementsMap);
   const elementWidth =
-    isLinearElement(element) || isFreeDrawElement(element)
+    isLinearElement(element) ||
+    isFreeDrawElement(element) ||
+    isPathElement(element)
       ? distance(x1, x2)
       : element.width;
   const elementHeight =
-    isLinearElement(element) || isFreeDrawElement(element)
+    isLinearElement(element) ||
+    isFreeDrawElement(element) ||
+    isPathElement(element)
       ? distance(y1, y2)
       : element.height;
 
@@ -226,7 +231,11 @@ const generateElementCanvas = (
   let canvasOffsetX = -100;
   let canvasOffsetY = 0;
 
-  if (isLinearElement(element) || isFreeDrawElement(element)) {
+  if (
+    isLinearElement(element) ||
+    isFreeDrawElement(element) ||
+    isPathElement(element)
+  ) {
     const [x1, y1] = getElementAbsoluteCoords(element, elementsMap);
 
     canvasOffsetX =
@@ -344,6 +353,43 @@ const drawElementOnCanvas = (
           rc.draw(shape);
         },
       );
+      break;
+    }
+    case "path": {
+      // schematic, not hand-drawn — plain dashed polyline + waypoint dots,
+      // drawn directly (no roughjs sketch, see generateElementShape())
+      context.save();
+      context.lineJoin = "round";
+      context.lineCap = "round";
+      context.strokeStyle = applyDarkModeFilter(
+        element.strokeColor,
+        renderConfig.theme === THEME.DARK,
+      );
+      context.fillStyle = context.strokeStyle;
+      context.lineWidth = element.strokeWidth;
+
+      if (element.points.length > 1) {
+        context.setLineDash([element.strokeWidth * 3, element.strokeWidth * 2]);
+        context.beginPath();
+        element.points.forEach(([x, y], index) => {
+          if (index === 0) {
+            context.moveTo(x, y);
+          } else {
+            context.lineTo(x, y);
+          }
+        });
+        context.stroke();
+        context.setLineDash([]);
+      }
+
+      const dotRadius = Math.max(element.strokeWidth * 1.5, 3);
+      element.points.forEach(([x, y]) => {
+        context.beginPath();
+        context.arc(x, y, dotRadius, 0, Math.PI * 2);
+        context.fill();
+      });
+
+      context.restore();
       break;
     }
     case "freedraw": {
@@ -823,7 +869,8 @@ export const renderElement = (
     case "image":
     case "text":
     case "iframe":
-    case "embeddable": {
+    case "embeddable":
+    case "path": {
       if (renderConfig.isExporting) {
         const [x1, y1, x2, y2] = getElementAbsoluteCoords(element, elementsMap);
         const centerX = (x1 + x2) / 2;

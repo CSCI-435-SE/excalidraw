@@ -73,6 +73,7 @@ import type {
   ExcalidrawEllipseElement,
   ExcalidrawFreeDrawElement,
   ExcalidrawLinearElement,
+  ExcalidrawPathElement,
   ExcalidrawRectanguloidElement,
   ExcalidrawTriangleElement,
   NonDeleted,
@@ -505,6 +506,7 @@ export const intersectElementWithLineSegment = (
     case "line":
     case "freedraw":
     case "arrow":
+    case "path":
       return intersectLinearOrFreeDrawWithLineSegment(
         element,
         line,
@@ -575,7 +577,10 @@ const lineIntersections = (
 };
 
 const intersectLinearOrFreeDrawWithLineSegment = (
-  element: ExcalidrawLinearElement | ExcalidrawFreeDrawElement,
+  element:
+    | ExcalidrawLinearElement
+    | ExcalidrawFreeDrawElement
+    | ExcalidrawPathElement,
   segment: LineSegment<GlobalPoint>,
   elementsMap: ElementsMap,
   onlyFirst = false,
