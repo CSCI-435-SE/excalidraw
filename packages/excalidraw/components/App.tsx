@@ -7861,6 +7861,13 @@ class App extends React.Component<AppProps, AppState> {
         return;
       }
       if (
+        // ctrl/cmd+click opens inline text hyperlinks
+        event[KEYS.CTRL_OR_CMD] &&
+        !this.state.editingTextElement &&
+        this.getTextHyperlinkAtPosition(scenePointer.x, scenePointer.y)
+      ) {
+        setCursor(this.interactiveCanvas, CURSOR_TYPE.POINTER);
+      } else if (
         hitElement &&
         (hitElement.link || isEmbeddableElement(hitElement)) &&
         this.state.selectedElementIds[hitElement.id] &&

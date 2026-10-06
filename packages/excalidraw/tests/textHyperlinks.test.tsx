@@ -7,7 +7,7 @@ import { Excalidraw } from "../index";
 
 import { API } from "./helpers/api";
 import { Keyboard, Pointer } from "./helpers/ui";
-import { render, unmountComponent } from "./test-utils";
+import { GlobalTestState, render, unmountComponent } from "./test-utils";
 
 import type { MockInstance } from "vitest";
 
@@ -111,5 +111,19 @@ describe("opening text hyperlinks", () => {
     });
     expect(windowOpen).not.toHaveBeenCalled();
     expect(h.state.editingTextElement).toBe(null);
+  });
+
+  it("should show a pointer cursor when hovering a hyperlink with ctrl/cmd held", async () => {
+    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    const { hyperlinkX, y } = setup();
+    const cursor = () => GlobalTestState.interactiveCanvas.style.cursor;
+
+    Keyboard.withModifierKeys({ ctrl: true }, () => {
+      mouse.moveTo(hyperlinkX, y);
+    });
+    expect(cursor()).toBe("pointer");
+
+    mouse.moveTo(hyperlinkX + 1, y);
+    expect(cursor()).not.toBe("pointer");
   });
 });
