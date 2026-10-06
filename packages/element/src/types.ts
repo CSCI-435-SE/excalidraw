@@ -260,7 +260,23 @@ export type ExcalidrawTextElement = _ExcalidrawElementBase &
      *  with font size (using `getLineHeightInPx` helper).
      */
     lineHeight: number & { _brand: "unitlessLineHeight" };
+    /**
+     * Inline hyperlinks within the text. Offsets are end-exclusive and index
+     * into `originalText` (not the wrapped `text`).
+     */
+    textHyperlinks?: readonly TextHyperlink[];
   }>;
+
+export type TextHyperlink = Readonly<{
+  start: number;
+  end: number;
+  url: string;
+  /**
+   * `link` renders the link in the default link color, `inherit` renders it
+   * in the text element's stroke color.
+   */
+  color: "link" | "inherit";
+}>;
 
 export type ExcalidrawBindableElement =
   | ExcalidrawRectangleElement
