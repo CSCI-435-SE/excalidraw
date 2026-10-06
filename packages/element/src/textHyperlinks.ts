@@ -1,8 +1,18 @@
 import { COLOR_PALETTE, getFontString } from "@excalidraw/common";
 
-import { getLineWidth } from "./textMeasurements";
+import { pointFrom, pointRotateRads } from "@excalidraw/math";
 
-import type { ExcalidrawTextElement, TextHyperlink } from "./types";
+import type { GlobalPoint, Radians } from "@excalidraw/math";
+
+import { getElementAbsoluteCoords } from "./bounds";
+import { getContainerElement, getTextElementAngle } from "./textElement";
+import { getLineHeightInPx, getLineWidth } from "./textMeasurements";
+
+import type {
+  ElementsMap,
+  ExcalidrawTextElement,
+  TextHyperlink,
+} from "./types";
 
 export const TEXT_HYPERLINK_COLOR = COLOR_PALETTE.blue[4];
 
@@ -316,4 +326,48 @@ export const getTextHyperlinkLineSegments = (
 
     return segments;
   });
+};
+
+/**
+ * Returns the hyperlink rendered under the given scene point, if any.
+ */
+export const getTextHyperlinkAtPoint = (
+  element: ExcalidrawTextElement,
+  point: GlobalPoint,
+  elementsMap: ElementsMap,
+): TextHyperlink | null => {
+  const lineSegments = getTextHyperlinkLineSegments(element);
+  if (!lineSegments) {
+    return null;
+  }
+
+  const [x1, y1, , , cx, cy] = getElementAbsoluteCoords(element, elementsMap);
+  const angle = getTextElementAngle(
+    element,
+    getContainerElement(element, elementsMap),
+  );
+
+  // undo the element's rotation so we can work in its local coordinates
+  const [x, y] = pointRotateRads(
+    point,
+    pointFrom<GlobalPoint>(cx, cy),
+    -angle as Radians,
+  );
+  const localX = x - x1;
+  const localY = y - y1;
+
+  const lineHeightPx = getLineHeightInPx(element.fontSize, element.lineHeight);
+  const segments = lineSegments[Math.floor(localY / lineHeightPx)];
+  if (!segments) {
+    return null;
+  }
+
+  return (
+    segments.find(
+      (segment) =>
+        segment.hyperlink &&
+        localX >= segment.x &&
+        localX <= segment.x + segment.width,
+    )?.hyperlink ?? null
+  );
 };

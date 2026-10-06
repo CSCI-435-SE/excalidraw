@@ -1,8 +1,12 @@
-import { getFontString } from "@excalidraw/common";
+import { arrayToMap, getFontString } from "@excalidraw/common";
+import { pointFrom } from "@excalidraw/math";
+
+import type { GlobalPoint, Radians } from "@excalidraw/math";
 
 import { newTextElement } from "../src/newElement";
 import {
   getTextChange,
+  getTextHyperlinkAtPoint,
   getTextHyperlinkLineSegments,
   insertTextHyperlink,
   updateTextHyperlinks,
@@ -428,5 +432,81 @@ describe("getTextHyperlinkLineSegments", () => {
     });
 
     expect(getTextHyperlinkLineSegments(element)).toBe(null);
+  });
+});
+
+describe("getTextHyperlinkAtPoint", () => {
+  // "visit Google today" at (100, 100) with "Google" hyperlinked
+  const createTextElement = (opts: Partial<ExcalidrawTextElement> = {}) => {
+    const element = newTextElement({
+      text: "visit Google today",
+      x: 100,
+      y: 100,
+    });
+    return {
+      ...element,
+      textHyperlinks: [link(6, 12)],
+      ...opts,
+    } as ExcalidrawTextElement;
+  };
+
+  const font = (element: ExcalidrawTextElement) => getFontString(element);
+
+  /** scene x of the middle of "Google" */
+  const getHyperlinkCenterX = (element: ExcalidrawTextElement) => {
+    const start = getLineWidth("visit ", font(element));
+    const end = getLineWidth("visit Google", font(element));
+    return element.x + (start + end) / 2;
+  };
+
+  const hitTest = (element: ExcalidrawTextElement, x: number, y: number) =>
+    getTextHyperlinkAtPoint(
+      element,
+      pointFrom<GlobalPoint>(x, y),
+      arrayToMap([element]),
+    );
+
+  it("returns the hyperlink under the point", () => {
+    const element = createTextElement();
+    const y = element.y + element.height / 2;
+
+    expect(hitTest(element, getHyperlinkCenterX(element), y)).toEqual(
+      link(6, 12),
+    );
+  });
+
+  it("returns null for plain text and points outside the element", () => {
+    const element = createTextElement();
+    const y = element.y + element.height / 2;
+
+    // over "visit"
+    expect(hitTest(element, element.x + 1, y)).toBe(null);
+    // above and below the text
+    expect(hitTest(element, getHyperlinkCenterX(element), element.y - 5)).toBe(
+      null,
+    );
+    expect(
+      hitTest(
+        element,
+        getHyperlinkCenterX(element),
+        element.y + element.height + 5,
+      ),
+    ).toBe(null);
+  });
+
+  it("accounts for the element's rotation", () => {
+    // hyperlink "visit" rather than the centered "Google", so that mirroring
+    // the point doesn't land on the hyperlink again
+    const element = createTextElement({
+      angle: Math.PI as Radians,
+      textHyperlinks: [link(0, 5)],
+    });
+    const cx = element.x + element.width / 2;
+    const y = element.y + element.height / 2;
+    const unrotatedX = element.x + getLineWidth("visit", font(element)) / 2;
+
+    // rotating by 180° mirrors the text around its center
+    expect(hitTest(element, 2 * cx - unrotatedX, y)).toEqual(link(0, 5));
+    expect(hitTest(element, unrotatedX, y)).toBe(null);
   });
 });
