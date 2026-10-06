@@ -458,6 +458,7 @@ export interface AppState {
     | { name: "commandPalette" }
     | { name: "settings" }
     | { name: "elementLinkSelector"; sourceElementId: ExcalidrawElement["id"] }
+    | { name: "textHyperlink"; initialDisplayText: string }
     | { name: "charts"; data: Spreadsheet; rawText: string }
     | { name: "duplicateRotated" };
   /**
@@ -914,6 +915,7 @@ export type AppClassProperties = {
   toggleLock: App["toggleLock"];
   setActiveTool: App["setActiveTool"];
   setOpenDialog: App["setOpenDialog"];
+  closeTextHyperlinkDialog: App["closeTextHyperlinkDialog"];
   insertEmbeddableElement: App["insertEmbeddableElement"];
   onMagicframeToolSelect: App["onMagicframeToolSelect"];
   getName: App["getName"];

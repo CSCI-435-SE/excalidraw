@@ -40,7 +40,7 @@ import { getLineWidth } from "@excalidraw/element";
 import { normalizeText } from "@excalidraw/element";
 import { wrapText } from "@excalidraw/element";
 import { getWrappedTextLines } from "@excalidraw/element";
-import { updateTextHyperlinks } from "@excalidraw/element";
+import { insertTextHyperlink, updateTextHyperlinks } from "@excalidraw/element";
 import {
   isArrowElement,
   isBoundToContainer,
@@ -486,6 +486,54 @@ export const textWysiwyg = ({
     lastSyncedValue = editable.value;
   };
 
+  let isTextHyperlinkDialogOpen = false;
+
+  const openTextHyperlinkDialog = () => {
+    if (isTextHyperlinkDialogOpen) {
+      return;
+    }
+
+    syncTextHyperlinks();
+    const { selectionStart, selectionEnd } = editable;
+
+    isTextHyperlinkDialogOpen = true;
+    // the dialog takes focus, which must not submit the text
+    editable.onblur = null;
+
+    app.openTextHyperlinkDialog(
+      editable.value.slice(selectionStart, selectionEnd),
+      (result) => {
+        isTextHyperlinkDialogOpen = false;
+        if (isDestroyed) {
+          return;
+        }
+
+        if (result) {
+          const next = insertTextHyperlink({
+            text: editable.value,
+            textHyperlinks,
+            selectionStart,
+            selectionEnd,
+            displayText: result.displayText,
+            url: result.url,
+            color: result.color,
+          });
+          editable.value = next.text;
+          textHyperlinks = next.textHyperlinks;
+          lastSyncedValue = next.text;
+
+          const caret = selectionStart + result.displayText.length;
+          editable.setSelectionRange(caret, caret);
+          // resize the editor and update the element
+          editable.dispatchEvent(new Event("input"));
+        }
+
+        editable.focus();
+        editable.onblur = handleSubmit;
+      },
+    );
+  };
+
   const getCaretIndexFromInitialSceneCoords = () => {
     if (!initialCaretSceneCoords || !currentTextLayout) {
       return null;
@@ -675,6 +723,16 @@ export const textWysiwyg = ({
       event.preventDefault();
       submittedViaKeyboard = true;
       handleSubmit();
+    } else if (
+      event[KEYS.CTRL_OR_CMD] &&
+      !event.shiftKey &&
+      !event.altKey &&
+      event.key.toLowerCase() === KEYS.K
+    ) {
+      event.preventDefault();
+      // don't let the app's Ctrl+K (element link) shortcut handle it
+      event.stopPropagation();
+      openTextHyperlinkDialog();
     } else if (actionSaveToActiveFile.keyTest(event)) {
       event.preventDefault();
       handleSubmit();
@@ -911,6 +969,10 @@ export const textWysiwyg = ({
     unsubOnChange();
     unbindOnScroll();
 
+    if (isTextHyperlinkDialogOpen) {
+      app.closeTextHyperlinkDialog(null);
+    }
+
     editable.remove();
   };
 
@@ -1027,7 +1089,7 @@ export const textWysiwyg = ({
     const isPopupOpened = !!document.activeElement?.closest(
       ".properties-content",
     );
-    if (!isPopupOpened) {
+    if (!isPopupOpened && !isTextHyperlinkDialogOpen) {
       editable.focus();
     }
   });

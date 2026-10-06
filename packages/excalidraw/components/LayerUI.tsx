@@ -46,6 +46,7 @@ import { DefaultSidebar } from "./DefaultSidebar";
 import { TTDDialog } from "./TTDDialog/TTDDialog";
 import { Stats } from "./Stats";
 import ElementLinkDialog from "./ElementLinkDialog";
+import { TextHyperlinkDialog } from "./TextHyperlinkDialog";
 import { ErrorDialog } from "./ErrorDialog";
 import { EyeDropper, activeEyeDropperAtom } from "./EyeDropper";
 import { FixedSideContainer } from "./FixedSideContainer";
@@ -535,6 +536,13 @@ const LayerUI = ({
           scene={app.scene}
           appState={appState}
           generateLinkForSelection={generateLinkForSelection}
+        />
+      )}
+      {appState.openDialog?.name === "textHyperlink" && (
+        <TextHyperlinkDialog
+          initialDisplayText={appState.openDialog.initialDisplayText}
+          onConfirm={(result) => app.closeTextHyperlinkDialog(result)}
+          onCancel={() => app.closeTextHyperlinkDialog(null)}
         />
       )}
       <tunnels.OverwriteConfirmDialogTunnel.Out />

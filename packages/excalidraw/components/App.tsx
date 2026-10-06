@@ -487,6 +487,7 @@ import type {
 import type { ClipboardData, PastedMixedContent } from "../clipboard";
 import type { ExportedElements } from "../data";
 import type { ContextMenuItems } from "./ContextMenu";
+import type { TextHyperlinkDialogResult } from "./TextHyperlinkDialog";
 
 import type {
   AppClassProperties,
@@ -3654,6 +3655,16 @@ class App extends React.Component<AppProps, AppState> {
       this.deselectElements();
     }
 
+    // notify the text editor if the hyperlink dialog was closed by other means
+    // (e.g. another dialog replacing it)
+    if (
+      prevState.openDialog?.name === "textHyperlink" &&
+      this.state.openDialog?.name !== "textHyperlink" &&
+      this.textHyperlinkDialogCallback
+    ) {
+      this.closeTextHyperlinkDialog(null);
+    }
+
     // cleanup
     if (
       (prevState.openDialog?.name === "elementLinkSelector" ||
@@ -5231,6 +5242,12 @@ class App extends React.Component<AppProps, AppState> {
         }
       }
 
+      // the text hyperlink dialog handles its own keys, and must not trigger
+      // shortcuts such as Escape finalizing the edited text underneath it
+      if (this.state.openDialog?.name === "textHyperlink") {
+        return;
+      }
+
       // bail if
       if (
         // inside an input
@@ -5857,6 +5874,34 @@ class App extends React.Component<AppProps, AppState> {
 
   setOpenDialog = (dialogType: AppState["openDialog"]) => {
     this.setState({ openDialog: dialogType });
+  };
+
+  /** receives the text hyperlink dialog's result (`null` if cancelled) */
+  private textHyperlinkDialogCallback:
+    | ((result: TextHyperlinkDialogResult | null) => void)
+    | null = null;
+
+  /** opens the dialog for inserting a hyperlink into the edited text */
+  public openTextHyperlinkDialog = (
+    initialDisplayText: string,
+    onClose: (result: TextHyperlinkDialogResult | null) => void,
+  ) => {
+    this.textHyperlinkDialogCallback?.(null);
+    this.textHyperlinkDialogCallback = onClose;
+    this.setState({
+      openDialog: { name: "textHyperlink", initialDisplayText },
+    });
+  };
+
+  public closeTextHyperlinkDialog = (
+    result: TextHyperlinkDialogResult | null,
+  ) => {
+    const callback = this.textHyperlinkDialogCallback;
+    this.textHyperlinkDialogCallback = null;
+    if (this.state.openDialog?.name === "textHyperlink") {
+      this.setState({ openDialog: null });
+    }
+    callback?.(result);
   };
 
   private setCursor = (cursor: string) => {
