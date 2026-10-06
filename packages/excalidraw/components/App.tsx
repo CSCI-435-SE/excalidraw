@@ -272,6 +272,7 @@ import type {
   ExcalidrawGenericElement,
   ExcalidrawLinearElement,
   ExcalidrawTextElement,
+  TextHyperlink,
   NonDeleted,
   InitializedExcalidrawImageElement,
   ExcalidrawImageElement,
@@ -5971,13 +5972,27 @@ class App extends React.Component<AppProps, AppState> {
   ) {
     const elementsMap = this.scene.getElementsMapIncludingDeleted();
 
-    const updateElement = (nextOriginalText: string, isDeleted: boolean) => {
+    const updateElement = (
+      nextOriginalText: string,
+      nextTextHyperlinks: readonly TextHyperlink[],
+      isDeleted: boolean,
+    ) => {
       this.scene.replaceAllElements([
         // Not sure why we include deleted elements as well hence using deleted elements map
         ...this.scene.getElementsIncludingDeleted().map((_element) => {
           if (_element.id === element.id && isTextElement(_element)) {
+            // newElementWith() treats any array as changed, so only pass
+            // hyperlinks when they did change to avoid needless version bumps
+            const textHyperlinksChanged =
+              nextTextHyperlinks !== _element.textHyperlinks &&
+              (nextTextHyperlinks.length > 0 ||
+                !!_element.textHyperlinks?.length);
+
             return newElementWith(_element, {
               originalText: nextOriginalText,
+              ...(textHyperlinksChanged
+                ? { textHyperlinks: nextTextHyperlinks }
+                : {}),
               isDeleted: isDeleted ?? _element.isDeleted,
               // returns (wrapped) text and new dimensions
               ...refreshTextDimensions(
@@ -6008,15 +6023,18 @@ class App extends React.Component<AppProps, AppState> {
           viewportY - this.state.offsetTop,
         ];
       },
-      onChange: withBatchedUpdates((nextOriginalText) => {
-        updateElement(nextOriginalText, false);
-        if (isNonDeletedElement(element)) {
-          updateBoundElements(element, this.scene);
-        }
-      }),
-      onSubmit: withBatchedUpdates(({ viaKeyboard, nextOriginalText }) => {
+      onChange: withBatchedUpdates(
+        ({ nextOriginalText, nextTextHyperlinks }) => {
+          updateElement(nextOriginalText, nextTextHyperlinks, false);
+          if (isNonDeletedElement(element)) {
+            updateBoundElements(element, this.scene);
+          }
+        },
+      ),
+      onSubmit: withBatchedUpdates((data) => {
+        const { viaKeyboard, nextOriginalText, nextTextHyperlinks } = data;
         const isDeleted = !nextOriginalText.trim();
-        updateElement(nextOriginalText, isDeleted);
+        updateElement(nextOriginalText, nextTextHyperlinks, isDeleted);
 
         // keyboard-submit keeps focus on the edited object. For bound text, keep
         // the container selected even if the text becomes empty and is deleted.
@@ -6080,7 +6098,7 @@ class App extends React.Component<AppProps, AppState> {
 
     // do an initial update to re-initialize element position since we were
     // modifying element's x/y for sake of editor (case: syncing to remote)
-    updateElement(element.originalText, false);
+    updateElement(element.originalText, element.textHyperlinks ?? [], false);
   }
 
   private deselectElements() {

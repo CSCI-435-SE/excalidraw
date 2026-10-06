@@ -40,6 +40,7 @@ import { getLineWidth } from "@excalidraw/element";
 import { normalizeText } from "@excalidraw/element";
 import { wrapText } from "@excalidraw/element";
 import { getWrappedTextLines } from "@excalidraw/element";
+import { updateTextHyperlinks } from "@excalidraw/element";
 import {
   isArrowElement,
   isBoundToContainer,
@@ -52,6 +53,7 @@ import type {
   ExcalidrawTextElement,
   NonDeleted,
   ExcalidrawTextContainer,
+  TextHyperlink,
 } from "@excalidraw/element/types";
 
 import { actionSaveToActiveFile } from "../actions";
@@ -213,8 +215,15 @@ export const textWysiwyg = ({
    * Note: `text`, which can be wrapped and therefore different from `originalText`,
    *       is derived from `originalText`
    */
-  onChange?: (nextOriginalText: string) => void;
-  onSubmit: (data: { viaKeyboard: boolean; nextOriginalText: string }) => void;
+  onChange?: (data: {
+    nextOriginalText: string;
+    nextTextHyperlinks: readonly TextHyperlink[];
+  }) => void;
+  onSubmit: (data: {
+    viaKeyboard: boolean;
+    nextOriginalText: string;
+    nextTextHyperlinks: readonly TextHyperlink[];
+  }) => void;
   getViewportCoords: (x: number, y: number) => [number, number];
   element: ExcalidrawTextElement;
   canvas: HTMLCanvasElement;
@@ -463,6 +472,20 @@ export const textWysiwyg = ({
   editable.value = element.originalText;
   updateWysiwygStyle();
 
+  // hyperlink offsets index into the text as of `lastSyncedValue`
+  let textHyperlinks = element.textHyperlinks ?? [];
+  let lastSyncedValue = editable.value;
+
+  const syncTextHyperlinks = () => {
+    textHyperlinks = updateTextHyperlinks(
+      lastSyncedValue,
+      editable.value,
+      textHyperlinks,
+      editable.selectionEnd,
+    );
+    lastSyncedValue = editable.value;
+  };
+
   const getCaretIndexFromInitialSceneCoords = () => {
     if (!initialCaretSceneCoords || !currentTextLayout) {
       return null;
@@ -623,7 +646,11 @@ export const textWysiwyg = ({
         editable.selectionStart = selectionStart;
         editable.selectionEnd = selectionStart;
       }
-      onChange(editable.value);
+      syncTextHyperlinks();
+      onChange({
+        nextOriginalText: editable.value,
+        nextTextHyperlinks: textHyperlinks,
+      });
     };
   }
 
@@ -685,15 +712,27 @@ export const textWysiwyg = ({
     const { selectionStart, selectionEnd } = editable;
     const linesStartIndices = getSelectedLinesStartIndices();
 
+    syncTextHyperlinks();
+
     let value = editable.value;
     linesStartIndices.forEach((startIndex: number) => {
       const startValue = value.slice(0, startIndex);
       const endValue = value.slice(startIndex);
 
-      value = `${startValue}${TAB}${endValue}`;
+      const nextValue = `${startValue}${TAB}${endValue}`;
+      // tabs are inserted on multiple lines, which a single diff of the
+      // whole text can't represent, so update hyperlinks per insertion
+      textHyperlinks = updateTextHyperlinks(
+        value,
+        nextValue,
+        textHyperlinks,
+        startIndex + TAB_SIZE,
+      );
+      value = nextValue;
     });
 
     editable.value = value;
+    lastSyncedValue = value;
 
     editable.selectionStart = selectionStart + TAB_SIZE;
     editable.selectionEnd = selectionEnd + TAB_SIZE * linesStartIndices.length;
@@ -703,6 +742,8 @@ export const textWysiwyg = ({
     const { selectionStart, selectionEnd } = editable;
     const linesStartIndices = getSelectedLinesStartIndices();
     const removedTabs: number[] = [];
+
+    syncTextHyperlinks();
 
     let value = editable.value;
     linesStartIndices.forEach((startIndex) => {
@@ -715,12 +756,20 @@ export const textWysiwyg = ({
         const endValue = value.slice(startIndex + tabMatch[0].length);
 
         // Delete a tab from the line
-        value = `${startValue}${endValue}`;
+        const nextValue = `${startValue}${endValue}`;
+        textHyperlinks = updateTextHyperlinks(
+          value,
+          nextValue,
+          textHyperlinks,
+          startIndex,
+        );
+        value = nextValue;
         removedTabs.push(startIndex);
       }
     });
 
     editable.value = value;
+    lastSyncedValue = value;
 
     if (removedTabs.length) {
       if (selectionStart > removedTabs[removedTabs.length - 1]) {
@@ -833,9 +882,12 @@ export const textWysiwyg = ({
       redrawTextBoundingBox(updateElement, container, app.scene);
     }
 
+    syncTextHyperlinks();
+
     onSubmit({
       viaKeyboard: submittedViaKeyboard,
       nextOriginalText: editable.value,
+      nextTextHyperlinks: textHyperlinks,
     });
   };
 

@@ -1966,3 +1966,86 @@ describe("textWysiwyg", () => {
     });
   });
 });
+
+describe("text hyperlinks", () => {
+  const { h } = window;
+
+  const hyperlink = (start: number, end: number) => ({
+    start,
+    end,
+    url: "https://google.com",
+    color: "link" as const,
+  });
+
+  const getTextHyperlinks = () =>
+    (h.elements[0] as ExcalidrawTextElement).textHyperlinks;
+
+  beforeEach(async () => {
+    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    API.setElements([]);
+  });
+
+  /** opens the editor on "visit Google today" with "Google" hyperlinked */
+  const openEditor = async () => {
+    const text = API.createElement({
+      type: "text",
+      text: "visit Google today",
+      x: 60,
+      y: 0,
+      width: 100,
+      height: 100,
+    });
+
+    API.setElements([text]);
+    API.updateElement(text, { textHyperlinks: [hyperlink(6, 12)] });
+    API.setSelectedElements([text]);
+    UI.clickTool("selection");
+
+    Keyboard.keyPress(KEYS.ENTER);
+
+    return getTextEditor();
+  };
+
+  it("should keep hyperlinks in sync while typing", async () => {
+    const editor = await openEditor();
+
+    updateTextEditor(editor, "please visit Google today");
+    expect(getTextHyperlinks()).toEqual([hyperlink(13, 19)]);
+
+    updateTextEditor(editor, "please visit Gooogle today");
+    expect(getTextHyperlinks()).toEqual([hyperlink(13, 20)]);
+  });
+
+  it("should persist hyperlinks when exiting the editor", async () => {
+    const editor = await openEditor();
+
+    updateTextEditor(editor, "please visit Google today");
+    Keyboard.exitTextEditor(editor);
+
+    expect(h.state.editingTextElement).toBeNull();
+    expect(getTextHyperlinks()).toEqual([hyperlink(13, 19)]);
+  });
+
+  it("should drop hyperlinks whose text was deleted", async () => {
+    const editor = await openEditor();
+
+    updateTextEditor(editor, "visit  today");
+    expect(getTextHyperlinks()).toEqual([]);
+  });
+
+  it("should shift hyperlinks when indenting and outdenting", async () => {
+    const editor = await openEditor();
+
+    editor.selectionStart = 0;
+    editor.selectionEnd = 0;
+    fireEvent.keyDown(editor, { key: KEYS.TAB });
+
+    expect(editor.value).toBe(`${tab}visit Google today`);
+    expect(getTextHyperlinks()).toEqual([hyperlink(10, 16)]);
+
+    fireEvent.keyDown(editor, { key: KEYS.TAB, shiftKey: true });
+
+    expect(editor.value).toBe("visit Google today");
+    expect(getTextHyperlinks()).toEqual([hyperlink(6, 12)]);
+  });
+});
