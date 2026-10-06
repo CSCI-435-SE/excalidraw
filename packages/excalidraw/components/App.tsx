@@ -135,6 +135,7 @@ import {
   newLinearElement,
   newTextElement,
   refreshTextDimensions,
+  getTextHyperlinkAtPoint,
   deepCopyElement,
   duplicateElements,
   hasBoundTextElement,
@@ -272,6 +273,7 @@ import type {
   ExcalidrawGenericElement,
   ExcalidrawLinearElement,
   ExcalidrawTextElement,
+  TextHyperlink,
   NonDeleted,
   InitializedExcalidrawImageElement,
   ExcalidrawImageElement,
@@ -486,6 +488,7 @@ import type {
 import type { ClipboardData, PastedMixedContent } from "../clipboard";
 import type { ExportedElements } from "../data";
 import type { ContextMenuItems } from "./ContextMenu";
+import type { TextHyperlinkDialogResult } from "./TextHyperlinkDialog";
 
 import type {
   AppClassProperties,
@@ -3653,6 +3656,16 @@ class App extends React.Component<AppProps, AppState> {
       this.deselectElements();
     }
 
+    // notify the text editor if the hyperlink dialog was closed by other means
+    // (e.g. another dialog replacing it)
+    if (
+      prevState.openDialog?.name === "textHyperlink" &&
+      this.state.openDialog?.name !== "textHyperlink" &&
+      this.textHyperlinkDialogCallback
+    ) {
+      this.closeTextHyperlinkDialog(null);
+    }
+
     // cleanup
     if (
       (prevState.openDialog?.name === "elementLinkSelector" ||
@@ -5230,6 +5243,12 @@ class App extends React.Component<AppProps, AppState> {
         }
       }
 
+      // the text hyperlink dialog handles its own keys, and must not trigger
+      // shortcuts such as Escape finalizing the edited text underneath it
+      if (this.state.openDialog?.name === "textHyperlink") {
+        return;
+      }
+
       // bail if
       if (
         // inside an input
@@ -5858,6 +5877,34 @@ class App extends React.Component<AppProps, AppState> {
     this.setState({ openDialog: dialogType });
   };
 
+  /** receives the text hyperlink dialog's result (`null` if cancelled) */
+  private textHyperlinkDialogCallback:
+    | ((result: TextHyperlinkDialogResult | null) => void)
+    | null = null;
+
+  /** opens the dialog for inserting a hyperlink into the edited text */
+  public openTextHyperlinkDialog = (
+    initialDisplayText: string,
+    onClose: (result: TextHyperlinkDialogResult | null) => void,
+  ) => {
+    this.textHyperlinkDialogCallback?.(null);
+    this.textHyperlinkDialogCallback = onClose;
+    this.setState({
+      openDialog: { name: "textHyperlink", initialDisplayText },
+    });
+  };
+
+  public closeTextHyperlinkDialog = (
+    result: TextHyperlinkDialogResult | null,
+  ) => {
+    const callback = this.textHyperlinkDialogCallback;
+    this.textHyperlinkDialogCallback = null;
+    if (this.state.openDialog?.name === "textHyperlink") {
+      this.setState({ openDialog: null });
+    }
+    callback?.(result);
+  };
+
   private setCursor = (cursor: string) => {
     setCursor(this.interactiveCanvas, cursor);
   };
@@ -5971,13 +6018,27 @@ class App extends React.Component<AppProps, AppState> {
   ) {
     const elementsMap = this.scene.getElementsMapIncludingDeleted();
 
-    const updateElement = (nextOriginalText: string, isDeleted: boolean) => {
+    const updateElement = (
+      nextOriginalText: string,
+      nextTextHyperlinks: readonly TextHyperlink[],
+      isDeleted: boolean,
+    ) => {
       this.scene.replaceAllElements([
         // Not sure why we include deleted elements as well hence using deleted elements map
         ...this.scene.getElementsIncludingDeleted().map((_element) => {
           if (_element.id === element.id && isTextElement(_element)) {
+            // newElementWith() treats any array as changed, so only pass
+            // hyperlinks when they did change to avoid needless version bumps
+            const textHyperlinksChanged =
+              nextTextHyperlinks !== _element.textHyperlinks &&
+              (nextTextHyperlinks.length > 0 ||
+                !!_element.textHyperlinks?.length);
+
             return newElementWith(_element, {
               originalText: nextOriginalText,
+              ...(textHyperlinksChanged
+                ? { textHyperlinks: nextTextHyperlinks }
+                : {}),
               isDeleted: isDeleted ?? _element.isDeleted,
               // returns (wrapped) text and new dimensions
               ...refreshTextDimensions(
@@ -6008,15 +6069,18 @@ class App extends React.Component<AppProps, AppState> {
           viewportY - this.state.offsetTop,
         ];
       },
-      onChange: withBatchedUpdates((nextOriginalText) => {
-        updateElement(nextOriginalText, false);
-        if (isNonDeletedElement(element)) {
-          updateBoundElements(element, this.scene);
-        }
-      }),
-      onSubmit: withBatchedUpdates(({ viaKeyboard, nextOriginalText }) => {
+      onChange: withBatchedUpdates(
+        ({ nextOriginalText, nextTextHyperlinks }) => {
+          updateElement(nextOriginalText, nextTextHyperlinks, false);
+          if (isNonDeletedElement(element)) {
+            updateBoundElements(element, this.scene);
+          }
+        },
+      ),
+      onSubmit: withBatchedUpdates((data) => {
+        const { viaKeyboard, nextOriginalText, nextTextHyperlinks } = data;
         const isDeleted = !nextOriginalText.trim();
-        updateElement(nextOriginalText, isDeleted);
+        updateElement(nextOriginalText, nextTextHyperlinks, isDeleted);
 
         // keyboard-submit keeps focus on the edited object. For bound text, keep
         // the container selected even if the text becomes empty and is deleted.
@@ -6080,7 +6144,7 @@ class App extends React.Component<AppProps, AppState> {
 
     // do an initial update to re-initialize element position since we were
     // modifying element's x/y for sake of editor (case: syncing to remote)
-    updateElement(element.originalText, false);
+    updateElement(element.originalText, element.textHyperlinks ?? [], false);
   }
 
   private deselectElements() {
@@ -7054,6 +7118,55 @@ class App extends React.Component<AppProps, AppState> {
     }
   };
 
+  /** returns the topmost inline text hyperlink at the given scene coords */
+  private getTextHyperlinkAtPosition = (x: number, y: number) => {
+    const elementsMap = this.scene.getNonDeletedElementsMap();
+    const elements = this.scene.getNonDeletedElements();
+
+    for (let index = elements.length - 1; index >= 0; index--) {
+      const element = elements[index];
+      if (!isTextElement(element) || !element.textHyperlinks?.length) {
+        continue;
+      }
+      const hyperlink = getTextHyperlinkAtPoint(
+        element,
+        pointFrom<GlobalPoint>(x, y),
+        elementsMap,
+      );
+      if (hyperlink) {
+        return { element, hyperlink };
+      }
+    }
+
+    return null;
+  };
+
+  private openTextHyperlink = (
+    element: NonDeletedExcalidrawElement,
+    link: string,
+    nativeEvent: PointerEvent,
+  ) => {
+    const url = normalizeLink(link);
+    if (!url) {
+      return;
+    }
+
+    let customEvent;
+    if (this.props.onLinkOpen) {
+      customEvent = wrapEvent(EVENT.EXCALIDRAW_LINK, nativeEvent);
+      this.props.onLinkOpen({ ...element, link: url }, customEvent);
+    }
+    if (!customEvent?.defaultPrevented) {
+      const target = isLocalLink(url) ? "_self" : "_blank";
+      const newWindow = window.open(undefined, target);
+      // https://mathiasbynens.github.io/rel-noopener/
+      if (newWindow) {
+        newWindow.opener = null;
+        newWindow.location = url;
+      }
+    }
+  };
+
   /**
    * finds candidate frame under cursor (when dragging frame children/elements
    * inside frames)
@@ -7748,6 +7861,13 @@ class App extends React.Component<AppProps, AppState> {
         return;
       }
       if (
+        // ctrl/cmd+click opens inline text hyperlinks
+        event[KEYS.CTRL_OR_CMD] &&
+        !this.state.editingTextElement &&
+        this.getTextHyperlinkAtPosition(scenePointer.x, scenePointer.y)
+      ) {
+        setCursor(this.interactiveCanvas, CURSOR_TYPE.POINTER);
+      } else if (
         hitElement &&
         (hitElement.link || isEmbeddableElement(hitElement)) &&
         this.state.selectedElementIds[hitElement.id] &&
@@ -8015,6 +8135,24 @@ class App extends React.Component<AppProps, AppState> {
       x: scenePointerX,
       y: scenePointerY,
     };
+
+    // Ctrl/Cmd+click on an inline text hyperlink opens it instead of
+    // interacting with the element
+    if (
+      event[KEYS.CTRL_OR_CMD] &&
+      event.button === POINTER_BUTTON.MAIN &&
+      !this.state.editingTextElement
+    ) {
+      const hit = this.getTextHyperlinkAtPosition(scenePointerX, scenePointerY);
+      if (hit) {
+        this.openTextHyperlink(
+          hit.element,
+          hit.hyperlink.url,
+          event.nativeEvent,
+        );
+        return;
+      }
+    }
 
     const target = event.target as HTMLElement;
     // capture subsequent pointer events to the canvas

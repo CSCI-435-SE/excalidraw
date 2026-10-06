@@ -1,0 +1,16 @@
+.excalidraw {
+  .TextHyperlinkDialog {
+    .TextHyperlinkDialog__fields {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .TextHyperlinkDialog__actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+  }
+}

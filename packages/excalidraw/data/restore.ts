@@ -76,6 +76,7 @@ import type {
   ExcalidrawLinearElement,
   ExcalidrawSelectionElement,
   ExcalidrawTextElement,
+  TextHyperlink,
   FixedPointBinding,
   FontFamilyValues,
   NonDeleted,
@@ -405,6 +406,46 @@ const repairBinding = <T extends ExcalidrawArrowElement>(
   return null;
 };
 
+/** drops malformed, out-of-range, empty, and overlapping text links */
+const restoreTextHyperlinks = (
+  textHyperlinks: unknown,
+  originalText: string,
+): TextHyperlink[] => {
+  if (!Array.isArray(textHyperlinks)) {
+    return [];
+  }
+
+  const restored: TextHyperlink[] = [];
+  const sorted = textHyperlinks
+    .filter(
+      (link): link is TextHyperlink =>
+        !!link &&
+        Number.isInteger(link.start) &&
+        Number.isInteger(link.end) &&
+        typeof link.url === "string" &&
+        !!link.url &&
+        link.start >= 0 &&
+        link.end <= originalText.length &&
+        link.start < link.end,
+    )
+    .sort((a, b) => a.start - b.start);
+
+  for (const link of sorted) {
+    const prev = restored[restored.length - 1];
+    if (prev && link.start < prev.end) {
+      continue;
+    }
+    restored.push({
+      start: link.start,
+      end: link.end,
+      url: link.url,
+      color: link.color === "inherit" ? "inherit" : "link",
+    });
+  }
+
+  return restored;
+};
+
 const restoreElementWithProperties = <
   T extends Required<Omit<ExcalidrawElement, "customData">> & {
     customData?: ExcalidrawElement["customData"];
@@ -544,6 +585,10 @@ export const restoreElement = (
         originalText: element.originalText || text,
         autoResize: element.autoResize ?? true,
         lineHeight,
+        textHyperlinks: restoreTextHyperlinks(
+          element.textHyperlinks,
+          element.originalText || text,
+        ),
       });
 
       // if empty text, mark as deleted. We keep in array

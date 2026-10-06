@@ -40,6 +40,7 @@ import { getLineWidth } from "@excalidraw/element";
 import { normalizeText } from "@excalidraw/element";
 import { wrapText } from "@excalidraw/element";
 import { getWrappedTextLines } from "@excalidraw/element";
+import { insertTextHyperlink, updateTextHyperlinks } from "@excalidraw/element";
 import {
   isArrowElement,
   isBoundToContainer,
@@ -52,6 +53,7 @@ import type {
   ExcalidrawTextElement,
   NonDeleted,
   ExcalidrawTextContainer,
+  TextHyperlink,
 } from "@excalidraw/element/types";
 
 import { actionSaveToActiveFile } from "../actions";
@@ -213,8 +215,15 @@ export const textWysiwyg = ({
    * Note: `text`, which can be wrapped and therefore different from `originalText`,
    *       is derived from `originalText`
    */
-  onChange?: (nextOriginalText: string) => void;
-  onSubmit: (data: { viaKeyboard: boolean; nextOriginalText: string }) => void;
+  onChange?: (data: {
+    nextOriginalText: string;
+    nextTextHyperlinks: readonly TextHyperlink[];
+  }) => void;
+  onSubmit: (data: {
+    viaKeyboard: boolean;
+    nextOriginalText: string;
+    nextTextHyperlinks: readonly TextHyperlink[];
+  }) => void;
   getViewportCoords: (x: number, y: number) => [number, number];
   element: ExcalidrawTextElement;
   canvas: HTMLCanvasElement;
@@ -463,6 +472,68 @@ export const textWysiwyg = ({
   editable.value = element.originalText;
   updateWysiwygStyle();
 
+  // hyperlink offsets index into the text as of `lastSyncedValue`
+  let textHyperlinks = element.textHyperlinks ?? [];
+  let lastSyncedValue = editable.value;
+
+  const syncTextHyperlinks = () => {
+    textHyperlinks = updateTextHyperlinks(
+      lastSyncedValue,
+      editable.value,
+      textHyperlinks,
+      editable.selectionEnd,
+    );
+    lastSyncedValue = editable.value;
+  };
+
+  let isTextHyperlinkDialogOpen = false;
+
+  const openTextHyperlinkDialog = () => {
+    if (isTextHyperlinkDialogOpen) {
+      return;
+    }
+
+    syncTextHyperlinks();
+    const { selectionStart, selectionEnd } = editable;
+
+    isTextHyperlinkDialogOpen = true;
+    // the dialog takes focus, which must not submit the text
+    editable.onblur = null;
+
+    app.openTextHyperlinkDialog(
+      editable.value.slice(selectionStart, selectionEnd),
+      (result) => {
+        isTextHyperlinkDialogOpen = false;
+        if (isDestroyed) {
+          return;
+        }
+
+        if (result) {
+          const next = insertTextHyperlink({
+            text: editable.value,
+            textHyperlinks,
+            selectionStart,
+            selectionEnd,
+            displayText: result.displayText,
+            url: result.url,
+            color: result.color,
+          });
+          editable.value = next.text;
+          textHyperlinks = next.textHyperlinks;
+          lastSyncedValue = next.text;
+
+          const caret = selectionStart + result.displayText.length;
+          editable.setSelectionRange(caret, caret);
+          // resize the editor and update the element
+          editable.dispatchEvent(new Event("input"));
+        }
+
+        editable.focus();
+        editable.onblur = handleSubmit;
+      },
+    );
+  };
+
   const getCaretIndexFromInitialSceneCoords = () => {
     if (!initialCaretSceneCoords || !currentTextLayout) {
       return null;
@@ -623,7 +694,11 @@ export const textWysiwyg = ({
         editable.selectionStart = selectionStart;
         editable.selectionEnd = selectionStart;
       }
-      onChange(editable.value);
+      syncTextHyperlinks();
+      onChange({
+        nextOriginalText: editable.value,
+        nextTextHyperlinks: textHyperlinks,
+      });
     };
   }
 
@@ -648,6 +723,16 @@ export const textWysiwyg = ({
       event.preventDefault();
       submittedViaKeyboard = true;
       handleSubmit();
+    } else if (
+      event[KEYS.CTRL_OR_CMD] &&
+      !event.shiftKey &&
+      !event.altKey &&
+      event.key.toLowerCase() === KEYS.K
+    ) {
+      event.preventDefault();
+      // don't let the app's Ctrl+K (element link) shortcut handle it
+      event.stopPropagation();
+      openTextHyperlinkDialog();
     } else if (actionSaveToActiveFile.keyTest(event)) {
       event.preventDefault();
       handleSubmit();
@@ -685,15 +770,27 @@ export const textWysiwyg = ({
     const { selectionStart, selectionEnd } = editable;
     const linesStartIndices = getSelectedLinesStartIndices();
 
+    syncTextHyperlinks();
+
     let value = editable.value;
     linesStartIndices.forEach((startIndex: number) => {
       const startValue = value.slice(0, startIndex);
       const endValue = value.slice(startIndex);
 
-      value = `${startValue}${TAB}${endValue}`;
+      const nextValue = `${startValue}${TAB}${endValue}`;
+      // tabs are inserted on multiple lines, which a single diff of the
+      // whole text can't represent, so update hyperlinks per insertion
+      textHyperlinks = updateTextHyperlinks(
+        value,
+        nextValue,
+        textHyperlinks,
+        startIndex + TAB_SIZE,
+      );
+      value = nextValue;
     });
 
     editable.value = value;
+    lastSyncedValue = value;
 
     editable.selectionStart = selectionStart + TAB_SIZE;
     editable.selectionEnd = selectionEnd + TAB_SIZE * linesStartIndices.length;
@@ -703,6 +800,8 @@ export const textWysiwyg = ({
     const { selectionStart, selectionEnd } = editable;
     const linesStartIndices = getSelectedLinesStartIndices();
     const removedTabs: number[] = [];
+
+    syncTextHyperlinks();
 
     let value = editable.value;
     linesStartIndices.forEach((startIndex) => {
@@ -715,12 +814,20 @@ export const textWysiwyg = ({
         const endValue = value.slice(startIndex + tabMatch[0].length);
 
         // Delete a tab from the line
-        value = `${startValue}${endValue}`;
+        const nextValue = `${startValue}${endValue}`;
+        textHyperlinks = updateTextHyperlinks(
+          value,
+          nextValue,
+          textHyperlinks,
+          startIndex,
+        );
+        value = nextValue;
         removedTabs.push(startIndex);
       }
     });
 
     editable.value = value;
+    lastSyncedValue = value;
 
     if (removedTabs.length) {
       if (selectionStart > removedTabs[removedTabs.length - 1]) {
@@ -833,9 +940,12 @@ export const textWysiwyg = ({
       redrawTextBoundingBox(updateElement, container, app.scene);
     }
 
+    syncTextHyperlinks();
+
     onSubmit({
       viaKeyboard: submittedViaKeyboard,
       nextOriginalText: editable.value,
+      nextTextHyperlinks: textHyperlinks,
     });
   };
 
@@ -858,6 +968,10 @@ export const textWysiwyg = ({
     unbindUpdate();
     unsubOnChange();
     unbindOnScroll();
+
+    if (isTextHyperlinkDialogOpen) {
+      app.closeTextHyperlinkDialog(null);
+    }
 
     editable.remove();
   };
@@ -975,7 +1089,7 @@ export const textWysiwyg = ({
     const isPopupOpened = !!document.activeElement?.closest(
       ".properties-content",
     );
-    if (!isPopupOpened) {
+    if (!isPopupOpened && !isTextHyperlinkDialogOpen) {
       editable.focus();
     }
   });

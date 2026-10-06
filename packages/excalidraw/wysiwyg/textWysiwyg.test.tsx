@@ -1966,3 +1966,223 @@ describe("textWysiwyg", () => {
     });
   });
 });
+
+describe("text hyperlinks", () => {
+  const { h } = window;
+
+  const hyperlink = (start: number, end: number) => ({
+    start,
+    end,
+    url: "https://google.com",
+    color: "link" as const,
+  });
+
+  const getTextHyperlinks = () =>
+    (h.elements[0] as ExcalidrawTextElement).textHyperlinks;
+
+  beforeEach(async () => {
+    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    API.setElements([]);
+  });
+
+  /** opens the editor on "visit Google today" with "Google" hyperlinked */
+  const openEditor = async () => {
+    const text = API.createElement({
+      type: "text",
+      text: "visit Google today",
+      x: 60,
+      y: 0,
+      width: 100,
+      height: 100,
+    });
+
+    API.setElements([text]);
+    API.updateElement(text, { textHyperlinks: [hyperlink(6, 12)] });
+    API.setSelectedElements([text]);
+    UI.clickTool("selection");
+
+    Keyboard.keyPress(KEYS.ENTER);
+
+    return getTextEditor();
+  };
+
+  it("should keep hyperlinks in sync while typing", async () => {
+    const editor = await openEditor();
+
+    updateTextEditor(editor, "please visit Google today");
+    expect(getTextHyperlinks()).toEqual([hyperlink(13, 19)]);
+
+    updateTextEditor(editor, "please visit Gooogle today");
+    expect(getTextHyperlinks()).toEqual([hyperlink(13, 20)]);
+  });
+
+  it("should persist hyperlinks when exiting the editor", async () => {
+    const editor = await openEditor();
+
+    updateTextEditor(editor, "please visit Google today");
+    Keyboard.exitTextEditor(editor);
+
+    expect(h.state.editingTextElement).toBeNull();
+    expect(getTextHyperlinks()).toEqual([hyperlink(13, 19)]);
+  });
+
+  it("should drop hyperlinks whose text was deleted", async () => {
+    const editor = await openEditor();
+
+    updateTextEditor(editor, "visit  today");
+    expect(getTextHyperlinks()).toEqual([]);
+  });
+
+  it("should shift hyperlinks when indenting and outdenting", async () => {
+    const editor = await openEditor();
+
+    editor.selectionStart = 0;
+    editor.selectionEnd = 0;
+    fireEvent.keyDown(editor, { key: KEYS.TAB });
+
+    expect(editor.value).toBe(`${tab}visit Google today`);
+    expect(getTextHyperlinks()).toEqual([hyperlink(10, 16)]);
+
+    fireEvent.keyDown(editor, { key: KEYS.TAB, shiftKey: true });
+
+    expect(editor.value).toBe("visit Google today");
+    expect(getTextHyperlinks()).toEqual([hyperlink(6, 12)]);
+  });
+});
+
+describe("text hyperlink dialog", () => {
+  const { h } = window;
+
+  const getTextElement = () => h.elements[0] as ExcalidrawTextElement;
+
+  const getDialog = () =>
+    document.querySelector<HTMLElement>(".TextHyperlinkDialog");
+
+  const getDialogInputs = () => {
+    const [displayTextInput, urlInput] = Array.from(
+      getDialog()!.querySelectorAll("input"),
+    );
+    return { displayTextInput, urlInput };
+  };
+
+  const pressCtrlK = (editor: HTMLTextAreaElement) => {
+    fireEvent.keyDown(editor, { key: KEYS.K, [KEYS.CTRL_OR_CMD]: true });
+  };
+
+  beforeEach(async () => {
+    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    API.setElements([]);
+  });
+
+  const openEditor = async (text: string) => {
+    const element = API.createElement({
+      type: "text",
+      text,
+      x: 60,
+      y: 0,
+      width: 100,
+      height: 100,
+    });
+
+    API.setElements([element]);
+    API.setSelectedElements([element]);
+    UI.clickTool("selection");
+
+    Keyboard.keyPress(KEYS.ENTER);
+
+    return getTextEditor();
+  };
+
+  it("should open the dialog with the selected text prefilled", async () => {
+    const editor = await openEditor("visit Google today");
+    editor.setSelectionRange(6, 12);
+
+    pressCtrlK(editor);
+
+    expect(h.state.openDialog).toEqual({
+      name: "textHyperlink",
+      initialDisplayText: "Google",
+    });
+    expect(getDialogInputs().displayTextInput.value).toBe("Google");
+    // still editing underneath the dialog
+    expect(h.state.editingTextElement?.id).toBe(getTextElement().id);
+  });
+
+  it("should insert a hyperlink on confirm", async () => {
+    const editor = await openEditor("visit  today");
+    editor.setSelectionRange(6, 6);
+
+    pressCtrlK(editor);
+
+    const { displayTextInput, urlInput } = getDialogInputs();
+    fireEvent.change(displayTextInput, { target: { value: "Google" } });
+    fireEvent.change(urlInput, { target: { value: "https://google.com" } });
+    fireEvent.click(queryByText(getDialog()!, "Confirm")!);
+
+    expect(h.state.openDialog).toBe(null);
+    expect(editor.value).toBe("visit Google today");
+    expect(getTextElement().originalText).toBe("visit Google today");
+    expect(getTextElement().textHyperlinks).toEqual([
+      { start: 6, end: 12, url: "https://google.com", color: "link" },
+    ]);
+    // the editor stays open with the caret after the inserted text
+    expect(h.state.editingTextElement?.id).toBe(getTextElement().id);
+    expect(editor.selectionStart).toBe(12);
+  });
+
+  it("should use the text color when the checkbox is checked", async () => {
+    const editor = await openEditor("visit Google today");
+    editor.setSelectionRange(6, 12);
+
+    pressCtrlK(editor);
+
+    const { urlInput } = getDialogInputs();
+    fireEvent.change(urlInput, { target: { value: "https://google.com" } });
+    fireEvent.click(queryByText(getDialog()!, "Use text color")!);
+    fireEvent.keyDown(urlInput, { key: KEYS.ENTER });
+
+    expect(getTextElement().textHyperlinks).toEqual([
+      { start: 6, end: 12, url: "https://google.com", color: "inherit" },
+    ]);
+  });
+
+  it("should use the URL as the text when no text is given", async () => {
+    const editor = await openEditor("visit ");
+    editor.setSelectionRange(6, 6);
+
+    pressCtrlK(editor);
+
+    const { urlInput } = getDialogInputs();
+    fireEvent.change(urlInput, { target: { value: "https://google.com" } });
+    fireEvent.keyDown(urlInput, { key: KEYS.ENTER });
+
+    expect(editor.value).toBe("visit https://google.com");
+    expect(getTextElement().textHyperlinks).toEqual([
+      { start: 6, end: 24, url: "https://google.com", color: "link" },
+    ]);
+  });
+
+  it("should not confirm without a URL", async () => {
+    const editor = await openEditor("visit Google today");
+    editor.setSelectionRange(6, 12);
+
+    pressCtrlK(editor);
+    fireEvent.click(queryByText(getDialog()!, "Confirm")!);
+
+    expect(h.state.openDialog?.name).toBe("textHyperlink");
+    expect(getTextElement().textHyperlinks).toEqual([]);
+  });
+
+  it("should keep editing unchanged text when cancelled", async () => {
+    const editor = await openEditor("visit Google today");
+    editor.setSelectionRange(6, 12);
+
+    pressCtrlK(editor);
+    fireEvent.click(queryByText(getDialog()!, "Cancel")!);
+
+    expect(h.state.openDialog).toBe(null);
+    expect(editor.value).toBe("visit Google today");
+    expect(getTextElement().textHyperlinks).toEqual([]);
+    expect(h.state.editingTextElement?.id).toBe(getTextElement().id);
+  });
+});

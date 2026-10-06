@@ -285,6 +285,7 @@ export const newTextElement = (
     originalText: opts.originalText ?? text,
     autoResize: opts.autoResize ?? true,
     lineHeight,
+    textHyperlinks: [],
   };
 
   const textElement: NonDeleted<ExcalidrawTextElement> = newElementWith(
