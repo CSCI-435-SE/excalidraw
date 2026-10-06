@@ -43,6 +43,7 @@ import type {
 } from "@excalidraw/excalidraw/scene/types";
 
 import {
+  getBoundsFromPoints,
   getDiamondPoints,
   getElementAbsoluteCoords,
   getElementBounds,
@@ -342,32 +343,9 @@ const drawElementOnCanvas = (
       return false;
     }
 
-    const gradient =
-      gradientColors.type === "linear"
-        ? context.createLinearGradient(0, 0, element.width, 0)
-        : context.createRadialGradient(
-            element.width / 2,
-            element.height / 2,
-            0,
-            element.width / 2,
-            element.height / 2,
-            Math.hypot(element.width / 2, element.height / 2),
-          );
-    gradient.addColorStop(
-      0,
-      applyDarkModeFilter(
-        gradientColors.startColor,
-        renderConfig.theme === THEME.DARK,
-      ),
-    );
-    gradient.addColorStop(
-      1,
-      applyDarkModeFilter(
-        gradientColors.endColor,
-        renderConfig.theme === THEME.DARK,
-      ),
-    );
-    context.fillStyle = gradient;
+    // box the gradient spans, in element-local coordinates
+    let [x1, y1, x2, y2] = [0, 0, element.width, element.height];
+
     context.beginPath();
 
     switch (element.type) {
@@ -421,6 +399,8 @@ const drawElementOnCanvas = (
         if (!isPathALoop(element.points) || !element.points.length) {
           return false;
         }
+        // points can extend left of / above the element origin
+        [x1, y1, x2, y2] = getBoundsFromPoints(element.points);
         context.moveTo(element.points[0][0], element.points[0][1]);
         for (let index = 1; index < element.points.length; index++) {
           context.lineTo(element.points[index][0], element.points[index][1]);
@@ -431,6 +411,34 @@ const drawElementOnCanvas = (
         return false;
     }
 
+    const centerX = (x1 + x2) / 2;
+    const centerY = (y1 + y2) / 2;
+    const gradient =
+      gradientColors.type === "linear"
+        ? context.createLinearGradient(x1, y1, x2, y1)
+        : context.createRadialGradient(
+            centerX,
+            centerY,
+            0,
+            centerX,
+            centerY,
+            Math.hypot((x2 - x1) / 2, (y2 - y1) / 2),
+          );
+    gradient.addColorStop(
+      0,
+      applyDarkModeFilter(
+        gradientColors.startColor,
+        renderConfig.theme === THEME.DARK,
+      ),
+    );
+    gradient.addColorStop(
+      1,
+      applyDarkModeFilter(
+        gradientColors.endColor,
+        renderConfig.theme === THEME.DARK,
+      ),
+    );
+    context.fillStyle = gradient;
     context.fill();
     return true;
   };
