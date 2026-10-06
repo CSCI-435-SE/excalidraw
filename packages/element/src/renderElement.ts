@@ -396,6 +396,7 @@ const drawElementOnCanvas = (
       }
       case "line":
       case "arrow":
+      case "freedraw":
         if (!isPathALoop(element.points) || !element.points.length) {
           return false;
         }
@@ -511,6 +512,7 @@ const drawElementOnCanvas = (
       // Draw directly to canvas
       context.save();
 
+      fillWithGradient();
       const shapes = ShapeCache.generateElementShape(element, renderConfig);
 
       for (const shape of shapes) {
