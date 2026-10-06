@@ -1,4 +1,16 @@
-import type { TextHyperlink } from "./types";
+import { COLOR_PALETTE, getFontString } from "@excalidraw/common";
+
+import { getLineWidth } from "./textMeasurements";
+
+import type { ExcalidrawTextElement, TextHyperlink } from "./types";
+
+export const TEXT_HYPERLINK_COLOR = COLOR_PALETTE.blue[4];
+
+export const getTextHyperlinkColor = (
+  hyperlink: TextHyperlink,
+  element: ExcalidrawTextElement,
+) =>
+  hyperlink.color === "inherit" ? element.strokeColor : TEXT_HYPERLINK_COLOR;
 
 type TextChange = {
   /** offset in both texts at which the change starts */
@@ -194,4 +206,114 @@ export const insertTextHyperlink = ({
       text.slice(0, selectionStart) + displayText + text.slice(selectionEnd),
     textHyperlinks: nextHyperlinks,
   };
+};
+
+/** a run of text on a single rendered line, either plain or hyperlinked */
+export type TextHyperlinkSegment = {
+  text: string;
+  /** x offset from the text element's left edge */
+  x: number;
+  width: number;
+  hyperlink: TextHyperlink | null;
+};
+
+/**
+ * Finds the offset of each rendered (wrapped) line in `originalText`.
+ *
+ * Wrapping only inserts line breaks and trims whitespace at wrap boundaries,
+ * so each rendered line is a slice of the original text, in order.
+ */
+const getRenderedLineOffsets = (
+  lines: readonly string[],
+  originalText: string,
+) => {
+  const offsets: number[] = [];
+  let cursor = 0;
+
+  for (const line of lines) {
+    const offset = originalText.indexOf(line, cursor);
+    if (offset === -1) {
+      return null;
+    }
+    offsets.push(offset);
+    cursor = offset + line.length;
+  }
+
+  return offsets;
+};
+
+/**
+ * Splits each rendered line of a text element into plain and hyperlinked
+ * segments, positioned according to the element's text alignment.
+ *
+ * Returns `null` if the element has no hyperlinks, or if its rendered text
+ * can't be mapped back to `originalText` (in which case hyperlinks are not
+ * rendered rather than rendered in the wrong place).
+ */
+export const getTextHyperlinkLineSegments = (
+  element: ExcalidrawTextElement,
+): TextHyperlinkSegment[][] | null => {
+  if (!element.textHyperlinks?.length) {
+    return null;
+  }
+
+  const lines = element.text.replace(/\r\n?/g, "\n").split("\n");
+  const offsets = getRenderedLineOffsets(lines, element.originalText);
+  if (!offsets) {
+    return null;
+  }
+
+  const font = getFontString(element);
+  const hyperlinks = [...element.textHyperlinks].sort(
+    (a, b) => a.start - b.start,
+  );
+
+  return lines.map((line, index) => {
+    const lineStart = offsets[index];
+    const lineEnd = lineStart + line.length;
+    const lineWidth = getLineWidth(line, font);
+    const lineX =
+      element.textAlign === "center"
+        ? (element.width - lineWidth) / 2
+        : element.textAlign === "right"
+        ? element.width - lineWidth
+        : 0;
+
+    const getX = (offset: number) =>
+      lineX + (offset > 0 ? getLineWidth(line.slice(0, offset), font) : 0);
+
+    const segments: TextHyperlinkSegment[] = [];
+    const pushSegment = (
+      start: number,
+      end: number,
+      hyperlink: TextHyperlink | null,
+    ) => {
+      const x = getX(start);
+      segments.push({
+        text: line.slice(start, end),
+        x,
+        width: getX(end) - x,
+        hyperlink,
+      });
+    };
+
+    let cursor = 0;
+    for (const hyperlink of hyperlinks) {
+      const start = Math.max(hyperlink.start, lineStart) - lineStart;
+      const end = Math.min(hyperlink.end, lineEnd) - lineStart;
+      if (end <= start || start < cursor) {
+        continue;
+      }
+      if (start > cursor) {
+        pushSegment(cursor, start, null);
+      }
+      pushSegment(start, end, hyperlink);
+      cursor = end;
+    }
+    if (cursor < line.length || !segments.length) {
+      pushSegment(cursor, line.length, null);
+    }
+
+    return segments;
+  });
 };

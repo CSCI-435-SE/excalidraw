@@ -1,10 +1,15 @@
+import { getFontString } from "@excalidraw/common";
+
+import { newTextElement } from "../src/newElement";
 import {
   getTextChange,
+  getTextHyperlinkLineSegments,
   insertTextHyperlink,
   updateTextHyperlinks,
 } from "../src/textHyperlinks";
+import { getLineWidth } from "../src/textMeasurements";
 
-import type { TextHyperlink } from "../src/types";
+import type { ExcalidrawTextElement, TextHyperlink } from "../src/types";
 
 const link = (
   start: number,
@@ -303,5 +308,125 @@ describe("insertTextHyperlink", () => {
       link(0, 4, "https://b.com"),
       link(6, 9, "https://a.com"),
     ]);
+  });
+});
+
+describe("getTextHyperlinkLineSegments", () => {
+  const createTextElement = (
+    opts: Partial<ExcalidrawTextElement> & { originalText: string },
+  ): ExcalidrawTextElement => ({
+    ...newTextElement({ text: opts.originalText, x: 0, y: 0 }),
+    ...opts,
+  });
+
+  const widthOf = (element: ExcalidrawTextElement, text: string) =>
+    getLineWidth(text, getFontString(element));
+
+  /** strips positions to make assertions on the segment layout readable */
+  const segmentTexts = (
+    segments: ReturnType<typeof getTextHyperlinkLineSegments>,
+  ) =>
+    segments?.map((line) =>
+      line.map((segment) => [segment.text, !!segment.hyperlink]),
+    );
+
+  it("returns null when there are no hyperlinks", () => {
+    const element = createTextElement({ originalText: "visit Google" });
+    expect(getTextHyperlinkLineSegments(element)).toBe(null);
+  });
+
+  it("splits a line into plain and hyperlinked segments", () => {
+    const element = createTextElement({
+      originalText: "visit Google today",
+      textHyperlinks: [link(6, 12)],
+    });
+    const segments = getTextHyperlinkLineSegments(element)!;
+
+    expect(segmentTexts(segments)).toEqual([
+      [
+        ["visit ", false],
+        ["Google", true],
+        [" today", false],
+      ],
+    ]);
+
+    const [, hyperlinkSegment] = segments[0];
+    expect(hyperlinkSegment.x).toBe(widthOf(element, "visit "));
+    expect(hyperlinkSegment.width).toBe(
+      widthOf(element, "visit Google") - widthOf(element, "visit "),
+    );
+  });
+
+  it("maps hyperlinks onto wrapped lines", () => {
+    const element = createTextElement({
+      originalText: "visit Google today",
+      // wrapping trims the spaces at the line breaks
+      text: "visit\nGoogle\ntoday",
+      textHyperlinks: [link(6, 12)],
+    });
+
+    expect(segmentTexts(getTextHyperlinkLineSegments(element))).toEqual([
+      [["visit", false]],
+      [["Google", true]],
+      [["today", false]],
+    ]);
+  });
+
+  it("splits a hyperlink spanning multiple lines", () => {
+    const element = createTextElement({
+      originalText: "foo bar",
+      text: "foo\nbar",
+      textHyperlinks: [link(1, 6)],
+    });
+
+    expect(segmentTexts(getTextHyperlinkLineSegments(element))).toEqual([
+      [
+        ["f", false],
+        ["oo", true],
+      ],
+      [
+        ["ba", true],
+        ["r", false],
+      ],
+    ]);
+  });
+
+  it("offsets segments according to text alignment", () => {
+    const element = createTextElement({
+      originalText: "abc",
+      textHyperlinks: [link(0, 3)],
+      textAlign: "center",
+      width: 1000,
+    });
+    const [[segment]] = getTextHyperlinkLineSegments(element)!;
+    expect(segment.x).toBe((1000 - widthOf(element, "abc")) / 2);
+
+    const rightAligned = { ...element, textAlign: "right" as const };
+    const [[rightSegment]] = getTextHyperlinkLineSegments(rightAligned)!;
+    expect(rightSegment.x).toBe(1000 - widthOf(element, "abc"));
+  });
+
+  it("ignores hyperlinks that are out of range", () => {
+    const element = createTextElement({
+      originalText: "abc",
+      textHyperlinks: [link(1, 50)],
+    });
+
+    expect(segmentTexts(getTextHyperlinkLineSegments(element))).toEqual([
+      [
+        ["a", false],
+        ["bc", true],
+      ],
+    ]);
+  });
+
+  it("returns null when the rendered text doesn't match the original text", () => {
+    const element = createTextElement({
+      originalText: "abc",
+      text: "xyz",
+      textHyperlinks: [link(0, 3)],
+    });
+
+    expect(getTextHyperlinkLineSegments(element)).toBe(null);
   });
 });

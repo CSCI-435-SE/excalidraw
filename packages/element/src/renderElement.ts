@@ -59,6 +59,11 @@ import {
 } from "./textElement";
 import { getLineHeightInPx } from "./textMeasurements";
 import {
+  getTextHyperlinkColor,
+  getTextHyperlinkLineSegments,
+} from "./textHyperlinks";
+
+import {
   isTextElement,
   isLinearElement,
   isFreeDrawElement,
@@ -74,6 +79,8 @@ import { getCornerRadius, isPathALoop } from "./utils";
 import { getGradientColors } from "./gradient";
 
 import { ShapeCache } from "./shape";
+
+import type { TextHyperlinkSegment } from "./textHyperlinks";
 
 import type {
   ExcalidrawElement,
@@ -328,6 +335,50 @@ const drawImagePlaceholder = (
     size,
     size,
   );
+};
+
+/**
+ * Draws a single line of text that contains hyperlinks, segment by segment,
+ * coloring and underlining the hyperlinked segments.
+ *
+ * Expects `context.font` and `context.fillStyle` (the plain text color) to
+ * already be set.
+ */
+const drawTextHyperlinkLine = (
+  context: CanvasRenderingContext2D,
+  element: ExcalidrawTextElement,
+  segments: readonly TextHyperlinkSegment[],
+  baselineY: number,
+  theme: AppState["theme"],
+) => {
+  const underlineOffset = element.fontSize * 0.1;
+  const underlineThickness = Math.max(1, element.fontSize * 0.06);
+
+  context.save();
+  context.textAlign = "left";
+
+  for (const segment of segments) {
+    if (!segment.hyperlink) {
+      context.fillText(segment.text, segment.x, baselineY);
+      continue;
+    }
+
+    context.save();
+    context.fillStyle = applyDarkModeFilter(
+      getTextHyperlinkColor(segment.hyperlink, element),
+      theme === THEME.DARK,
+    );
+    context.fillText(segment.text, segment.x, baselineY);
+    context.fillRect(
+      segment.x,
+      baselineY + underlineOffset,
+      segment.width,
+      underlineThickness,
+    );
+    context.restore();
+  }
+
+  context.restore();
 };
 
 const drawElementOnCanvas = (
@@ -667,12 +718,27 @@ const drawElementOnCanvas = (
           lineHeightPx,
         );
 
+        // per-segment rendering assumes left-to-right layout, so RTL text
+        // falls back to rendering hyperlinks as plain text
+        const hyperlinkLineSegments = rtl
+          ? null
+          : getTextHyperlinkLineSegments(element);
+
         for (let index = 0; index < lines.length; index++) {
-          context.fillText(
-            lines[index],
-            horizontalOffset,
-            index * lineHeightPx + verticalOffset,
-          );
+          const baselineY = index * lineHeightPx + verticalOffset;
+          const segments = hyperlinkLineSegments?.[index];
+
+          if (segments?.some((segment) => segment.hyperlink)) {
+            drawTextHyperlinkLine(
+              context,
+              element,
+              segments,
+              baselineY,
+              renderConfig.theme,
+            );
+          } else {
+            context.fillText(lines[index], horizontalOffset, baselineY);
+          }
         }
         context.restore();
         if (shouldTemporarilyAttach) {
