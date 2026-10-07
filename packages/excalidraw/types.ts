@@ -225,6 +225,7 @@ export type InteractiveCanvasAppState = Readonly<
     selectionElement: AppState["selectionElement"];
     selectedGroupIds: AppState["selectedGroupIds"];
     selectedLinearElement: AppState["selectedLinearElement"];
+    motionPathEditor: AppState["motionPathEditor"];
     multiElement: AppState["multiElement"];
     newElement: AppState["newElement"];
     isBindingEnabled: AppState["isBindingEnabled"];
@@ -353,6 +354,17 @@ export interface AppState {
     | { elementId: string; groupId: null }
     | { elementId: null; groupId: GroupId }
     | null;
+  /**
+   * set while an existing motion path is being re-edited (entered via
+   * "Edit motion path"): `original` and `originalPositions` snapshot the path
+   * and its target(s) (incl. bound text) at entry, so the session can be
+   * reverted as a whole. Never persisted, never undo-tracked.
+   */
+  motionPathEditor: {
+    pathId: ExcalidrawPathElement["id"];
+    original: ExcalidrawPathElement;
+    originalPositions: Record<string, { x: number; y: number }>;
+  } | null;
   /**
    * decoupled from newElement, dragging selection only creates selectionElement
    * - set on pointer down, updated during pointer move

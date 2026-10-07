@@ -79,6 +79,7 @@ import { getCornerRadius, isPathALoop } from "./utils";
 import { getGradientColors } from "./gradient";
 
 import { ShapeCache } from "./shape";
+import { getPathSamplePoints } from "./pathSamples";
 
 import type { TextHyperlinkSegment } from "./textHyperlinks";
 
@@ -529,7 +530,8 @@ const drawElementOnCanvas = (
       if (element.points.length > 1) {
         context.setLineDash([element.strokeWidth * 3, element.strokeWidth * 2]);
         context.beginPath();
-        element.points.forEach(([x, y], index) => {
+        // curve-sampled when rounded; waypoint dots stay on the raw points
+        getPathSamplePoints(element).forEach(([x, y], index) => {
           if (index === 0) {
             context.moveTo(x, y);
           } else {

@@ -97,6 +97,12 @@ export { actionUnbindText, actionBindText } from "./actionBoundText";
 export { actionLink } from "./actionLink";
 export { actionToggleElementLock } from "./actionElementLock";
 export { actionToggleLinearEditor } from "./actionLinearEditor";
+export {
+  actionEditMotionPath,
+  actionFinishMotionPathEdit,
+  actionRejectMotionPathEdit,
+  actionToggleMotionPathCurve,
+} from "./actionMotionPathEditor";
 
 export { actionToggleSearchMenu } from "./actionToggleSearchMenu";
 

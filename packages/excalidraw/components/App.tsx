@@ -263,6 +263,7 @@ import {
   isPathElement,
   getPathsTargetingElement,
   getPathTargetElements,
+  snapPathTargetsToStart,
 } from "@excalidraw/element";
 
 import type { GlobalPoint, LocalPoint, Radians } from "@excalidraw/math";
@@ -272,6 +273,7 @@ import type {
   ExcalidrawFreeDrawElement,
   ExcalidrawGenericElement,
   ExcalidrawLinearElement,
+  ExcalidrawPathElement,
   ExcalidrawTextElement,
   TextHyperlink,
   NonDeleted,
@@ -332,6 +334,8 @@ import {
   actionLink,
   actionToggleElementLock,
   actionToggleLinearEditor,
+  actionEditMotionPath,
+  actionFinishMotionPathEdit,
   actionToggleObjectsSnapMode,
   actionToggleArrowBinding,
   actionToggleMidpointSnapping,
@@ -437,6 +441,7 @@ import {
   setCursorForShape,
 } from "../cursor";
 import { ElementCanvasButtons } from "../components/ElementCanvasButtons";
+import { MotionPathEditToolbar } from "../components/MotionPathEditToolbar";
 import { LaserTrails } from "../laserTrails";
 import { withBatchedUpdates, withBatchedUpdatesThrottled } from "../reactUtils";
 import { isPointHittingTextAutoResizeHandle } from "../textAutoResizeHandle";
@@ -2424,6 +2429,20 @@ class App extends React.Component<AppProps, AppState> {
                                 />
                               </ElementCanvasButtons>
                             )}
+                          {selectedElements.length === 1 &&
+                            isPathElement(firstSelectedElement) &&
+                            this.state.motionPathEditor?.pathId ===
+                              firstSelectedElement.id && (
+                              <MotionPathEditToolbar
+                                path={firstSelectedElement}
+                                elementsMap={renderableElementsMap}
+                                onTestAnimation={() =>
+                                  this.pathPlayback.startForPath(
+                                    firstSelectedElement,
+                                  )
+                                }
+                              />
+                            )}
 
                           {this.state.contextMenu && (
                             <ContextMenu
@@ -3690,6 +3709,28 @@ class App extends React.Component<AppProps, AppState> {
       "theme--dark",
       this.state.theme === THEME.DARK,
     );
+
+    // a motion path edit session ends (and is committed) whenever its
+    // editor goes away for any reason — clicking off, Esc, clicking the
+    // bounding box, Done — so the commit lives in this one place
+    const { motionPathEditor } = this.state;
+    if (
+      motionPathEditor &&
+      (this.state.selectedLinearElement?.elementId !==
+        motionPathEditor.pathId ||
+        !this.state.selectedLinearElement.isEditing)
+    ) {
+      setTimeout(() => {
+        const { motionPathEditor, selectedLinearElement } = this.state;
+        if (
+          motionPathEditor &&
+          (selectedLinearElement?.elementId !== motionPathEditor.pathId ||
+            !selectedLinearElement.isEditing)
+        ) {
+          this.actionManager.executeAction(actionFinishMotionPathEdit);
+        }
+      });
+    }
 
     if (
       this.state.selectedLinearElement?.isEditing &&
@@ -6915,6 +6956,13 @@ class App extends React.Component<AppProps, AppState> {
       }
     }
 
+    if (selectedElements.length === 1 && isPathElement(selectedElements[0])) {
+      if (this.state.motionPathEditor?.pathId !== selectedElements[0].id) {
+        this.actionManager.executeAction(actionEditMotionPath);
+      }
+      return;
+    }
+
     if (selectedElements.length === 1 && isImageElement(selectedElements[0])) {
       this.startImageCropping(selectedElements[0]);
       return;
@@ -8970,7 +9018,16 @@ class App extends React.Component<AppProps, AppState> {
 
       if (
         selectedElements.length === 1 &&
-        !this.state.selectedLinearElement?.isEditing &&
+        (!this.state.selectedLinearElement?.isEditing ||
+          // a re-edited motion path stays resizable/rotatable while its
+          // points are being edited — but its point and midpoint handles
+          // win, since they often sit right on a bbox corner/side handle
+          (this.state.motionPathEditor?.pathId ===
+            this.state.selectedLinearElement.elementId &&
+            !this.isOverMotionPathEditorHandle(
+              this.state.selectedLinearElement,
+              pointerDownState.origin,
+            ))) &&
         !isElbowArrow(selectedElements[0]) &&
         !(
           isLinearElement(selectedElements[0]) &&
@@ -10201,6 +10258,36 @@ class App extends React.Component<AppProps, AppState> {
         this.pathPlayback.start(path, targets);
       }
     }, PATH_PLAYBACK_HOLD_MS);
+  }
+
+  /** a point or segment-midpoint handle of the path being re-edited */
+  private isOverMotionPathEditorHandle(
+    linearElementEditor: LinearElementEditor,
+    scenePointer: { x: number; y: number },
+  ): boolean {
+    const elementsMap = this.scene.getNonDeletedElementsMap();
+    const element = LinearElementEditor.getElement(
+      linearElementEditor.elementId,
+      elementsMap,
+    );
+    if (!element) {
+      return false;
+    }
+    return (
+      LinearElementEditor.getPointIndexUnderCursor(
+        element,
+        elementsMap,
+        this.state.zoom,
+        scenePointer.x,
+        scenePointer.y,
+      ) !== -1 ||
+      LinearElementEditor.getSegmentMidpointHitCoords(
+        linearElementEditor,
+        scenePointer,
+        this.state,
+        elementsMap,
+      ) !== null
+    );
   }
 
   private clearPathPlaybackArm() {
@@ -11459,6 +11546,14 @@ class App extends React.Component<AppProps, AppState> {
       // Handle end of dragging a point of a linear element, might close a loop
       // and sets binding element
       if (
+        pointerDownState.resize.isResizing &&
+        this.state.motionPathEditor?.pathId ===
+          this.state.selectedLinearElement?.elementId
+      ) {
+        // resized/rotated the motion path being re-edited via its handles —
+        // the gesture didn't start on the path itself, but must not end the
+        // edit session
+      } else if (
         this.state.selectedLinearElement?.isEditing &&
         !this.state.newElement &&
         this.state.selectedLinearElement.draggedFocusPointBinding === null
@@ -11926,6 +12021,25 @@ class App extends React.Component<AppProps, AppState> {
             .filter((el) => el.id !== resizingElement.id),
           captureUpdate: CaptureUpdateAction.NEVER,
         });
+      }
+
+      // resizing/rotating a motion path moves its start point, and resizing
+      // its element moves the element's center — either way, re-snap the
+      // element onto the path's start so the two stay together at rest
+      if (pointerDownState.resize.isResizing) {
+        const allElements = this.scene.getNonDeletedElements();
+        const affectedPaths = new Set<ExcalidrawPathElement>();
+        for (const element of this.scene.getSelectedElements(this.state)) {
+          if (isPathElement(element)) {
+            affectedPaths.add(element);
+          }
+          for (const path of getPathsTargetingElement(element, allElements)) {
+            affectedPaths.add(path);
+          }
+        }
+        for (const path of affectedPaths) {
+          snapPathTargetsToStart(path, this.scene);
+        }
       }
 
       // handle frame membership for resizing frames and/or selected elements
@@ -13542,6 +13656,7 @@ class App extends React.Component<AppProps, AppState> {
       actionFlipVertical,
       CONTEXT_MENU_SEPARATOR,
       actionToggleLinearEditor,
+      actionEditMotionPath,
       CONTEXT_MENU_SEPARATOR,
       actionLink,
       actionCopyElementLink,

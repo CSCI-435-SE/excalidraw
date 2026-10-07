@@ -875,6 +875,60 @@ exports[`contextMenu element > right-clicking on a group should select whole gro
           "category": "element",
         },
       },
+      {
+        "category": "Elements",
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 20 20"
+        >
+          <g
+            fill="currentColor"
+            stroke="none"
+            strokeWidth="1.5"
+          >
+            <path
+              d="M4.167 10h11.666"
+              fill="none"
+              stroke="currentColor"
+              strokeDasharray="2.5 2.5"
+            />
+            <circle
+              cx="4.167"
+              cy="10"
+              r="1.5"
+            />
+            <circle
+              cx="10"
+              cy="10"
+              r="1.5"
+            />
+            <circle
+              cx="15.833"
+              cy="10"
+              r="1.5"
+            />
+          </g>
+        </svg>,
+        "keywords": [
+          "motion",
+          "path",
+          "animation",
+        ],
+        "label": "labels.pathEditor.edit",
+        "name": "editMotionPath",
+        "perform": [Function],
+        "predicate": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
       "separator",
       {
         "PanelComponent": [Function],
@@ -1104,6 +1158,7 @@ exports[`contextMenu element > right-clicking on a group should select whole gro
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -1307,6 +1362,7 @@ exports[`contextMenu element > selecting 'Add to library' in context menu adds e
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -1525,6 +1581,7 @@ exports[`contextMenu element > selecting 'Bring forward' in context menu brings 
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -1860,6 +1917,7 @@ exports[`contextMenu element > selecting 'Bring to front' in context menu brings
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -2195,6 +2253,7 @@ exports[`contextMenu element > selecting 'Copy styles' in context menu copies st
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -2413,6 +2472,7 @@ exports[`contextMenu element > selecting 'Delete' in context menu deletes elemen
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -2658,6 +2718,7 @@ exports[`contextMenu element > selecting 'Duplicate' in context menu duplicates 
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -2960,6 +3021,7 @@ exports[`contextMenu element > selecting 'Group selection' in context menu group
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -3336,6 +3398,7 @@ exports[`contextMenu element > selecting 'Paste styles' in context menu pastes s
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -3860,6 +3923,7 @@ exports[`contextMenu element > selecting 'Send backward' in context menu sends e
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -4187,6 +4251,7 @@ exports[`contextMenu element > selecting 'Send to back' in context menu sends el
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -4514,6 +4579,7 @@ exports[`contextMenu element > selecting 'Ungroup selection' in context menu ung
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -5737,6 +5803,60 @@ exports[`contextMenu element > shows 'Group selection' in context menu for multi
           "category": "element",
         },
       },
+      {
+        "category": "Elements",
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 20 20"
+        >
+          <g
+            fill="currentColor"
+            stroke="none"
+            strokeWidth="1.5"
+          >
+            <path
+              d="M4.167 10h11.666"
+              fill="none"
+              stroke="currentColor"
+              strokeDasharray="2.5 2.5"
+            />
+            <circle
+              cx="4.167"
+              cy="10"
+              r="1.5"
+            />
+            <circle
+              cx="10"
+              cy="10"
+              r="1.5"
+            />
+            <circle
+              cx="15.833"
+              cy="10"
+              r="1.5"
+            />
+          </g>
+        </svg>,
+        "keywords": [
+          "motion",
+          "path",
+          "animation",
+        ],
+        "label": "labels.pathEditor.edit",
+        "name": "editMotionPath",
+        "perform": [Function],
+        "predicate": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
       "separator",
       {
         "PanelComponent": [Function],
@@ -5966,6 +6086,7 @@ exports[`contextMenu element > shows 'Group selection' in context menu for multi
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -7121,6 +7242,60 @@ exports[`contextMenu element > shows 'Ungroup selection' in context menu for gro
           "category": "element",
         },
       },
+      {
+        "category": "Elements",
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 20 20"
+        >
+          <g
+            fill="currentColor"
+            stroke="none"
+            strokeWidth="1.5"
+          >
+            <path
+              d="M4.167 10h11.666"
+              fill="none"
+              stroke="currentColor"
+              strokeDasharray="2.5 2.5"
+            />
+            <circle
+              cx="4.167"
+              cy="10"
+              r="1.5"
+            />
+            <circle
+              cx="10"
+              cy="10"
+              r="1.5"
+            />
+            <circle
+              cx="15.833"
+              cy="10"
+              r="1.5"
+            />
+          </g>
+        </svg>,
+        "keywords": [
+          "motion",
+          "path",
+          "animation",
+        ],
+        "label": "labels.pathEditor.edit",
+        "name": "editMotionPath",
+        "perform": [Function],
+        "predicate": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
       "separator",
       {
         "PanelComponent": [Function],
@@ -7350,6 +7525,7 @@ exports[`contextMenu element > shows 'Ungroup selection' in context menu for gro
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -8417,6 +8593,7 @@ exports[`contextMenu element > shows context menu for canvas > [end of test] app
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -9355,6 +9532,60 @@ exports[`contextMenu element > shows context menu for element > [end of test] ap
           "category": "element",
         },
       },
+      {
+        "category": "Elements",
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 20 20"
+        >
+          <g
+            fill="currentColor"
+            stroke="none"
+            strokeWidth="1.5"
+          >
+            <path
+              d="M4.167 10h11.666"
+              fill="none"
+              stroke="currentColor"
+              strokeDasharray="2.5 2.5"
+            />
+            <circle
+              cx="4.167"
+              cy="10"
+              r="1.5"
+            />
+            <circle
+              cx="10"
+              cy="10"
+              r="1.5"
+            />
+            <circle
+              cx="15.833"
+              cy="10"
+              r="1.5"
+            />
+          </g>
+        </svg>,
+        "keywords": [
+          "motion",
+          "path",
+          "animation",
+        ],
+        "label": "labels.pathEditor.edit",
+        "name": "editMotionPath",
+        "perform": [Function],
+        "predicate": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
       "separator",
       {
         "PanelComponent": [Function],
@@ -9584,6 +9815,7 @@ exports[`contextMenu element > shows context menu for element > [end of test] ap
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,
@@ -10513,6 +10745,60 @@ exports[`contextMenu element > shows context menu for element > [end of test] ap
           "category": "element",
         },
       },
+      {
+        "category": "Elements",
+        "icon": <svg
+          aria-hidden="true"
+          className=""
+          fill="none"
+          focusable="false"
+          role="img"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          viewBox="0 0 20 20"
+        >
+          <g
+            fill="currentColor"
+            stroke="none"
+            strokeWidth="1.5"
+          >
+            <path
+              d="M4.167 10h11.666"
+              fill="none"
+              stroke="currentColor"
+              strokeDasharray="2.5 2.5"
+            />
+            <circle
+              cx="4.167"
+              cy="10"
+              r="1.5"
+            />
+            <circle
+              cx="10"
+              cy="10"
+              r="1.5"
+            />
+            <circle
+              cx="15.833"
+              cy="10"
+              r="1.5"
+            />
+          </g>
+        </svg>,
+        "keywords": [
+          "motion",
+          "path",
+          "animation",
+        ],
+        "label": "labels.pathEditor.edit",
+        "name": "editMotionPath",
+        "perform": [Function],
+        "predicate": [Function],
+        "trackEvent": {
+          "category": "element",
+        },
+      },
       "separator",
       {
         "PanelComponent": [Function],
@@ -10742,6 +11028,7 @@ exports[`contextMenu element > shows context menu for element > [end of test] ap
   "isRotating": false,
   "lastPointerDownWith": "mouse",
   "lockedMultiSelections": {},
+  "motionPathEditor": null,
   "multiElement": null,
   "name": "Untitled-201933152653",
   "newElement": null,

@@ -1,12 +1,16 @@
-import { pointDistance } from "@excalidraw/math";
+import { pointDistance, pointFrom, pointRotateRads } from "@excalidraw/math";
 
 import { arrayToMap } from "@excalidraw/common";
 
-import type { LocalPoint } from "@excalidraw/math";
+import type { GlobalPoint, LocalPoint } from "@excalidraw/math";
 
-import { getCommonBounds } from "./bounds";
+import { getCommonBounds, getElementAbsoluteCoords } from "./bounds";
 import { getElementsInGroup } from "./groups";
+import { getPathSamplePoints } from "./pathSamples";
+import { getBoundTextElement } from "./textElement";
 import { isPathElement } from "./typeChecks";
+
+import type { Scene } from "./Scene";
 
 import type {
   ElementsMap,
@@ -73,12 +77,34 @@ export const getPathsTargetingElement = (
 };
 
 /**
+ * The path's travel polyline (see `getPathSamplePoints`) in absolute scene
+ * coordinates, with the path's rotation applied — i.e. exactly the line the
+ * user sees on canvas, whether the path has been moved, resized, rotated or
+ * curved.
+ */
+export const getPathGlobalSamplePoints = (
+  path: ExcalidrawPathElement,
+  elementsMap: ElementsMap,
+): GlobalPoint[] => {
+  const [, , , , cx, cy] = getElementAbsoluteCoords(path, elementsMap);
+  const center = pointFrom<GlobalPoint>(cx, cy);
+  return getPathSamplePoints(path).map(([x, y]) =>
+    pointRotateRads(
+      pointFrom<GlobalPoint>(path.x + x, path.y + y),
+      center,
+      path.angle,
+    ),
+  );
+};
+
+/**
  * The translation that would snap `targets`' combined bounding-box center
- * onto the path's first point (in absolute scene coordinates). Used both to
- * snap a path's target to it the moment the path is confirmed (so they sit
- * together at rest, not just mid-animation) and, identically, as the
- * playback alignment at progress 0 — the two must use the same formula so
- * the resting position and the start of the animation coincide exactly.
+ * onto the path's (rotated) first point in absolute scene coordinates. Used
+ * both to snap a path's target to it the moment the path is confirmed or an
+ * edit session is committed (so they sit together at rest, not just
+ * mid-animation) and, identically, as the playback alignment at progress 0 —
+ * the two must use the same formula so the resting position and the start
+ * of the animation coincide exactly.
  */
 export const getPathAlignmentOffset = (
   path: ExcalidrawPathElement,
@@ -91,20 +117,50 @@ export const getPathAlignmentOffset = (
 
   const [minX, minY, maxX, maxY] = getCommonBounds(targets, elementsMap);
   const referenceCenter = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
-  const [startLocalX, startLocalY] = path.points[0] ?? [0, 0];
-  const pathStartAbs = {
-    x: path.x + startLocalX,
-    y: path.y + startLocalY,
-  };
+  const [startX, startY] = getPathGlobalSamplePoints(path, elementsMap)[0] ?? [
+    path.x,
+    path.y,
+  ];
 
   return {
-    x: pathStartAbs.x - referenceCenter.x,
-    y: pathStartAbs.y - referenceCenter.y,
+    x: startX - referenceCenter.x,
+    y: startY - referenceCenter.y,
   };
 };
 
+/**
+ * Moves the path's live target(s) — and their bound text — so their combined
+ * center sits on the path's start point. No-op when already aligned.
+ */
+export const snapPathTargetsToStart = (
+  path: ExcalidrawPathElement,
+  scene: Scene,
+) => {
+  const elementsMap = scene.getNonDeletedElementsMap();
+  const targets = getPathTargetElements(path, elementsMap);
+  const offset = getPathAlignmentOffset(path, targets, elementsMap);
+  if (offset.x === 0 && offset.y === 0) {
+    return;
+  }
+  for (const target of targets) {
+    scene.mutateElement(target, {
+      x: target.x + offset.x,
+      y: target.y + offset.y,
+    });
+    const boundText = getBoundTextElement(target, elementsMap);
+    if (boundText) {
+      scene.mutateElement(boundText, {
+        x: boundText.x + offset.x,
+        y: boundText.y + offset.y,
+      });
+    }
+  }
+};
+
 /** Total euclidean length of the polyline described by `points`. */
-export const getPathLength = (points: readonly LocalPoint[]): number => {
+export const getPathLength = <P extends LocalPoint | GlobalPoint>(
+  points: readonly P[],
+): number => {
   let length = 0;
   for (let i = 1; i < points.length; i++) {
     length += pointDistance(points[i - 1], points[i]);
@@ -118,8 +174,8 @@ export const getPathLength = (points: readonly LocalPoint[]): number => {
  * `t` is clamped to [0, 1]; a path with fewer than 2 points returns its only
  * point (or the origin if empty).
  */
-export const getPointAtProgress = (
-  points: readonly LocalPoint[],
+export const getPointAtProgress = <P extends LocalPoint | GlobalPoint>(
+  points: readonly P[],
   t: number,
 ): { x: number; y: number } => {
   if (points.length === 0) {

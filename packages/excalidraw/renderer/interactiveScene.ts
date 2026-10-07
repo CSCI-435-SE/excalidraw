@@ -1861,7 +1861,11 @@ const _renderInteractiveScene = ({
   if (
     !appState.multiElement &&
     !appState.newElement &&
-    !appState.selectedLinearElement?.isEditing
+    (!appState.selectedLinearElement?.isEditing ||
+      // a re-edited motion path keeps its selection box and rotate/resize
+      // handles alongside its point handles
+      appState.motionPathEditor?.pathId ===
+        appState.selectedLinearElement.elementId)
   ) {
     const showBoundingBox = hasBoundingBox(
       selectedElements,

@@ -249,6 +249,7 @@ const getRelevantAppStateProps = (
   selectionElement: appState.selectionElement,
   selectedGroupIds: appState.selectedGroupIds,
   selectedLinearElement: appState.selectedLinearElement,
+  motionPathEditor: appState.motionPathEditor,
   multiElement: appState.multiElement,
   newElement: appState.newElement,
   isBindingEnabled: appState.isBindingEnabled,

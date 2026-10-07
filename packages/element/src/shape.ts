@@ -57,6 +57,7 @@ import {
 import { getCornerRadius, isPathALoop } from "./utils";
 import { getGradientColors } from "./gradient";
 import { headingForPointIsHorizontal } from "./heading";
+import { getPathSamplePoints } from "./pathSamples";
 
 import { canChangeRoundness } from "./comparisons";
 import {
@@ -1145,10 +1146,13 @@ export const getElementShape = <Point extends GlobalPoint | LocalPoint>(
     case "path": {
       // paths have no roughjs sketch (see generateElementShape() above) —
       // hit-test them the same way freedraw strokes are: as an open
-      // polyline over `element.points`.
+      // polyline over the path's travel line (curve-sampled if rounded).
       const [, , , , cx, cy] = getElementAbsoluteCoords(element, elementsMap);
       return getFreedrawShape(
-        element as unknown as ExcalidrawFreeDrawElement,
+        {
+          ...element,
+          points: getPathSamplePoints(element),
+        } as unknown as ExcalidrawFreeDrawElement,
         pointFrom(cx, cy),
         false,
       );

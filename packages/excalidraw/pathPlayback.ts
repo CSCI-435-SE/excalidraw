@@ -1,7 +1,9 @@
 import {
   getBoundTextElement,
   getPathAlignmentOffset,
+  getPathGlobalSamplePoints,
   getPathLength,
+  getPathTargetElements,
   getPointAtProgress,
 } from "@excalidraw/element";
 
@@ -56,13 +58,14 @@ export class PathPlaybackController {
       return;
     }
 
-    const length = getPathLength(path.points);
+    const elementsMap = this.app.scene.getNonDeletedElementsMap();
+    const globalPoints = getPathGlobalSamplePoints(path, elementsMap);
+    const length = getPathLength(globalPoints);
     const totalDuration = Math.max(
       (length / PATH_PLAYBACK_SPEED_PX_PER_SEC) * 1000,
       1,
     );
 
-    const elementsMap = this.app.scene.getNonDeletedElementsMap();
     const originalPositions = new Map<string, { x: number; y: number }>();
     for (const target of targets) {
       originalPositions.set(target.id, { x: target.x, y: target.y });
@@ -92,8 +95,8 @@ export class PathPlaybackController {
         : { elapsed: 0, totalDuration, originalPositions };
 
       const t = Math.min(next.elapsed / next.totalDuration, 1);
-      const { x: dx, y: dy } = getPointAtProgress(path.points, t);
-      const [startDx, startDy] = path.points[0] ?? [0, 0];
+      const { x: dx, y: dy } = getPointAtProgress(globalPoints, t);
+      const [startDx, startDy] = globalPoints[0] ?? [0, 0];
       const totalDeltaX = dx - startDx + alignmentOffset.x;
       const totalDeltaY = dy - startDy + alignmentOffset.y;
 
@@ -139,6 +142,14 @@ export class PathPlaybackController {
 
       return next;
     });
+  }
+
+  /** plays `path` against its currently-live target(s), if any */
+  startForPath(path: ExcalidrawPathElement) {
+    this.start(
+      path,
+      getPathTargetElements(path, this.app.scene.getNonDeletedElementsMap()),
+    );
   }
 
   cancel(path: ExcalidrawPathElement) {

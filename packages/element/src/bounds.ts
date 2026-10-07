@@ -30,6 +30,7 @@ import type { Mutable } from "@excalidraw/common/utility-types";
 import { generateRoughOptions } from "./shape";
 import { ShapeCache } from "./shape";
 import { LinearElementEditor } from "./linearElementEditor";
+import { getPathSamplePoints } from "./pathSamples";
 import { getBoundTextElement, getContainerElement } from "./textElement";
 import {
   isArrowElement,
@@ -156,9 +157,12 @@ export class ElementBounds {
       element,
       elementsMap,
     );
-    if (isFreeDrawElement(element)) {
+    if (isFreeDrawElement(element) || isPathElement(element)) {
+      const points = isPathElement(element)
+        ? getPathSamplePoints(element)
+        : element.points;
       const [minX, minY, maxX, maxY] = getBoundsFromPoints(
-        element.points.map(([x, y]) =>
+        points.map(([x, y]) =>
           pointRotateRads(
             pointFrom(x, y),
             pointFrom(cx - element.x, cy - element.y),
@@ -1061,7 +1065,13 @@ export const getResizedElementAbsoluteCoords = (
   nextHeight: number,
   normalizePoints: boolean,
 ): Bounds => {
-  if (!(isLinearElement(element) || isFreeDrawElement(element))) {
+  if (
+    !(
+      isLinearElement(element) ||
+      isFreeDrawElement(element) ||
+      isPathElement(element)
+    )
+  ) {
     return [
       element.x,
       element.y,
@@ -1082,6 +1092,10 @@ export const getResizedElementAbsoluteCoords = (
   if (isFreeDrawElement(element)) {
     // Free Draw
     bounds = getBoundsFromPoints(points);
+  } else if (isPathElement(element)) {
+    bounds = getBoundsFromPoints(
+      getPathSamplePoints({ points, roundness: element.roundness }),
+    );
   } else {
     // Line
     const gen = rough.generator();
@@ -1109,6 +1123,20 @@ export const getElementPointsCoords = (
   element: ExcalidrawLinearElement | ExcalidrawPathElement,
   points: readonly (readonly [number, number])[],
 ): Bounds => {
+  if (isPathElement(element)) {
+    const [minX, minY, maxX, maxY] = getBoundsFromPoints(
+      getPathSamplePoints({
+        points: points as readonly LocalPoint[],
+        roundness: element.roundness,
+      }),
+    );
+    return [
+      minX + element.x,
+      minY + element.y,
+      maxX + element.x,
+      maxY + element.y,
+    ];
+  }
   // This might be computationally heavey
   const gen = rough.generator();
   const curve =
