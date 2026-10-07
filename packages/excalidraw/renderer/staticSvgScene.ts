@@ -95,15 +95,21 @@ const addGradientDef = (
   );
   gradient.setAttribute("id", id);
   gradient.setAttribute("gradientUnits", "userSpaceOnUse");
+  // same precision as the rough paths
+  const setNumber = (name: string, value: number) =>
+    gradient.setAttribute(
+      name,
+      `${Number(value.toFixed(MAX_DECIMALS_FOR_SVG_EXPORT))}`,
+    );
   if (geometry.type === "linear") {
-    gradient.setAttribute("x1", `${geometry.x1}`);
-    gradient.setAttribute("y1", `${geometry.y1}`);
-    gradient.setAttribute("x2", `${geometry.x2}`);
-    gradient.setAttribute("y2", `${geometry.y1}`);
+    setNumber("x1", geometry.x1);
+    setNumber("y1", geometry.y1);
+    setNumber("x2", geometry.x2);
+    setNumber("y2", geometry.y1);
   } else {
-    gradient.setAttribute("cx", `${geometry.cx}`);
-    gradient.setAttribute("cy", `${geometry.cy}`);
-    gradient.setAttribute("r", `${geometry.r}`);
+    setNumber("cx", geometry.cx);
+    setNumber("cy", geometry.cy);
+    setNumber("r", geometry.r);
   }
 
   [geometry.startColor, geometry.endColor].forEach((color, index) => {

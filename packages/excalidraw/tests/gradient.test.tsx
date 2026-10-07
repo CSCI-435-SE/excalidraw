@@ -422,7 +422,7 @@ describe("gradient SVG export", () => {
     expect(gradient.tagName).toBe("radialGradient");
     expect(
       ["cx", "cy", "r"].map((attr) => Number(gradient.getAttribute(attr))),
-    ).toEqual([100, 50, Math.hypot(100, 50)]);
+    ).toEqual([100, 50, 111.8]); // hypot(100, 50), to 2 decimals
   });
 
   it("uses the point bounds of a closed line", async () => {
@@ -555,6 +555,63 @@ describe("gradient SVG export", () => {
     expect(fill.closest("[fill-opacity]")?.getAttribute("fill-opacity")).toBe(
       "0.5",
     );
+  });
+
+  it("fills a gradient element clipped by its frame", async () => {
+    const frame = API.createElement({ type: "frame", width: 100, height: 100 });
+    const rectangle = API.createElement({
+      type: "rectangle",
+      x: 50,
+      width: 100,
+      height: 100,
+      frameId: frame.id,
+      backgroundColor: LINEAR,
+    });
+    const svg = await exportToSvg(
+      [frame, rectangle],
+      {
+        exportBackground: false,
+        viewBackgroundColor: "#ffffff",
+        frameRendering: {
+          enabled: true,
+          clip: true,
+          name: false,
+          outline: false,
+        },
+      },
+      null,
+      { skipInliningFonts: true },
+    );
+
+    expect(
+      svg.querySelectorAll(
+        `[clip-path] [fill="url(#gradient-${rectangle.id})"]`,
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("fills a gradient element when exporting its frame", async () => {
+    const frame = API.createElement({ type: "frame", width: 100, height: 100 });
+    const rectangle = API.createElement({
+      type: "rectangle",
+      width: 100,
+      height: 100,
+      frameId: frame.id,
+      backgroundColor: RADIAL,
+    });
+    const svg = await exportToSvg(
+      [frame, rectangle],
+      {
+        exportBackground: false,
+        exportPadding: 0,
+        viewBackgroundColor: "#ffffff",
+      },
+      null,
+      { skipInliningFonts: true, exportingFrame: frame },
+    );
+
+    expect(svg.querySelector(`#gradient-${rectangle.id}`)).not.toBeNull();
+    expect(gradientFilled(svg, rectangle)).toHaveLength(1);
   });
 
   it("adds nothing for an open line or a solid fill", async () => {
