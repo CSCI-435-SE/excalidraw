@@ -2,7 +2,12 @@ import React from "react";
 import rough from "roughjs/bin/rough";
 import { vi } from "vitest";
 
-import { arrayToMap, KEYS, ROUNDNESS } from "@excalidraw/common";
+import {
+  applyDarkModeFilter,
+  arrayToMap,
+  KEYS,
+  ROUNDNESS,
+} from "@excalidraw/common";
 
 import { pointFrom } from "@excalidraw/math";
 
@@ -28,6 +33,7 @@ import {
   actionFlipVertical,
 } from "../actions";
 import { createPasteEvent, serializeAsClipboardJSON } from "../clipboard";
+import { exportToSvg } from "../scene/export";
 import { Excalidraw } from "../index";
 
 import { API } from "./helpers/api";
@@ -349,6 +355,127 @@ describe("gradient rendering geometry", () => {
     const opened = API.getElement(line);
     expect(opened.backgroundColor).toBe(LINEAR);
     expect(renderGradientCalls(opened).gradientFills).toBe(0);
+  });
+});
+
+describe("gradient SVG export", () => {
+  const exportGradientDefs = async (
+    elements: NonDeletedExcalidrawElement[],
+    exportWithDarkMode = false,
+  ) => {
+    const svg = await exportToSvg(
+      elements,
+      {
+        exportBackground: false,
+        viewBackgroundColor: "#ffffff",
+        exportWithDarkMode,
+      },
+      null,
+      { skipInliningFonts: true },
+    );
+    return Array.from(
+      svg.querySelectorAll("defs linearGradient, defs radialGradient"),
+    );
+  };
+
+  const stopColors = (gradient: Element) =>
+    Array.from(gradient.querySelectorAll("stop")).map((stop) => [
+      stop.getAttribute("offset"),
+      stop.getAttribute("stop-color"),
+    ]);
+
+  it("adds a linear gradient spanning the element", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      width: 200,
+      height: 100,
+      backgroundColor: LINEAR,
+    });
+    const [gradient] = await exportGradientDefs([rectangle]);
+
+    expect(gradient.tagName).toBe("linearGradient");
+    expect(gradient.id).toBe(`gradient-${rectangle.id}`);
+    expect(gradient.getAttribute("gradientUnits")).toBe("userSpaceOnUse");
+    expect(
+      ["x1", "y1", "x2", "y2"].map((attr) => gradient.getAttribute(attr)),
+    ).toEqual(["0", "0", "200", "0"]);
+    expect(stopColors(gradient)).toEqual([
+      ["0", "#000000"],
+      ["1", "#ffffff"],
+    ]);
+  });
+
+  it("adds a radial gradient centered on the element", async () => {
+    const ellipse = API.createElement({
+      type: "ellipse",
+      width: 200,
+      height: 100,
+      backgroundColor: RADIAL,
+    });
+    const [gradient] = await exportGradientDefs([ellipse]);
+
+    expect(gradient.tagName).toBe("radialGradient");
+    expect(
+      ["cx", "cy", "r"].map((attr) => Number(gradient.getAttribute(attr))),
+    ).toEqual([100, 50, Math.hypot(100, 50)]);
+  });
+
+  it("uses the point bounds of a closed line", async () => {
+    const line = API.createElement({
+      type: "line",
+      width: 100,
+      height: 100,
+      points: [
+        pointFrom<LocalPoint>(0, 0),
+        pointFrom<LocalPoint>(-50, 40),
+        pointFrom<LocalPoint>(60, -20),
+        pointFrom<LocalPoint>(0, 0),
+      ],
+      backgroundColor: LINEAR,
+    });
+    const [gradient] = await exportGradientDefs([line]);
+
+    expect(
+      ["x1", "y1", "x2"].map((attr) => gradient.getAttribute(attr)),
+    ).toEqual(["-50", "-20", "60"]);
+  });
+
+  it("applies the dark mode filter to the stops", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      backgroundColor: LINEAR,
+    });
+    const [gradient] = await exportGradientDefs([rectangle], true);
+
+    expect(stopColors(gradient)).toEqual([
+      ["0", applyDarkModeFilter("#000000", true)],
+      ["1", applyDarkModeFilter("#ffffff", true)],
+    ]);
+  });
+
+  it("gives each gradient element its own definition", async () => {
+    const elements = [
+      API.createElement({ type: "rectangle", backgroundColor: LINEAR }),
+      API.createElement({ type: "diamond", backgroundColor: RADIAL }),
+    ];
+    const gradients = await exportGradientDefs(elements);
+
+    expect(gradients.map((gradient) => gradient.id)).toEqual(
+      elements.map((element) => `gradient-${element.id}`),
+    );
+  });
+
+  it("adds nothing for an open line or a solid fill", async () => {
+    const gradients = await exportGradientDefs([
+      API.createElement({
+        type: "line",
+        points: OPEN_LINE,
+        backgroundColor: LINEAR,
+      }),
+      API.createElement({ type: "rectangle", backgroundColor: "#ff0000" }),
+    ]);
+
+    expect(gradients).toEqual([]);
   });
 });
 

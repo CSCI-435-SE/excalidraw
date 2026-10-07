@@ -32,6 +32,8 @@ import { getContainingFrame } from "@excalidraw/element";
 
 import { getCornerRadius, isPathALoop } from "@excalidraw/element";
 
+import { canHaveGradient, getGradientGeometry } from "@excalidraw/element";
+
 import { ShapeCache } from "@excalidraw/element";
 import { getPathSamplePoints } from "@excalidraw/element";
 
@@ -62,6 +64,56 @@ const roughSVGDrawWithPrecision = (
     options: { ...drawable.options, fixedDecimalPlaceDigits: precision },
   };
   return rsvg.draw(pshape);
+};
+
+/**
+ * Adds the element's gradient background to the SVG's <defs>, in
+ * element-local coordinates so the element node's own translate/rotate
+ * places it (same geometry as the canvas renderer). Returns the fill
+ * reference, or null when the element has no visible gradient.
+ */
+const addGradientDef = (
+  element: Readonly<NonDeletedExcalidrawElement>,
+  svgRoot: SVGElement,
+  renderConfig: SVGRenderConfig,
+): string | null => {
+  const geometry = canHaveGradient(element)
+    ? getGradientGeometry(element)
+    : null;
+  if (!geometry) {
+    return null;
+  }
+
+  const id = `gradient-${element.id}`;
+  const gradient = svgRoot.ownerDocument.createElementNS(
+    SVG_NS,
+    geometry.type === "linear" ? "linearGradient" : "radialGradient",
+  );
+  gradient.setAttribute("id", id);
+  gradient.setAttribute("gradientUnits", "userSpaceOnUse");
+  if (geometry.type === "linear") {
+    gradient.setAttribute("x1", `${geometry.x1}`);
+    gradient.setAttribute("y1", `${geometry.y1}`);
+    gradient.setAttribute("x2", `${geometry.x2}`);
+    gradient.setAttribute("y2", `${geometry.y1}`);
+  } else {
+    gradient.setAttribute("cx", `${geometry.cx}`);
+    gradient.setAttribute("cy", `${geometry.cy}`);
+    gradient.setAttribute("r", `${geometry.r}`);
+  }
+
+  [geometry.startColor, geometry.endColor].forEach((color, index) => {
+    const stop = svgRoot.ownerDocument.createElementNS(SVG_NS, "stop");
+    stop.setAttribute("offset", `${index}`);
+    stop.setAttribute(
+      "stop-color",
+      applyDarkModeFilter(color, renderConfig.theme === THEME.DARK),
+    );
+    gradient.appendChild(stop);
+  });
+
+  (svgRoot.querySelector("defs") || svgRoot).appendChild(gradient);
+  return `url(#${id})`;
 };
 
 const maybeWrapNodesInFrameClipPath = (
@@ -139,6 +191,9 @@ const renderElementToSvg = (
     ((getContainingFrame(element, elementsMap)?.opacity ?? 100) *
       element.opacity) /
     10000;
+
+  // TODO(#68 step 3): point the element's fill at this reference
+  addGradientDef(element, svgRoot, renderConfig);
 
   switch (element.type) {
     case "selection": {
