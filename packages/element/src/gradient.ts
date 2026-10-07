@@ -1,4 +1,18 @@
+import { hasBackground } from "./comparisons";
+import { canBecomePolygon } from "./typeChecks";
+import { isPathALoop } from "./utils";
+
+import type { ExcalidrawElement } from "./types";
+
 export type GradientType = "linear" | "radial";
+
+/**
+ * Solid fill used when generating rough shapes for gradient backgrounds, so
+ * roughjs builds its normal fill geometry. The canvas renderer swaps it for
+ * the actual CanvasGradient at draw time. Invisible, but not the literal
+ * "transparent", which roughjs' path() treats as "no fill".
+ */
+export const GRADIENT_FILL_PLACEHOLDER = "rgba(0, 0, 0, 0)";
 
 export type GradientColors = Readonly<{
   type: GradientType;
@@ -34,6 +48,27 @@ export const getGradientColors = (
     }
   }
   return null;
+};
+
+/**
+ * Whether a gradient background can ever be visible on the element.
+ * Lines, arrows and freedraw only fill when closed; open lines with 3+
+ * points still qualify because applying a background closes them into a
+ * polygon (see actionChangeBackgroundColor).
+ */
+export const canHaveGradient = (element: ExcalidrawElement) => {
+  if (!hasBackground(element.type)) {
+    return false;
+  }
+  switch (element.type) {
+    case "line":
+      return isPathALoop(element.points) || canBecomePolygon(element.points);
+    case "arrow":
+    case "freedraw":
+      return isPathALoop(element.points);
+    default:
+      return true;
+  }
 };
 
 /**

@@ -1,8 +1,38 @@
+import { pointFrom } from "@excalidraw/math";
+
+import type { LocalPoint } from "@excalidraw/math";
+
 import {
+  canHaveGradient,
   createGradientBackground,
   flipGradientHorizontally,
   getGradientColors,
 } from "../gradient";
+
+import type { ExcalidrawElement } from "../types";
+
+// canHaveGradient only reads `type` and `points`
+const element = (type: string, points?: [number, number][]) =>
+  ({
+    type,
+    points: points?.map(([x, y]) => pointFrom<LocalPoint>(x, y)),
+  } as unknown as ExcalidrawElement);
+
+const CLOSED = [
+  [0, 0],
+  [100, 0],
+  [100, 100],
+  [0, 0],
+] as [number, number][];
+const TWO_POINTS = [
+  [0, 0],
+  [100, 100],
+] as [number, number][];
+const THREE_POINTS_OPEN = [
+  [0, 0],
+  [100, 0],
+  [100, 100],
+] as [number, number][];
 
 describe("gradient background", () => {
   it("creates and parses a linear two-color gradient", () => {
@@ -65,4 +95,36 @@ describe("gradient background", () => {
     expect(flipGradientHorizontally("#a5d8ff")).toBe("#a5d8ff");
     expect(flipGradientHorizontally("transparent")).toBe("transparent");
   });
+});
+
+describe("canHaveGradient", () => {
+  it.each(["rectangle", "ellipse", "diamond", "triangle", "embeddable"])(
+    "allows %s",
+    (type) => {
+      expect(canHaveGradient(element(type))).toBe(true);
+    },
+  );
+
+  it.each(["text", "image", "frame", "path"])("rejects %s", (type) => {
+    expect(canHaveGradient(element(type, []))).toBe(false);
+  });
+
+  it.each(["line", "arrow", "freedraw"])("allows a closed %s", (type) => {
+    expect(canHaveGradient(element(type, CLOSED))).toBe(true);
+  });
+
+  it.each(["line", "arrow", "freedraw"])("rejects a 2-point %s", (type) => {
+    expect(canHaveGradient(element(type, TWO_POINTS))).toBe(false);
+  });
+
+  it("allows an open line that can become a polygon", () => {
+    expect(canHaveGradient(element("line", THREE_POINTS_OPEN))).toBe(true);
+  });
+
+  it.each(["arrow", "freedraw"])(
+    "rejects an open %s even with 3+ points",
+    (type) => {
+      expect(canHaveGradient(element(type, THREE_POINTS_OPEN))).toBe(false);
+    },
+  );
 });

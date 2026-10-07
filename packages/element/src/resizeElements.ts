@@ -60,6 +60,7 @@ import {
   isTextElement,
 } from "./typeChecks";
 
+import { flipGradientHorizontally } from "./gradient";
 import { isInGroup } from "./groups";
 
 import type { Scene } from "./Scene";
@@ -885,6 +886,19 @@ export const resizeSingleElement = (
       ...rescaledPoints,
     };
 
+    // mirror linear gradients along with the geometry (always derived from
+    // the original, so dragging back across restores it)
+    const flippedBackground = flipGradientHorizontally(
+      origElement.backgroundColor,
+    );
+    if (flippedBackground !== origElement.backgroundColor) {
+      updates = {
+        ...updates,
+        backgroundColor:
+          nextWidth < 0 ? flippedBackground : origElement.backgroundColor,
+      };
+    }
+
     if (isBindingElement(latestElement)) {
       if (latestElement.startBinding) {
         updates = {
@@ -1340,6 +1354,7 @@ export const resizeMultipleElements = (
         points?: ExcalidrawLinearElement["points"];
         fontSize?: ExcalidrawTextElement["fontSize"];
         scale?: ExcalidrawImageElement["scale"];
+        backgroundColor?: ExcalidrawElement["backgroundColor"];
         boundTextFontSize?: ExcalidrawTextElement["fontSize"];
         startBinding?: ExcalidrawElbowArrowElement["startBinding"];
         endBinding?: ExcalidrawElbowArrowElement["endBinding"];
@@ -1427,6 +1442,15 @@ export const resizeMultipleElements = (
           orig.scale[0] * flipFactorX,
           orig.scale[1] * flipFactorY,
         ];
+      }
+
+      // mirror linear gradients along with the geometry (always derived from
+      // the original, so dragging back across restores it)
+      const flippedBackground = flipGradientHorizontally(orig.backgroundColor);
+      if (flippedBackground !== orig.backgroundColor) {
+        update.backgroundColor = flipByX
+          ? flippedBackground
+          : orig.backgroundColor;
       }
 
       if (isTextElement(orig)) {

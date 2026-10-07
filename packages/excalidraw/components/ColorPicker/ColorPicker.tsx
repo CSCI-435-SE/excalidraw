@@ -54,6 +54,8 @@ interface ColorPickerProps {
   palette?: ColorPaletteCustom | null;
   topPicks?: ColorTuple;
   updateData: (formData?: any) => void;
+  /** show the gradient option (elementBackground only) */
+  allowGradient?: boolean;
 }
 
 const ColorPickerPopupContent = ({
@@ -66,6 +68,7 @@ const ColorPickerPopupContent = ({
   updateData,
   getOpenPopup,
   appState,
+  allowGradient,
 }: Pick<
   ColorPickerProps,
   | "type"
@@ -76,6 +79,7 @@ const ColorPickerPopupContent = ({
   | "palette"
   | "updateData"
   | "appState"
+  | "allowGradient"
 > & {
   getOpenPopup: () => AppState["openPopup"];
 }) => {
@@ -154,6 +158,7 @@ const ColorPickerPopupContent = ({
           ref={colorPickerContentRef}
           palette={palette}
           color={color}
+          allowGradient={allowGradient}
           onChange={(changedColor) => {
             // Save caret position before color change if editing text
             const savedSelection = appState.editingTextElement
@@ -309,6 +314,7 @@ export const ColorPicker = ({
   topPicks,
   updateData,
   appState,
+  allowGradient,
 }: ColorPickerProps) => {
   const openRef = useRef(appState.openPopup);
   useEffect(() => {
@@ -375,6 +381,7 @@ export const ColorPicker = ({
               updateData={updateData}
               getOpenPopup={() => openRef.current}
               appState={appState}
+              allowGradient={allowGradient}
             />
           )}
         </Popover.Root>

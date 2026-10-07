@@ -63,6 +63,7 @@ import {
 } from "@excalidraw/element";
 
 import { hasStrokeColor } from "@excalidraw/element";
+import { canHaveGradient, getGradientColors } from "@excalidraw/element";
 
 import {
   updateElbowArrowPoints,
@@ -440,10 +441,14 @@ export const actionChangeBackgroundColor = register<
         return el;
       });
     } else {
+      // in a mixed selection, gradients only go to elements that can show them
+      const isGradient = !!getGradientColors(value.currentItemBackgroundColor);
       nextElements = changeProperty(elements, appState, (el) =>
-        newElementWith(el, {
-          backgroundColor: value.currentItemBackgroundColor,
-        }),
+        isGradient && !canHaveGradient(el)
+          ? el
+          : newElementWith(el, {
+              backgroundColor: value.currentItemBackgroundColor,
+            }),
       );
     }
 
@@ -458,6 +463,10 @@ export const actionChangeBackgroundColor = register<
   },
   PanelComponent: ({ elements, appState, updateData, app, data }) => {
     const { stylesPanelMode } = getStylesPanelInfo(app);
+    const selectedElements = app.scene.getSelectedElements(appState);
+    // with nothing selected the picker sets the style for new elements
+    const allowGradient =
+      !selectedElements.length || selectedElements.some(canHaveGradient);
 
     return (
       <>
@@ -468,6 +477,7 @@ export const actionChangeBackgroundColor = register<
           topPicks={DEFAULT_ELEMENT_BACKGROUND_PICKS}
           palette={DEFAULT_ELEMENT_BACKGROUND_COLOR_PALETTE}
           type="elementBackground"
+          allowGradient={allowGradient}
           label={t("labels.background")}
           color={getFormValue(
             elements,

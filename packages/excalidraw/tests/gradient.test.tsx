@@ -2,13 +2,14 @@ import React from "react";
 import rough from "roughjs/bin/rough";
 import { vi } from "vitest";
 
-import { arrayToMap, KEYS } from "@excalidraw/common";
+import { arrayToMap, KEYS, ROUNDNESS } from "@excalidraw/common";
 
 import { pointFrom } from "@excalidraw/math";
 
 import {
   createGradientBackground,
   getGradientColors,
+  getTransformHandles,
   renderElement,
 } from "@excalidraw/element";
 
@@ -16,6 +17,7 @@ import type { LocalPoint } from "@excalidraw/math";
 
 import type {
   ExcalidrawElement,
+  ExcalidrawLineElement,
   NonDeletedExcalidrawElement,
   NonDeletedSceneElementsMap,
 } from "@excalidraw/element/types";
@@ -29,7 +31,7 @@ import { createPasteEvent, serializeAsClipboardJSON } from "../clipboard";
 import { Excalidraw } from "../index";
 
 import { API } from "./helpers/api";
-import { Keyboard, UI } from "./helpers/ui";
+import { Keyboard, Pointer, UI } from "./helpers/ui";
 import {
   act,
   fireEvent,
@@ -87,24 +89,11 @@ afterEach(async () => {
   await act(async () => {});
 });
 
-/**
- * Renders one element onto a fresh mock canvas (export mode, so no element
- * canvas cache) and returns the gradient calls it made, in element-local
- * coordinates.
- */
-const renderGradientCalls = (element: ExcalidrawElement) => {
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("2d")!;
-  const linear = vi.spyOn(context, "createLinearGradient");
-  const radial = vi.spyOn(context, "createRadialGradient");
-  // createLinearGradient runs before the "is it closed" check, so count the
-  // fills actually painted with a gradient to know whether one is visible
-  let gradientFills = 0;
-  vi.spyOn(context, "fill").mockImplementation(() => {
-    if (context.fillStyle instanceof CanvasGradient) {
-      gradientFills++;
-    }
-  });
+const drawOnCanvas = (
+  element: ExcalidrawElement,
+  canvas: HTMLCanvasElement,
+  context: CanvasRenderingContext2D,
+) => {
   const elementsMap = arrayToMap([element]) as NonDeletedSceneElementsMap &
     RenderableElementsMap;
   const renderConfig: StaticCanvasRenderConfig = {
@@ -127,12 +116,59 @@ const renderGradientCalls = (element: ExcalidrawElement) => {
     renderConfig,
     h.state,
   );
+};
+
+/**
+ * Renders one element onto a fresh mock canvas (export mode, so no element
+ * canvas cache) and returns the gradient calls it made, in element-local
+ * coordinates.
+ */
+const renderGradientCalls = (element: ExcalidrawElement) => {
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d")!;
+  const linear = vi.spyOn(context, "createLinearGradient");
+  const radial = vi.spyOn(context, "createRadialGradient");
+  // createLinearGradient runs before the "is it closed" check, so count the
+  // fills actually painted with a gradient to know whether one is visible
+  let gradientFills = 0;
+  vi.spyOn(context, "fill").mockImplementation(() => {
+    if (context.fillStyle instanceof CanvasGradient) {
+      gradientFills++;
+    }
+  });
+  drawOnCanvas(element, canvas, context);
 
   return {
     linear: linear.mock.calls as number[][],
     radial: radial.mock.calls as number[][],
     gradientFills,
   };
+};
+
+/**
+ * Renders the element and returns the outline (path commands) of the first
+ * fill it paints, i.e. its background.
+ */
+const firstFillOutline = (element: ExcalidrawElement) => {
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d")!;
+  const path: unknown[][] = [];
+  const fills: unknown[][][] = [];
+  vi.spyOn(context, "beginPath").mockImplementation(() => {
+    path.length = 0;
+  });
+  for (const command of ["moveTo", "lineTo", "bezierCurveTo"] as const) {
+    vi.spyOn(context, command).mockImplementation((...args: number[]) => {
+      path.push([command, ...args]);
+    });
+  }
+  vi.spyOn(context, "fill").mockImplementation(() => {
+    fills.push([...path]);
+  });
+
+  drawOnCanvas(element, canvas, context);
+
+  return fills[0];
 };
 
 const gradientOf = (element: ExcalidrawElement) =>
@@ -242,6 +278,60 @@ describe("gradient rendering geometry", () => {
       backgroundColor: LINEAR,
     });
     expect(renderGradientCalls(line).gradientFills).toBe(0);
+  });
+
+  it.each([
+    [
+      "rounded closed line",
+      () =>
+        API.createElement({
+          type: "line",
+          width: 100,
+          height: 100,
+          points: RIGHTWARD_LOOP,
+          roundness: { type: ROUNDNESS.PROPORTIONAL_RADIUS },
+        }),
+    ],
+    [
+      "closed freedraw",
+      () =>
+        API.createElement({
+          type: "freedraw",
+          width: 100,
+          height: 100,
+          points: [
+            pointFrom<LocalPoint>(0, 0),
+            pointFrom<LocalPoint>(60, 10),
+            pointFrom<LocalPoint>(100, 60),
+            pointFrom<LocalPoint>(40, 100),
+            pointFrom<LocalPoint>(0, 0),
+          ],
+        }),
+    ],
+    [
+      "rounded rectangle",
+      () =>
+        API.createElement({
+          type: "rectangle",
+          roundness: { type: ROUNDNESS.ADAPTIVE_RADIUS },
+        }),
+    ],
+    ["ellipse", () => API.createElement({ type: "ellipse" })],
+    ["diamond", () => API.createElement({ type: "diamond" })],
+  ])("fills a %s along the same outline as a solid fill", (_, create) => {
+    const element = create();
+    const solid = firstFillOutline({
+      ...element,
+      backgroundColor: "#a5d8ff",
+      fillStyle: "solid",
+    });
+    const gradient = firstFillOutline({
+      ...element,
+      backgroundColor: LINEAR,
+    });
+
+    expect(solid.length).toBeGreaterThan(0);
+    expect(gradient).toEqual(solid);
   });
 
   it("keeps the gradient stored when a closed line is opened", async () => {
@@ -400,6 +490,116 @@ describe("gradient through flipping", () => {
   });
 });
 
+describe("gradient through flipping by dragging a handle", () => {
+  /** drags one of the element's resize handles through several moves */
+  const dragHandle = (
+    element: ExcalidrawElement,
+    handle: "e" | "s",
+    moves: [deltaX: number, deltaY: number][],
+  ) => {
+    API.setSelectedElements([element as NonDeletedExcalidrawElement]);
+    const [x, y, width, height] = getTransformHandles(
+      API.getElement(element) as NonDeletedExcalidrawElement,
+      h.state.zoom,
+      arrayToMap(h.elements),
+      "mouse",
+      {},
+    )[handle]!;
+    const mouse = new Pointer("mouse");
+    mouse.reset();
+    mouse.down(x + width / 2, y + height / 2);
+    moves.forEach(([deltaX, deltaY]) => mouse.move(deltaX, deltaY));
+    mouse.up();
+  };
+
+  it("mirrors a linear gradient when dragged past the opposite edge", async () => {
+    const rect = API.createElement({
+      type: "rectangle",
+      backgroundColor: LINEAR,
+    });
+    API.setElements([rect]);
+
+    UI.resize(rect, "e", [-200, 0]);
+
+    expect(API.getElement(rect).backgroundColor).toBe(LINEAR_REVERSED);
+  });
+
+  it("keeps the gradient when resized without crossing the opposite edge", async () => {
+    const rect = API.createElement({
+      type: "rectangle",
+      backgroundColor: LINEAR,
+    });
+    API.setElements([rect]);
+
+    UI.resize(rect, "e", [-50, 0]);
+
+    expect(API.getElement(rect).width).toBe(50);
+    expect(API.getElement(rect).backgroundColor).toBe(LINEAR);
+  });
+
+  it("restores the gradient when dragged back across in the same drag", async () => {
+    const rect = API.createElement({
+      type: "rectangle",
+      backgroundColor: LINEAR,
+    });
+    API.setElements([rect]);
+
+    dragHandle(rect, "e", [
+      [-200, 0],
+      [200, 0],
+    ]);
+
+    expect(API.getElement(rect).backgroundColor).toBe(LINEAR);
+  });
+
+  it("leaves a linear gradient unchanged when dragged past vertically", async () => {
+    const rect = API.createElement({
+      type: "rectangle",
+      backgroundColor: LINEAR,
+    });
+    API.setElements([rect]);
+
+    UI.resize(rect, "s", [0, -200]);
+
+    expect(API.getElement(rect).backgroundColor).toBe(LINEAR);
+  });
+
+  it("mirrors a closed line when dragged past the opposite edge", async () => {
+    const line = API.createElement({
+      type: "line",
+      width: 100,
+      height: 100,
+      points: RIGHTWARD_LOOP,
+      backgroundColor: LINEAR,
+    });
+    API.setElements([line]);
+
+    UI.resize(line, "se", [-200, 0]);
+    expect(API.getElement(line).points).not.toEqual(RIGHTWARD_LOOP);
+
+    expect(API.getElement(line).backgroundColor).toBe(LINEAR_REVERSED);
+  });
+
+  it("mirrors every gradient when a multi-selection is dragged past its edge", async () => {
+    const rect = API.createElement({
+      type: "rectangle",
+      x: 0,
+      backgroundColor: LINEAR,
+    });
+    const ellipse = API.createElement({
+      type: "ellipse",
+      x: 200,
+      backgroundColor: LINEAR,
+    });
+    API.setElements([rect, ellipse]);
+
+    UI.resize([rect, ellipse], "se", [-400, 0]);
+
+    expect(API.getElement(rect).backgroundColor).toBe(LINEAR_REVERSED);
+    expect(API.getElement(ellipse).backgroundColor).toBe(LINEAR_REVERSED);
+  });
+});
+
 describe("gradient picker availability", () => {
   const gradientToggle = () => screen.queryByText("Use gradient");
 
@@ -432,6 +632,41 @@ describe("gradient picker availability", () => {
     const line = API.createElement({ type: "line", points: OPEN_LINE });
     API.setElements([line]);
     API.setSelectedElements([line]);
+
+    togglePopover("Background");
+
+    expect(gradientToggle()).toBeNull();
+  });
+
+  it("is offered for an open line that can become a polygon, and closes it", async () => {
+    const line = API.createElement({
+      type: "line",
+      width: 100,
+      height: 100,
+      points: [
+        pointFrom<LocalPoint>(0, 0),
+        pointFrom<LocalPoint>(100, 0),
+        pointFrom<LocalPoint>(100, 100),
+      ],
+    });
+    API.setElements([line]);
+    API.setSelectedElements([line]);
+
+    togglePopover("Background");
+    const toggle = gradientToggle();
+    expect(toggle).not.toBeNull();
+    fireEvent.click(toggle!);
+
+    const updated = API.getElement(line) as ExcalidrawLineElement;
+    expect(gradientOf(updated)).not.toBeNull();
+    expect(updated.polygon).toBe(true);
+    expect(renderGradientCalls(updated).gradientFills).toBe(1);
+  });
+
+  it("is not offered for an open arrow", async () => {
+    const arrow = API.createElement({ type: "arrow", points: OPEN_LINE });
+    API.setElements([arrow]);
+    API.setSelectedElements([arrow]);
 
     togglePopover("Background");
 
