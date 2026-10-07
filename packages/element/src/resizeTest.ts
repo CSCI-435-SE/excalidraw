@@ -60,15 +60,6 @@ export const resizeTest = <Point extends GlobalPoint | LocalPoint>(
     return false;
   }
 
-  // paths cannot be resized at all — not via drawn handles (see
-  // getTransformHandles, which already returns {} for a path) and not via
-  // this function's own independent "grab the bounding-box edge directly"
-  // fallback below, which hit-tests the box's side line segments regardless
-  // of whether any handle was drawn there
-  if (isPathElement(element)) {
-    return false;
-  }
-
   const { rotation: rotationTransformHandle, ...transformHandles } =
     getTransformHandles(
       element,
@@ -105,7 +96,12 @@ export const resizeTest = <Point extends GlobalPoint | LocalPoint>(
     );
 
     // do not resize from the sides for linear elements with only two points
-    if (!(isLinearElement(element) && element.points.length <= 2)) {
+    if (
+      !(
+        (isLinearElement(element) || isPathElement(element)) &&
+        element.points.length <= 2
+      )
+    ) {
       const SPACING = isImageElement(element)
         ? 0
         : SIDE_RESIZING_THRESHOLD / zoom.value;

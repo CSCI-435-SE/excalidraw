@@ -166,6 +166,27 @@ export const actionFinalize = register<FormData>({
 
         const activeToolLocked = appState.activeTool?.locked;
 
+        // re-editing an existing motion path (see actionMotionPathEditor.tsx):
+        // each point edit just commits the new geometry and stays in edit
+        // mode — the target only re-snaps once the session is confirmed, and
+        // the path is never deleted out from under the editor
+        if (
+          isPathElement(element) &&
+          appState.motionPathEditor?.pathId === element.id
+        ) {
+          return {
+            elements,
+            appState: {
+              ...appState,
+              cursorButton: "up",
+              selectedLinearElement: linearElementEditor,
+              selectionElement: null,
+              suggestedBinding: null,
+            },
+            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+          };
+        }
+
         // snap the path's target(s) onto the path's start point the moment
         // the path is confirmed, so they sit together at rest — not just
         // during playback (see pathPlayback.ts, which uses the same
@@ -211,8 +232,9 @@ export const actionFinalize = register<FormData>({
           appState: {
             ...appState,
             cursorButton: "up",
-            // paths are deliberately not re-editable after confirm, unlike
-            // line/arrow
+            // a confirmed path drops its editor, unlike line/arrow — it's
+            // re-opened explicitly via "Edit motion path"
+            // (actionMotionPathEditor.tsx)
             selectedLinearElement:
               activeToolLocked || isPathElement(element)
                 ? null
@@ -399,8 +421,8 @@ export const actionFinalize = register<FormData>({
       });
     }
 
-    // paths are deliberately not re-editable after confirm (no
-    // LinearElementEditor instance), unlike line/arrow
+    // a confirmed path drops its editor (no LinearElementEditor instance),
+    // unlike line/arrow — it's re-opened explicitly via "Edit motion path"
     let selectedLinearElement =
       element && isLinearElement(element)
         ? new LinearElementEditor(element, arrayToMap(newElements)) // To select the linear element when user has finished mutipoint editing

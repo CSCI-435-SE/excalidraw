@@ -59,6 +59,7 @@ import {
 } from "./bounds";
 
 import { headingIsHorizontal, vectorToHeading } from "./heading";
+import { getPathSamplePoints } from "./pathSamples";
 import { mutateElement } from "./mutateElement";
 import { getBoundTextElement, handleBindTextResize } from "./textElement";
 import {
@@ -2023,7 +2024,7 @@ export class LinearElementEditor {
     // generateElementShape()'s `path` case) — their points are a plain
     // polyline, so the unrotated bounding box is computed directly
     const [minX, minY, maxX, maxY] = isPathElement(element)
-      ? getBoundsFromPoints(element.points)
+      ? getBoundsFromPoints(getPathSamplePoints(element))
       : getMinMaxXYFromCurvePathOps(
           getCurvePathOps(ShapeCache.generateElementShape(element, null)[0]),
         );

@@ -160,6 +160,14 @@
       "edit": "Edit line",
       "editArrow": "Edit arrow"
     },
+    "pathEditor": {
+      "edit": "Edit motion path",
+      "testAnimation": "Test animation",
+      "curved": "Curved",
+      "straight": "Straight",
+      "reject": "Reject",
+      "done": "Done"
+    },
     "polygon": {
       "breakPolygon": "Break polygon",
       "convertToPolygon": "Convert to polygon"

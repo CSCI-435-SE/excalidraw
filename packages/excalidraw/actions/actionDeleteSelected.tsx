@@ -33,6 +33,7 @@ import { IconButton } from "../components/IconButton";
 import { useStylesPanelMode } from "../components/App";
 
 import { register } from "./register";
+import { rejectMotionPathEdit } from "./actionMotionPathEditor";
 
 import type { AppClassProperties, AppState } from "../types";
 
@@ -222,6 +223,19 @@ export const actionDeleteSelected = register({
       if (!linearElement) {
         return false;
       }
+
+      if (appState.motionPathEditor?.pathId === linearElement.id) {
+        // motion path edit session: Delete with no points selected rejects
+        // the whole session (Delete is otherwise a mistake-prone no-op here)
+        if (!selectedPointsIndices?.length) {
+          return rejectMotionPathEdit(elements, appState);
+        }
+        // a motion path always keeps at least its start and end points
+        if (linearElement.points.length - selectedPointsIndices.length < 2) {
+          return false;
+        }
+      }
+
       // case: no point selected → do nothing, as deleting the whole element
       // is most likely a mistake, where you wanted to delete a specific point
       // but failed to select it (or you thought it's selected, while it was

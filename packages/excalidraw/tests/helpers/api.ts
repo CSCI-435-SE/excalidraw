@@ -391,6 +391,8 @@ export class API {
       case "path":
         element = newPathElement({
           ...base,
+          // paths are created straight by the path tool; curving is opt-in
+          roundness: rest.roundness ?? null,
           width,
           height,
           points: rest.points ?? [

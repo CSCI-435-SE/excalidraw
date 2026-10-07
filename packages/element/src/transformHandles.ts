@@ -283,21 +283,19 @@ export const getTransformHandles = (
   if (
     element.locked ||
     // Elbow arrows cannot be rotated
-    isElbowArrow(element) ||
-    // a path's points are drawn in its own local (unrotated) coordinate
-    // space, and playback/snap-to-path positioning reads them directly from
-    // `points`/`x`/`y` — resizing stretches a shape by scaling width/height,
-    // and rotating changes `angle`, neither of which that math accounts
-    // for, so both would desync the visual line from the path's actual
-    // geometry. Resize and rotate are disabled entirely; the path can still
-    // be moved by dragging its body (see dragSelectedElements in
-    // dragElements.ts, which also drags its target along with it).
-    isPathElement(element)
+    isElbowArrow(element)
   ) {
     return {};
   }
 
-  if (element.type === "freedraw" || isLinearElement(element)) {
+  // paths resize by rescaling their points (see rescalePointsInElement) and
+  // rotate via `angle`, which playback reads through
+  // getPathGlobalSamplePoints — so they take the same handles as lines
+  if (
+    element.type === "freedraw" ||
+    isLinearElement(element) ||
+    isPathElement(element)
+  ) {
     if (element.points.length === 2) {
       // only check the last point because starting point is always (0,0)
       const [, p1] = element.points;
@@ -341,7 +339,11 @@ export const hasBoundingBox = (
   editorInterface: EditorInterface,
 ) => {
   if (
-    appState.selectedLinearElement?.isEditing ||
+    (appState.selectedLinearElement?.isEditing &&
+      // a motion path keeps its rotate/resize handles while its points are
+      // being edited, so the whole edit session happens in one mode
+      appState.motionPathEditor?.pathId !==
+        appState.selectedLinearElement.elementId) ||
     appState.selectedLinearElement?.isDragging
   ) {
     return false;

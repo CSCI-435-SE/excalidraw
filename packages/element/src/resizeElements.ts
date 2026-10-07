@@ -55,6 +55,7 @@ import {
   isElbowArrow,
   isFrameLikeElement,
   isFreeDrawElement,
+  isPathElement,
   isImageElement,
   isLinearElement,
   isTextElement,
@@ -271,7 +272,9 @@ export const rescalePointsInElement = (
   height: number,
   normalizePoints: boolean,
 ) =>
-  isLinearElement(element) || isFreeDrawElement(element)
+  isLinearElement(element) ||
+  isFreeDrawElement(element) ||
+  isPathElement(element)
     ? {
         points: rescalePoints(
           0,
@@ -803,7 +806,8 @@ export const resizeSingleElement = (
 
   let previousOrigin = pointFrom<GlobalPoint>(origElement.x, origElement.y);
 
-  if (isLinearElement(origElement)) {
+  // paths keep points[0] at (0,0) like lines, so they re-base the same way
+  if (isLinearElement(origElement) || isPathElement(origElement)) {
     const [x1, y1] = getElementBounds(origElement, originalElementsMap);
     previousOrigin = pointFrom<GlobalPoint>(x1, y1);
   }
@@ -823,7 +827,10 @@ export const resizeSingleElement = (
     shouldResizeFromCenter!!,
   );
 
-  if (isLinearElement(origElement) && rescaledPoints.points) {
+  if (
+    (isLinearElement(origElement) || isPathElement(origElement)) &&
+    rescaledPoints.points
+  ) {
     const offsetX = origElement.x - previousOrigin[0];
     const offsetY = origElement.y - previousOrigin[1];
 
@@ -1360,7 +1367,7 @@ export const resizeMultipleElements = (
       );
 
       const isLinearOrFreeDraw =
-        isLinearElement(orig) || isFreeDrawElement(orig);
+        isLinearElement(orig) || isFreeDrawElement(orig) || isPathElement(orig);
       const offsetX = orig.x - anchorX;
       const offsetY = orig.y - anchorY;
       const shiftX = flipByX && !isLinearOrFreeDraw ? width : 0;

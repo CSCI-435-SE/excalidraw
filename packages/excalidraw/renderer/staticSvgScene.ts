@@ -33,6 +33,7 @@ import { getContainingFrame } from "@excalidraw/element";
 import { getCornerRadius, isPathALoop } from "@excalidraw/element";
 
 import { ShapeCache } from "@excalidraw/element";
+import { getPathSamplePoints } from "@excalidraw/element";
 
 import { getElementAbsoluteCoords } from "@excalidraw/element";
 
@@ -393,7 +394,7 @@ const renderElementToSvg = (
 
       if (element.points.length > 1) {
         const linePath = svgRoot.ownerDocument.createElementNS(SVG_NS, "path");
-        const d = element.points
+        const d = getPathSamplePoints(element)
           .map(([x, y], index) => `${index === 0 ? "M" : "L"}${x} ${y}`)
           .join(" ");
         linePath.setAttribute("d", d);
