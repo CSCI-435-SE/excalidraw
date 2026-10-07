@@ -1,3 +1,4 @@
+import { getBoundsFromPoints } from "./bounds";
 import { hasBackground } from "./comparisons";
 import { canBecomePolygon } from "./typeChecks";
 import { isPathALoop } from "./utils";
@@ -48,6 +49,56 @@ export const getGradientColors = (
     }
   }
   return null;
+};
+
+export type GradientGeometry = GradientColors &
+  Readonly<{
+    // linear: runs horizontally from x1 to x2 at y1
+    x1: number;
+    y1: number;
+    x2: number;
+    // radial: centered at (cx, cy), reaching the box corners at r
+    cx: number;
+    cy: number;
+    r: number;
+  }>;
+
+/**
+ * Where the element's gradient sits, in element-local coordinates, shared by
+ * the canvas and SVG renderers. Null when the element has no gradient or
+ * can't be filled (e.g. an open line).
+ */
+export const getGradientGeometry = (
+  element: ExcalidrawElement,
+): GradientGeometry | null => {
+  const gradientColors = getGradientColors(element.backgroundColor);
+  if (!gradientColors) {
+    return null;
+  }
+
+  // box the gradient spans
+  let [x1, y1, x2, y2] = [0, 0, element.width, element.height];
+  if (
+    element.type === "line" ||
+    element.type === "arrow" ||
+    element.type === "freedraw"
+  ) {
+    if (!element.points.length || !isPathALoop(element.points)) {
+      return null;
+    }
+    // points can extend left of / above the element origin
+    [x1, y1, x2, y2] = getBoundsFromPoints(element.points);
+  }
+
+  return {
+    ...gradientColors,
+    x1,
+    y1,
+    x2,
+    cx: (x1 + x2) / 2,
+    cy: (y1 + y2) / 2,
+    r: Math.hypot((x2 - x1) / 2, (y2 - y1) / 2),
+  };
 };
 
 /**
