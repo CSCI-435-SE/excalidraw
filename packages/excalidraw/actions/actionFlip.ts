@@ -6,6 +6,7 @@ import { deepCopyElement } from "@excalidraw/element";
 import { resizeMultipleElements } from "@excalidraw/element";
 import { isArrowElement, isElbowArrow } from "@excalidraw/element";
 import { updateFrameMembershipOfSelectedElements } from "@excalidraw/element";
+import { flipGradientHorizontally } from "@excalidraw/element";
 import { CODES, KEYS, arrayToMap } from "@excalidraw/common";
 
 import { CaptureUpdateAction } from "@excalidraw/element";
@@ -191,6 +192,15 @@ const flipElements = (
     }),
   );
   // ---------------------------------------------------------------------------
+
+  if (flipDirection === "horizontal") {
+    selectedElements.forEach((element) => {
+      const backgroundColor = flipGradientHorizontally(element.backgroundColor);
+      if (backgroundColor !== element.backgroundColor) {
+        app.scene.mutateElement(element, { backgroundColor });
+      }
+    });
+  }
 
   return selectedElements;
 };

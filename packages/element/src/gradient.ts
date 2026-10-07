@@ -36,6 +36,21 @@ export const getGradientColors = (
   return null;
 };
 
+/**
+ * Mirrors a linear gradient for a horizontal flip by swapping its stops.
+ * Radial gradients and solid colors are symmetric, so they're returned as-is.
+ */
+export const flipGradientHorizontally = (backgroundColor: string) => {
+  const gradientColors = getGradientColors(backgroundColor);
+  return gradientColors?.type === "linear"
+    ? createGradientBackground(
+        "linear",
+        gradientColors.endColor,
+        gradientColors.startColor,
+      )
+    : backgroundColor;
+};
+
 export const createGradientBackground = (
   type: GradientType,
   startColor: string,
