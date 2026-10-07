@@ -30,7 +30,13 @@ import {
 
 import { getContainingFrame } from "@excalidraw/element";
 
-import { getCornerRadius, isPathALoop } from "@excalidraw/element";
+import {
+  getCornerRadius,
+  getDiamondPoints,
+  getGradientColors,
+  getTrianglePoints,
+  isPathALoop,
+} from "@excalidraw/element";
 
 import { ShapeCache } from "@excalidraw/element";
 
@@ -61,6 +67,147 @@ const roughSVGDrawWithPrecision = (
     options: { ...drawable.options, fixedDecimalPlaceDigits: precision },
   };
   return rsvg.draw(pshape);
+};
+
+const getGradientFill = (
+  element: Readonly<NonDeletedExcalidrawElement>,
+  svgRoot: SVGElement,
+  renderConfig: SVGRenderConfig,
+) => {
+  const colors = getGradientColors(element.backgroundColor);
+  if (!colors) {
+    return null;
+  }
+
+  let defs = svgRoot.querySelector("defs");
+  if (!defs) {
+    defs = svgRoot.ownerDocument.createElementNS(SVG_NS, "defs");
+    svgRoot.insertBefore(defs, svgRoot.firstChild);
+  }
+
+  const id = `excalidraw-gradient-${element.id}`;
+  if (![...defs.children].some((child) => child.id === id)) {
+    const isDarkMode = renderConfig.theme === THEME.DARK;
+    const gradient = svgRoot.ownerDocument.createElementNS(
+      SVG_NS,
+      colors.type === "linear" ? "linearGradient" : "radialGradient",
+    );
+    gradient.setAttribute("id", id);
+    gradient.setAttribute("gradientUnits", "userSpaceOnUse");
+
+    if (colors.type === "linear") {
+      gradient.setAttribute("x1", "0");
+      gradient.setAttribute("y1", "0");
+      gradient.setAttribute("x2", `${element.width}`);
+      gradient.setAttribute("y2", "0");
+    } else {
+      gradient.setAttribute("cx", `${element.width / 2}`);
+      gradient.setAttribute("cy", `${element.height / 2}`);
+      gradient.setAttribute(
+        "r",
+        `${Math.hypot(element.width / 2, element.height / 2)}`,
+      );
+    }
+
+    for (const [offset, color] of [
+      ["0%", colors.startColor],
+      ["100%", colors.endColor],
+    ]) {
+      const stop = svgRoot.ownerDocument.createElementNS(SVG_NS, "stop");
+      stop.setAttribute("offset", offset);
+      stop.setAttribute("stop-color", applyDarkModeFilter(color, isDarkMode));
+      gradient.appendChild(stop);
+    }
+    defs.appendChild(gradient);
+  }
+
+  return `url(#${id})`;
+};
+
+const renderGradientFillToSvg = (
+  element: Readonly<NonDeletedExcalidrawElement>,
+  fill: string,
+  transform: string,
+  opacity: number,
+  svgRoot: SVGElement,
+) => {
+  const document = svgRoot.ownerDocument;
+  let node: SVGElement;
+  switch (element.type) {
+    case "rectangle":
+    case "iframe":
+    case "embeddable": {
+      const rect = document.createElementNS(SVG_NS, "rect");
+      rect.setAttribute("width", `${element.width}`);
+      rect.setAttribute("height", `${element.height}`);
+      if (element.roundness) {
+        rect.setAttribute(
+          "rx",
+          `${getCornerRadius(
+            Math.min(element.width, element.height),
+            element,
+          )}`,
+        );
+      }
+      node = rect;
+      break;
+    }
+    case "ellipse": {
+      const ellipse = document.createElementNS(SVG_NS, "ellipse");
+      ellipse.setAttribute("cx", `${element.width / 2}`);
+      ellipse.setAttribute("cy", `${element.height / 2}`);
+      ellipse.setAttribute("rx", `${element.width / 2}`);
+      ellipse.setAttribute("ry", `${element.height / 2}`);
+      node = ellipse;
+      break;
+    }
+    case "diamond":
+    case "triangle": {
+      const points =
+        element.type === "diamond"
+          ? getDiamondPoints(element)
+          : getTrianglePoints(element);
+      const polygon = document.createElementNS(SVG_NS, "polygon");
+      polygon.setAttribute(
+        "points",
+        points
+          .reduce<string[]>((result, value, index) => {
+            if (index % 2 === 0) {
+              result.push(`${value},${points[index + 1]}`);
+            }
+            return result;
+          }, [])
+          .join(" "),
+      );
+      node = polygon;
+      break;
+    }
+    case "line":
+    case "arrow": {
+      if (!isPathALoop(element.points) || !element.points.length) {
+        return null;
+      }
+      const path = document.createElementNS(SVG_NS, "path");
+      path.setAttribute(
+        "d",
+        `${element.points
+          .map(([x, y], index) => `${index === 0 ? "M" : "L"}${x} ${y}`)
+          .join(" ")} Z`,
+      );
+      path.setAttribute("fill-rule", "evenodd");
+      node = path;
+      break;
+    }
+    default:
+      return null;
+  }
+  node.setAttribute("fill", fill);
+  node.setAttribute("stroke", "none");
+  node.setAttribute("transform", transform);
+  if (opacity !== 1) {
+    node.setAttribute("fill-opacity", `${opacity}`);
+  }
+  return node;
 };
 
 const maybeWrapNodesInFrameClipPath = (
@@ -150,6 +297,19 @@ const renderElementToSvg = (
     case "triangle":
     case "ellipse": {
       const shape = ShapeCache.generateElementShape(element, renderConfig);
+      const transform = `translate(${offsetX || 0} ${
+        offsetY || 0
+      }) rotate(${degree} ${cx} ${cy})`;
+      const gradientFill = getGradientFill(element, svgRoot, renderConfig);
+      const gradientNode = gradientFill
+        ? renderGradientFillToSvg(
+            element,
+            gradientFill,
+            transform,
+            opacity,
+            svgRoot,
+          )
+        : null;
       const node = roughSVGDrawWithPrecision(
         rsvg,
         shape,
@@ -160,22 +320,25 @@ const renderElementToSvg = (
         node.setAttribute("fill-opacity", `${opacity}`);
       }
       node.setAttribute("stroke-linecap", "round");
-      node.setAttribute(
-        "transform",
-        `translate(${offsetX || 0} ${
-          offsetY || 0
-        }) rotate(${degree} ${cx} ${cy})`,
-      );
+      node.setAttribute("transform", transform);
 
       const g = maybeWrapNodesInFrameClipPath(
         element,
         root,
-        [node],
+        gradientNode ? [gradientNode, node] : [node],
         renderConfig.frameRendering,
         elementsMap,
       );
 
-      addToRoot(g || node, element);
+      if (g) {
+        addToRoot(g, element);
+      } else if (gradientNode) {
+        const group = svgRoot.ownerDocument.createElementNS(SVG_NS, "g");
+        group.append(gradientNode, node);
+        addToRoot(group, element);
+      } else {
+        addToRoot(node, element);
+      }
       break;
     }
     case "iframe":
@@ -340,6 +503,24 @@ const renderElementToSvg = (
       group.setAttribute("stroke-linecap", "round");
 
       const shapes = ShapeCache.generateElementShape(element, renderConfig);
+      const gradientFill = isPathALoop(element.points)
+        ? getGradientFill(element, svgRoot, renderConfig)
+        : null;
+      const transform = `translate(${offsetX || 0} ${
+        offsetY || 0
+      }) rotate(${degree} ${cx} ${cy})`;
+      const gradientNode = gradientFill
+        ? renderGradientFillToSvg(
+            element,
+            gradientFill,
+            transform,
+            opacity,
+            svgRoot,
+          )
+        : null;
+      if (gradientNode) {
+        group.appendChild(gradientNode);
+      }
       shapes.forEach((shape) => {
         const node = roughSVGDrawWithPrecision(
           rsvg,
@@ -350,12 +531,7 @@ const renderElementToSvg = (
           node.setAttribute("stroke-opacity", `${opacity}`);
           node.setAttribute("fill-opacity", `${opacity}`);
         }
-        node.setAttribute(
-          "transform",
-          `translate(${offsetX || 0} ${
-            offsetY || 0
-          }) rotate(${degree} ${cx} ${cy})`,
-        );
+        node.setAttribute("transform", transform);
         if (
           (element.type === "line" || element.type === "arrow") &&
           isPathALoop(element.points) &&
