@@ -14,6 +14,7 @@ import { pointFrom } from "@excalidraw/math";
 import {
   createGradientBackground,
   getGradientColors,
+  GRADIENT_FILL_PLACEHOLDER,
   getTransformHandles,
   renderElement,
 } from "@excalidraw/element";
@@ -462,6 +463,93 @@ describe("gradient SVG export", () => {
 
     expect(gradients.map((gradient) => gradient.id)).toEqual(
       elements.map((element) => `gradient-${element.id}`),
+    );
+  });
+
+  const exportSvg = (elements: NonDeletedExcalidrawElement[]) =>
+    exportToSvg(
+      elements,
+      { exportBackground: false, viewBackgroundColor: "#ffffff" },
+      null,
+      { skipInliningFonts: true },
+    );
+
+  const gradientFilled = (svg: SVGSVGElement, element: ExcalidrawElement) =>
+    svg.querySelectorAll(`[fill="url(#gradient-${element.id})"]`);
+
+  const CLOSED_LOOP = [
+    pointFrom<LocalPoint>(0, 0),
+    pointFrom<LocalPoint>(100, 0),
+    pointFrom<LocalPoint>(100, 100),
+    pointFrom<LocalPoint>(0, 100),
+    pointFrom<LocalPoint>(0, 0),
+  ];
+
+  it.each([
+    ["rectangle", { type: "rectangle" }],
+    ["diamond", { type: "diamond" }],
+    ["ellipse", { type: "ellipse" }],
+    ["embeddable", { type: "embeddable" }],
+    ["closed line", { type: "line", points: CLOSED_LOOP }],
+    ["closed freedraw", { type: "freedraw", points: CLOSED_LOOP }],
+  ] as const)("fills a %s with its gradient", async (_, props) => {
+    const element = API.createElement({
+      ...props,
+      width: 100,
+      height: 100,
+      backgroundColor: LINEAR,
+    });
+    const svg = await exportSvg([element]);
+
+    expect(gradientFilled(svg, element)).toHaveLength(1);
+    expect(
+      svg.querySelectorAll(`[fill="${GRADIENT_FILL_PLACEHOLDER}"]`),
+    ).toHaveLength(0);
+  });
+
+  it("fills a closed arrow but leaves its arrowhead alone", async () => {
+    const arrow = API.createElement({
+      type: "arrow",
+      width: 100,
+      height: 100,
+      points: CLOSED_LOOP,
+      endArrowhead: "triangle",
+      strokeColor: "#ff0000",
+      backgroundColor: LINEAR,
+    });
+    const svg = await exportSvg([arrow]);
+
+    expect(gradientFilled(svg, arrow)).toHaveLength(1);
+    expect(svg.querySelector('[fill="#ff0000"]')).not.toBeNull();
+  });
+
+  it("fills a linked element inside its anchor", async () => {
+    // API.createElement doesn't pass `link` through
+    const rectangle = {
+      ...API.createElement({ type: "rectangle", backgroundColor: LINEAR }),
+      link: "https://excalidraw.com",
+    };
+    const svg = await exportSvg([rectangle]);
+
+    expect(svg.querySelectorAll("a")).toHaveLength(1);
+    expect(
+      svg
+        .querySelector("a")!
+        .querySelectorAll(`[fill="url(#gradient-${rectangle.id})"]`),
+    ).toHaveLength(1);
+  });
+
+  it("keeps the element's opacity on the gradient fill", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      backgroundColor: LINEAR,
+      opacity: 50,
+    });
+    const svg = await exportSvg([rectangle]);
+    const [fill] = gradientFilled(svg, rectangle);
+
+    expect(fill.closest("[fill-opacity]")?.getAttribute("fill-opacity")).toBe(
+      "0.5",
     );
   });
 

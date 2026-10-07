@@ -32,7 +32,11 @@ import { getContainingFrame } from "@excalidraw/element";
 
 import { getCornerRadius, isPathALoop } from "@excalidraw/element";
 
-import { canHaveGradient, getGradientGeometry } from "@excalidraw/element";
+import {
+  canHaveGradient,
+  getGradientGeometry,
+  GRADIENT_FILL_PLACEHOLDER,
+} from "@excalidraw/element";
 
 import { ShapeCache } from "@excalidraw/element";
 import { getPathSamplePoints } from "@excalidraw/element";
@@ -116,6 +120,21 @@ const addGradientDef = (
   return `url(#${id})`;
 };
 
+/**
+ * Gradient shapes are generated with a placeholder solid fill (see
+ * generateRoughOptions), so roughjs only emits the fill path itself; point
+ * it at the gradient. Arrowheads keep their own fills since they never use
+ * the placeholder.
+ */
+const applyGradientFill = (node: SVGElement, gradientFill: string) => {
+  const placeholderFill = `[fill="${GRADIENT_FILL_PLACEHOLDER}"]`;
+  const paths = Array.from(node.querySelectorAll(placeholderFill));
+  if (node.matches(placeholderFill)) {
+    paths.push(node);
+  }
+  paths.forEach((path) => path.setAttribute("fill", gradientFill));
+};
+
 const maybeWrapNodesInFrameClipPath = (
   element: Readonly<NonDeletedExcalidrawElement>,
   root: SVGElement,
@@ -180,9 +199,14 @@ const renderElementToSvg = (
     root = anchorTag;
   }
 
+  const gradientFill = addGradientDef(element, svgRoot, renderConfig);
+
   const addToRoot = (node: SVGElement, element: ExcalidrawElement) => {
     if (isTestEnv()) {
       node.setAttribute("data-id", element.id);
+    }
+    if (gradientFill) {
+      applyGradientFill(node, gradientFill);
     }
     root.appendChild(node);
   };
@@ -191,9 +215,6 @@ const renderElementToSvg = (
     ((getContainingFrame(element, elementsMap)?.opacity ?? 100) *
       element.opacity) /
     10000;
-
-  // TODO(#68 step 3): point the element's fill at this reference
-  addGradientDef(element, svgRoot, renderConfig);
 
   switch (element.type) {
     case "selection": {
