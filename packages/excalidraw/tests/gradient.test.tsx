@@ -5,11 +5,14 @@ import { vi } from "vitest";
 import {
   applyDarkModeFilter,
   arrayToMap,
+  COLOR_PALETTE,
   KEYS,
   ROUNDNESS,
 } from "@excalidraw/common";
 
 import { pointFrom } from "@excalidraw/math";
+
+import { exportToSvg as exportLibraryItemSvg } from "@excalidraw/utils/export";
 
 import {
   createGradientBackground,
@@ -19,7 +22,7 @@ import {
   renderElement,
 } from "@excalidraw/element";
 
-import type { LocalPoint } from "@excalidraw/math";
+import type { LocalPoint, Radians } from "@excalidraw/math";
 
 import type {
   ExcalidrawElement,
@@ -34,7 +37,8 @@ import {
   actionFlipVertical,
 } from "../actions";
 import { createPasteEvent, serializeAsClipboardJSON } from "../clipboard";
-import { exportToSvg } from "../scene/export";
+import { exportToCanvas, exportToSvg } from "../scene/export";
+import { getDefaultAppState } from "../appState";
 import { Excalidraw } from "../index";
 
 import { API } from "./helpers/api";
@@ -564,6 +568,109 @@ describe("gradient SVG export", () => {
     ]);
 
     expect(gradients).toEqual([]);
+  });
+});
+
+describe("gradient PNG export and library thumbnails", () => {
+  const exportPngGradientCalls = async (
+    element: NonDeletedExcalidrawElement,
+    exportWithDarkMode = false,
+  ) => {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d")!;
+    const linear = vi.spyOn(context, "createLinearGradient");
+    const colorStops: [number, string][] = [];
+    const addColorStop = vi
+      .spyOn(CanvasGradient.prototype, "addColorStop")
+      .mockImplementation((offset, color) => {
+        colorStops.push([offset, color]);
+      });
+    let gradientFills = 0;
+    vi.spyOn(context, "fill").mockImplementation(() => {
+      if (context.fillStyle instanceof CanvasGradient) {
+        gradientFills++;
+      }
+    });
+
+    await exportToCanvas(
+      [element],
+      {
+        ...getDefaultAppState(),
+        // layout fields, unused by export
+        width: 0,
+        height: 0,
+        offsetTop: 0,
+        offsetLeft: 0,
+        exportScale: 1,
+        exportWithDarkMode,
+      },
+      {},
+      { exportBackground: false, viewBackgroundColor: "#ffffff" },
+      (width, height) => {
+        canvas.width = width;
+        canvas.height = height;
+        return { canvas, scale: 1 };
+      },
+    );
+    addColorStop.mockRestore();
+
+    return { linear: linear.mock.calls, colorStops, gradientFills };
+  };
+
+  it("paints the gradient in element space when exporting to PNG", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      x: 300,
+      y: 200,
+      width: 200,
+      height: 100,
+      angle: (Math.PI / 4) as Radians,
+      backgroundColor: LINEAR,
+    });
+    const { linear, gradientFills } = await exportPngGradientCalls(rectangle);
+
+    // the export canvas is translated/rotated to the element, so the
+    // gradient itself stays in element-local coordinates
+    expect(linear).toEqual([[0, 0, 200, 0]]);
+    expect(gradientFills).toBe(1);
+  });
+
+  it("applies the dark mode filter to PNG export stops", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      backgroundColor: LINEAR,
+    });
+    const { colorStops } = await exportPngGradientCalls(rectangle, true);
+
+    expect(colorStops).toEqual([
+      [0, applyDarkModeFilter("#000000", true)],
+      [1, applyDarkModeFilter("#ffffff", true)],
+    ]);
+  });
+
+  it("keeps the gradient in library item thumbnails", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      backgroundColor: RADIAL,
+    });
+    // same call useLibraryItemSvg makes, which restores the elements first
+    const svg = await exportLibraryItemSvg({
+      elements: [rectangle],
+      appState: {
+        exportBackground: false,
+        viewBackgroundColor: COLOR_PALETTE.white,
+      },
+      files: null,
+      renderEmbeddables: false,
+      skipInliningFonts: true,
+    });
+
+    expect(
+      svg.querySelector(`radialGradient#gradient-${rectangle.id}`),
+    ).not.toBeNull();
+    expect(
+      svg.querySelectorAll(`[fill="url(#gradient-${rectangle.id})"]`),
+    ).toHaveLength(1);
   });
 });
 
