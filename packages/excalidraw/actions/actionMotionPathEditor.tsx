@@ -5,6 +5,7 @@ import {
   isPathElement,
   LinearElementEditor,
   newElementWith,
+  normalizePathMotion,
   CaptureUpdateAction,
 } from "@excalidraw/element";
 import { arrayToMap, ROUNDNESS } from "@excalidraw/common";
@@ -13,6 +14,7 @@ import type {
   ExcalidrawElement,
   ExcalidrawPathElement,
   NonDeleted,
+  PathMotionConfig,
 } from "@excalidraw/element/types";
 
 import { DEFAULT_CATEGORIES } from "../components/CommandPalette/CommandPalette";
@@ -73,36 +75,47 @@ export const actionFinishMotionPathEdit = register({
       };
     }
 
-    const elementsMap = arrayToMap(elements);
-    const targets = getPathTargetElements(path, elementsMap);
-    const offset = getPathAlignmentOffset(path, targets, elementsMap);
-
-    const shiftedIds = new Set<string>();
-    for (const target of targets) {
-      shiftedIds.add(target.id);
-      const boundText = getBoundTextElement(target, elementsMap);
-      if (boundText) {
-        shiftedIds.add(boundText.id);
-      }
-    }
-
     return {
-      elements:
-        offset.x !== 0 || offset.y !== 0
-          ? elements.map((el) =>
-              shiftedIds.has(el.id)
-                ? newElementWith(el, {
-                    x: el.x + offset.x,
-                    y: el.y + offset.y,
-                  })
-                : el,
-            )
-          : elements,
+      elements: alignPathTargetsToStart(elements, path),
       appState: exitedAppState(appState),
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
     };
   },
 });
+
+/**
+ * Returns `elements` with `path`'s target(s) — and their bound text — shifted
+ * so their combined center sits on the path's motion start point.
+ */
+const alignPathTargetsToStart = (
+  elements: readonly ExcalidrawElement[],
+  path: ExcalidrawPathElement,
+): readonly ExcalidrawElement[] => {
+  const elementsMap = arrayToMap(elements);
+  const targets = getPathTargetElements(path, elementsMap);
+  const offset = getPathAlignmentOffset(path, targets, elementsMap);
+  if (offset.x === 0 && offset.y === 0) {
+    return elements;
+  }
+
+  const shiftedIds = new Set<string>();
+  for (const target of targets) {
+    shiftedIds.add(target.id);
+    const boundText = getBoundTextElement(target, elementsMap);
+    if (boundText) {
+      shiftedIds.add(boundText.id);
+    }
+  }
+
+  return elements.map((el) =>
+    shiftedIds.has(el.id)
+      ? newElementWith(el, {
+          x: el.x + offset.x,
+          y: el.y + offset.y,
+        })
+      : el,
+  );
+};
 
 /**
  * Restores the path and its target(s) to exactly how they were when the edit
@@ -131,6 +144,7 @@ export const rejectMotionPathEdit = (
           angle: original.angle,
           points: original.points,
           roundness: original.roundness,
+          motion: original.motion,
         });
       }
       const position = originalPositions[el.id];
@@ -180,6 +194,40 @@ export const actionToggleMotionPathCurve = register({
     };
   },
 });
+
+/**
+ * Updates the edited path's movement config (speed, easing, start/end).
+ * `value` is merged over the current config and normalized, so start/end can
+ * never cross. When the start moves, the target is re-snapped onto it so it
+ * keeps resting where playback will begin.
+ */
+export const actionChangeMotionPathConfig = register<Partial<PathMotionConfig>>(
+  {
+    name: "changeMotionPathConfig",
+    label: "labels.pathEditor.motion",
+    trackEvent: false,
+    predicate: (elements, appState) => !!getEditedPath(elements, appState),
+    perform: (elements, appState, value) => {
+      const path = getEditedPath(elements, appState);
+      if (!path || !value) {
+        return false;
+      }
+      const motion = normalizePathMotion({ ...path.motion, ...value });
+      const updatedPath = newElementWith(path, { motion });
+      const nextElements = elements.map((el) =>
+        el.id === path.id ? updatedPath : el,
+      );
+      return {
+        elements:
+          motion.start !== path.motion.start
+            ? alignPathTargetsToStart(nextElements, updatedPath)
+            : nextElements,
+        appState,
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+      };
+    },
+  },
+);
 
 /**
  * Re-opens a confirmed motion path for editing: point editing via the

@@ -152,7 +152,8 @@ export type ActionName =
   | "editMotionPath"
   | "finishMotionPathEdit"
   | "rejectMotionPathEdit"
-  | "toggleMotionPathCurve";
+  | "toggleMotionPathCurve"
+  | "changeMotionPathConfig";
 
 export type PanelComponentProps = {
   elements: readonly ExcalidrawElement[];

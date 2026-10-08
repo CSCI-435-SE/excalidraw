@@ -1,10 +1,15 @@
+import { PATH_PLAYBACK_BASE_SPEED_PX_PER_SEC } from "@excalidraw/common";
 import {
   getBoundTextElement,
   getPathAlignmentOffset,
   getPathGlobalSamplePoints,
   getPathLength,
+  getPathMotionEasing,
+  getPathMotionStartPoint,
   getPathTargetElements,
   getPointAtProgress,
+  isPathElement,
+  normalizePathMotion,
 } from "@excalidraw/element";
 
 import type {
@@ -16,8 +21,23 @@ import { AnimationController } from "./renderer/animation";
 
 import type App from "./components/App";
 
-/** constant speed, not fixed duration — longer paths naturally take longer */
-const PATH_PLAYBACK_SPEED_PX_PER_SEC = 300;
+/**
+ * How long playback of `path` takes, in ms. Speed-based rather than a fixed
+ * duration, so longer paths (or longer start→end sections) take longer, and
+ * a higher `motion.speed` multiplier shortens it proportionally.
+ */
+export const getPathPlaybackDuration = (
+  path: ExcalidrawPathElement,
+  pathLength: number,
+): number => {
+  const { speed, start, end } = normalizePathMotion(path.motion);
+  return Math.max(
+    ((pathLength * (end - start)) /
+      (PATH_PLAYBACK_BASE_SPEED_PX_PER_SEC * speed)) *
+      1000,
+    1,
+  );
+};
 
 type PlaybackState = {
   elapsed: number;
@@ -26,7 +46,9 @@ type PlaybackState = {
 };
 
 /**
- * Drives the basic, fixed-speed "press and hold to preview" path animation.
+ * Drives path playback ("press and hold to preview" and the edit toolbar's
+ * Test animation), honoring the path's `motion` config: speed multiplier,
+ * easing, and the start..end section of the path to travel.
  * Reuses the shared `AnimationController` (a single RAF loop multiplexing
  * every concurrently-keyed animation) rather than running its own loop, so
  * multiple paths can play back at once with no extra scheduling code.
@@ -60,11 +82,13 @@ export class PathPlaybackController {
 
     const elementsMap = this.app.scene.getNonDeletedElementsMap();
     const globalPoints = getPathGlobalSamplePoints(path, elementsMap);
-    const length = getPathLength(globalPoints);
-    const totalDuration = Math.max(
-      (length / PATH_PLAYBACK_SPEED_PX_PER_SEC) * 1000,
-      1,
+    const totalDuration = getPathPlaybackDuration(
+      path,
+      getPathLength(globalPoints),
     );
+    const motion = normalizePathMotion(path.motion);
+    const ease = getPathMotionEasing(motion.easing);
+    const startPoint = getPathMotionStartPoint(path, globalPoints);
 
     const originalPositions = new Map<string, { x: number; y: number }>();
     for (const target of targets) {
@@ -95,10 +119,31 @@ export class PathPlaybackController {
         : { elapsed: 0, totalDuration, originalPositions };
 
       const t = Math.min(next.elapsed / next.totalDuration, 1);
-      const { x: dx, y: dy } = getPointAtProgress(globalPoints, t);
-      const [startDx, startDy] = globalPoints[0] ?? [0, 0];
-      const totalDeltaX = dx - startDx + alignmentOffset.x;
-      const totalDeltaY = dy - startDy + alignmentOffset.y;
+
+      // read the path's geometry live every frame, not once up front: the
+      // path (and its target with it) can be dragged mid-playback, and the
+      // target must keep riding the path where it is *now*
+      const livePath = this.app.scene.getNonDeletedElement(path.id);
+      const liveGlobalPoints =
+        livePath && isPathElement(livePath)
+          ? getPathGlobalSamplePoints(
+              livePath,
+              this.app.scene.getNonDeletedElementsMap(),
+            )
+          : globalPoints;
+      const liveStartPoint =
+        livePath && isPathElement(livePath)
+          ? getPathMotionStartPoint(livePath, liveGlobalPoints)
+          : startPoint;
+
+      // eased time → position within the configured start..end section
+      const progress = motion.start + ease(t) * (motion.end - motion.start);
+      const { x: dx, y: dy } = getPointAtProgress(liveGlobalPoints, progress);
+      const totalDeltaX = dx - startPoint.x + alignmentOffset.x;
+      const totalDeltaY = dy - startPoint.y + alignmentOffset.y;
+      // how far the path's start has moved since playback began
+      const pathShiftX = liveStartPoint.x - startPoint.x;
+      const pathShiftY = liveStartPoint.y - startPoint.y;
 
       const liveOriginalPositions = new Map(
         [...next.originalPositions].filter(([id]) =>
@@ -127,13 +172,16 @@ export class PathPlaybackController {
       this.app.scheduleNeverCapture();
 
       if (t >= 1) {
+        // back to rest — shifted along with the path if it was moved
+        // mid-playback, so the two stay together instead of desyncing
         for (const [id, orig] of liveOriginalPositions) {
           const element = this.app.scene.getNonDeletedElement(id);
           if (element) {
-            this.app.scene.mutateElement(element, orig, {
-              informMutation: true,
-              isDragging: false,
-            });
+            this.app.scene.mutateElement(
+              element,
+              { x: orig.x + pathShiftX, y: orig.y + pathShiftY },
+              { informMutation: true, isDragging: false },
+            );
           }
         }
         this.app.scheduleNeverCapture();

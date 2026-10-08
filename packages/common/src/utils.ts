@@ -204,6 +204,14 @@ export const easeOut = (k: number) => {
   return 1 - Math.pow(1 - k, 4);
 };
 
+export const easeIn = (k: number) => {
+  return Math.pow(k, 3);
+};
+
+export const easeInOut = (k: number) => {
+  return k < 0.5 ? 4 * Math.pow(k, 3) : 1 - Math.pow(-2 * k + 2, 3) / 2;
+};
+
 // https://github.com/lodash/lodash/blob/es/chunk.js
 export const chunk = <T extends any>(
   array: readonly T[],

@@ -4,14 +4,65 @@
     z-index: var(--zIndex-canvasButtons);
 
     display: flex;
-    flex-direction: row;
-    gap: 0.25rem;
+    flex-direction: column;
+    gap: 0.375rem;
     padding: 0.25rem;
 
     background: var(--island-bg-color);
     border-radius: var(--border-radius-lg);
     box-shadow: 0px 2px 4px 0 rgb(0 0 0 / 30%);
     white-space: nowrap;
+  }
+
+  .motion-path-edit-toolbar__row,
+  .motion-path-edit-toolbar__group {
+    display: flex;
+    flex-direction: row;
+    gap: 0.25rem;
+  }
+
+  .motion-path-edit-toolbar__settings {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 0.25rem 0.5rem;
+    padding: 0.25rem 0.125rem 0.125rem;
+    border-top: 1px solid var(--default-border-color);
+  }
+
+  .motion-path-edit-toolbar__label {
+    font-size: 0.75rem;
+    color: var(--text-primary-color);
+  }
+
+  .motion-path-edit-toolbar__select {
+    height: 1.75rem;
+    font-family: inherit;
+    font-size: 0.75rem;
+    color: var(--text-primary-color);
+    background: var(--island-bg-color);
+    border: 1px solid var(--default-border-color);
+    border-radius: var(--border-radius-md);
+  }
+
+  .motion-path-edit-toolbar__range {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+
+    input[type="range"] {
+      flex: 1;
+      min-width: 6rem;
+      accent-color: var(--color-primary);
+    }
+  }
+
+  .motion-path-edit-toolbar__value {
+    min-width: 2.25rem;
+    font-size: 0.75rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary-color);
   }
 
   .motion-path-edit-toolbar__button {

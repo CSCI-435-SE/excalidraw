@@ -22,6 +22,7 @@ import {
   getResizedElementAbsoluteCoords,
 } from "./bounds";
 import { newElementWith } from "./mutateElement";
+import { normalizePathMotion } from "./pathMotion";
 import { getBoundTextMaxWidth } from "./textElement";
 import { normalizeText, measureText } from "./textMeasurements";
 import { wrapText } from "./textWrapping";
@@ -500,6 +501,7 @@ export const newPathElement = (
     points?: ExcalidrawPathElement["points"];
     targetElementId?: ExcalidrawPathElement["targetElementId"];
     targetGroupId?: ExcalidrawPathElement["targetGroupId"];
+    motion?: Partial<ExcalidrawPathElement["motion"]>;
   } & ElementConstructorOpts,
 ): NonDeleted<ExcalidrawPathElement> => {
   return {
@@ -507,6 +509,7 @@ export const newPathElement = (
     points: opts.points || [],
     targetElementId: opts.targetElementId ?? null,
     targetGroupId: opts.targetGroupId ?? null,
+    motion: normalizePathMotion(opts.motion),
   };
 };
 

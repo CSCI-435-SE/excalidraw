@@ -102,6 +102,7 @@ export {
   actionFinishMotionPathEdit,
   actionRejectMotionPathEdit,
   actionToggleMotionPathCurve,
+  actionChangeMotionPathConfig,
 } from "./actionMotionPathEditor";
 
 export { actionToggleSearchMenu } from "./actionToggleSearchMenu";
