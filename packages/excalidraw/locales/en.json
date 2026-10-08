@@ -166,7 +166,19 @@
       "curved": "Curved",
       "straight": "Straight",
       "reject": "Reject",
-      "done": "Done"
+      "done": "Done",
+      "motion": "Motion settings",
+      "speed": "Speed",
+      "slow": "Slow",
+      "normal": "Normal",
+      "fast": "Fast",
+      "start": "Start",
+      "end": "End",
+      "easing": "Easing",
+      "linear": "Linear",
+      "easeIn": "Ease in",
+      "easeOut": "Ease out",
+      "easeInOut": "Ease in-out"
     },
     "polygon": {
       "breakPolygon": "Break polygon",

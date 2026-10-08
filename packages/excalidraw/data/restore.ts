@@ -38,6 +38,7 @@ import {
   isNonDeletedElement,
 } from "@excalidraw/element";
 import { normalizeFixedPoint } from "@excalidraw/element";
+import { normalizePathMotion } from "@excalidraw/element";
 import {
   updateElbowArrowPoints,
   validateElbowPoints,
@@ -775,6 +776,8 @@ export const restoreElement = (
         y,
         targetElementId: element.targetElementId ?? null,
         targetGroupId: element.targetGroupId ?? null,
+        // legacy paths predate motion config → defaults; bad values clamped
+        motion: normalizePathMotion(element.motion),
         ...getSizeFromPoints(points),
       });
     }

@@ -553,6 +553,15 @@ export const BIND_MODE_TIMEOUT = 700; // ms
 /** press-and-hold duration on an element with an assigned motion path
  * before its playback preview starts */
 export const PATH_PLAYBACK_HOLD_MS = 1000; // ms
+/** playback speed at a motion speed multiplier of 1 */
+export const PATH_PLAYBACK_BASE_SPEED_PX_PER_SEC = 300;
+export const PATH_MOTION_SPEED_PRESETS = {
+  slow: 0.5,
+  normal: 1,
+  fast: 2,
+} as const;
+/** smallest allowed gap between a path's motion start and end (fraction) */
+export const PATH_MOTION_MIN_SPAN = 0.01;
 
 // glass background for mobile action buttons
 export const MOBILE_ACTION_BUTTON_BG = {

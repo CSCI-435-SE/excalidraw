@@ -83,6 +83,7 @@ export * from "./linearElementEditor";
 export * from "./mutateElement";
 export * from "./newElement";
 export * from "./path";
+export * from "./pathMotion";
 export * from "./pathSamples";
 export * from "./positionElementsOnGrid";
 export * from "./renderElement";

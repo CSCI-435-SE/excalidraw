@@ -397,7 +397,21 @@ export type ExcalidrawPathElement = _ExcalidrawElementBase &
     targetElementId: string | null;
     /** mutually exclusive with targetElementId; resolved once at creation time */
     targetGroupId: GroupId | null;
+    /** how the target travels along the path during playback */
+    motion: PathMotionConfig;
   }>;
+
+export type PathMotionEasing = "linear" | "easeIn" | "easeOut" | "easeInOut";
+
+export type PathMotionConfig = Readonly<{
+  /** multiplier on the base playback speed (px/s); 1 = normal */
+  speed: number;
+  /** fraction (0..1) of the path's length where travel starts */
+  start: number;
+  /** fraction (0..1) of the path's length where travel ends; > start */
+  end: number;
+  easing: PathMotionEasing;
+}>;
 
 export type ExcalidrawElbowArrowElement = Merge<
   ExcalidrawArrowElement,

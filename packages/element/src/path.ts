@@ -98,8 +98,21 @@ export const getPathGlobalSamplePoints = (
 };
 
 /**
+ * The point (absolute scene coordinates) where the target rests and playback
+ * begins: the configured `motion.start` fraction along the travel polyline.
+ */
+export const getPathMotionStartPoint = (
+  path: ExcalidrawPathElement,
+  globalPoints: readonly GlobalPoint[],
+): { x: number; y: number } =>
+  globalPoints.length === 0
+    ? { x: path.x, y: path.y }
+    : getPointAtProgress(globalPoints, path.motion?.start ?? 0);
+
+/**
  * The translation that would snap `targets`' combined bounding-box center
- * onto the path's (rotated) first point in absolute scene coordinates. Used
+ * onto the path's (rotated) motion start point in absolute scene coordinates
+ * (see `getPathMotionStartPoint`). Used
  * both to snap a path's target to it the moment the path is confirmed or an
  * edit session is committed (so they sit together at rest, not just
  * mid-animation) and, identically, as the playback alignment at progress 0 —
@@ -117,14 +130,14 @@ export const getPathAlignmentOffset = (
 
   const [minX, minY, maxX, maxY] = getCommonBounds(targets, elementsMap);
   const referenceCenter = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
-  const [startX, startY] = getPathGlobalSamplePoints(path, elementsMap)[0] ?? [
-    path.x,
-    path.y,
-  ];
+  const start = getPathMotionStartPoint(
+    path,
+    getPathGlobalSamplePoints(path, elementsMap),
+  );
 
   return {
-    x: startX - referenceCenter.x,
-    y: startY - referenceCenter.y,
+    x: start.x - referenceCenter.x,
+    y: start.y - referenceCenter.y,
   };
 };
 

@@ -215,6 +215,7 @@ export class API {
     targetGroupId?: T extends "path"
       ? ExcalidrawPathElement["targetGroupId"]
       : never;
+    motion?: T extends "path" ? Partial<ExcalidrawPathElement["motion"]> : never;
     strokeOptions?: T extends "freedraw"
       ? ExcalidrawFreeDrawElement["strokeOptions"]
       : never;
@@ -401,6 +402,7 @@ export class API {
           ],
           targetElementId: rest.targetElementId ?? null,
           targetGroupId: rest.targetGroupId ?? null,
+          motion: rest.motion,
         });
         break;
       default:
