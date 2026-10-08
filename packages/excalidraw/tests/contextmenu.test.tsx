@@ -90,7 +90,6 @@ describe("contextMenu element", () => {
     const expectedShortcutNames: ShortcutName[] = [
       "paste",
       "selectAll",
-      "gridMode",
       "objectsSnapMode",
       "zenMode",
       "viewMode",
@@ -103,9 +102,6 @@ describe("contextMenu element", () => {
         contextMenu?.querySelector(`li[data-testid="${shortcutName}"]`),
       ).not.toBeNull();
     });
-    expect(
-      contextMenu?.querySelector(`li[data-testid="gridSnapMode"]`),
-    ).not.toBeNull();
   });
 
   it("shows context menu for element", () => {

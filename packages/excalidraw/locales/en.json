@@ -115,6 +115,7 @@
     "collaborators": "Collaborators",
     "toggleGrid": "Toggle grid",
     "toggleGridSnap": "Snap to grid",
+    "showGrid": "Show grid",
     "addToLibrary": "Add to library",
     "removeFromLibrary": "Remove from library",
     "libraryLoadingMessage": "Loading library…",
@@ -367,6 +368,7 @@
     "hand": "Hand (panning tool)",
     "path": "Motion path",
     "extraTools": "More tools",
+    "grid": "Grid",
     "mermaidToExcalidraw": "Mermaid to Excalidraw",
     "convertElementType": "Toggle shape type"
   },

@@ -3,10 +3,17 @@ import { useState } from "react";
 
 import { KEYS } from "@excalidraw/common";
 
+import { actionToggleGridMode } from "../actions";
 import { useTunnels } from "../context/tunnels";
+import { useAtomValue } from "../editor-jotai";
 import { t } from "../i18n";
 
-import { useEditorInterface, useStylesPanelMode } from "./App";
+import {
+  useEditorInterface,
+  useExcalidrawActionManager,
+  useStylesPanelMode,
+} from "./App";
+import { isGridPanelOpenAtom, openGridPanel } from "./GridPanel";
 import { HintViewer } from "./HintViewer";
 import { Island } from "./Island";
 import { LockButton } from "./LockButton";
@@ -17,6 +24,7 @@ import {
   EmbedIcon,
   extraToolsIcon,
   frameToolIcon,
+  gridIcon,
   LassoIcon,
   laserPointerToolIcon,
   MagicIcon,
@@ -59,7 +67,11 @@ const ExtraToolsDropdown = ({
   const [isExtraToolsMenuOpen, setIsExtraToolsMenuOpen] = useState(false);
   const isFullStylesPanel = useStylesPanelMode() === "full";
   const { TTDDialogTriggerTunnel } = useTunnels();
+  const actionManager = useExcalidrawActionManager();
+  const isGridPanelOpen = useAtomValue(isGridPanelOpenAtom);
 
+  // hidden when the host app controls the grid via the `gridModeEnabled` prop
+  const showGridItem = actionManager.isActionEnabled(actionToggleGridMode);
   const frameToolSelected = activeTool.type === "frame";
   const laserToolSelected = activeTool.type === "laser";
   const lassoToolSelected =
@@ -74,6 +86,7 @@ const ExtraToolsDropdown = ({
       <DropdownMenu.Trigger
         className={clsx("App-toolbar__extra-tools-trigger", {
           "App-toolbar__extra-tools-trigger--selected":
+            isGridPanelOpen ||
             frameToolSelected ||
             embeddableToolSelected ||
             pathToolSelected ||
@@ -89,7 +102,9 @@ const ExtraToolsDropdown = ({
         }}
         title={t("toolBar.extraTools")}
       >
-        {frameToolSelected
+        {isGridPanelOpen
+          ? gridIcon
+          : frameToolSelected
           ? frameToolIcon
           : embeddableToolSelected
           ? EmbedIcon
@@ -106,6 +121,17 @@ const ExtraToolsDropdown = ({
         onSelect={() => setIsExtraToolsMenuOpen(false)}
         className="App-toolbar__extra-tools-dropdown"
       >
+        {showGridItem && (
+          <DropdownMenu.Item
+            onSelect={() => openGridPanel(app)}
+            icon={gridIcon}
+            shortcut={KEYS.G.toLocaleUpperCase()}
+            data-testid="toolbar-grid"
+            selected={isGridPanelOpen}
+          >
+            {t("toolBar.grid")}
+          </DropdownMenu.Item>
+        )}
         <DropdownMenu.Item
           onSelect={() => app.setActiveTool({ type: "frame" })}
           icon={frameToolIcon}

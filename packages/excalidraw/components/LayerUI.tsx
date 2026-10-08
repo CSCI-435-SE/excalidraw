@@ -50,6 +50,7 @@ import { TextHyperlinkDialog } from "./TextHyperlinkDialog";
 import { ErrorDialog } from "./ErrorDialog";
 import { EyeDropper, activeEyeDropperAtom } from "./EyeDropper";
 import { FixedSideContainer } from "./FixedSideContainer";
+import { GridPanel } from "./GridPanel";
 import { HelpDialog } from "./HelpDialog";
 import { ImageExportDialog } from "./ImageExportDialog";
 import { Island } from "./Island";
@@ -301,6 +302,7 @@ const LayerUI = ({
             className={clsx("App-menu_top__left")}
           >
             {renderCanvasActions()}
+            <GridPanel appState={appState} elements={elements} />
             <div
               className={clsx("selected-shape-actions-container", {
                 "selected-shape-actions-container--compact":
