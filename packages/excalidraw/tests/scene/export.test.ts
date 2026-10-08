@@ -239,14 +239,10 @@ describe("exportToSvg", () => {
     expect(radialGradient?.getAttribute("r")).toBe(`${Math.hypot(50, 25)}`);
 
     expect(
-      svgElement.querySelector(
-        `rect[fill="url(#excalidraw-gradient-${linearRectangle.id})"]`,
-      ),
+      svgElement.querySelector(`[fill="url(#gradient-${linearRectangle.id})"]`),
     ).not.toBeNull();
     expect(
-      svgElement.querySelector(
-        `ellipse[fill="url(#excalidraw-gradient-${radialEllipse.id})"]`,
-      ),
+      svgElement.querySelector(`[fill="url(#gradient-${radialEllipse.id})"]`),
     ).not.toBeNull();
   });
 

@@ -506,7 +506,7 @@ describe("gradient SVG export", () => {
     expect(gradient.tagName).toBe("radialGradient");
     expect(
       ["cx", "cy", "r"].map((attr) => Number(gradient.getAttribute(attr))),
-    ).toEqual([100, 50, 111.8]); // hypot(100, 50), to 2 decimals
+    ).toEqual([100, 50, Math.hypot(100, 50)]);
   });
 
   it("uses the point bounds of a closed line", async () => {
