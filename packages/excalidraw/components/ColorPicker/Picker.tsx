@@ -45,6 +45,8 @@ interface PickerProps {
   onEyeDropperToggle: (force?: boolean) => void;
   onEscape: (event: React.KeyboardEvent | KeyboardEvent) => void;
   showHotKey?: boolean;
+  /** show the gradient option (elementBackground only) */
+  allowGradient?: boolean;
 }
 
 export const Picker = React.forwardRef(
@@ -61,6 +63,7 @@ export const Picker = React.forwardRef(
       onEyeDropperToggle,
       onEscape,
       showHotKey = true,
+      allowGradient = true,
     }: PickerProps,
     ref,
   ) => {
@@ -209,14 +212,14 @@ export const Picker = React.forwardRef(
               showHotKey={showHotKey}
             />
           </div>
-          {type === "elementBackground" && (
+          {type === "elementBackground" && allowGradient && (
             <BackgroundGradientPicker
               color={color}
               onChange={onChange}
               onEnabledChange={setGradientEnabled}
             />
           )}
-          {!gradientEnabled && children}
+          {!(allowGradient && gradientEnabled) && children}
         </div>
       </div>
     );

@@ -43,10 +43,9 @@ import type {
 } from "@excalidraw/excalidraw/scene/types";
 
 import {
-  getDiamondPoints,
+  getBoundsFromPoints,
   getElementAbsoluteCoords,
   getElementBounds,
-  getTrianglePoints,
 } from "./bounds";
 import { getUncroppedImageElement } from "./cropElement";
 import { LinearElementEditor } from "./linearElementEditor";
@@ -97,6 +96,7 @@ import type {
 } from "./types";
 
 import type { RoughCanvas } from "roughjs/bin/canvas";
+import type { Drawable } from "roughjs/bin/core";
 
 const isPendingImageElement = (
   element: ExcalidrawElement,
@@ -388,22 +388,42 @@ const drawElementOnCanvas = (
   context: CanvasRenderingContext2D,
   renderConfig: StaticCanvasRenderConfig,
 ) => {
-  const fillWithGradient = () => {
+  /**
+   * Builds the CanvasGradient for a gradient background, or null when the
+   * element has none (or can't be filled, e.g. an open line).
+   */
+  const createGradientFill = () => {
     const gradientColors = getGradientColors(element.backgroundColor);
     if (!gradientColors) {
-      return false;
+      return null;
     }
 
+    // box the gradient spans, in element-local coordinates
+    let [x1, y1, x2, y2] = [0, 0, element.width, element.height];
+    if (
+      element.type === "line" ||
+      element.type === "arrow" ||
+      element.type === "freedraw"
+    ) {
+      if (!isPathALoop(element.points) || !element.points.length) {
+        return null;
+      }
+      // points can extend left of / above the element origin
+      [x1, y1, x2, y2] = getBoundsFromPoints(element.points);
+    }
+
+    const centerX = (x1 + x2) / 2;
+    const centerY = (y1 + y2) / 2;
     const gradient =
       gradientColors.type === "linear"
-        ? context.createLinearGradient(0, 0, element.width, 0)
+        ? context.createLinearGradient(x1, y1, x2, y1)
         : context.createRadialGradient(
-            element.width / 2,
-            element.height / 2,
+            centerX,
+            centerY,
             0,
-            element.width / 2,
-            element.height / 2,
-            Math.hypot(element.width / 2, element.height / 2),
+            centerX,
+            centerY,
+            Math.hypot((x2 - x1) / 2, (y2 - y1) / 2),
           );
     gradient.addColorStop(
       0,
@@ -419,73 +439,29 @@ const drawElementOnCanvas = (
         renderConfig.theme === THEME.DARK,
       ),
     );
-    context.fillStyle = gradient;
-    context.beginPath();
-
-    switch (element.type) {
-      case "rectangle":
-      case "iframe":
-      case "embeddable":
-        if (element.roundness && context.roundRect) {
-          context.roundRect(
-            0,
-            0,
-            element.width,
-            element.height,
-            getCornerRadius(Math.min(element.width, element.height), element),
-          );
-        } else {
-          context.rect(0, 0, element.width, element.height);
-        }
-        break;
-      case "ellipse":
-        context.ellipse(
-          element.width / 2,
-          element.height / 2,
-          element.width / 2,
-          element.height / 2,
-          0,
-          0,
-          Math.PI * 2,
-        );
-        break;
-      case "diamond": {
-        const [topX, topY, rightX, rightY, bottomX, bottomY, leftX, leftY] =
-          getDiamondPoints(element);
-        context.moveTo(topX, topY);
-        context.lineTo(rightX, rightY);
-        context.lineTo(bottomX, bottomY);
-        context.lineTo(leftX, leftY);
-        context.closePath();
-        break;
-      }
-      case "triangle": {
-        const [topX, topY, rightX, rightY, leftX, leftY] =
-          getTrianglePoints(element);
-        context.moveTo(topX, topY);
-        context.lineTo(rightX, rightY);
-        context.lineTo(leftX, leftY);
-        context.closePath();
-        break;
-      }
-      case "line":
-      case "arrow":
-        if (!isPathALoop(element.points) || !element.points.length) {
-          return false;
-        }
-        context.moveTo(element.points[0][0], element.points[0][1]);
-        for (let index = 1; index < element.points.length; index++) {
-          context.lineTo(element.points[index][0], element.points[index][1]);
-        }
-        context.closePath();
-        break;
-      default:
-        return false;
-    }
-
-    context.fill();
-    return true;
+    return gradient;
   };
+
+  /**
+   * Gradient shapes are generated with a placeholder solid fill (see
+   * generateRoughOptions), so roughjs draws its regular fill geometry; here
+   * we hand it the gradient instead. Copies the shape so the cache is
+   * untouched.
+   */
+  const withGradientFill = (
+    shape: Drawable,
+    gradient: CanvasGradient | null,
+  ): Drawable =>
+    gradient
+      ? {
+          ...shape,
+          options: {
+            ...shape.options,
+            // roughjs assigns `fill` straight to ctx.fillStyle
+            fill: gradient as unknown as string,
+          },
+        }
+      : shape;
 
   switch (element.type) {
     case "rectangle":
@@ -497,8 +473,12 @@ const drawElementOnCanvas = (
       context.lineJoin = "round";
       context.lineCap = "round";
 
-      fillWithGradient();
-      rc.draw(ShapeCache.generateElementShape(element, renderConfig));
+      rc.draw(
+        withGradientFill(
+          ShapeCache.generateElementShape(element, renderConfig),
+          createGradientFill(),
+        ),
+      );
       break;
     }
     case "arrow":
@@ -506,10 +486,12 @@ const drawElementOnCanvas = (
       context.lineJoin = "round";
       context.lineCap = "round";
 
-      fillWithGradient();
+      const gradient = createGradientFill();
       ShapeCache.generateElementShape(element, renderConfig).forEach(
-        (shape) => {
-          rc.draw(shape);
+        (shape, index) => {
+          // the line/curve (with its fill) is always first; the rest are
+          // arrowheads, which keep their own fills
+          rc.draw(index === 0 ? withGradientFill(shape, gradient) : shape);
         },
       );
       break;
@@ -556,6 +538,7 @@ const drawElementOnCanvas = (
       // Draw directly to canvas
       context.save();
 
+      const gradient = createGradientFill();
       const shapes = ShapeCache.generateElementShape(element, renderConfig);
 
       for (const shape of shapes) {
@@ -566,7 +549,7 @@ const drawElementOnCanvas = (
           );
           context.fill(new Path2D(shape));
         } else {
-          rc.draw(shape);
+          rc.draw(withGradientFill(shape, gradient));
         }
       }
 

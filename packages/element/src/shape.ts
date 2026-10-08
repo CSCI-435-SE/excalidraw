@@ -55,7 +55,7 @@ import {
   isLinearElement,
 } from "./typeChecks";
 import { getCornerRadius, isPathALoop } from "./utils";
-import { getGradientColors } from "./gradient";
+import { getGradientColors, GRADIENT_FILL_PLACEHOLDER } from "./gradient";
 import { headingForPointIsHorizontal } from "./heading";
 import { getPathSamplePoints } from "./pathSamples";
 
@@ -235,12 +235,15 @@ export const generateRoughOptions = (
     case "diamond":
     case "triangle":
     case "ellipse": {
-      options.fillStyle = element.fillStyle;
-      options.fill =
-        isTransparent(element.backgroundColor) ||
-        getGradientColors(element.backgroundColor)
+      if (getGradientColors(element.backgroundColor)) {
+        options.fillStyle = "solid";
+        options.fill = GRADIENT_FILL_PLACEHOLDER;
+      } else {
+        options.fillStyle = element.fillStyle;
+        options.fill = isTransparent(element.backgroundColor)
           ? undefined
           : applyDarkModeFilter(element.backgroundColor, isDarkMode);
+      }
       if (element.type === "ellipse") {
         options.curveFitting = 1;
       }
@@ -251,12 +254,16 @@ export const generateRoughOptions = (
     case "freedraw":
     case "path": {
       if (isPathALoop(element.points)) {
-        options.fillStyle = element.fillStyle;
-        options.fill =
-          element.backgroundColor === "transparent" ||
-          getGradientColors(element.backgroundColor)
-            ? undefined
-            : applyDarkModeFilter(element.backgroundColor, isDarkMode);
+        if (getGradientColors(element.backgroundColor)) {
+          options.fillStyle = "solid";
+          options.fill = GRADIENT_FILL_PLACEHOLDER;
+        } else {
+          options.fillStyle = element.fillStyle;
+          options.fill =
+            element.backgroundColor === "transparent"
+              ? undefined
+              : applyDarkModeFilter(element.backgroundColor, isDarkMode);
+        }
       }
       return options;
     }
