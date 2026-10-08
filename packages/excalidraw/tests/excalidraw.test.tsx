@@ -118,44 +118,6 @@ describe("<Excalidraw/>", () => {
     );
   });
 
-  describe("Test gridModeEnabled prop", () => {
-    it('should show grid mode in context menu when gridModeEnabled is "undefined"', async () => {
-      const { container } = await render(<Excalidraw />);
-      expect(h.state.gridModeEnabled).toBe(false);
-
-      expect(
-        container.getElementsByClassName("disable-zen-mode--visible").length,
-      ).toBe(0);
-      fireEvent.contextMenu(GlobalTestState.interactiveCanvas, {
-        button: 2,
-        clientX: 1,
-        clientY: 1,
-      });
-      const contextMenu = document.querySelector(".context-menu");
-      fireEvent.click(queryByText(contextMenu as HTMLElement, "Toggle grid")!);
-      expect(h.state.gridModeEnabled).toBe(true);
-    });
-
-    it('should not show grid mode in context menu when gridModeEnabled is not "undefined"', async () => {
-      const { container } = await render(
-        <Excalidraw gridModeEnabled={false} />,
-      );
-      expect(h.state.gridModeEnabled).toBe(false);
-
-      expect(
-        container.getElementsByClassName("disable-zen-mode--visible").length,
-      ).toBe(0);
-      fireEvent.contextMenu(GlobalTestState.interactiveCanvas, {
-        button: 2,
-        clientX: 1,
-        clientY: 1,
-      });
-      const contextMenu = document.querySelector(".context-menu");
-      expect(queryByText(contextMenu as HTMLElement, "Show grid")).toBe(null);
-      expect(h.state.gridModeEnabled).toBe(false);
-    });
-  });
-
   describe("Test grid visibility and grid snapping are independent", () => {
     it("toggling the grid should not enable grid snapping or disable object snapping", async () => {
       await render(<Excalidraw />);

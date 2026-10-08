@@ -10,8 +10,6 @@ import {
   actionSaveToActiveFile,
   actionShortcuts,
   actionToggleArrowBinding,
-  actionToggleGridMode,
-  actionToggleGridSnapMode,
   actionToggleMidpointSnapping,
   actionToggleObjectsSnapMode,
   actionToggleSearchMenu,
@@ -526,43 +524,6 @@ const PreferencesToggleMidpointSnappingItem = () => {
   );
 };
 
-export const PreferencesToggleGridModeItem = () => {
-  const { t } = useI18n();
-  const actionManager = useExcalidrawActionManager();
-  const appState = useUIAppState();
-
-  return (
-    <DropdownMenuItemCheckbox
-      checked={appState.gridModeEnabled}
-      shortcut={getShortcutFromShortcutName("gridMode")}
-      onSelect={(event) => {
-        actionManager.executeAction(actionToggleGridMode);
-        event.preventDefault();
-      }}
-    >
-      {t("labels.toggleGrid")}
-    </DropdownMenuItemCheckbox>
-  );
-};
-
-export const PreferencesToggleGridSnapModeItem = () => {
-  const { t } = useI18n();
-  const actionManager = useExcalidrawActionManager();
-  const appState = useUIAppState();
-
-  return (
-    <DropdownMenuItemCheckbox
-      checked={appState.gridSnapEnabled}
-      onSelect={(event) => {
-        actionManager.executeAction(actionToggleGridSnapMode);
-        event.preventDefault();
-      }}
-    >
-      {t("labels.toggleGridSnap")}
-    </DropdownMenuItemCheckbox>
-  );
-};
-
 export const PreferencesToggleZenModeItem = () => {
   const { t } = useI18n();
   const actionManager = useExcalidrawActionManager();
@@ -636,8 +597,6 @@ export const Preferences = ({
             <PreferencesBoxSelectionModeItem />
             <PreferencesToggleToolLockItem />
             <PreferencesToggleSnapModeItem />
-            <PreferencesToggleGridModeItem />
-            <PreferencesToggleGridSnapModeItem />
             <PreferencesToggleZenModeItem />
             <PreferencesToggleViewModeItem />
             <PreferencesToggleElementPropertiesItem />
@@ -656,8 +615,6 @@ Preferences.BoxSelectionMode = PreferencesBoxSelectionModeItem;
 Preferences.ToggleSnapMode = PreferencesToggleSnapModeItem;
 Preferences.ToggleArrowBinding = PreferencesToggleArrowBindingItem;
 Preferences.ToggleMidpointSnapping = PreferencesToggleMidpointSnappingItem;
-Preferences.ToggleGridMode = PreferencesToggleGridModeItem;
-Preferences.ToggleGridSnapMode = PreferencesToggleGridSnapModeItem;
 Preferences.ToggleZenMode = PreferencesToggleZenModeItem;
 Preferences.ToggleViewMode = PreferencesToggleViewModeItem;
 Preferences.ToggleElementProperties = PreferencesToggleElementPropertiesItem;

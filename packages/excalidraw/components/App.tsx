@@ -325,7 +325,6 @@ import {
   actionSendBackward,
   actionSendToBack,
   actionToggleGridMode,
-  actionToggleGridSnapMode,
   actionToggleStats,
   actionToggleZenMode,
   actionUnbindText,
@@ -467,6 +466,7 @@ import BraveMeasureTextError from "./BraveMeasureTextError";
 import { ContextMenu, CONTEXT_MENU_SEPARATOR } from "./ContextMenu";
 import { activeEyeDropperAtom } from "./EyeDropper";
 import FollowMode from "./FollowMode/FollowMode";
+import { isGridPanelOpenAtom, openGridPanel } from "./GridPanel";
 import LayerUI from "./LayerUI";
 import { ElementCanvasButton } from "./MagicButton";
 import { SVGLayer } from "./SVGLayer";
@@ -5569,6 +5569,29 @@ class App extends React.Component<AppProps, AppState> {
         isHoldingSpace = true;
         setCursor(this.interactiveCanvas, CURSOR_TYPE.GRAB);
         event.preventDefault();
+      }
+
+      // G toggles the grid panel, unless it opens the background color
+      // picker below (a fillable tool or selected element)
+      if (
+        event.key === KEYS.G &&
+        !event.shiftKey &&
+        !event.altKey &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        this.actionManager.isActionEnabled(actionToggleGridMode) &&
+        !hasBackground(this.state.activeTool.type) &&
+        !this.scene
+          .getSelectedElements(this.state)
+          .some((element) => hasBackground(element.type))
+      ) {
+        if (editorJotaiStore.get(isGridPanelOpenAtom)) {
+          this.updateEditorAtom(isGridPanelOpenAtom, false);
+        } else {
+          openGridPanel(this);
+        }
+        event.stopPropagation();
+        return;
       }
 
       if (
@@ -13574,7 +13597,6 @@ class App extends React.Component<AppProps, AppState> {
       if (this.state.viewModeEnabled) {
         return [
           ...options,
-          actionToggleGridMode,
           actionToggleZenMode,
           actionToggleViewMode,
           actionToggleStats,
@@ -13592,8 +13614,6 @@ class App extends React.Component<AppProps, AppState> {
         actionSelectAll,
         actionUnlockAllElements,
         CONTEXT_MENU_SEPARATOR,
-        actionToggleGridMode,
-        actionToggleGridSnapMode,
         actionToggleObjectsSnapMode,
         actionToggleArrowBinding,
         actionToggleMidpointSnapping,
