@@ -6,19 +6,22 @@
 
 _**User (2026-10-08 03:49:54Z)**_
 
-Need help planning: 
+Need help planning:
 
 <pasted_content id="1682">
 
 ## Summary
-Allow users to control how an element moves along its assigned path.
-Users should be able to set movement speed and tween the speed of the element progresses along the path points, including starting and ending positions. Testing should cover different path lengths, speeds (slow, normal/default, fast), and element types.
+
+Allow users to control how an element moves along its assigned path. Users should be able to set movement speed and tween the speed of the element progresses along the path points, including starting and ending positions. Testing should cover different path lengths, speeds (slow, normal/default, fast), and element types.
+
 ## User Story
+
 **As a** team lead or designer, **I want** to be able to tweak my motion path **so that** I can have more control over timing and speed of my animated elements.
 
 ## Design Decision | Add to the small edit configuration UI that allows users to set movement speed and path endpoints.
 
 ## User Scenario
+
 1. Edit element path
 2. Small UI open with Config options
 3. User edits speed, start and end to liking.
@@ -27,11 +30,11 @@ Users should be able to set movement speed and tween the speed of the element pr
 
 ## Acceptance Criteria
 
-* [ ] **Movement Timing:** Changing the movement speed changes the animation duration accordingly.
-* [ ] **Movement Config:** Users can set the movement speed and starting and ending positions of an element on its path.
-* [ ] **Smooth Transition:** The element moves smoothly between its configured starting and ending positions.
-* [ ] **Setting check:** Movement settings work with paths of different lengths and different supported elements.
-* [ ] **Playback:** Configured movement settings are retained when the animation is played again.
+- [ ] **Movement Timing:** Changing the movement speed changes the animation duration accordingly.
+- [ ] **Movement Config:** Users can set the movement speed and starting and ending positions of an element on its path.
+- [ ] **Smooth Transition:** The element moves smoothly between its configured starting and ending positions.
+- [ ] **Setting check:** Movement settings work with paths of different lengths and different supported elements.
+- [ ] **Playback:** Configured movement settings are retained when the animation is played again.
 
 ## Out of Scope
 
@@ -41,15 +44,15 @@ Users should be able to set movement speed and tween the speed of the element pr
 - Requires motion data to survive save/reopen and work with presentation behavior.
 
 ## Head Issue
-Issue (#18): Allow elements to have motion
-</pasted_content id="1682">
 
+Issue (#18): Allow elements to have motion </pasted_content id="1682">
 
 ---
 
 _**Agent (claude-opus-5-5 2026-10-08 03:50:03Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="Agent"><details>
+
 <summary>Tool use: **Agent**</summary>
 Explore motion path system
 
@@ -61,17 +64,18 @@ Do not duplicate this agent's work — avoid working with the same files or topi
 output_file: C:\Users\tonyw\AppData\Local\Temp\claude\C--Users-tonyw-projects-draw-main-proj-excalidraw\2be28e9e-f30d-4ad5-b4d0-455d6334db0d\tasks\a80ece7b06c2db41e.output
 Do NOT Read or tail this file via the shell tool — it is the full subagent JSONL transcript and reading it will overflow your context. If the user asks for progress, say the agent is still running; you'll get a completion notification.
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (2026-10-08 03:50:03Z)**_
 
 In the Excalidraw monorepo at C:\Users\tonyw\projects\draw_main_proj\excalidraw, a custom "motion path" feature was added (issue #18 core motion, #48 "edit motion path and element after configuration", commit e91ec3d9). Search very thoroughly and report back with file paths, line numbers, and key code excerpts for:
+
 1. The motion data model: types on elements (e.g. customData, motion, motionPath fields), how a path is linked to an element, any existing fields like speed/duration/easing/start/end.
 2. The animation/playback engine: how elements are moved along path points (interpolation, timing, requestAnimationFrame, duration computation, path length calculation), and where playback is triggered (play buttons, presentation mode).
 3. The "small edit configuration UI" from #48: component files, how it opens when editing a path, its existing controls (any "test animation", reset, confirm buttons), and state/actions it uses.
 4. Persistence: how motion data is saved/restored (restore.ts, serialization).
-5. Existing tests for motion (test file paths, patterns used).
-Use `git show --stat e91ec3d9` and `git log --oneline -30` to locate relevant files. Be concise but complete in the report.
+5. Existing tests for motion (test file paths, patterns used). Use `git show --stat e91ec3d9` and `git log --oneline -30` to locate relevant files. Be concise but complete in the report.
 
 _**Agent (claude-opus-5-5 2026-10-08 03:50:05Z)**_
 
@@ -80,6 +84,7 @@ I've started an agent to map out the motion-path code (the data model, playback 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:09Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show recent commits and target commit stats
 
@@ -121,7 +126,7 @@ Author: Anthony Williams <aawilliams01@wm.edu>
 Date:   Tue Oct 6 23:41:40 2026 -0400
 
     feat(editor): edit motion path and element after configuration (#48)
-    
+
     - Right-click (or double-click) a motion path -> "Edit motion path" to
       move/add/delete points, move/resize/rotate the path, and toggle it
       between straight and curved, from a small floating toolbar with
@@ -134,7 +139,7 @@ Date:   Tue Oct 6 23:41:40 2026 -0400
     - Re-snap the element onto the path start after any resize/rotate of the
       path or its element.
     - Reject restores a copied snapshot (scene edits mutate in place).
-    
+
     Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
  packages/element/src/bounds.ts                     |  34 +-
@@ -171,11 +176,13 @@ Date:   Tue Oct 6 23:41:40 2026 -0400
  .../utils/tests/__snapshots__/export.test.ts.snap  |   1 +
  32 files changed, 1763 insertions(+), 74 deletions(-)
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:14Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show motion path tool commit stats
 
@@ -243,11 +250,13 @@ d992c10b fix(app): resolve app-jotai import path in LocalData (#11290)
 25bb6738 feat: Add fitToContent and animate to scrollToContent (#6319)
 e7d34677 fix: resolve paths in prebuild.js script (#5498)
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:19Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages` pattern `motion|pathPlayback|ExcalidrawPathElement`
 
@@ -290,11 +299,13 @@ packages\excalidraw\locales\en.json:3
 
 Found 362 total occurrences across 35 files.
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:22Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/pathPlayback.ts`
 
@@ -307,25 +318,25 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:22Z)**_
 6	  getPathTargetElements,
 7	  getPointAtProgress,
 8	} from "@excalidraw/element";
-9	
+9
 10	import type {
 11	  ExcalidrawPathElement,
 12	  NonDeletedExcalidrawElement,
 13	} from "@excalidraw/element/types";
-14	
+14
 15	import { AnimationController } from "./renderer/animation";
-16	
+16
 17	import type App from "./components/App";
-18	
+18
 19	/** constant speed, not fixed duration — longer paths naturally take longer */
 20	const PATH_PLAYBACK_SPEED_PX_PER_SEC = 300;
-21	
+21
 22	type PlaybackState = {
 23	  elapsed: number;
 24	  totalDuration: number;
 25	  originalPositions: Map<string, { x: number; y: number }>;
 26	};
-27	
+27
 28	/**
 29	 * Drives the basic, fixed-speed "press and hold to preview" path animation.
 30	 * Reuses the shared `AnimationController` (a single RAF loop multiplexing
@@ -347,18 +358,18 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:22Z)**_
 46	 */
 47	export class PathPlaybackController {
 48	  constructor(private app: App) {}
-49	
+49
 50	  isPlaying(path: ExcalidrawPathElement): boolean {
 51	    return AnimationController.running(playbackKey(path.id));
 52	  }
-53	
+53
 54	  start(path: ExcalidrawPathElement, targets: NonDeletedExcalidrawElement[]) {
 55	    const key = playbackKey(path.id);
-56	
+56
 57	    if (AnimationController.running(key) || targets.length === 0) {
 58	      return;
 59	    }
-60	
+60
 61	    const elementsMap = this.app.scene.getNonDeletedElementsMap();
 62	    const globalPoints = getPathGlobalSamplePoints(path, elementsMap);
 63	    const length = getPathLength(globalPoints);
@@ -366,7 +377,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:22Z)**_
 65	      (length / PATH_PLAYBACK_SPEED_PX_PER_SEC) * 1000,
 66	      1,
 67	    );
-68	
+68
 69	    const originalPositions = new Map<string, { x: number; y: number }>();
 70	    for (const target of targets) {
 71	      originalPositions.set(target.id, { x: target.x, y: target.y });
@@ -378,7 +389,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:22Z)**_
 77	        });
 78	      }
 79	    }
-80	
+80
 81	    // one-time alignment so the target's combined bounding-box center lands
 82	    // exactly on the path's first point (in absolute scene coordinates) at
 83	    // t=0, then stays glued to the path's shape as it progresses. In the
@@ -389,28 +400,28 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:22Z)**_
 88	    // line rather than replaying the path's shape from wherever the target
 89	    // happens to currently sit.
 90	    const alignmentOffset = getPathAlignmentOffset(path, targets, elementsMap);
-91	
+91
 92	    AnimationController.start<PlaybackState>(key, ({ deltaTime, state }) => {
 93	      const next: PlaybackState = state
 94	        ? { ...state, elapsed: state.elapsed + deltaTime }
 95	        : { elapsed: 0, totalDuration, originalPositions };
-96	
+96
 97	      const t = Math.min(next.elapsed / next.totalDuration, 1);
 98	      const { x: dx, y: dy } = getPointAtProgress(globalPoints, t);
 99	      const [startDx, startDy] = globalPoints[0] ?? [0, 0];
 100	      const totalDeltaX = dx - startDx + alignmentOffset.x;
 101	      const totalDeltaY = dy - startDy + alignmentOffset.y;
-102	
+102
 103	      const liveOriginalPositions = new Map(
 104	        [...next.originalPositions].filter(([id]) =>
 105	          this.app.scene.getNonDeletedElement(id),
 106	        ),
 107	      );
-108	
+108
 109	      if (liveOriginalPositions.size === 0) {
 110	        return null;
 111	      }
-112	
+112
 113	      for (const [id, orig] of liveOriginalPositions) {
 114	        const element = this.app.scene.getNonDeletedElement(id);
 115	        if (!element) {
@@ -426,7 +437,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:22Z)**_
 125	        );
 126	      }
 127	      this.app.scheduleNeverCapture();
-128	
+128
 129	      if (t >= 1) {
 130	        for (const [id, orig] of liveOriginalPositions) {
 131	          const element = this.app.scene.getNonDeletedElement(id);
@@ -440,11 +451,11 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:22Z)**_
 139	        this.app.scheduleNeverCapture();
 140	        return null;
 141	      }
-142	
+142
 143	      return next;
 144	    });
 145	  }
-146	
+146
 147	  /** plays `path` against its currently-live target(s), if any */
 148	  startForPath(path: ExcalidrawPathElement) {
 149	    this.start(
@@ -452,38 +463,40 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:22Z)**_
 151	      getPathTargetElements(path, this.app.scene.getNonDeletedElementsMap()),
 152	    );
 153	  }
-154	
+154
 155	  cancel(path: ExcalidrawPathElement) {
 156	    AnimationController.cancel(playbackKey(path.id));
 157	  }
 158	}
-159	
+159
 160	const playbackKey = (pathId: string) => `path-playback-${pathId}`;
 161
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:23Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/element/src/path.ts`
 
 ```text
 1	import { pointDistance, pointFrom, pointRotateRads } from "@excalidraw/math";
-2	
+2
 3	import { arrayToMap } from "@excalidraw/common";
-4	
+4
 5	import type { GlobalPoint, LocalPoint } from "@excalidraw/math";
-6	
+6
 7	import { getCommonBounds, getElementAbsoluteCoords } from "./bounds";
 8	import { getElementsInGroup } from "./groups";
 9	import { getPathSamplePoints } from "./pathSamples";
 10	import { getBoundTextElement } from "./textElement";
 11	import { isPathElement } from "./typeChecks";
-12	
+12
 13	import type { Scene } from "./Scene";
-14	
+14
 15	import type {
 16	  ElementsMap,
 17	  ElementsMapOrArray,
@@ -492,7 +505,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:23Z)**_
 20	  NonDeleted,
 21	  NonDeletedExcalidrawElement,
 22	} from "./types";
-23	
+23
 24	/**
 25	 * Resolves a path's target to the concrete, currently-live element(s) it
 26	 * should act on. `targetElementId` and `targetGroupId` are mutually
@@ -505,23 +518,23 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:23Z)**_
 33	  elements: ElementsMapOrArray,
 34	): NonDeletedExcalidrawElement[] => {
 35	  const elementsMap = arrayToMap(elements);
-36	
+36
 37	  if (path.targetElementId) {
 38	    const element = elementsMap.get(path.targetElementId);
 39	    return element && !element.isDeleted
 40	      ? [element as NonDeletedExcalidrawElement]
 41	      : [];
 42	  }
-43	
+43
 44	  if (path.targetGroupId) {
 45	    return getElementsInGroup(elementsMap, path.targetGroupId).filter(
 46	      (element): element is NonDeletedExcalidrawElement => !element.isDeleted,
 47	    );
 48	  }
-49	
+49
 50	  return [];
 51	};
-52	
+52
 53	/**
 54	 * Reverse lookup: all path elements (among `elements`) that target the given
 55	 * element, either directly or via a group it belongs to. If more than one
@@ -547,7 +560,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:23Z)**_
 75	  }
 76	  return paths;
 77	};
-78	
+78
 79	/**
 80	 * The path's travel polyline (see `getPathSamplePoints`) in absolute scene
 81	 * coordinates, with the path's rotation applied — i.e. exactly the line the
@@ -568,7 +581,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:23Z)**_
 96	    ),
 97	  );
 98	};
-99	
+99
 100	/**
 101	 * The translation that would snap `targets`' combined bounding-box center
 102	 * onto the path's (rotated) first point in absolute scene coordinates. Used
@@ -586,20 +599,20 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:23Z)**_
 114	  if (targets.length === 0) {
 115	    return { x: 0, y: 0 };
 116	  }
-117	
+117
 118	  const [minX, minY, maxX, maxY] = getCommonBounds(targets, elementsMap);
 119	  const referenceCenter = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
 120	  const [startX, startY] = getPathGlobalSamplePoints(path, elementsMap)[0] ?? [
 121	    path.x,
 122	    path.y,
 123	  ];
-124	
+124
 125	  return {
 126	    x: startX - referenceCenter.x,
 127	    y: startY - referenceCenter.y,
 128	  };
 129	};
-130	
+130
 131	/**
 132	 * Moves the path's live target(s) — and their bound text — so their combined
 133	 * center sits on the path's start point. No-op when already aligned.
@@ -628,7 +641,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:23Z)**_
 156	    }
 157	  }
 158	};
-159	
+159
 160	/** Total euclidean length of the polyline described by `points`. */
 161	export const getPathLength = <P extends LocalPoint | GlobalPoint>(
 162	  points: readonly P[],
@@ -639,7 +652,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:23Z)**_
 167	  }
 168	  return length;
 169	};
-170	
+170
 171	/**
 172	 * Walks the polyline's segments by cumulative length to find the point at
 173	 * progress `t` (0..1) along it, interpolating within the containing segment.
@@ -656,17 +669,17 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:23Z)**_
 184	  if (points.length === 1) {
 185	    return { x: points[0][0], y: points[0][1] };
 186	  }
-187	
+187
 188	  const clampedT = Math.min(Math.max(t, 0), 1);
 189	  const totalLength = getPathLength(points);
-190	
+190
 191	  if (totalLength === 0) {
 192	    return { x: points[0][0], y: points[0][1] };
 193	  }
-194	
+194
 195	  const targetLength = clampedT * totalLength;
 196	  let traveled = 0;
-197	
+197
 198	  for (let i = 1; i < points.length; i++) {
 199	    const segmentLength = pointDistance(points[i - 1], points[i]);
 200	    if (traveled + segmentLength >= targetLength || i === points.length - 1) {
@@ -681,17 +694,19 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:23Z)**_
 209	    }
 210	    traveled += segmentLength;
 211	  }
-212	
+212
 213	  const last = points[points.length - 1];
 214	  return { x: last[0], y: last[1] };
 215	};
 216
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:23Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/element/src/pathSamples.ts`
 
@@ -700,14 +715,14 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:23Z)**_
 2	  bezierEquation,
 3	  curveCatmullRomCubicApproxPoints,
 4	} from "@excalidraw/math";
-5	
+5
 6	import type { LocalPoint } from "@excalidraw/math";
-7	
+7
 8	import type { ExcalidrawPathElement } from "./types";
-9	
+9
 10	/** bezier samples taken per segment when a path is curved */
 11	const CURVE_SAMPLES_PER_SEGMENT = 16;
-12	
+12
 13	/**
 14	 * The polyline a path actually travels along, in the path's local
 15	 * coordinates: its raw `points` when straight, or a dense sampling of the
@@ -728,12 +743,12 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:23Z)**_
 30	  if (!path.roundness || path.points.length <= 2) {
 31	    return path.points;
 32	  }
-33	
+33
 34	  const curves = curveCatmullRomCubicApproxPoints(path.points as LocalPoint[]);
 35	  if (!curves) {
 36	    return path.points;
 37	  }
-38	
+38
 39	  const samples: LocalPoint[] = [path.points[0]];
 40	  for (const c of curves) {
 41	    for (let step = 1; step <= CURVE_SAMPLES_PER_SEGMENT; step++) {
@@ -744,11 +759,13 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:23Z)**_
 46	};
 47
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:25Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show data model diffs from motion path commit
 
@@ -760,11 +777,11 @@ Author: Anthony Williams <aawilliams01@wm.edu>
 Date:   Sat Oct 3 23:08:39 2026 -0400
 
     feat: add motion path tool (#45)
-    
+
     Adds a new first-class "path" element type for defining a motion
     trajectory that a selected element or group can follow, per issue #45
     (head issue #18).
-    
+
     - Path tool: click a target element/group, then click to place a
       start point, optional midpoints, and an end point; finish by
       clicking back near the last point or pressing Enter/Escape. Reuses
@@ -785,11 +802,11 @@ Date:   Sat Oct 3 23:08:39 2026 -0400
       restore/bounds/collision support so paths persist and hit-test
       correctly, including when later points extend above/left of the
       path's start.
-    
+
     Covered by new unit and end-to-end tests in
     packages/element/tests/path.test.ts and
     packages/excalidraw/tests/pathElement.test.tsx.
-    
+
     Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 
 diff --git a/packages/common/src/constants.ts b/packages/common/src/constants.ts
@@ -802,12 +819,12 @@ index f3128dcd..08eeaeca 100644
    laser: "laser",
 +  path: "path",
  } as const;
- 
+
  export const EDITOR_LS_KEYS = {
 @@ -549,6 +550,10 @@ export const DOUBLE_TAP_POSITION_THRESHOLD = 35;
- 
+
  export const BIND_MODE_TIMEOUT = 700; // ms
- 
+
 +/** press-and-hold duration on an element with an assigned motion path
 + * before its playback preview starts */
 +export const PATH_PLAYBACK_HOLD_MS = 1000; // ms
@@ -825,12 +842,12 @@ index db509ba7..b5f50889 100644
    ExcalidrawLineElement,
 +  ExcalidrawPathElement,
  } from "./types";
- 
+
  export type ElementConstructorOpts = MarkOptional<
 @@ -493,6 +494,21 @@ export const newLinearElement = (
    return element;
  };
- 
+
 +export const newPathElement = (
 +  opts: {
 +    points?: ExcalidrawPathElement["points"];
@@ -859,12 +876,12 @@ index d4d9745e..05309368 100644
    ExcalidrawLinearElementSubType,
 +  ExcalidrawPathElement,
  } from "./types";
- 
+
  export const isInitializedImageElement = <T extends ExcalidrawElement>(
 @@ -120,6 +121,12 @@ export const isArrowElement = <T extends ExcalidrawElement>(
    return element != null && element.type === "arrow";
  };
- 
+
 +export const isPathElement = <T extends ExcalidrawElement>(
 +  element?: T | null,
 +): element is T & ExcalidrawPathElement => {
@@ -895,13 +912,13 @@ index 5a88a0e2..fd51ceff 100644
 -  | ExcalidrawEmbeddableElement;
 +  | ExcalidrawEmbeddableElement
 +  | ExcalidrawPathElement;
- 
+
  export type ExcalidrawNonSelectionElement = Exclude<
    ExcalidrawElement,
 @@ -365,6 +366,23 @@ export type ExcalidrawArrowElement = ExcalidrawLinearElement &
      elbowed: boolean;
    }>;
- 
+
 +/**
 + * A motion path: an ordered sequence of points describing a trajectory that a
 + * target element (or native group) can be animated along. Structurally
@@ -952,7 +969,7 @@ index 7fd5c7f7..feeb287b 100644
    magicframe: false,
 +  path: true,
  };
- 
+
  export type RestoredDataState = {
 @@ -700,6 +701,38 @@ export const restoreElement = (
        return restoreElementWithProperties(element, {
@@ -990,7 +1007,7 @@ index 7fd5c7f7..feeb287b 100644
 +        ...getSizeFromPoints(points),
 +      });
 +    }
- 
+
      // Don't use default case so as to catch a missing an element type case.
      // We also don't want to throw, but instead return void so we filter
 diff --git a/packages/excalidraw/scene/types.ts b/packages/excalidraw/scene/types.ts
@@ -1013,7 +1030,7 @@ index dd3b35e2..d4d493c5 100644
    StrokeVariability,
 +  ExcalidrawPathElement,
  } from "@excalidraw/element/types";
- 
+
  import type {
 @@ -159,7 +160,8 @@ export type ToolType =
    | "frame"
@@ -1022,9 +1039,9 @@ index dd3b35e2..d4d493c5 100644
 -  | "laser";
 +  | "laser"
 +  | "path";
- 
+
  export type ElementOrToolType = ExcalidrawElementType | ToolType | "custom";
- 
+
 @@ -337,8 +339,20 @@ export interface AppState {
    /**
     * multiElement is for multi-point linear element that's created by clicking as opposed to dragging
@@ -1048,11 +1065,13 @@ index dd3b35e2..d4d493c5 100644
     * decoupled from newElement, dragging selection only creates selectionElement
     * - set on pointer down, updated during pointer move
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:29Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/actions/actionMotionPathEditor.tsx`
 
@@ -1067,21 +1086,21 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:29Z)**_
 8	  CaptureUpdateAction,
 9	} from "@excalidraw/element";
 10	import { arrayToMap, ROUNDNESS } from "@excalidraw/common";
-11	
+11
 12	import type {
 13	  ExcalidrawElement,
 14	  ExcalidrawPathElement,
 15	  NonDeleted,
 16	} from "@excalidraw/element/types";
-17	
+17
 18	import { DEFAULT_CATEGORIES } from "../components/CommandPalette/CommandPalette";
 19	import { PathIcon } from "../components/icons";
-20	
+20
 21	import { register } from "./register";
-22	
+22
 23	import type { ActionResult } from "./types";
 24	import type { AppClassProperties, AppState } from "../types";
-25	
+25
 26	/** the path currently being re-edited, if it still exists */
 27	const getEditedPath = (
 28	  elements: readonly ExcalidrawElement[],
@@ -1097,7 +1116,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:29Z)**_
 38	    ? (element as NonDeleted<ExcalidrawPathElement>)
 39	    : null;
 40	};
-41	
+41
 42	/**
 43	 * Leaves edit mode. Only drops the linear editor if it still belongs to the
 44	 * path — when the session ends because the user clicked onto another
@@ -1112,7 +1131,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:29Z)**_
 53	      ? null
 54	      : appState.selectedLinearElement,
 55	});
-56	
+56
 57	/**
 58	 * Commits a motion-path edit session: the path keeps its edited geometry and
 59	 * its target(s) are snapped onto the (possibly moved) start point — the same
@@ -1131,11 +1150,11 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:29Z)**_
 72	        captureUpdate: CaptureUpdateAction.EVENTUALLY,
 73	      };
 74	    }
-75	
+75
 76	    const elementsMap = arrayToMap(elements);
 77	    const targets = getPathTargetElements(path, elementsMap);
 78	    const offset = getPathAlignmentOffset(path, targets, elementsMap);
-79	
+79
 80	    const shiftedIds = new Set<string>();
 81	    for (const target of targets) {
 82	      shiftedIds.add(target.id);
@@ -1144,7 +1163,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:29Z)**_
 85	        shiftedIds.add(boundText.id);
 86	      }
 87	    }
-88	
+88
 89	    return {
 90	      elements:
 91	        offset.x !== 0 || offset.y !== 0
@@ -1162,7 +1181,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:29Z)**_
 103	    };
 104	  },
 105	});
-106	
+106
 107	/**
 108	 * Restores the path and its target(s) to exactly how they were when the edit
 109	 * session started, and leaves edit mode. Shared with `actionDeleteSelected`
@@ -1178,7 +1197,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:29Z)**_
 119	    return false;
 120	  }
 121	  const { original, originalPositions } = motionPathEditor;
-122	
+122
 123	  return {
 124	    elements: elements.map((el) => {
 125	      if (el.id === original.id && isPathElement(el)) {
@@ -1202,7 +1221,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:29Z)**_
 143	    captureUpdate: CaptureUpdateAction.IMMEDIATELY,
 144	  };
 145	};
-146	
+146
 147	export const actionRejectMotionPathEdit = register({
 148	  name: "rejectMotionPathEdit",
 149	  label: "labels.pathEditor.reject",
@@ -1210,7 +1229,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:29Z)**_
 151	  predicate: (elements, appState) => !!appState.motionPathEditor,
 152	  perform: (elements, appState) => rejectMotionPathEdit(elements, appState),
 153	});
-154	
+154
 155	export const actionToggleMotionPathCurve = register({
 156	  name: "toggleMotionPathCurve",
 157	  label: (elements, appState) =>
@@ -1239,7 +1258,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:29Z)**_
 180	    };
 181	  },
 182	});
-183	
+183
 184	/**
 185	 * Re-opens a confirmed motion path for editing: point editing via the
 186	 * (already path-aware) LinearElementEditor, plus move/resize/rotate handles
@@ -1267,7 +1286,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:29Z)**_
 208	    if (!path || !isPathElement(path)) {
 209	      return false;
 210	    }
-211	
+211
 212	    const elementsMap = app.scene.getNonDeletedElementsMap();
 213	    const originalPositions: Record<string, { x: number; y: number }> = {};
 214	    for (const target of getPathTargetElements(path, elementsMap)) {
@@ -1277,7 +1296,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:29Z)**_
 218	        originalPositions[boundText.id] = { x: boundText.x, y: boundText.y };
 219	      }
 220	    }
-221	
+221
 222	    return {
 223	      appState: {
 224	        ...appState,
@@ -1302,38 +1321,40 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:29Z)**_
 243	});
 244
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:30Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/MotionPathEditToolbar.tsx`
 
 ```text
 1	import { sceneCoordsToViewportCoords } from "@excalidraw/common";
 2	import { getElementAbsoluteCoords } from "@excalidraw/element";
-3	
+3
 4	import type {
 5	  ElementsMap,
 6	  ExcalidrawPathElement,
 7	  NonDeleted,
 8	} from "@excalidraw/element/types";
-9	
+9
 10	import {
 11	  actionFinishMotionPathEdit,
 12	  actionRejectMotionPathEdit,
 13	  actionToggleMotionPathCurve,
 14	} from "../actions";
 15	import { t } from "../i18n";
-16	
+16
 17	import { useExcalidrawActionManager, useExcalidrawAppState } from "./App";
-18	
+18
 19	import "./MotionPathEditToolbar.scss";
-20	
+20
 21	/** clears the path's top-right resize handle */
 22	const HANDLE_CLEARANCE = 24;
-23	
+23
 24	/**
 25	 * Small floating toolbar shown next to a motion path while it is being
 26	 * re-edited (see actionMotionPathEditor.tsx). Positioned like
@@ -1351,7 +1372,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:30Z)**_
 38	}) => {
 39	  const appState = useExcalidrawAppState();
 40	  const actionManager = useExcalidrawActionManager();
-41	
+41
 42	  if (
 43	    appState.contextMenu ||
 44	    appState.newElement ||
@@ -1364,13 +1385,13 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:30Z)**_
 51	  ) {
 52	    return null;
 53	  }
-54	
+54
 55	  const [, y1, x2] = getElementAbsoluteCoords(path, elementsMap);
 56	  const { x: viewportX, y: viewportY } = sceneCoordsToViewportCoords(
 57	    { sceneX: x2, sceneY: y1 },
 58	    appState,
 59	  );
-60	
+60
 61	  return (
 62	    <div
 63	      className="motion-path-edit-toolbar"
@@ -1420,11 +1441,13 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:30Z)**_
 107	};
 108
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:32Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show state/action diffs from #48 commit
 
@@ -1436,7 +1459,7 @@ Author: Anthony Williams <aawilliams01@wm.edu>
 Date:   Tue Oct 6 23:41:40 2026 -0400
 
     feat(editor): edit motion path and element after configuration (#48)
-    
+
     - Right-click (or double-click) a motion path -> "Edit motion path" to
       move/add/delete points, move/resize/rotate the path, and toggle it
       between straight and curved, from a small floating toolbar with
@@ -1449,7 +1472,7 @@ Date:   Tue Oct 6 23:41:40 2026 -0400
     - Re-snap the element onto the path start after any resize/rotate of the
       path or its element.
     - Reject restores a copied snapshot (scene edits mutate in place).
-    
+
     Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 
 diff --git a/packages/excalidraw/actions/actionDeleteSelected.tsx b/packages/excalidraw/actions/actionDeleteSelected.tsx
@@ -1458,12 +1481,12 @@ index 193f5d86..303193da 100644
 +++ b/packages/excalidraw/actions/actionDeleteSelected.tsx
 @@ -33,6 +33,7 @@ import { IconButton } from "../components/IconButton";
  import { useStylesPanelMode } from "../components/App";
- 
+
  import { register } from "./register";
 +import { rejectMotionPathEdit } from "./actionMotionPathEditor";
- 
+
  import type { AppClassProperties, AppState } from "../types";
- 
+
 @@ -222,6 +223,19 @@ export const actionDeleteSelected = register({
        if (!linearElement) {
          return false;
@@ -1489,9 +1512,9 @@ index 4a0b17b8..7301db31 100644
 --- a/packages/excalidraw/actions/actionFinalize.tsx
 +++ b/packages/excalidraw/actions/actionFinalize.tsx
 @@ -166,6 +166,27 @@ export const actionFinalize = register<FormData>({
- 
+
          const activeToolLocked = appState.activeTool?.locked;
- 
+
 +        // re-editing an existing motion path (see actionMotionPathEditor.tsx):
 +        // each point edit just commits the new geometry and stays in edit
 +        // mode — the target only re-snaps once the session is confirmed, and
@@ -1531,7 +1554,7 @@ index 4a0b17b8..7301db31 100644
 @@ -399,8 +421,8 @@ export const actionFinalize = register<FormData>({
        });
      }
- 
+
 -    // paths are deliberately not re-editable after confirm (no
 -    // LinearElementEditor instance), unlike line/arrow
 +    // a confirmed path drops its editor (no LinearElementEditor instance),
@@ -1553,9 +1576,9 @@ index 1f7171d8..6f5f1d93 100644
 +  actionRejectMotionPathEdit,
 +  actionToggleMotionPathCurve,
 +} from "./actionMotionPathEditor";
- 
+
  export { actionToggleSearchMenu } from "./actionToggleSearchMenu";
- 
+
 diff --git a/packages/excalidraw/actions/types.ts b/packages/excalidraw/actions/types.ts
 index 1671d415..12c3d406 100644
 --- a/packages/excalidraw/actions/types.ts
@@ -1570,7 +1593,7 @@ index 1671d415..12c3d406 100644
 +  | "finishMotionPathEdit"
 +  | "rejectMotionPathEdit"
 +  | "toggleMotionPathCurve";
- 
+
  export type PanelComponentProps = {
    elements: readonly ExcalidrawElement[];
 diff --git a/packages/excalidraw/appState.ts b/packages/excalidraw/appState.ts
@@ -1637,11 +1660,11 @@ index a7d159f9..6461f7d9 100644
 +  getPathTargetElements,
    getPointAtProgress,
  } from "@excalidraw/element";
- 
+
 @@ -56,13 +58,14 @@ export class PathPlaybackController {
        return;
      }
- 
+
 -    const length = getPathLength(path.points);
 +    const elementsMap = this.app.scene.getNonDeletedElementsMap();
 +    const globalPoints = getPathGlobalSamplePoints(path, elementsMap);
@@ -1650,14 +1673,14 @@ index a7d159f9..6461f7d9 100644
        (length / PATH_PLAYBACK_SPEED_PX_PER_SEC) * 1000,
        1,
      );
- 
+
 -    const elementsMap = this.app.scene.getNonDeletedElementsMap();
      const originalPositions = new Map<string, { x: number; y: number }>();
      for (const target of targets) {
        originalPositions.set(target.id, { x: target.x, y: target.y });
 @@ -92,8 +95,8 @@ export class PathPlaybackController {
          : { elapsed: 0, totalDuration, originalPositions };
- 
+
        const t = Math.min(next.elapsed / next.totalDuration, 1);
 -      const { x: dx, y: dy } = getPointAtProgress(path.points, t);
 -      const [startDx, startDy] = path.points[0] ?? [0, 0];
@@ -1665,11 +1688,11 @@ index a7d159f9..6461f7d9 100644
 +      const [startDx, startDy] = globalPoints[0] ?? [0, 0];
        const totalDeltaX = dx - startDx + alignmentOffset.x;
        const totalDeltaY = dy - startDy + alignmentOffset.y;
- 
+
 @@ -141,6 +144,14 @@ export class PathPlaybackController {
      });
    }
- 
+
 +  /** plays `path` against its currently-live target(s), if any */
 +  startForPath(path: ExcalidrawPathElement) {
 +    this.start(
@@ -1729,6 +1752,7 @@ index 860acccc..7b606b57 100644
     * decoupled from newElement, dragging selection only creates selectionElement
     * - set on pointer down, updated during pointer move
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:33Z)**_
@@ -1738,6 +1762,7 @@ Now App.tsx references and the AnimationController.
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:35Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/components/App.tsx` pattern `motionPath|MotionPath|pathPlayback|PathPlayback|PATH_PLAYBACK|pendingPathTarget|isPathElement|snapPathTargetsToStart|getPathsTargetingElement|newPathElement`
 
@@ -1814,11 +1839,13 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:35Z)**_
 12041:          snapPathTargetsToStart(path, this.scene);
 13659:      actionEditMotionPath,
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:36Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/renderer/animation.ts` pattern `static (start|running|cancel)|requestAnimationFrame|deltaTime`
 
@@ -1835,11 +1862,13 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:36Z)**_
 118:  static running(key: string) {
 122:  static cancel(key: string) {
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:38Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/App.tsx`
 
@@ -1865,23 +1894,25 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:38Z)**_
 2443	                                }
 2444	                              />
 2445	                            )}
-2446	
+2446
 2447	                          {this.state.contextMenu && (
 2448	                            <ContextMenu
 2449	                              items={this.state.contextMenu.items}
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:39Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/App.tsx`
 
 ```text
 3710	      this.state.theme === THEME.DARK,
 3711	    );
-3712	
+3712
 3713	    // a motion path edit session ends (and is committed) whenever its
 3714	    // editor goes away for any reason — clicking off, Esc, clicking the
 3715	    // bounding box, Done — so the commit lives in this one place
@@ -1903,18 +1934,20 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:39Z)**_
 3731	        }
 3732	      });
 3733	    }
-3734	
+3734
 3735	    if (
 3736	      this.state.selectedLinearElement?.isEditing &&
 3737	      !this.state.selectedElementIds[this.state.selectedLinearElement.elementId]
 3738	    ) {
 3739	      // defer so that the scheduleCapture flag isn't reset via current update
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:40Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/App.tsx`
 
@@ -1928,23 +1961,23 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:40Z)**_
 10226	    if (this.state.activeTool.type !== "selection") {
 10227	      return;
 10228	    }
-10229	
+10229
 10230	    const hitElement = this.getElementAtPosition(
 10231	      pointerDownState.origin.x,
 10232	      pointerDownState.origin.y,
 10233	    );
-10234	
+10234
 10235	    if (!hitElement) {
 10236	      return;
 10237	    }
-10238	
+10238
 10239	    const elementsMap = this.scene.getNonDeletedElementsMap();
 10240	    const [path] = getPathsTargetingElement(hitElement, elementsMap);
-10241	
+10241
 10242	    if (!path || this.pathPlayback.isPlaying(path)) {
 10243	      return;
 10244	    }
-10245	
+10245
 10246	    this.pathPlaybackArmedAt = {
 10247	      x: pointerDownState.origin.x,
 10248	      y: pointerDownState.origin.y,
@@ -1961,7 +1994,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:40Z)**_
 10259	      }
 10260	    }, PATH_PLAYBACK_HOLD_MS);
 10261	  }
-10262	
+10262
 10263	  /** a point or segment-midpoint handle of the path being re-edited */
 10264	  private isOverMotionPathEditorHandle(
 10265	    linearElementEditor: LinearElementEditor,
@@ -1991,7 +2024,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:40Z)**_
 10289	      ) !== null
 10290	    );
 10291	  }
-10292	
+10292
 10293	  private clearPathPlaybackArm() {
 10294	    if (this.pathPlaybackArmTimer) {
 10295	      clearTimeout(this.pathPlaybackArmTimer);
@@ -2000,16 +2033,18 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:40Z)**_
 10298	    this.pathPlaybackArmedAt = null;
 10299	  }
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:40Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/App.tsx`
 
 ```text
-12025	
+12025
 12026	      // resizing/rotating a motion path moves its start point, and resizing
 12027	      // its element moves the element's center — either way, re-snap the
 12028	      // element onto the path's start so the two stay together at rest
@@ -2028,15 +2063,17 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:40Z)**_
 12041	          snapPathTargetsToStart(path, this.scene);
 12042	        }
 12043	      }
-12044	
+12044
 12045	      // handle frame membership for resizing frames and/or selected elements
 12046	      if (pointerDownState.resize.isResizing) {
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:45Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages` pattern `case "path"|ExcalidrawPathElement = |presentation|customData`
 
@@ -2079,15 +2116,17 @@ packages\excalidraw\components\App.tsx:2782:    if (element.customData?.generati
 packages\excalidraw\components\App.tsx:2783:      copyTextToSystemClipboard(element.customData.generationData.html);
 packages\excalidraw\components\icons.tsx:2548:export const presentationIcon = createIcon(
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:47Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 List motion test cases and helpers
 
-`grep -n -E "^(describe|  describe|  it|    it|it)\(" packages/element/tests/path.test.ts packages/excalidraw/tests/pathElement.test.tsx packages/excalidraw/tests/pathEditing.test.tsx; sed -n 1,60p packages/excalidraw/tests/pathEditing.test.tsx; grep -n -i "path" packages/excalidraw/tests/helpers/api.ts`
+`grep -n -E "^(describe| describe| it| it|it)\(" packages/element/tests/path.test.ts packages/excalidraw/tests/pathElement.test.tsx packages/excalidraw/tests/pathEditing.test.tsx; sed -n 1,60p packages/excalidraw/tests/pathEditing.test.tsx; grep -n -i "path" packages/excalidraw/tests/helpers/api.ts`
 
 ```text
 packages/element/tests/path.test.ts:33:describe("path geometry helpers", () => {
@@ -2224,11 +2263,13 @@ const enterEditViaContextMenu = (x: number, y: number) => {
 517:    const { base, ext } = path.parse(filepath);
 518:    return new File([await API.readFile(filepath, null)], base, {
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:49Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/tests/pathEditing.test.tsx`
 
@@ -2239,32 +2280,32 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:49Z)**_
 63	  expect(item).not.toBeNull();
 64	  fireEvent.click(item!);
 65	};
-66	
+66
 67	beforeEach(async () => {
 68	  localStorage.clear();
 69	  reseed(7);
 70	  mouse.reset();
 71	  await render(<Excalidraw handleKeyboardGlobally={true} />);
 72	});
-73	
+73
 74	describe("entering motion path edit mode", () => {
 75	  it("offers 'Edit motion path' when right-clicking the path, not its element", () => {
 76	    setup();
-77	
+77
 78	    mouse.rightClickAt(50, 50);
 79	    expect(queryByTestId(UI.queryContextMenu()!, "editMotionPath")).toBeNull();
-80	
+80
 81	    mouse.rightClickAt(350, 300);
 82	    expect(
 83	      queryByTestId(UI.queryContextMenu()!, "editMotionPath"),
 84	    ).not.toBeNull();
 85	  });
-86	
+86
 87	  it("enters point editing with a snapshot and shows the small toolbar", () => {
 88	    const { path } = setup();
-89	
+89
 90	    enterEditViaContextMenu(350, 300);
-91	
+91
 92	    expect(h.state.motionPathEditor?.pathId).toEqual(path.id);
 93	    expect(h.state.selectedLinearElement?.elementId).toEqual(path.id);
 94	    expect(h.state.selectedLinearElement?.isEditing).toBe(true);
@@ -2272,44 +2313,44 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:49Z)**_
 96	      document.querySelector('[data-testid="motion-path-edit-toolbar"]'),
 97	    ).not.toBeNull();
 98	  });
-99	
+99
 100	  it("can also be entered by double-clicking the path", () => {
 101	    const { path } = setup();
-102	
+102
 103	    API.setSelectedElements([path]);
 104	    mouse.doubleClickAt(350, 300);
-105	
+105
 106	    expect(h.state.motionPathEditor?.pathId).toEqual(path.id);
 107	  });
 108	});
-109	
+109
 110	describe("editing the path's points", () => {
 111	  it("moves a point on the same path element (no duplicates)", () => {
 112	    const { path } = setup();
 113	    enterEditViaContextMenu(350, 300);
-114	
+114
 115	    mouse.downAt(400, 300);
 116	    mouse.moveTo(400, 400);
 117	    mouse.upAt(400, 400);
-118	
+118
 119	    expect(h.elements.length).toEqual(2);
 120	    const updated = getPath(path.id);
 121	    expect(updated.points).toEqual([pointFrom(0, 0), pointFrom(100, 100)]);
 122	    expect(h.state.motionPathEditor?.pathId).toEqual(path.id);
 123	  });
-124	
+124
 125	  it("adds a point by dragging a segment midpoint", () => {
 126	    const { path } = setup();
 127	    enterEditViaContextMenu(350, 300);
-128	
+128
 129	    mouse.downAt(350, 300);
 130	    mouse.moveTo(350, 360);
 131	    mouse.upAt(350, 360);
-132	
+132
 133	    expect(h.elements.length).toEqual(2);
 134	    expect(getPath(path.id).points).toHaveLength(3);
 135	  });
-136	
+136
 137	  it("deletes a selected point but never drops below two", () => {
 138	    const { path } = setup([
 139	      pointFrom(0, 0),
@@ -2317,13 +2358,13 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:49Z)**_
 141	      pointFrom(100, 0),
 142	    ]);
 143	    enterEditViaContextMenu(300, 300);
-144	
+144
 145	    // select the middle point at (350, 350) and delete it
 146	    mouse.clickAt(350, 350);
 147	    expect(h.state.selectedLinearElement?.selectedPointsIndices).toEqual([1]);
 148	    Keyboard.keyPress(KEYS.DELETE);
 149	    expect(getPath(path.id).points).toHaveLength(2);
-150	
+150
 151	    // the remaining two points can't be removed
 152	    mouse.clickAt(400, 300);
 153	    expect(h.state.selectedLinearElement?.selectedPointsIndices).toEqual([1]);
@@ -2331,7 +2372,7 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:49Z)**_
 155	    expect(getPath(path.id).points).toHaveLength(2);
 156	    expect(getPath(path.id).isDeleted).toBe(false);
 157	  });
-158	
+158
 159	  it("toggles the path between straight and curved from the toolbar", () => {
 160	    const { path } = setup([
 161	      pointFrom(0, 0),
@@ -2339,36 +2380,38 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:49Z)**_
 163	      pointFrom(100, 0),
 164	    ]);
 165	    enterEditViaContextMenu(300, 300);
-166	
+166
 167	    UI.clickOnTestId("motion-path-curve");
 168	    expect(getPath(path.id).roundness).not.toBeNull();
-169	
+169
 170	    UI.clickOnTestId("motion-path-curve");
 171	    expect(getPath(path.id).roundness).toBeNull();
 172	  });
 173	});
-174	
+174
 175	describe("testing the edited path", () => {
 176	  it("the Test animation button plays the edited path", () => {
 177	    const { path } = setup();
 178	    enterEditViaContextMenu(350, 300);
-179	
+179
 180	    UI.clickOnTestId("motion-path-test");
-181	
+181
 182	    expect(h.app.pathPlayback.isPlaying(getPath(path.id))).toBe(true);
 183	    h.app.pathPlayback.cancel(getPath(path.id));
 184	  });
 185	});
-186	
+186
 187	describe("confirming and rejecting", () => {
 188	  // NOTE: expectations below are literal values, never the `path` fixture
 189	  // object — scene edits mutate elements in place, so comparing against the
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:50Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/element/src/types.ts`
 
@@ -2389,27 +2432,29 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:50Z)**_
 398	    /** mutually exclusive with targetElementId; resolved once at creation time */
 399	    targetGroupId: GroupId | null;
 400	  }>;
-401	
+401
 402	export type ExcalidrawElbowArrowElement = Merge<
 403	  ExcalidrawArrowElement,
 404	  {
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:51Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/renderer/animation.ts`
 
 ```text
 1	import { isRenderThrottlingEnabled } from "../reactUtils";
-2	
+2
 3	export type Animation<R extends object> = (params: {
 4	  deltaTime: number;
 5	  state?: R;
 6	}) => R | null | undefined;
-7	
+7
 8	export class AnimationController {
 9	  private static scheduledFrame:
 10	    | { id: ReturnType<typeof requestAnimationFrame>; type: "raf" }
@@ -2423,33 +2468,33 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:51Z)**_
 18	      state: any;
 19	    }
 20	  >();
-21	
+21
 22	  static start<R extends object>(key: string, animation: Animation<R>) {
 23	    if (AnimationController.animations.has(key)) {
 24	      return;
 25	    }
-26	
+26
 27	    const initialState = animation({
 28	      deltaTime: 0,
 29	      state: undefined,
 30	    });
-31	
+31
 32	    if (initialState) {
 33	      AnimationController.animations.set(key, {
 34	        animation,
 35	        lastTime: 0,
 36	        state: initialState,
 37	      });
-38	
+38
 39	      AnimationController.scheduleNextFrame();
 40	    }
 41	  }
-42	
+42
 43	  private static scheduleNextFrame() {
 44	    if (AnimationController.scheduledFrame) {
 45	      return;
 46	    }
-47	
+47
 48	    if (isRenderThrottlingEnabled()) {
 49	      AnimationController.scheduledFrame = {
 50	        id: requestAnimationFrame(AnimationController.tick),
@@ -2462,47 +2507,47 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:51Z)**_
 57	      };
 58	    }
 59	  }
-60	
+60
 61	  private static cancelScheduledFrame() {
 62	    if (!AnimationController.scheduledFrame) {
 63	      return;
 64	    }
-65	
+65
 66	    if (AnimationController.scheduledFrame.type === "raf") {
 67	      cancelAnimationFrame(AnimationController.scheduledFrame.id);
 68	    } else {
 69	      clearTimeout(AnimationController.scheduledFrame.id);
 70	    }
-71	
+71
 72	    AnimationController.scheduledFrame = null;
 73	  }
-74	
+74
 75	  private static cancelScheduledFrameIfIdle() {
 76	    if (AnimationController.animations.size > 0) {
 77	      return false;
 78	    }
-79	
+79
 80	    AnimationController.cancelScheduledFrame();
 81	    return true;
 82	  }
-83	
+83
 84	  private static tick() {
 85	    AnimationController.scheduledFrame = null;
-86	
+86
 87	    if (AnimationController.animations.size > 0) {
 88	      for (const [key, animation] of AnimationController.animations) {
 89	        const now = performance.now();
 90	        const deltaTime =
 91	          animation.lastTime === 0 ? 0 : now - animation.lastTime;
-92	
+92
 93	        const state = animation.animation({
 94	          deltaTime,
 95	          state: animation.state,
 96	        });
-97	
+97
 98	        if (!state) {
 99	          AnimationController.animations.delete(key);
-100	
+100
 101	          if (AnimationController.cancelScheduledFrameIfIdle()) {
 102	            return;
 103	          }
@@ -2511,24 +2556,24 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:51Z)**_
 106	          animation.state = state;
 107	        }
 108	      }
-109	
+109
 110	      if (AnimationController.cancelScheduledFrameIfIdle()) {
 111	        return;
 112	      }
-113	
+113
 114	      AnimationController.scheduleNextFrame();
 115	    }
 116	  }
-117	
+117
 118	  static running(key: string) {
 119	    return AnimationController.animations.has(key);
 120	  }
-121	
+121
 122	  static cancel(key: string) {
 123	    AnimationController.animations.delete(key);
 124	    AnimationController.cancelScheduledFrameIfIdle();
 125	  }
-126	
+126
 127	  static reset() {
 128	    AnimationController.animations.clear();
 129	    AnimationController.cancelScheduledFrame();
@@ -2536,11 +2581,13 @@ _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:51Z)**_
 131	}
 132
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:50:56Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect restore, double-click, context menu, finalize
 
@@ -2656,6 +2703,7 @@ Inspect restore, double-click, context menu, finalize
 425:    // unlike line/arrow — it's re-opened explicitly via "Edit motion path"
 429:        : isPathElement(element)
 ```
+
 </details></tool-use>
 
 _**Agent - sidechain (claude-opus-5-5 2026-10-08 03:51:33Z)**_
@@ -2665,6 +2713,7 @@ I found every part of the motion path feature. There is no per-path speed, durat
 Paths below are relative to `C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\`.
 
 Relevant commits:
+
 - **`2dfebf8b` (#45, under head issue #18):** added the `path` element type, the path tool, the playback engine, restore support and the first tests.
 - **`e91ec3d9` (#48):** added editing after configuration (an action file, a toolbar component, the `motionPathEditor` app state), curved paths, path resize/rotate and `pathEditing.test.tsx`.
 
@@ -2672,12 +2721,13 @@ Relevant commits:
 
 - **Element type.** `element/src/types.ts:392-400` declares a first-class element type. It is not stored in `customData`, and `customData` is not used by this feature at all.
   ```ts
-  export type ExcalidrawPathElement = _ExcalidrawElementBase & Readonly<{
-    type: "path";
-    points: readonly LocalPoint[];
-    targetElementId: string | null;   // mutually exclusive with targetGroupId
-    targetGroupId: GroupId | null;    // resolved once at creation time
-  }>;
+  export type ExcalidrawPathElement = _ExcalidrawElementBase &
+    Readonly<{
+      type: "path";
+      points: readonly LocalPoint[];
+      targetElementId: string | null; // mutually exclusive with targetGroupId
+      targetGroupId: GroupId | null; // resolved once at creation time
+    }>;
   ```
   - It is added to the `ExcalidrawElement` union.
   - It is deliberately separate from `ExcalidrawLinearElement`, so paths have no bindings or arrowheads.
@@ -2793,6 +2843,7 @@ _**User (2026-10-08 03:51:33Z)**_
 Paths below are relative to `C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\`.
 
 Relevant commits:
+
 - **`2dfebf8b` (#45, under head issue #18):** added the `path` element type, the path tool, the playback engine, restore support and the first tests.
 - **`e91ec3d9` (#48):** added editing after configuration (an action file, a toolbar component, the `motionPathEditor` app state), curved paths, path resize/rotate and `pathEditing.test.tsx`.
 
@@ -2903,15 +2954,14 @@ Relevant commits:
   - A `flushDeferred()` helper (`act` + `setTimeout 0`) lets the deferred commit run.
   - Playback is checked with `h.app.pathPlayback.isPlaying(...)` and then `cancel(...)`.
   - Expected values are written as literals, because scene edits change element objects in place.
-- Snapshots that changed: `excalidraw/tests/__snapshots__/{contextmenu,history,regressionTests}.test.tsx.snap` and `utils/tests/__snapshots__/export.test.ts.snap`.</result>
-<usage><subagent_tokens>68888</subagent_tokens><tool_uses>22</tool_uses><duration_ms>90856</duration_ms></usage>
-</task-notification>
+- Snapshots that changed: `excalidraw/tests/__snapshots__/{contextmenu,history,regressionTests}.test.tsx.snap` and `utils/tests/__snapshots__/export.test.ts.snap`.</result> <usage><subagent_tokens>68888</subagent_tokens><tool_uses>22</tool_uses><duration_ms>90856</duration_ms></usage> </task-notification>
 
 ---
 
 _**Agent (claude-opus-5-5 2026-10-08 03:51:38Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/pathPlayback.ts`
 
@@ -2924,25 +2974,25 @@ _**Agent (claude-opus-5-5 2026-10-08 03:51:38Z)**_
 6	  getPathTargetElements,
 7	  getPointAtProgress,
 8	} from "@excalidraw/element";
-9	
+9
 10	import type {
 11	  ExcalidrawPathElement,
 12	  NonDeletedExcalidrawElement,
 13	} from "@excalidraw/element/types";
-14	
+14
 15	import { AnimationController } from "./renderer/animation";
-16	
+16
 17	import type App from "./components/App";
-18	
+18
 19	/** constant speed, not fixed duration — longer paths naturally take longer */
 20	const PATH_PLAYBACK_SPEED_PX_PER_SEC = 300;
-21	
+21
 22	type PlaybackState = {
 23	  elapsed: number;
 24	  totalDuration: number;
 25	  originalPositions: Map<string, { x: number; y: number }>;
 26	};
-27	
+27
 28	/**
 29	 * Drives the basic, fixed-speed "press and hold to preview" path animation.
 30	 * Reuses the shared `AnimationController` (a single RAF loop multiplexing
@@ -2964,18 +3014,18 @@ _**Agent (claude-opus-5-5 2026-10-08 03:51:38Z)**_
 46	 */
 47	export class PathPlaybackController {
 48	  constructor(private app: App) {}
-49	
+49
 50	  isPlaying(path: ExcalidrawPathElement): boolean {
 51	    return AnimationController.running(playbackKey(path.id));
 52	  }
-53	
+53
 54	  start(path: ExcalidrawPathElement, targets: NonDeletedExcalidrawElement[]) {
 55	    const key = playbackKey(path.id);
-56	
+56
 57	    if (AnimationController.running(key) || targets.length === 0) {
 58	      return;
 59	    }
-60	
+60
 61	    const elementsMap = this.app.scene.getNonDeletedElementsMap();
 62	    const globalPoints = getPathGlobalSamplePoints(path, elementsMap);
 63	    const length = getPathLength(globalPoints);
@@ -2983,7 +3033,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:51:38Z)**_
 65	      (length / PATH_PLAYBACK_SPEED_PX_PER_SEC) * 1000,
 66	      1,
 67	    );
-68	
+68
 69	    const originalPositions = new Map<string, { x: number; y: number }>();
 70	    for (const target of targets) {
 71	      originalPositions.set(target.id, { x: target.x, y: target.y });
@@ -2995,7 +3045,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:51:38Z)**_
 77	        });
 78	      }
 79	    }
-80	
+80
 81	    // one-time alignment so the target's combined bounding-box center lands
 82	    // exactly on the path's first point (in absolute scene coordinates) at
 83	    // t=0, then stays glued to the path's shape as it progresses. In the
@@ -3006,28 +3056,28 @@ _**Agent (claude-opus-5-5 2026-10-08 03:51:38Z)**_
 88	    // line rather than replaying the path's shape from wherever the target
 89	    // happens to currently sit.
 90	    const alignmentOffset = getPathAlignmentOffset(path, targets, elementsMap);
-91	
+91
 92	    AnimationController.start<PlaybackState>(key, ({ deltaTime, state }) => {
 93	      const next: PlaybackState = state
 94	        ? { ...state, elapsed: state.elapsed + deltaTime }
 95	        : { elapsed: 0, totalDuration, originalPositions };
-96	
+96
 97	      const t = Math.min(next.elapsed / next.totalDuration, 1);
 98	      const { x: dx, y: dy } = getPointAtProgress(globalPoints, t);
 99	      const [startDx, startDy] = globalPoints[0] ?? [0, 0];
 100	      const totalDeltaX = dx - startDx + alignmentOffset.x;
 101	      const totalDeltaY = dy - startDy + alignmentOffset.y;
-102	
+102
 103	      const liveOriginalPositions = new Map(
 104	        [...next.originalPositions].filter(([id]) =>
 105	          this.app.scene.getNonDeletedElement(id),
 106	        ),
 107	      );
-108	
+108
 109	      if (liveOriginalPositions.size === 0) {
 110	        return null;
 111	      }
-112	
+112
 113	      for (const [id, orig] of liveOriginalPositions) {
 114	        const element = this.app.scene.getNonDeletedElement(id);
 115	        if (!element) {
@@ -3043,7 +3093,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:51:38Z)**_
 125	        );
 126	      }
 127	      this.app.scheduleNeverCapture();
-128	
+128
 129	      if (t >= 1) {
 130	        for (const [id, orig] of liveOriginalPositions) {
 131	          const element = this.app.scene.getNonDeletedElement(id);
@@ -3057,11 +3107,11 @@ _**Agent (claude-opus-5-5 2026-10-08 03:51:38Z)**_
 139	        this.app.scheduleNeverCapture();
 140	        return null;
 141	      }
-142	
+142
 143	      return next;
 144	    });
 145	  }
-146	
+146
 147	  /** plays `path` against its currently-live target(s), if any */
 148	  startForPath(path: ExcalidrawPathElement) {
 149	    this.start(
@@ -3069,47 +3119,49 @@ _**Agent (claude-opus-5-5 2026-10-08 03:51:38Z)**_
 151	      getPathTargetElements(path, this.app.scene.getNonDeletedElementsMap()),
 152	    );
 153	  }
-154	
+154
 155	  cancel(path: ExcalidrawPathElement) {
 156	    AnimationController.cancel(playbackKey(path.id));
 157	  }
 158	}
-159	
+159
 160	const playbackKey = (pathId: string) => `path-playback-${pathId}`;
 161
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:51:38Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/MotionPathEditToolbar.tsx`
 
 ```text
 1	import { sceneCoordsToViewportCoords } from "@excalidraw/common";
 2	import { getElementAbsoluteCoords } from "@excalidraw/element";
-3	
+3
 4	import type {
 5	  ElementsMap,
 6	  ExcalidrawPathElement,
 7	  NonDeleted,
 8	} from "@excalidraw/element/types";
-9	
+9
 10	import {
 11	  actionFinishMotionPathEdit,
 12	  actionRejectMotionPathEdit,
 13	  actionToggleMotionPathCurve,
 14	} from "../actions";
 15	import { t } from "../i18n";
-16	
+16
 17	import { useExcalidrawActionManager, useExcalidrawAppState } from "./App";
-18	
+18
 19	import "./MotionPathEditToolbar.scss";
-20	
+20
 21	/** clears the path's top-right resize handle */
 22	const HANDLE_CLEARANCE = 24;
-23	
+23
 24	/**
 25	 * Small floating toolbar shown next to a motion path while it is being
 26	 * re-edited (see actionMotionPathEditor.tsx). Positioned like
@@ -3127,7 +3179,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:51:38Z)**_
 38	}) => {
 39	  const appState = useExcalidrawAppState();
 40	  const actionManager = useExcalidrawActionManager();
-41	
+41
 42	  if (
 43	    appState.contextMenu ||
 44	    appState.newElement ||
@@ -3140,13 +3192,13 @@ _**Agent (claude-opus-5-5 2026-10-08 03:51:38Z)**_
 51	  ) {
 52	    return null;
 53	  }
-54	
+54
 55	  const [, y1, x2] = getElementAbsoluteCoords(path, elementsMap);
 56	  const { x: viewportX, y: viewportY } = sceneCoordsToViewportCoords(
 57	    { sceneX: x2, sceneY: y1 },
 58	    appState,
 59	  );
-60	
+60
 61	  return (
 62	    <div
 63	      className="motion-path-edit-toolbar"
@@ -3196,15 +3248,18 @@ _**Agent (claude-opus-5-5 2026-10-08 03:51:38Z)**_
 107	};
 108
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:53:05Z)**_
 
 <tool-use data-tool-type="generic" data-tool-name="AskUserQuestion"><details>
+
 <summary>Tool use: **AskUserQuestion**</summary>
 **How should users set movement speed in the edit toolbar?**
 
 Options:
+
 - **Presets + multiplier (Recommended)** - Slow / Normal / Fast buttons mapping to 0.5x / 1x / 2x of the current 300 px/s base. Simple, matches the issue's test cases, and longer paths still take longer.
 - **Numeric slider** - Continuous speed multiplier slider (e.g. 0.25x–4x), with Normal at 1x.
 - **Fixed duration (seconds)** - User enters total seconds; path length no longer affects timing.
@@ -3212,6 +3267,7 @@ Options:
 **How should start and end positions on the path be chosen?**
 
 Options:
+
 - **Percent of path (Recommended)** - Two sliders, start 0–100% and end 0–100% of path length (start < end). Works on curved paths and any length.
 - **Snap to path points** - Pick a starting and ending vertex index. Simpler, but coarse and awkward on curves.
 - **Drag markers on canvas** - Draggable start/end handles drawn on the path itself. Nicest UX, significantly more work in the renderer and pointer handlers.
@@ -3219,27 +3275,31 @@ Options:
 **The issue says to 'tween the speed'. Should an easing option be included?**
 
 Options:
+
 - **Yes, easing presets (Recommended)** - Linear (default), Ease in, Ease out, Ease in-out applied to progress t.
 - **No, linear only** - Keep constant speed; just speed + start/end.
 
-
 **Answer:** Presets + multiplier (Recommended), Percent of path (Recommended), Yes, easing presets (Recommended)
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:53:18Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages` pattern `export const ease\w*`
 
 ```text
 packages\common\src\utils.ts:203:export const easeOut = (k: number) => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:53:21Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/actions/actionMotionPathEditor.tsx` pattern `snapPathTargetsToStart|getPathAlignmentOffset|roundness`
 
@@ -3250,11 +3310,13 @@ _**Agent (claude-opus-5-5 2026-10-08 03:53:21Z)**_
 158:    getEditedPath(elements, appState)?.roundness
 172:              roundness: path.roundness
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:53:24Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/actions/actionMotionPathEditor.tsx`
 
@@ -3274,11 +3336,11 @@ _**Agent (claude-opus-5-5 2026-10-08 03:53:24Z)**_
 72	        captureUpdate: CaptureUpdateAction.EVENTUALLY,
 73	      };
 74	    }
-75	
+75
 76	    const elementsMap = arrayToMap(elements);
 77	    const targets = getPathTargetElements(path, elementsMap);
 78	    const offset = getPathAlignmentOffset(path, targets, elementsMap);
-79	
+79
 80	    const shiftedIds = new Set<string>();
 81	    for (const target of targets) {
 82	      shiftedIds.add(target.id);
@@ -3287,7 +3349,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:53:24Z)**_
 85	        shiftedIds.add(boundText.id);
 86	      }
 87	    }
-88	
+88
 89	    return {
 90	      elements:
 91	        offset.x !== 0 || offset.y !== 0
@@ -3305,7 +3367,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:53:24Z)**_
 103	    };
 104	  },
 105	});
-106	
+106
 107	/**
 108	 * Restores the path and its target(s) to exactly how they were when the edit
 109	 * session started, and leaves edit mode. Shared with `actionDeleteSelected`
@@ -3321,7 +3383,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:53:24Z)**_
 119	    return false;
 120	  }
 121	  const { original, originalPositions } = motionPathEditor;
-122	
+122
 123	  return {
 124	    elements: elements.map((el) => {
 125	      if (el.id === original.id && isPathElement(el)) {
@@ -3345,7 +3407,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:53:24Z)**_
 143	    captureUpdate: CaptureUpdateAction.IMMEDIATELY,
 144	  };
 145	};
-146	
+146
 147	export const actionRejectMotionPathEdit = register({
 148	  name: "rejectMotionPathEdit",
 149	  label: "labels.pathEditor.reject",
@@ -3353,7 +3415,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:53:24Z)**_
 151	  predicate: (elements, appState) => !!appState.motionPathEditor,
 152	  perform: (elements, appState) => rejectMotionPathEdit(elements, appState),
 153	});
-154	
+154
 155	export const actionToggleMotionPathCurve = register({
 156	  name: "toggleMotionPathCurve",
 157	  label: (elements, appState) =>
@@ -3382,63 +3444,76 @@ _**Agent (claude-opus-5-5 2026-10-08 03:53:24Z)**_
 180	    };
 181	  },
 182	});
-183	
+183
 184	/**
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:53:54Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ````markdown
 # Plan: Motion movement config — speed, easing, start/end (issue #46)
 
 ## Context
-Paths (#45) currently play back at a fixed 300 px/s, linearly, over the full path (`packages/excalidraw/pathPlayback.ts`). Issue #46 asks users to control *how* the target moves: speed, easing ("tween"), and a start/end section of the path, all from the #48 edit toolbar (`MotionPathEditToolbar.tsx`), testable with "Test animation", revertible with Reject, and kept after save/reload.
+
+Paths (#45) currently play back at a fixed 300 px/s, linearly, over the full path (`packages/excalidraw/pathPlayback.ts`). Issue #46 asks users to control _how_ the target moves: speed, easing ("tween"), and a start/end section of the path, all from the #48 edit toolbar (`MotionPathEditToolbar.tsx`), testable with "Test animation", revertible with Reject, and kept after save/reload.
 
 Decisions made with the user:
+
 - **Speed**: Slow / Normal / Fast presets → multipliers 0.5 / 1 / 2 on the 300 px/s base. Longer paths still take longer.
 - **Start/End**: percent of path length (0–100%), two range sliders, `start < end`.
 - **Easing**: Linear (default), Ease in, Ease out, Ease in-out.
 
 ## 1. Data model — `packages/element/src/types.ts`
+
 Add one nested, readonly config to `ExcalidrawPathElement` so snapshot/reject/restore treat it as one value:
+
 ```ts
 export type PathMotionEasing = "linear" | "easeIn" | "easeOut" | "easeInOut";
 export type PathMotionConfig = Readonly<{
-  speed: number;   // multiplier on base px/s, 1 = normal
-  start: number;   // 0..1 fraction of path length
-  end: number;     // 0..1, > start
+  speed: number; // multiplier on base px/s, 1 = normal
+  start: number; // 0..1 fraction of path length
+  end: number; // 0..1, > start
   easing: PathMotionEasing;
 }>;
 // on ExcalidrawPathElement:
 motion: PathMotionConfig;
 ```
+
 - `packages/common/src/constants.ts`: add `DEFAULT_PATH_MOTION`, `PATH_MOTION_SPEED_PRESETS = { slow: 0.5, normal: 1, fast: 2 }`, `PATH_MOTION_MIN_SPAN = 0.01`, and move the 300 px/s constant here (`PATH_PLAYBACK_BASE_SPEED_PX_PER_SEC`).
 - `newPathElement` (`packages/element/src/newElement.ts`): accept optional `motion`, default `DEFAULT_PATH_MOTION`.
 - `tests/helpers/api.ts` (path branch ~L211-253): pass through `motion`.
 
 ## 2. Geometry + easing — `packages/element/src/path.ts`
+
 - Add `getPathMotionEasing(easing) => (t) => number`. Reuse `easeOut` from `packages/common/src/utils.ts:203` for "easeOut"; add `easeIn` (t³) and `easeInOut` (cubic) next to it in common utils.
 - Add `normalizePathMotion(motion?)`: fills defaults, clamps start/end to [0,1], enforces `end - start >= PATH_MOTION_MIN_SPAN`, speed > 0. Used by restore and actions.
 - Change `getPathAlignmentOffset` (L109-129) to anchor the target's bbox center on `getPointAtProgress(globalPoints, path.motion.start)` instead of point 0. Since `actionFinishMotionPathEdit`, `snapPathTargetsToStart`, the resize/rotate re-snap (`App.tsx:12026-12043`), and playback all go through it, the target's resting position automatically becomes the configured start.
 
 ## 3. Playback — `packages/excalidraw/pathPlayback.ts`
+
 In `start()`:
+
 - `const { speed, start, end, easing } = path.motion; const ease = getPathMotionEasing(easing);`
 - `totalDuration = max(length * (end - start) / (BASE * speed) * 1000, 1)` — satisfies "speed changes duration" and scales with path length.
 - Per frame: `t = min(elapsed/totalDuration, 1)`, `p = start + ease(t) * (end - start)`, `point = getPointAtProgress(globalPoints, p)`, delta relative to `getPointAtProgress(globalPoints, start)` (replace the `globalPoints[0]` anchor at L99) plus `alignmentOffset`.
 - End-of-animation restore to `originalPositions` is unchanged, so replays use the same settings (Playback criterion). Hold-to-play in `App.tsx` uses the same controller, so it gets the config for free.
 
 ## 4. Actions — `packages/excalidraw/actions/actionMotionPathEditor.tsx`
+
 - New `actionChangeMotionPathConfig` (name `changeMotionPathConfig`, mirrors `actionToggleMotionPathCurve` L155-182): `perform(elements, appState, value: Partial<PathMotionConfig>)` → `newElementWith(path, { motion: normalizePathMotion({ ...path.motion, ...value }) })`. When `start` changes, also shift targets by the new `getPathAlignmentOffset` (same logic as Finish L76-100; pull that into a small shared helper `alignTargetsToPathStart(elements, path)`) so the target visibly sits at the new start while editing. `captureUpdate: IMMEDIATELY`.
 - `rejectMotionPathEdit` (L126-134): also restore `motion: original.motion`. The snapshot in `actionEditMotionPath` already shallow-copies the path, so `original.motion` is captured.
 - Register name in `actions/types.ts`, export from `actions/index.ts`.
 
 ## 5. UI — `packages/excalidraw/components/MotionPathEditToolbar.tsx` + `.scss`
+
 Keep the existing button row; add a second "motion settings" row under it:
+
 - **Speed**: 3-button segmented group (`motion-path-speed-slow|normal|fast`, `aria-pressed` on the match).
 - **Start / End**: two `<input type="range" min=0 max=100 step=1>` (`motion-path-start`, `motion-path-end`) showing `NN%`. On change → `executeAction(actionChangeMotionPathConfig, "ui", { start: v/100 })`. Normalization prevents crossing.
 - **Easing**: `<select>` (`motion-path-easing`) with the 4 options.
@@ -3446,9 +3521,11 @@ Keep the existing button row; add a second "motion settings" row under it:
 - Labels under `labels.pathEditor.*` in `packages/excalidraw/locales/en.json`: speed, slow, normal, fast, start, end, easing, linear, easeIn, easeOut, easeInOut.
 
 ## 6. Persistence — `packages/excalidraw/data/restore.ts` (`case "path"` L749-780)
+
 Add `motion: normalizePathMotion(element.motion)` so old files (no `motion`) load with defaults and bad values are clamped. Serialization needs no change.
 
 ## 7. Tests
+
 - `packages/element/tests/path.test.ts`: easing functions (endpoints 0→0, 1→1, monotonic); `normalizePathMotion` clamping/defaults; `getPathAlignmentOffset` anchoring at `start=0.5` on a straight 2-point path.
 - `packages/excalidraw/tests/pathEditing.test.tsx` (follow its existing patterns: `API.createElement({type:"path", …})`, `UI.clickOnTestId`, `flushDeferred`, `h.app.pathPlayback`):
   - Clicking speed presets updates `path.motion.speed`; duration check: spy on/advance `AnimationController` or compare computed duration for slow/normal/fast on **short and long** paths (slow = 2× normal, fast = ½ normal).
@@ -3461,21 +3538,23 @@ Add `motion: normalizePathMotion(element.motion)` so old files (no `motion`) loa
 - Run `yarn test:update` (contextmenu/history/regression/export snapshots will change because of the new `motion` field).
 
 ## Verification
+
 1. `yarn test:typecheck`
 2. `yarn test:update` then review snapshot diffs (only the added `motion` field should appear)
 3. `yarn fix`
 4. Manual: `yarn start` → draw a rectangle, add a path, double-click the path → set Fast + 25%–75% + Ease in-out → Test animation (shorter, eased, partial run) → Reject (reverts) → set again → Done → hold-to-play and reload the page; the settings should still be there.
-
 ````
 
 ```text
 File created successfully at: C:\Users\tonyw\.claude\plans\need-help-planning-pasted-content-nifty-steele.md (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:53:58Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="ToolSearch"><details>
+
 <summary>Tool use: **ToolSearch**</summary>
 
 **Input:**
@@ -3488,6 +3567,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:53:58Z)**_
 ```
 
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:54:00Z)**_
@@ -3497,9 +3577,10 @@ The plan is written. I'm submitting it for your approval.
 _**Agent (claude-opus-5-5 2026-10-08 03:55:24Z)**_
 
 <tool-use data-tool-type="generic" data-tool-name="ExitPlanMode"><details>
+
 <summary>Tool use: **ExitPlanMode**</summary>
 
-```text
+````text
 User has approved your plan. You can now start coding. Start with updating your todo list if applicable
 
 Your plan has been saved to: C:\Users\tonyw\.claude\plans\need-help-planning-pasted-content-nifty-steele.md
@@ -3528,30 +3609,37 @@ export type PathMotionConfig = Readonly<{
 }>;
 // on ExcalidrawPathElement:
 motion: PathMotionConfig;
-```
+````
+
 - `packages/common/src/constants.ts`: add `DEFAULT_PATH_MOTION`, `PATH_MOTION_SPEED_PRESETS = { slow: 0.5, normal: 1, fast: 2 }`, `PATH_MOTION_MIN_SPAN = 0.01`, and move the 300 px/s constant here (`PATH_PLAYBACK_BASE_SPEED_PX_PER_SEC`).
 - `newPathElement` (`packages/element/src/newElement.ts`): accept optional `motion`, default `DEFAULT_PATH_MOTION`.
 - `tests/helpers/api.ts` (path branch ~L211-253): pass through `motion`.
 
 ## 2. Geometry + easing — `packages/element/src/path.ts`
+
 - Add `getPathMotionEasing(easing) => (t) => number`. Reuse `easeOut` from `packages/common/src/utils.ts:203` for "easeOut"; add `easeIn` (t³) and `easeInOut` (cubic) next to it in common utils.
 - Add `normalizePathMotion(motion?)`: fills defaults, clamps start/end to [0,1], enforces `end - start >= PATH_MOTION_MIN_SPAN`, speed > 0. Used by restore and actions.
 - Change `getPathAlignmentOffset` (L109-129) to anchor the target's bbox center on `getPointAtProgress(globalPoints, path.motion.start)` instead of point 0. Since `actionFinishMotionPathEdit`, `snapPathTargetsToStart`, the resize/rotate re-snap (`App.tsx:12026-12043`), and playback all go through it, the target's resting position automatically becomes the configured start.
 
 ## 3. Playback — `packages/excalidraw/pathPlayback.ts`
+
 In `start()`:
+
 - `const { speed, start, end, easing } = path.motion; const ease = getPathMotionEasing(easing);`
 - `totalDuration = max(length * (end - start) / (BASE * speed) * 1000, 1)` — satisfies "speed changes duration" and scales with path length.
 - Per frame: `t = min(elapsed/totalDuration, 1)`, `p = start + ease(t) * (end - start)`, `point = getPointAtProgress(globalPoints, p)`, delta relative to `getPointAtProgress(globalPoints, start)` (replace the `globalPoints[0]` anchor at L99) plus `alignmentOffset`.
 - End-of-animation restore to `originalPositions` is unchanged, so replays use the same settings (Playback criterion). Hold-to-play in `App.tsx` uses the same controller, so it gets the config for free.
 
 ## 4. Actions — `packages/excalidraw/actions/actionMotionPathEditor.tsx`
+
 - New `actionChangeMotionPathConfig` (name `changeMotionPathConfig`, mirrors `actionToggleMotionPathCurve` L155-182): `perform(elements, appState, value: Partial<PathMotionConfig>)` → `newElementWith(path, { motion: normalizePathMotion({ ...path.motion, ...value }) })`. When `start` changes, also shift targets by the new `getPathAlignmentOffset` (same logic as Finish L76-100; pull that into a small shared helper `alignTargetsToPathStart(elements, path)`) so the target visibly sits at the new start while editing. `captureUpdate: IMMEDIATELY`.
 - `rejectMotionPathEdit` (L126-134): also restore `motion: original.motion`. The snapshot in `actionEditMotionPath` already shallow-copies the path, so `original.motion` is captured.
 - Register name in `actions/types.ts`, export from `actions/index.ts`.
 
 ## 5. UI — `packages/excalidraw/components/MotionPathEditToolbar.tsx` + `.scss`
+
 Keep the existing button row; add a second "motion settings" row under it:
+
 - **Speed**: 3-button segmented group (`motion-path-speed-slow|normal|fast`, `aria-pressed` on the match).
 - **Start / End**: two `<input type="range" min=0 max=100 step=1>` (`motion-path-start`, `motion-path-end`) showing `NN%`. On change → `executeAction(actionChangeMotionPathConfig, "ui", { start: v/100 })`. Normalization prevents crossing.
 - **Easing**: `<select>` (`motion-path-easing`) with the 4 options.
@@ -3559,9 +3647,11 @@ Keep the existing button row; add a second "motion settings" row under it:
 - Labels under `labels.pathEditor.*` in `packages/excalidraw/locales/en.json`: speed, slow, normal, fast, start, end, easing, linear, easeIn, easeOut, easeInOut.
 
 ## 6. Persistence — `packages/excalidraw/data/restore.ts` (`case "path"` L749-780)
+
 Add `motion: normalizePathMotion(element.motion)` so old files (no `motion`) load with defaults and bad values are clamped. Serialization needs no change.
 
 ## 7. Tests
+
 - `packages/element/tests/path.test.ts`: easing functions (endpoints 0→0, 1→1, monotonic); `normalizePathMotion` clamping/defaults; `getPathAlignmentOffset` anchoring at `start=0.5` on a straight 2-point path.
 - `packages/excalidraw/tests/pathEditing.test.tsx` (follow its existing patterns: `API.createElement({type:"path", …})`, `UI.clickOnTestId`, `flushDeferred`, `h.app.pathPlayback`):
   - Clicking speed presets updates `path.motion.speed`; duration check: spy on/advance `AnimationController` or compare computed duration for slow/normal/fast on **short and long** paths (slow = 2× normal, fast = ½ normal).
@@ -3574,11 +3664,13 @@ Add `motion: normalizePathMotion(element.motion)` so old files (no `motion`) loa
 - Run `yarn test:update` (contextmenu/history/regression/export snapshots will change because of the new `motion` field).
 
 ## Verification
+
 1. `yarn test:typecheck`
 2. `yarn test:update` then review snapshot diffs (only the added `motion` field should appear)
 3. `yarn fix`
 4. Manual: `yarn start` → draw a rectangle, add a path, double-click the path → set Fast + 25%–75% + Ease in-out → Test animation (shorter, eased, partial run) → Reject (reverts) → set again → Done → hold-to-play and reload the page; the settings should still be there.
-```
+
+````
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:55:26Z)**_
@@ -3593,19 +3685,19 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:26Z)**_
 
 ```text
 1	import { pointDistance, pointFrom, pointRotateRads } from "@excalidraw/math";
-2	
+2
 3	import { arrayToMap } from "@excalidraw/common";
-4	
+4
 5	import type { GlobalPoint, LocalPoint } from "@excalidraw/math";
-6	
+6
 7	import { getCommonBounds, getElementAbsoluteCoords } from "./bounds";
 8	import { getElementsInGroup } from "./groups";
 9	import { getPathSamplePoints } from "./pathSamples";
 10	import { getBoundTextElement } from "./textElement";
 11	import { isPathElement } from "./typeChecks";
-12	
+12
 13	import type { Scene } from "./Scene";
-14	
+14
 15	import type {
 16	  ElementsMap,
 17	  ElementsMapOrArray,
@@ -3614,7 +3706,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:26Z)**_
 20	  NonDeleted,
 21	  NonDeletedExcalidrawElement,
 22	} from "./types";
-23	
+23
 24	/**
 25	 * Resolves a path's target to the concrete, currently-live element(s) it
 26	 * should act on. `targetElementId` and `targetGroupId` are mutually
@@ -3627,23 +3719,23 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:26Z)**_
 33	  elements: ElementsMapOrArray,
 34	): NonDeletedExcalidrawElement[] => {
 35	  const elementsMap = arrayToMap(elements);
-36	
+36
 37	  if (path.targetElementId) {
 38	    const element = elementsMap.get(path.targetElementId);
 39	    return element && !element.isDeleted
 40	      ? [element as NonDeletedExcalidrawElement]
 41	      : [];
 42	  }
-43	
+43
 44	  if (path.targetGroupId) {
 45	    return getElementsInGroup(elementsMap, path.targetGroupId).filter(
 46	      (element): element is NonDeletedExcalidrawElement => !element.isDeleted,
 47	    );
 48	  }
-49	
+49
 50	  return [];
 51	};
-52	
+52
 53	/**
 54	 * Reverse lookup: all path elements (among `elements`) that target the given
 55	 * element, either directly or via a group it belongs to. If more than one
@@ -3669,7 +3761,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:26Z)**_
 75	  }
 76	  return paths;
 77	};
-78	
+78
 79	/**
 80	 * The path's travel polyline (see `getPathSamplePoints`) in absolute scene
 81	 * coordinates, with the path's rotation applied — i.e. exactly the line the
@@ -3690,7 +3782,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:26Z)**_
 96	    ),
 97	  );
 98	};
-99	
+99
 100	/**
 101	 * The translation that would snap `targets`' combined bounding-box center
 102	 * onto the path's (rotated) first point in absolute scene coordinates. Used
@@ -3708,20 +3800,20 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:26Z)**_
 114	  if (targets.length === 0) {
 115	    return { x: 0, y: 0 };
 116	  }
-117	
+117
 118	  const [minX, minY, maxX, maxY] = getCommonBounds(targets, elementsMap);
 119	  const referenceCenter = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
 120	  const [startX, startY] = getPathGlobalSamplePoints(path, elementsMap)[0] ?? [
 121	    path.x,
 122	    path.y,
 123	  ];
-124	
+124
 125	  return {
 126	    x: startX - referenceCenter.x,
 127	    y: startY - referenceCenter.y,
 128	  };
 129	};
-130	
+130
 131	/**
 132	 * Moves the path's live target(s) — and their bound text — so their combined
 133	 * center sits on the path's start point. No-op when already aligned.
@@ -3750,7 +3842,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:26Z)**_
 156	    }
 157	  }
 158	};
-159	
+159
 160	/** Total euclidean length of the polyline described by `points`. */
 161	export const getPathLength = <P extends LocalPoint | GlobalPoint>(
 162	  points: readonly P[],
@@ -3761,7 +3853,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:26Z)**_
 167	  }
 168	  return length;
 169	};
-170	
+170
 171	/**
 172	 * Walks the polyline's segments by cumulative length to find the point at
 173	 * progress `t` (0..1) along it, interpolating within the containing segment.
@@ -3778,17 +3870,17 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:26Z)**_
 184	  if (points.length === 1) {
 185	    return { x: points[0][0], y: points[0][1] };
 186	  }
-187	
+187
 188	  const clampedT = Math.min(Math.max(t, 0), 1);
 189	  const totalLength = getPathLength(points);
-190	
+190
 191	  if (totalLength === 0) {
 192	    return { x: points[0][0], y: points[0][1] };
 193	  }
-194	
+194
 195	  const targetLength = clampedT * totalLength;
 196	  let traveled = 0;
-197	
+197
 198	  for (let i = 1; i < points.length; i++) {
 199	    const segmentLength = pointDistance(points[i - 1], points[i]);
 200	    if (traveled + segmentLength >= targetLength || i === points.length - 1) {
@@ -3803,17 +3895,19 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:26Z)**_
 209	    }
 210	    traveled += segmentLength;
 211	  }
-212	
+212
 213	  const last = points[points.length - 1];
 214	  return { x: last[0], y: last[1] };
 215	};
 216
-```
+````
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:55:28Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/common/src` pattern `PATH_PLAYBACK_HOLD_MS|export const easeOut`
 
@@ -3834,11 +3928,13 @@ packages\common\src\utils.ts-207-// https://github.com/lodash/lodash/blob/es/chu
 packages\common\src\utils.ts-208-export const chunk = <T extends any>(
 packages\common\src\utils.ts-209-  array: readonly T[],
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:55:29Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages` pattern `newPathElement`
 
@@ -3849,28 +3945,30 @@ packages\excalidraw\tests\helpers\api.ts:392:        element = newPathElement({
 packages\excalidraw\components\App.tsx:262:  newPathElement,
 packages\excalidraw\components\App.tsx:10123:      const element = newPathElement({
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:55:32Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/element/src/newElement.ts`
 
 ```text
-485	
+485
 486	  if (isLineElement(element)) {
 487	    const lineElement: NonDeleted<ExcalidrawLineElement> = {
 488	      ...element,
 489	      polygon: opts.polygon ?? false,
 490	    };
-491	
+491
 492	    return lineElement;
 493	  }
-494	
+494
 495	  return element;
 496	};
-497	
+497
 498	export const newPathElement = (
 499	  opts: {
 500	    points?: ExcalidrawPathElement["points"];
@@ -3885,7 +3983,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:32Z)**_
 509	    targetGroupId: opts.targetGroupId ?? null,
 510	  };
 511	};
-512	
+512
 513	export const newArrowElement = <T extends boolean>(
 514	  opts: {
 515	    type: ExcalidrawArrowElement["type"];
@@ -3899,11 +3997,13 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:32Z)**_
 523	  ? NonDeleted<ExcalidrawElbowArrowElement>
 524	  : NonDeleted<ExcalidrawArrowElement> => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:55:32Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/element/src/types.ts`
 
@@ -3912,7 +4012,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:32Z)**_
 381	    type: "arrow";
 382	    elbowed: boolean;
 383	  }>;
-384	
+384
 385	/**
 386	 * A motion path: an ordered sequence of points describing a trajectory that a
 387	 * target element (or native group) can be animated along. Structurally
@@ -3929,16 +4029,18 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:32Z)**_
 398	    /** mutually exclusive with targetElementId; resolved once at creation time */
 399	    targetGroupId: GroupId | null;
 400	  }>;
-401	
+401
 402	export type ExcalidrawElbowArrowElement = Merge<
 403	  ExcalidrawArrowElement,
 404	  {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:55:33Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/data/restore.ts`
 
@@ -3955,7 +4057,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:33Z)**_
 754	        element.width,
 755	        element.height,
 756	      );
-757	
+757
 758	      if (points[0][0] !== 0 || points[0][1] !== 0) {
 759	        ({ points, x, y } =
 760	          LinearElementEditor.getNormalizeElementPointsAndCoords({
@@ -3965,7 +4067,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:33Z)**_
 764	            y: y ?? 0,
 765	          } as unknown as ExcalidrawLinearElement));
 766	      }
-767	
+767
 768	      // a dangling targetElementId/targetGroupId (referencing a since-deleted
 769	      // target) is tolerated, not repaired here — the same way a dangling
 770	      // frameId is tolerated elsewhere; resolution happens at read time via
@@ -3979,16 +4081,18 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:33Z)**_
 778	        ...getSizeFromPoints(points),
 779	      });
 780	    }
-781	
+781
 782	    // Don't use default case so as to catch a missing an element type case.
 783	    // We also don't want to throw, but instead return void so we filter
 784	    // out these unsupported elements from the restored array.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:55:34Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/tests/helpers/api.ts`
 
@@ -4044,11 +4148,13 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:34Z)**_
 253	      ? ExcalidrawPathElement
 254	      : ExcalidrawGenericElement
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:55:36Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/tests/helpers/api.ts`
 
@@ -4069,11 +4175,13 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:36Z)**_
 398	          points: rest.points ?? [
 399	            pointFrom<LocalPoint>(0, 0),
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:55:38Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/tests/helpers/api.ts`
 
@@ -4089,6 +4197,7 @@ _**Agent (claude-opus-5-5 2026-10-08 03:55:38Z)**_
 407	        assertNever(
 408	          type,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:55:39Z)**_
@@ -4098,41 +4207,49 @@ Now the edits. Types first:
 _**Agent (claude-opus-5-5 2026-10-08 03:55:53Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\element\src\types.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:55:58Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\common\src\constants.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:56:01Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\common\src\utils.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:56:05Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\element\src\newElement.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:56:09Z)**_
@@ -4142,6 +4259,7 @@ To avoid import cycles, I'll put the motion helpers in a small standalone module
 _**Agent (claude-opus-5-5 2026-10-08 03:56:29Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -4209,28 +4327,31 @@ export const normalizePathMotion = (
       : DEFAULT_PATH_MOTION.easing,
   };
 };
-
 ```
 
 ```text
 File created successfully at: C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\element\src\pathMotion.ts (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:56:30Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages` pattern `export const clamp|export \* from "./path|from "./path"`
 
 ```text
 No matches found
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:56:32Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages` pattern `clamp =|\./path"|\./pathSamples"`
 
@@ -4246,31 +4367,37 @@ packages\element\src\index.ts:86:export * from "./pathSamples";
 packages\element\src\dragElements.ts:20:import { getPathsTargetingElement, getPathTargetElements } from "./path";
 packages\element\src\bounds.ts:33:import { getPathSamplePoints } from "./pathSamples";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:58:20Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\element\src\pathMotion.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:58:53Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\element\src\index.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:58:54Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/element/src/newElement.ts` pattern `^import|^} from`
 
@@ -4289,51 +4416,61 @@ _**Agent (claude-opus-5-5 2026-10-08 03:58:54Z)**_
 31:import type {
 53:} from "./types";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 03:59:09Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\element\src\newElement.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:03:18Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\helpers\api.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:03:23Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\helpers\api.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:03:25Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\data\restore.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:03:26Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/data/restore.ts` pattern `from "@excalidraw/element";`
 
@@ -4367,36 +4504,43 @@ _**Agent (claude-opus-5-5 2026-10-08 04:03:26Z)**_
 64-
 65:import { isInvisiblySmallElement } from "@excalidraw/element";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:03:34Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\data\restore.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:03:36Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\element\src\path.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:03:38Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\element\src\path.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:03:40Z)**_
@@ -4406,56 +4550,67 @@ Now playback:
 _**Agent (claude-opus-5-5 2026-10-08 04:04:44Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\pathPlayback.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:04:45Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\pathPlayback.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:04:47Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\pathPlayback.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:04:51Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\pathPlayback.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:05:38Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\pathPlayback.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:05:38Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/actions/actionMotionPathEditor.tsx`
 
@@ -4470,21 +4625,21 @@ _**Agent (claude-opus-5-5 2026-10-08 04:05:38Z)**_
 8	  CaptureUpdateAction,
 9	} from "@excalidraw/element";
 10	import { arrayToMap, ROUNDNESS } from "@excalidraw/common";
-11	
+11
 12	import type {
 13	  ExcalidrawElement,
 14	  ExcalidrawPathElement,
 15	  NonDeleted,
 16	} from "@excalidraw/element/types";
-17	
+17
 18	import { DEFAULT_CATEGORIES } from "../components/CommandPalette/CommandPalette";
 19	import { PathIcon } from "../components/icons";
-20	
+20
 21	import { register } from "./register";
-22	
+22
 23	import type { ActionResult } from "./types";
 24	import type { AppClassProperties, AppState } from "../types";
-25	
+25
 26	/** the path currently being re-edited, if it still exists */
 27	const getEditedPath = (
 28	  elements: readonly ExcalidrawElement[],
@@ -4500,7 +4655,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:05:38Z)**_
 38	    ? (element as NonDeleted<ExcalidrawPathElement>)
 39	    : null;
 40	};
-41	
+41
 42	/**
 43	 * Leaves edit mode. Only drops the linear editor if it still belongs to the
 44	 * path — when the session ends because the user clicked onto another
@@ -4515,12 +4670,13 @@ _**Agent (claude-opus-5-5 2026-10-08 04:05:38Z)**_
 53	      ? null
 54	      : appState.selectedLinearElement,
 55	});
-56	
+56
 57	/**
 58	 * Commits a motion-path edit session: the path keeps its edited geometry and
 59	 * its target(s) are snapped onto the (possibly moved) start point — the same
 60	 * rule applied when a path is first confirmed (see actionFinalize.tsx).
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:05:41Z)**_
@@ -4530,46 +4686,55 @@ Refactor the snap logic into a shared helper, then add the config action and fix
 _**Agent (claude-opus-5-5 2026-10-08 04:06:01Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\actionMotionPathEditor.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:06:02Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\actionMotionPathEditor.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:06:04Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\actionMotionPathEditor.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:06:06Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\actionMotionPathEditor.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:06:09Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw` pattern `toggleMotionPathCurve|actionToggleMotionPathCurve`
 
@@ -4581,19 +4746,21 @@ packages\excalidraw\actions\actionMotionPathEditor.tsx:170:  name: "toggleMotion
 packages\excalidraw\components\MotionPathEditToolbar.tsx:13:  actionToggleMotionPathCurve,
 packages\excalidraw\components\MotionPathEditToolbar.tsx:83:        onClick={() => actionManager.executeAction(actionToggleMotionPathCurve)}
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:06:09Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/actions/register.ts`
 
 ```text
 1	import type { Action } from "./types";
-2	
+2
 3	export let actions: readonly Action[] = [];
-4	
+4
 5	export const register = <
 6	  TData extends any,
 7	  T extends Action<TData> = Action<TData>,
@@ -4607,11 +4774,13 @@ _**Agent (claude-opus-5-5 2026-10-08 04:06:09Z)**_
 15	};
 16
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:06:11Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/actions/index.ts`
 
@@ -4624,14 +4793,16 @@ _**Agent (claude-opus-5-5 2026-10-08 04:06:11Z)**_
 103	  actionRejectMotionPathEdit,
 104	  actionToggleMotionPathCurve,
 105	} from "./actionMotionPathEditor";
-106	
+106
 107	export { actionToggleSearchMenu } from "./actionToggleSearchMenu";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:06:12Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/actions/types.ts`
 
@@ -4642,34 +4813,40 @@ _**Agent (claude-opus-5-5 2026-10-08 04:06:12Z)**_
 153	  | "finishMotionPathEdit"
 154	  | "rejectMotionPathEdit"
 155	  | "toggleMotionPathCurve";
-156	
+156
 157	export type PanelComponentProps = {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:06:21Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\types.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:06:33Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\index.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:06:34Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/locales/en.json` pattern `"pathEditor"`
 
@@ -4684,11 +4861,13 @@ _**Agent (claude-opus-5-5 2026-10-08 04:06:34Z)**_
 170-    },
 171-    "polygon": {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:06:33Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/MotionPathEditToolbar.scss`
 
@@ -4697,45 +4876,45 @@ _**Agent (claude-opus-5-5 2026-10-08 04:06:33Z)**_
 2	  .motion-path-edit-toolbar {
 3	    position: absolute;
 4	    z-index: var(--zIndex-canvasButtons);
-5	
+5
 6	    display: flex;
 7	    flex-direction: row;
 8	    gap: 0.25rem;
 9	    padding: 0.25rem;
-10	
+10
 11	    background: var(--island-bg-color);
 12	    border-radius: var(--border-radius-lg);
 13	    box-shadow: 0px 2px 4px 0 rgb(0 0 0 / 30%);
 14	    white-space: nowrap;
 15	  }
-16	
+16
 17	  .motion-path-edit-toolbar__button {
 18	    height: 1.75rem;
 19	    padding: 0 0.625rem;
-20	
+20
 21	    font-family: inherit;
 22	    font-size: 0.75rem;
 23	    color: var(--text-primary-color);
-24	
+24
 25	    background: transparent;
 26	    border: 1px solid var(--default-border-color);
 27	    border-radius: var(--border-radius-md);
 28	    cursor: pointer;
-29	
+29
 30	    &:hover {
 31	      background: var(--button-hover-bg);
 32	    }
-33	
+33
 34	    &[aria-pressed="true"] {
 35	      background: var(--color-surface-primary-container);
 36	      border-color: var(--color-primary);
 37	    }
-38	
+38
 39	    &--primary {
 40	      color: #fff;
 41	      background: var(--color-primary);
 42	      border-color: var(--color-primary);
-43	
+43
 44	      &:hover {
 45	        background: var(--color-primary-darker);
 46	      }
@@ -4744,11 +4923,13 @@ _**Agent (claude-opus-5-5 2026-10-08 04:06:33Z)**_
 49	}
 50
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:06:42Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/common/src` pattern `export const isWritableElement`
 
@@ -4769,11 +4950,13 @@ packages\common\src\utils.ts-89-      target.type === "number" ||
 packages\common\src\utils.ts-90-      target.type === "password" ||
 packages\common\src\utils.ts-91-      target.type === "search")) ||
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:06:47Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/components/App.tsx` pattern `EVENT.KEYDOWN`
 
@@ -4793,6 +4976,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:06:47Z)**_
 11666-      );
 11667-      window.removeEventListener(
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:06:50Z)**_
@@ -4802,61 +4986,73 @@ Backend pieces are done (types, normalization, playback, actions). Next I'm buil
 _**Agent (claude-opus-5-5 2026-10-08 04:07:06Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\locales\en.json has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:07:10Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\components\MotionPathEditToolbar.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:07:12Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\components\MotionPathEditToolbar.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:07:20Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\components\MotionPathEditToolbar.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:07:22Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\components\MotionPathEditToolbar.scss has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:07:25Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\components\MotionPathEditToolbar.scss has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:07:30Z)**_
@@ -4866,20 +5062,21 @@ Running the typecheck:
 _**Agent (claude-opus-5-5 2026-10-08 04:08:07Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Run TypeScript type checking
 
 ```text
 Exit code 2
 yarn run v1.22.22
-node.exe : (node:23312) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors 
+node.exe : (node:23312) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors
 that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 At C:\Program Files\nodejs\yarn.ps1:16 char:5
 +     & "$basedir/node$exe"  "$basedir/node_modules/corepack/dist/yarn. ...
 +     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     + CategoryInfo          : NotSpecified: ((node:23312) [D...ulnerabilities.:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
- 
+
 (Use `node --trace-deprecation ...` to show where the warning was created)
 $ tsc
 packages/excalidraw/tests/helpers/api.ts(405,11): error TS2322: Type '(T extends "path" ? Partial<Readonly<{ speed: number; start: number; end: number; easing: PathMotionEasing; }>> : never) | undefined' is not assignable to type 'Readonly<{ speed: number; start: number; end: number; easing: PathMotionEasing; }> | undefined'.
@@ -4891,6 +5088,7 @@ packages/excalidraw/tests/helpers/api.ts(405,11): error TS2322: Type '(T extends
 error Command failed with exit code 2.
 info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:08:08Z)**_
@@ -4900,24 +5098,28 @@ Make `newPathElement` accept a partial config (it normalizes anyway):
 _**Agent (claude-opus-5-5 2026-10-08 04:08:49Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\element\src\newElement.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:09:16Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Re-run TypeScript type checking
 
 ```text
-(node:23080) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have 
+(node:23080) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have
 security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 Done in 23.00s.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:09:21Z)**_
@@ -4927,42 +5129,43 @@ Typecheck passes. Now the tests — reading the existing #48 test file for patte
 _**Agent (claude-opus-5-5 2026-10-08 04:09:22Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/tests/pathEditing.test.tsx`
 
 ```text
 1	import React from "react";
-2	
+2
 3	import { pointFrom } from "@excalidraw/math";
 4	import { getSizeFromPoints, KEYS, reseed } from "@excalidraw/common";
 5	import {
 6	  getPathGlobalSamplePoints,
 7	  getPathsTargetingElement,
 8	} from "@excalidraw/element";
-9	
+9
 10	import type {
 11	  ExcalidrawPathElement,
 12	  ExcalidrawRectangleElement,
 13	} from "@excalidraw/element/types";
-14	
+14
 15	import { Excalidraw } from "../index";
-16	
+16
 17	import { act, fireEvent, queryByTestId, render } from "./test-utils";
 18	import { Keyboard, Pointer, UI } from "./helpers/ui";
 19	import { API } from "./helpers/api";
-20	
+20
 21	const { h } = window;
 22	const mouse = new Pointer("mouse");
-23	
+23
 24	/** lets the deferred commit in App.componentDidUpdate run */
 25	const flushDeferred = () =>
 26	  act(() => new Promise<void>((resolve) => setTimeout(resolve, 0)));
-27	
+27
 28	const getPath = (id: string) =>
 29	  h.elements.find((el) => el.id === id) as ExcalidrawPathElement;
 30	const getRect = (id: string) =>
 31	  h.elements.find((el) => el.id === id) as ExcalidrawRectangleElement;
-32	
+32
 33	/**
 34	 * rectangle centered at (50, 50), path from (300, 300) → (400, 300) — kept
 35	 * apart on purpose so pointer hits are unambiguous and the commit-time snap
@@ -4989,39 +5192,39 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:22Z)**_
 56	  API.setElements([rectangle, path]);
 57	  return { rectangle, path };
 58	};
-59	
+59
 60	const enterEditViaContextMenu = (x: number, y: number) => {
 61	  mouse.rightClickAt(x, y);
 62	  const item = queryByTestId(UI.queryContextMenu()!, "editMotionPath");
 63	  expect(item).not.toBeNull();
 64	  fireEvent.click(item!);
 65	};
-66	
+66
 67	beforeEach(async () => {
 68	  localStorage.clear();
 69	  reseed(7);
 70	  mouse.reset();
 71	  await render(<Excalidraw handleKeyboardGlobally={true} />);
 72	});
-73	
+73
 74	describe("entering motion path edit mode", () => {
 75	  it("offers 'Edit motion path' when right-clicking the path, not its element", () => {
 76	    setup();
-77	
+77
 78	    mouse.rightClickAt(50, 50);
 79	    expect(queryByTestId(UI.queryContextMenu()!, "editMotionPath")).toBeNull();
-80	
+80
 81	    mouse.rightClickAt(350, 300);
 82	    expect(
 83	      queryByTestId(UI.queryContextMenu()!, "editMotionPath"),
 84	    ).not.toBeNull();
 85	  });
-86	
+86
 87	  it("enters point editing with a snapshot and shows the small toolbar", () => {
 88	    const { path } = setup();
-89	
+89
 90	    enterEditViaContextMenu(350, 300);
-91	
+91
 92	    expect(h.state.motionPathEditor?.pathId).toEqual(path.id);
 93	    expect(h.state.selectedLinearElement?.elementId).toEqual(path.id);
 94	    expect(h.state.selectedLinearElement?.isEditing).toBe(true);
@@ -5029,44 +5232,44 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:22Z)**_
 96	      document.querySelector('[data-testid="motion-path-edit-toolbar"]'),
 97	    ).not.toBeNull();
 98	  });
-99	
+99
 100	  it("can also be entered by double-clicking the path", () => {
 101	    const { path } = setup();
-102	
+102
 103	    API.setSelectedElements([path]);
 104	    mouse.doubleClickAt(350, 300);
-105	
+105
 106	    expect(h.state.motionPathEditor?.pathId).toEqual(path.id);
 107	  });
 108	});
-109	
+109
 110	describe("editing the path's points", () => {
 111	  it("moves a point on the same path element (no duplicates)", () => {
 112	    const { path } = setup();
 113	    enterEditViaContextMenu(350, 300);
-114	
+114
 115	    mouse.downAt(400, 300);
 116	    mouse.moveTo(400, 400);
 117	    mouse.upAt(400, 400);
-118	
+118
 119	    expect(h.elements.length).toEqual(2);
 120	    const updated = getPath(path.id);
 121	    expect(updated.points).toEqual([pointFrom(0, 0), pointFrom(100, 100)]);
 122	    expect(h.state.motionPathEditor?.pathId).toEqual(path.id);
 123	  });
-124	
+124
 125	  it("adds a point by dragging a segment midpoint", () => {
 126	    const { path } = setup();
 127	    enterEditViaContextMenu(350, 300);
-128	
+128
 129	    mouse.downAt(350, 300);
 130	    mouse.moveTo(350, 360);
 131	    mouse.upAt(350, 360);
-132	
+132
 133	    expect(h.elements.length).toEqual(2);
 134	    expect(getPath(path.id).points).toHaveLength(3);
 135	  });
-136	
+136
 137	  it("deletes a selected point but never drops below two", () => {
 138	    const { path } = setup([
 139	      pointFrom(0, 0),
@@ -5074,7 +5277,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:22Z)**_
 141	      pointFrom(100, 0),
 142	    ]);
 143	    enterEditViaContextMenu(300, 300);
-144	
+144
 145	    // select the middle point at (350, 350) and delete it
 146	    mouse.clickAt(350, 350);
 147	    expect(h.state.selectedLinearElement?.selectedPointsIndices).toEqual([1]);
@@ -5082,11 +5285,13 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:22Z)**_
 149	    expect(getPath(path.id).points).toHaveLength(2);
 150
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:09:23Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/tests/pathEditing.test.tsx` pattern `it\(|describe\(|pathPlayback|clickOnTestId`
 
@@ -5127,11 +5332,13 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:23Z)**_
 407:describe("editing the element keeps its motion path", () => {
 408:  it("survives resizing and rotating the element", () => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:09:25Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/tests/pathEditing.test.tsx`
 
@@ -5140,23 +5347,23 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:25Z)**_
 176	  it("the Test animation button plays the edited path", () => {
 177	    const { path } = setup();
 178	    enterEditViaContextMenu(350, 300);
-179	
+179
 180	    UI.clickOnTestId("motion-path-test");
-181	
+181
 182	    expect(h.app.pathPlayback.isPlaying(getPath(path.id))).toBe(true);
 183	    h.app.pathPlayback.cancel(getPath(path.id));
 184	  });
 185	});
-186	
+186
 187	describe("confirming and rejecting", () => {
 188	  // NOTE: expectations below are literal values, never the `path` fixture
 189	  // object — scene edits mutate elements in place, so comparing against the
 190	  // fixture would compare the edited path with itself
-191	
+191
 192	  it("Delete with no point selected rejects the whole session", () => {
 193	    const { path, rectangle } = setup();
 194	    enterEditViaContextMenu(350, 300);
-195	
+195
 196	    mouse.downAt(400, 300);
 197	    mouse.moveTo(400, 400);
 198	    mouse.upAt(400, 400);
@@ -5165,7 +5372,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:25Z)**_
 201	      pointFrom(0, 0),
 202	      pointFrom(100, 100),
 203	    ]);
-204	
+204
 205	    act(() => {
 206	      h.setState({
 207	        selectedLinearElement: {
@@ -5175,7 +5382,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:25Z)**_
 211	      });
 212	    });
 213	    Keyboard.keyPress(KEYS.DELETE);
-214	
+214
 215	    const rejected = getPath(path.id);
 216	    expect(rejected.isDeleted).toBe(false);
 217	    expect(rejected.points).toEqual([pointFrom(0, 0), pointFrom(100, 0)]);
@@ -5184,11 +5391,11 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:25Z)**_
 220	    expect([getRect(rectangle.id).x, getRect(rectangle.id).y]).toEqual([0, 0]);
 221	    expect(h.state.motionPathEditor).toBeNull();
 222	  });
-223	
+223
 224	  it("the Reject button restores the path's points", () => {
 225	    const { path } = setup();
 226	    enterEditViaContextMenu(350, 300);
-227	
+227
 228	    mouse.downAt(400, 300);
 229	    mouse.moveTo(400, 400);
 230	    mouse.upAt(400, 400);
@@ -5196,16 +5403,16 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:25Z)**_
 232	      pointFrom(0, 0),
 233	      pointFrom(100, 100),
 234	    ]);
-235	
+235
 236	    UI.clickOnTestId("motion-path-reject");
-237	
+237
 238	    expect(getPath(path.id).points).toEqual([
 239	      pointFrom(0, 0),
 240	      pointFrom(100, 0),
 241	    ]);
 242	    expect(h.state.motionPathEditor).toBeNull();
 243	  });
-244	
+244
 245	  it("the Reject button undoes resize, rotation, moves and element snaps", () => {
 246	    const { path, rectangle } = setup([
 247	      pointFrom(0, 0),
@@ -5213,7 +5420,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:25Z)**_
 249	      pointFrom(100, 0),
 250	    ]);
 251	    enterEditViaContextMenu(300, 300);
-252	
+252
 253	    UI.resize(getPath(path.id), "se", [100, 50]);
 254	    UI.rotate(getPath(path.id), [100, 100]);
 255	    expect(getPath(path.id).angle).not.toEqual(0);
@@ -5221,9 +5428,9 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:25Z)**_
 257	    expect([getRect(rectangle.id).x, getRect(rectangle.id).y]).not.toEqual([
 258	      0, 0,
 259	    ]);
-260	
+260
 261	    UI.clickOnTestId("motion-path-reject");
-262	
+262
 263	    const rejected = getPath(path.id);
 264	    expect(rejected.angle).toEqual(0);
 265	    expect([rejected.x, rejected.y]).toEqual([300, 300]);
@@ -5235,22 +5442,22 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:25Z)**_
 271	    ]);
 272	    expect([getRect(rectangle.id).x, getRect(rectangle.id).y]).toEqual([0, 0]);
 273	  });
-274	
+274
 275	  it("clicking off confirms and snaps the element onto the new start", async () => {
 276	    const { path, rectangle } = setup();
 277	    enterEditViaContextMenu(350, 300);
-278	
+278
 279	    // drag the start point from (300, 300) to (200, 400)
 280	    mouse.downAt(300, 300);
 281	    mouse.moveTo(200, 400);
 282	    mouse.upAt(200, 400);
-283	
+283
 284	    // element stays put while editing
 285	    expect([getRect(rectangle.id).x, getRect(rectangle.id).y]).toEqual([0, 0]);
-286	
+286
 287	    mouse.clickAt(700, 700);
 288	    await flushDeferred();
-289	
+289
 290	    expect(h.state.motionPathEditor).toBeNull();
 291	    const updated = getPath(path.id);
 292	    expect([updated.x, updated.y]).toEqual([200, 400]);
@@ -5260,34 +5467,36 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:25Z)**_
 296	    ]);
 297	    expect(h.elements.filter((el) => el.type === "path")).toHaveLength(1);
 298	  });
-299	
+299
 300	  it("Escape confirms the session", async () => {
 301	    setup();
 302	    enterEditViaContextMenu(350, 300);
-303	
+303
 304	    Keyboard.keyPress(KEYS.ESCAPE);
 305	    await flushDeferred();
-306	
+306
 307	    expect(h.state.motionPathEditor).toBeNull();
 308	    expect(h.state.selectedLinearElement).toBeNull();
 309	  });
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:09:29Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/renderer/animation.ts`
 
 ```text
 1	import { isRenderThrottlingEnabled } from "../reactUtils";
-2	
+2
 3	export type Animation<R extends object> = (params: {
 4	  deltaTime: number;
 5	  state?: R;
 6	}) => R | null | undefined;
-7	
+7
 8	export class AnimationController {
 9	  private static scheduledFrame:
 10	    | { id: ReturnType<typeof requestAnimationFrame>; type: "raf" }
@@ -5301,33 +5510,33 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:29Z)**_
 18	      state: any;
 19	    }
 20	  >();
-21	
+21
 22	  static start<R extends object>(key: string, animation: Animation<R>) {
 23	    if (AnimationController.animations.has(key)) {
 24	      return;
 25	    }
-26	
+26
 27	    const initialState = animation({
 28	      deltaTime: 0,
 29	      state: undefined,
 30	    });
-31	
+31
 32	    if (initialState) {
 33	      AnimationController.animations.set(key, {
 34	        animation,
 35	        lastTime: 0,
 36	        state: initialState,
 37	      });
-38	
+38
 39	      AnimationController.scheduleNextFrame();
 40	    }
 41	  }
-42	
+42
 43	  private static scheduleNextFrame() {
 44	    if (AnimationController.scheduledFrame) {
 45	      return;
 46	    }
-47	
+47
 48	    if (isRenderThrottlingEnabled()) {
 49	      AnimationController.scheduledFrame = {
 50	        id: requestAnimationFrame(AnimationController.tick),
@@ -5340,47 +5549,47 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:29Z)**_
 57	      };
 58	    }
 59	  }
-60	
+60
 61	  private static cancelScheduledFrame() {
 62	    if (!AnimationController.scheduledFrame) {
 63	      return;
 64	    }
-65	
+65
 66	    if (AnimationController.scheduledFrame.type === "raf") {
 67	      cancelAnimationFrame(AnimationController.scheduledFrame.id);
 68	    } else {
 69	      clearTimeout(AnimationController.scheduledFrame.id);
 70	    }
-71	
+71
 72	    AnimationController.scheduledFrame = null;
 73	  }
-74	
+74
 75	  private static cancelScheduledFrameIfIdle() {
 76	    if (AnimationController.animations.size > 0) {
 77	      return false;
 78	    }
-79	
+79
 80	    AnimationController.cancelScheduledFrame();
 81	    return true;
 82	  }
-83	
+83
 84	  private static tick() {
 85	    AnimationController.scheduledFrame = null;
-86	
+86
 87	    if (AnimationController.animations.size > 0) {
 88	      for (const [key, animation] of AnimationController.animations) {
 89	        const now = performance.now();
 90	        const deltaTime =
 91	          animation.lastTime === 0 ? 0 : now - animation.lastTime;
-92	
+92
 93	        const state = animation.animation({
 94	          deltaTime,
 95	          state: animation.state,
 96	        });
-97	
+97
 98	        if (!state) {
 99	          AnimationController.animations.delete(key);
-100	
+100
 101	          if (AnimationController.cancelScheduledFrameIfIdle()) {
 102	            return;
 103	          }
@@ -5389,24 +5598,24 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:29Z)**_
 106	          animation.state = state;
 107	        }
 108	      }
-109	
+109
 110	      if (AnimationController.cancelScheduledFrameIfIdle()) {
 111	        return;
 112	      }
-113	
+113
 114	      AnimationController.scheduleNextFrame();
 115	    }
 116	  }
-117	
+117
 118	  static running(key: string) {
 119	    return AnimationController.animations.has(key);
 120	  }
-121	
+121
 122	  static cancel(key: string) {
 123	    AnimationController.animations.delete(key);
 124	    AnimationController.cancelScheduledFrameIfIdle();
 125	  }
-126	
+126
 127	  static reset() {
 128	    AnimationController.animations.clear();
 129	    AnimationController.cancelScheduledFrame();
@@ -5414,6 +5623,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:29Z)**_
 131	}
 132
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:09:41Z)**_
@@ -5423,28 +5633,33 @@ I'll capture the animation callback via a spy so frames can be stepped determini
 _**Agent (claude-opus-5-5 2026-10-08 04:09:42Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/data/restore.ts` pattern `export const restoreElements = \(`
 
 ```text
 No matches found
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:09:47Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Glob"><details>
+
 <summary>Tool use: **Glob**</summary>
  pattern `packages/element/tests/path*.test.ts`
 
 ```text
 packages\element\tests\path.test.ts
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:09:50Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw` pattern `export const restoreElements|restoreElements\(`
 
@@ -5472,11 +5687,13 @@ packages\excalidraw\data\blob.ts-173-            repairBindings: true,
 
 [Showing results with pagination = limit: 20]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:09:50Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/element/tests/path.test.ts`
 
@@ -5484,10 +5701,10 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:50Z)**_
 1	import { pointFrom, type LocalPoint, type Radians } from "@excalidraw/math";
 2	import { arrayToMap, ROUNDNESS } from "@excalidraw/common";
 3	import { API } from "@excalidraw/excalidraw/tests/helpers/api";
-4	
+4
 5	import type { EditorInterface } from "@excalidraw/common";
 6	import type { AppState, Zoom } from "@excalidraw/excalidraw/types";
-7	
+7
 8	import { getElementAbsoluteCoords } from "../src/bounds";
 9	import { rescalePointsInElement } from "../src/resizeElements";
 10	import { resizeTest } from "../src/resizeTest";
@@ -5501,9 +5718,9 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:50Z)**_
 18	  getPathsTargetingElement,
 19	  getPointAtProgress,
 20	} from "../src/path";
-21	
+21
 22	const zoom1x = { value: 1 } as Zoom;
-23	
+23
 24	const desktopEditorInterface = {
 25	  formFactor: "desktop",
 26	  desktopUIMode: "full",
@@ -5512,7 +5729,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:50Z)**_
 29	  canFitSidebar: true,
 30	  isLandscape: true,
 31	} as EditorInterface;
-32	
+32
 33	describe("path geometry helpers", () => {
 34	  it("getPathLength sums segment distances", () => {
 35	    const points: LocalPoint[] = [
@@ -5522,6 +5739,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:09:50Z)**_
 39	    ];
 40	    expect(getPathLength(points)).toEqual(80);
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:09:52Z)**_
@@ -5531,6 +5749,7 @@ Writing the element-level unit tests:
 _**Agent (claude-opus-5-5 2026-10-08 04:14:12Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -5661,22 +5880,24 @@ describe("getPathAlignmentOffset honors motion.start", () => {
     });
   });
 });
-
 ```
 
 ```text
 File created successfully at: C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\element\tests\pathMotion.test.ts (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:14:23Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\element\tests\pathMotion.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:14:32Z)**_
@@ -5686,6 +5907,7 @@ Now the integration tests:
 _**Agent (claude-opus-5-5 2026-10-08 04:15:37Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -5841,7 +6063,10 @@ const enterEditMode = () => {
   ).not.toBeNull();
 };
 
-const setSlider = (testId: "motion-path-start" | "motion-path-end", v: number) =>
+const setSlider = (
+  testId: "motion-path-start" | "motion-path-end",
+  v: number,
+) =>
   fireEvent.change(
     document.querySelector(`[data-testid="${testId}"]`) as HTMLInputElement,
     { target: { value: String(v) } },
@@ -5869,13 +6094,10 @@ describe("movement timing", () => {
     [900, 0.5, 6000],
     [900, 1, 3000],
     [900, 2, 1500],
-  ])(
-    "a %ipx path at %fx speed plays for %ims",
-    (length, speed, expected) => {
-      const { path } = setup({ length, motion: { speed } });
-      expect(startPlayback(path).totalDuration).toBeCloseTo(expected);
-    },
-  );
+  ])("a %ipx path at %fx speed plays for %ims", (length, speed, expected) => {
+    const { path } = setup({ length, motion: { speed } });
+    expect(startPlayback(path).totalDuration).toBeCloseTo(expected);
+  });
 
   it("only the configured start..end section counts towards the duration", () => {
     const { path } = setup({ length: 600, motion: { start: 0.25, end: 0.75 } });
@@ -5965,9 +6187,9 @@ describe("motion settings in the edit toolbar", () => {
       end: 1,
       easing: "linear",
     });
-    expect([getElement(targets[0].id).x, getElement(targets[0].id).y]).toEqual(
-      [0, 0],
-    );
+    expect([getElement(targets[0].id).x, getElement(targets[0].id).y]).toEqual([
+      0, 0,
+    ]);
     expect(h.state.motionPathEditor).toBeNull();
   });
 
@@ -6137,12 +6359,12 @@ describe("persistence", () => {
     });
   });
 });
-
 ```
 
 ```text
 File created successfully at: C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\pathMotionConfig.test.tsx (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:15:41Z)**_
@@ -6152,26 +6374,31 @@ Two fixes before running: `act()` doesn't return the callback's value, and the f
 _**Agent (claude-opus-5-5 2026-10-08 04:16:00Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\pathMotionConfig.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:16:02Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\pathMotionConfig.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:17:22Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Run new motion config tests
 
@@ -6204,7 +6431,7 @@ Exit code 1
    ✓ persistence > restores legacy paths without motion settings with defaults
    ✓ persistence > keeps saved motion settings and clamps invalid ones
 ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
- FAIL  packages/excalidraw/tests/pathMotionConfig.test.tsx > playback with configured movement > travels smoothly from 
+ FAIL  packages/excalidraw/tests/pathMotionConfig.test.tsx > playback with configured movement > travels smoothly from
 the configured start to the configured end
 AssertionError: expected { x: 50, y: 50 } to deeply equal { x: 400, y: 300 }
 - Expected
@@ -6221,7 +6448,7 @@ AssertionError: expected { x: 50, y: 50 } to deeply equal { x: 400, y: 300 }
     322|     expect(getTargetsCenter(path)).toEqual({ x: 400, y: 300 });
        |                                    ^
     323|   });
-    324| 
+    324|
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
 
  Test Files  1 failed | 1 passed (2)
@@ -6232,35 +6459,41 @@ AssertionError: expected { x: 50, y: 50 } to deeply equal { x: 400, y: 300 }
 error Command failed with exit code 1.
 info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:17:24Z)**_
 
-The one failure is a wrong assumption in my test: playback returns the target to wherever it was *before* playing (here it was never snapped, so (50, 50)). Fixing the assertion:
+The one failure is a wrong assumption in my test: playback returns the target to wherever it was _before_ playing (here it was never snapped, so (50, 50)). Fixing the assertion:
 
 _**Agent (claude-opus-5-5 2026-10-08 04:17:55Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\pathMotionConfig.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:17:56Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\pathMotionConfig.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:26:00Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Run full test suite with snapshot updates
 
@@ -6288,16 +6521,16 @@ stderr | packages/excalidraw/tests/regressionTests.test.tsx > regression tests >
    ✓ regression tests > supports nested groups 631ms
    ✓ regression tests > switches selected element on pointer down 357ms
    ✓ regression tests > can drag element that covers another element, while another elem is selected 433ms
-   ✓ regression tests > given selected element A with lower z-index than unselected element B and given B is partially 
+   ✓ regression tests > given selected element A with lower z-index than unselected element B and given B is partially
 over A when dragging on intersection between A and B A should be dragged and keep being selected 305ms
    ✓ regression tests > deselects group of selected elements on pointer down when pointer doesn't hit any element 347ms
    ✓ regression tests > switches from group of selected elements to another element on pointer down 336ms
-   ✓ regression tests > deselects group of selected elements on pointer up when pointer hits common bounding box 
+   ✓ regression tests > deselects group of selected elements on pointer up when pointer hits common bounding box
 without hitting any element 310ms
-   ✓ regression tests > given a group of selected elements with an element that is not selected inside the group 
-common bounding box when element that is not selected is clicked should switch selection to not selected element on 
+   ✓ regression tests > given a group of selected elements with an element that is not selected inside the group
+common bounding box when element that is not selected is clicked should switch selection to not selected element on
 pointer up 403ms
-   ✓ regression tests > given a selected element A and a not selected element B with higher z-index than A and given B 
+   ✓ regression tests > given a selected element A and a not selected element B with higher z-index than A and given B
 partially overlaps A when there's a shift-click on the overlapped section B is added to the selection 409ms
    ✓ regression tests > single-clicking on a subgroup of a selected group should not alter selection 692ms
    ✓ regression tests > deleting last but one element in editing group should unselect the group 497ms
@@ -6309,9 +6542,10 @@ parsing pasted text as mermaid definition failed: ERROR
  ✓ packages/utils/tests/utils.unmocked.test.ts (2 tests | 1 skipped) 62ms
  Test Files  122 passed (122)
       Tests  1728 passed | 47 skipped | 1 todo (1776)
-   Duration  479.35s (transform 11.81s, setup 341.68s, collect 390.39s, tests 385.33s, environment 223.86s, prepare 
+   Duration  479.35s (transform 11.81s, setup 341.68s, collect 390.39s, tests 385.33s, environment 223.86s, prepare
 35.31s)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:26:02Z)**_
@@ -6321,6 +6555,7 @@ All 122 test files pass. Running `yarn fix` and checking which snapshots changed
 _**Agent (claude-opus-5-5 2026-10-08 04:31:03Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Auto-fix lint/format and show changed files
 
@@ -6331,17 +6566,17 @@ README.md 15ms
 STUDENTS.md 20ms
 tsconfig.json 2ms
 vercel.json 2ms
-(node:13664) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have 
+(node:13664) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have
 security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 $ yarn test:code --fix
-(node:27280) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have 
+(node:27280) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have
 security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 $ eslint --max-warnings=0 --ext .js,.ts,.tsx . --fix
-The prop value with an expression type of MetaProperty could not be resolved. Please file an issue ( 
+The prop value with an expression type of MetaProperty could not be resolved. Please file an issue (
 https://github.com/jsx-eslint/jsx-ast-utils/issues/new ) to get this fixed immediately.
-The prop value with an expression type of MetaProperty could not be resolved. Please file an issue ( 
+The prop value with an expression type of MetaProperty could not be resolved. Please file an issue (
 https://github.com/jsx-eslint/jsx-ast-utils/issues/new ) to get this fixed immediately.
 Done in 130.51s.
  M packages/common/src/constants.ts
@@ -6379,6 +6614,7 @@ Done in 130.51s.
  packages/excalidraw/tests/helpers/api.ts           |   2 +
  15 files changed, 406 insertions(+), 80 deletions(-)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:31:16Z)**_
@@ -6386,6 +6622,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:31:16Z)**_
 I've implemented issue #46 as planned. In the motion-path edit toolbar you can now set speed, easing, and where the element starts and ends on its path. The typecheck passes, the full test suite passes (`yarn test:update`: 122 files, 1728 tests), and `yarn fix` is clean. I haven't tried it in the running app (`yarn start`) or committed anything.
 
 **What it does**
+
 - **Speed:** Slow, Normal and Fast buttons, which make the element move at half, normal or double speed. Normal is the old 300 px/s. The animation takes longer on a longer path, and only the part between start and end counts. That makes "changing the speed changes the duration" hold for any path length.
 - **Start and End:** two sliders from 0% to 100% of the path. End always stays ahead of Start. When you move Start, the element jumps to the new start point so you can see where the animation will begin.
 - **Easing:** Linear (the default), Ease in, Ease out, or Ease in-out.
@@ -6394,6 +6631,7 @@ I've implemented issue #46 as planned. In the motion-path edit toolbar you can n
 - **Saving:** the settings are saved with the path. Older files that don't have them load with the defaults, and invalid values are corrected on load.
 
 **Main changes**
+
 - `packages/element/src/pathMotion.ts` (new) holds the default settings, the cleanup of bad values, and the easing functions.
 - `packages/excalidraw/pathPlayback.ts` now works out the duration from length, speed and the start–end section, then moves the element through that section with the chosen easing.
 - `packages/element/src/path.ts`: the function that lines the element up with the path now uses the configured start instead of the first point. Done, the re-snap after resizing or rotating, and playback all go through that function, so they all pick up the new start.
@@ -6401,6 +6639,7 @@ I've implemented issue #46 as planned. In the motion-path edit toolbar you can n
 - `packages/excalidraw/components/MotionPathEditToolbar.tsx` and its `.scss` file have the new settings panel. Arrow keys used on a slider no longer reach the canvas, so they don't nudge the selected element.
 
 **Tests** are in `packages/excalidraw/tests/pathMotionConfig.test.tsx` and `packages/element/tests/pathMotion.test.ts`. They cover:
+
 - durations for short and long paths at all three speeds;
 - each toolbar control, plus Reject and Done;
 - smooth movement from start to end, and each easing;
@@ -6411,6 +6650,7 @@ I've implemented issue #46 as planned. In the motion-path edit toolbar you can n
 No existing snapshots changed.
 
 **Things to know**
+
 - Each slider change goes into undo history separately, so dragging a slider creates several undo steps. That matches the existing toolbar actions and Excalidraw's own property sliders.
 - Changing Start moves the element straight away while you're still editing. Before, the element only moved when you pressed Done. Reject still undoes this.
 
@@ -6427,6 +6667,7 @@ One last bug, if the motion path is moved while it is playing and it is placed b
 _**Agent (claude-opus-5-5 2026-10-08 04:42:04Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages` pattern `getPathsTargetingElement|getPathTargetElements|pathPlayback|snapPathTargetsToStart`
 
@@ -6479,11 +6720,13 @@ packages\excalidraw\components\App.tsx:12036:          for (const path of getPat
 packages\excalidraw\components\App.tsx:12041:          snapPathTargetsToStart(path, this.scene);
 packages\excalidraw\data\restore.ts:772:      // getPathTargetElements()
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:42:06Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/element/src/dragElements.ts`
 
@@ -6492,13 +6735,13 @@ _**Agent (claude-opus-5-5 2026-10-08 04:42:06Z)**_
 61	      const endElement = _selectedElements.find(
 62	        (el) => el.id === element.endBinding?.elementId,
 63	      );
-64	
+64
 65	      return startElement && endElement;
 66	    }
-67	
+67
 68	    return true;
 69	  });
-70	
+70
 71	  // we do not want a frame and its elements to be selected at the same time
 72	  // but when it happens (due to some bug), we want to avoid updating element
 73	  // in the frame twice, hence the use of set
@@ -6508,7 +6751,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:42:06Z)**_
 77	  const frames = selectedElements
 78	    .filter((e) => isFrameLikeElement(e))
 79	    .map((f) => f.id);
-80	
+80
 81	  if (frames.length > 0) {
 82	    for (const element of scene.getNonDeletedElements()) {
 83	      if (element.frameId !== null && frames.includes(element.frameId)) {
@@ -6516,7 +6759,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:42:06Z)**_
 85	      }
 86	    }
 87	  }
-88	
+88
 89	  // a path and its target(s) are snapped together — dragging either one
 90	  // must drag both, or they'd visibly drift apart
 91	  const elementsMap = scene.getNonDeletedElementsMap();
@@ -6531,9 +6774,9 @@ _**Agent (claude-opus-5-5 2026-10-08 04:42:06Z)**_
 100	      elementsToUpdate.add(path);
 101	    }
 102	  }
-103	
+103
 104	  const origElements: ExcalidrawElement[] = [];
-105	
+105
 106	  for (const element of elementsToUpdate) {
 107	    const origElement = pointerDownState.originalElements.get(element.id);
 108	    // if original element is not set (e.g. when you duplicate during a drag
@@ -6543,37 +6786,39 @@ _**Agent (claude-opus-5-5 2026-10-08 04:42:06Z)**_
 112	    }
 113	    origElements.push(origElement);
 114	  }
-115	
+115
 116	  const adjustedOffset = calculateOffset(
 117	    getCommonBounds(origElements),
 118	    offset,
 119	    snapOffset,
 120	    gridSize,
 121	  );
-122	
+122
 123	  const elementsToUpdateIds = new Set(
 124	    Array.from(elementsToUpdate, (el) => el.id),
 125	  );
-126	
+126
 127	  elementsToUpdate.forEach((element) => {
 128	    const isArrow = !isArrowElement(element);
 129	    const isStartBoundElementSelected =
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:42:06Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/App.tsx`
 
 ```text
 12010	      }
-12011	
+12011
 12012	      if (resizingElement) {
 12013	        this.store.scheduleCapture();
 12014	      }
-12015	
+12015
 12016	      if (resizingElement && isInvisiblySmallElement(resizingElement)) {
 12017	        // update the store snapshot, so that invisible elements are not captured by the store
 12018	        this.updateScene({
@@ -6583,7 +6828,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:42:06Z)**_
 12022	          captureUpdate: CaptureUpdateAction.NEVER,
 12023	        });
 12024	      }
-12025	
+12025
 12026	      // resizing/rotating a motion path moves its start point, and resizing
 12027	      // its element moves the element's center — either way, re-snap the
 12028	      // element onto the path's start so the two stay together at rest
@@ -6602,7 +6847,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:42:06Z)**_
 12041	          snapPathTargetsToStart(path, this.scene);
 12042	        }
 12043	      }
-12044	
+12044
 12045	      // handle frame membership for resizing frames and/or selected elements
 12046	      if (pointerDownState.resize.isResizing) {
 12047	        let nextElements = updateFrameMembershipOfSelectedElements(
@@ -6610,33 +6855,35 @@ _**Agent (claude-opus-5-5 2026-10-08 04:42:06Z)**_
 12049	          this.state,
 12050	          this,
 12051	        );
-12052	
+12052
 12053	        const selectedFrames = this.scene
 12054	          .getSelectedElements(this.state)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:42:27Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/pathPlayback.ts`
 
 ```text
 68	export class PathPlaybackController {
 69	  constructor(private app: App) {}
-70	
+70
 71	  isPlaying(path: ExcalidrawPathElement): boolean {
 72	    return AnimationController.running(playbackKey(path.id));
 73	  }
-74	
+74
 75	  start(path: ExcalidrawPathElement, targets: NonDeletedExcalidrawElement[]) {
 76	    const key = playbackKey(path.id);
-77	
+77
 78	    if (AnimationController.running(key) || targets.length === 0) {
 79	      return;
 80	    }
-81	
+81
 82	    const elementsMap = this.app.scene.getNonDeletedElementsMap();
 83	    const globalPoints = getPathGlobalSamplePoints(path, elementsMap);
 84	    const totalDuration = getPathPlaybackDuration(
@@ -6646,7 +6893,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:42:27Z)**_
 88	    const motion = normalizePathMotion(path.motion);
 89	    const ease = getPathMotionEasing(motion.easing);
 90	    const startPoint = getPathMotionStartPoint(path, globalPoints);
-91	
+91
 92	    const originalPositions = new Map<string, { x: number; y: number }>();
 93	    for (const target of targets) {
 94	      originalPositions.set(target.id, { x: target.x, y: target.y });
@@ -6658,7 +6905,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:42:27Z)**_
 100	        });
 101	      }
 102	    }
-103	
+103
 104	    // one-time alignment so the target's combined bounding-box center lands
 105	    // exactly on the path's first point (in absolute scene coordinates) at
 106	    // t=0, then stays glued to the path's shape as it progresses. In the
@@ -6669,29 +6916,29 @@ _**Agent (claude-opus-5-5 2026-10-08 04:42:27Z)**_
 111	    // line rather than replaying the path's shape from wherever the target
 112	    // happens to currently sit.
 113	    const alignmentOffset = getPathAlignmentOffset(path, targets, elementsMap);
-114	
+114
 115	    AnimationController.start<PlaybackState>(key, ({ deltaTime, state }) => {
 116	      const next: PlaybackState = state
 117	        ? { ...state, elapsed: state.elapsed + deltaTime }
 118	        : { elapsed: 0, totalDuration, originalPositions };
-119	
+119
 120	      const t = Math.min(next.elapsed / next.totalDuration, 1);
 121	      // eased time → position within the configured start..end section
 122	      const progress = motion.start + ease(t) * (motion.end - motion.start);
 123	      const { x: dx, y: dy } = getPointAtProgress(globalPoints, progress);
 124	      const totalDeltaX = dx - startPoint.x + alignmentOffset.x;
 125	      const totalDeltaY = dy - startPoint.y + alignmentOffset.y;
-126	
+126
 127	      const liveOriginalPositions = new Map(
 128	        [...next.originalPositions].filter(([id]) =>
 129	          this.app.scene.getNonDeletedElement(id),
 130	        ),
 131	      );
-132	
+132
 133	      if (liveOriginalPositions.size === 0) {
 134	        return null;
 135	      }
-136	
+136
 137	      for (const [id, orig] of liveOriginalPositions) {
 138	        const element = this.app.scene.getNonDeletedElement(id);
 139	        if (!element) {
@@ -6707,7 +6954,7 @@ _**Agent (claude-opus-5-5 2026-10-08 04:42:27Z)**_
 149	        );
 150	      }
 151	      this.app.scheduleNeverCapture();
-152	
+152
 153	      if (t >= 1) {
 154	        for (const [id, orig] of liveOriginalPositions) {
 155	          const element = this.app.scene.getNonDeletedElement(id);
@@ -6721,11 +6968,11 @@ _**Agent (claude-opus-5-5 2026-10-08 04:42:27Z)**_
 163	        this.app.scheduleNeverCapture();
 164	        return null;
 165	      }
-166	
+166
 167	      return next;
 168	    });
 169	  }
-170	
+170
 171	  /** plays `path` against its currently-live target(s), if any */
 172	  startForPath(path: ExcalidrawPathElement) {
 173	    this.start(
@@ -6734,89 +6981,98 @@ _**Agent (claude-opus-5-5 2026-10-08 04:42:27Z)**_
 176	    );
 177	  }
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:42:39Z)**_
 
-<think><details><summary>Thought Process</summary>
-I'll write a failing test to confirm my suspicion: playback caches the path's geometry and start positions at the outset, so a mid-playback drag that moves the path/target doesn't get picked up, causing the final frame to snap back to the stale pre-drag position.
+<think><details><summary>Thought Process</summary> I'll write a failing test to confirm my suspicion: playback caches the path's geometry and start positions at the outset, so a mid-playback drag that moves the path/target doesn't get picked up, causing the final frame to snap back to the stale pre-drag position.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:42:39Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/tests/pathMotionConfig.test.tsx`
 
 ```text
 1	import React from "react";
 2	import { vi } from "vitest";
-3	
+3
 4	import { pointFrom } from "@excalidraw/math";
 5	import { getSizeFromPoints, reseed } from "@excalidraw/common";
 6	import { getCommonBounds, getPathTargetElements } from "@excalidraw/element";
-7	
+7
 8	import type {
 9	  ExcalidrawElement,
 10	  ExcalidrawPathElement,
 11	  PathMotionConfig,
 12	} from "@excalidraw/element/types";
-13	
+13
 14	import { Excalidraw } from "../index";
 15	import { restoreElements } from "../data/restore";
 16	import { AnimationController } from "../renderer/animation";
-17	
+17
 18	import { act, fireEvent, queryByTestId, render } from "./test-utils";
 19	import { Pointer, UI } from "./helpers/ui";
 20	import { API } from "./helpers/api";
-21	
+21
 22	import type { Animation } from "../renderer/animation";
-23	
+23
 24	const { h } = window;
 25	const mouse = new Pointer("mouse");
-26	
+26
 27	/** lets the deferred commit in App.componentDidUpdate run */
 28	const flushDeferred = () =>
 29	  act(() => new Promise<void>((resolve) => setTimeout(resolve, 0)));
 30
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:42:40Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/tests/pathMotionConfig.test.tsx` pattern `^describe\("persistence"`
 
 ```text
 400:describe("persistence", () => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:43:40Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\pathMotionConfig.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:43:42Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\pathMotionConfig.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:44:05Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Run the new mid-playback drag tests
 
@@ -6837,33 +7093,37 @@ AssertionError: expected { x: 400, y: 300 } to deeply equal { x: 300, y: 300 }
       Tests  2 failed | 27 skipped (29)
    Duration  14.68s (transform 5.67s, setup 2.30s, collect 9.86s, tests 492ms, environment 1.36s, prepare 226ms)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:44:17Z)**_
 
-<think><details><summary>Thought Process</summary>
-I've confirmed the bug: playback still uses stale geometry after the path moves, and there's a flawed assumption in my test helper (it assumes start = 0). I'll fix the helper first, then address the playback controller.
+<think><details><summary>Thought Process</summary> I've confirmed the bug: playback still uses stale geometry after the path moves, and there's a flawed assumption in my test helper (it assumes start = 0). I'll fix the helper first, then address the playback controller.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:45:54Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\pathMotionConfig.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:45:58Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\pathMotionConfig.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:46:03Z)**_
@@ -6873,36 +7133,43 @@ Now the fix: each frame reads the path's current geometry from the scene, and th
 _**Agent (claude-opus-5-5 2026-10-08 04:47:17Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\pathPlayback.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:47:18Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\pathPlayback.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:47:19Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\pathPlayback.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:48:11Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Run motion path test suites
 
@@ -6911,6 +7178,7 @@ Run motion path test suites
       Tests  52 passed (52)
    Duration  20.76s (transform 6.54s, setup 7.67s, collect 32.77s, tests 11.23s, environment 4.94s, prepare 890ms)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:48:13Z)**_
@@ -6920,13 +7188,14 @@ The new tests pass. Running the typecheck and the full suite to check nothing el
 _**Agent (claude-opus-5-5 2026-10-08 04:58:27Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Typecheck, auto-fix, and run full test suite
 
 ```text
 Done in 22.65s.
 (Use `node --trace-deprecation ...` to show where the warning was created)
-(node:20932) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have 
+(node:20932) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have
 security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 $ eslint --max-warnings=0 --ext .js,.ts,.tsx . --fix
@@ -6937,12 +7206,12 @@ Done in 82.28s.
    ✓ regression tests > switches selected element on pointer down 302ms
    ✓ regression tests > can drag element that covers another element, while another elem is selected 338ms
    ✓ regression tests > switches from group of selected elements to another element on pointer down 348ms
-   ✓ regression tests > deselects group of selected elements on pointer up when pointer hits common bounding box 
+   ✓ regression tests > deselects group of selected elements on pointer up when pointer hits common bounding box
 without hitting any element 319ms
-   ✓ regression tests > given a group of selected elements with an element that is not selected inside the group 
-common bounding box when element that is not selected is clicked should switch selection to not selected element on 
+   ✓ regression tests > given a group of selected elements with an element that is not selected inside the group
+common bounding box when element that is not selected is clicked should switch selection to not selected element on
 pointer up 397ms
-   ✓ regression tests > given a selected element A and a not selected element B with higher z-index than A and given B 
+   ✓ regression tests > given a selected element A and a not selected element B with higher z-index than A and given B
 partially overlaps A when there's a shift-click on the overlapped section B is added to the selection 364ms
    ✓ regression tests > single-clicking on a subgroup of a selected group should not alter selection 673ms
    ✓ regression tests > deleting last but one element in editing group should unselect the group 465ms
@@ -6954,9 +7223,10 @@ parsing pasted text as mermaid definition failed: ERROR
  ✓ packages/utils/tests/utils.unmocked.test.ts (2 tests | 1 skipped) 60ms
  Test Files  122 passed (122)
       Tests  1730 passed | 47 skipped | 1 todo (1778)
-   Duration  465.69s (transform 11.25s, setup 335.05s, collect 375.93s, tests 372.86s, environment 218.65s, prepare 
+   Duration  465.69s (transform 11.25s, setup 335.05s, collect 375.93s, tests 372.86s, environment 218.65s, prepare
 34.82s)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 04:58:35Z)**_
@@ -6966,6 +7236,7 @@ I fixed the desync: if you move a motion path while it's playing, the element no
 **Cause:** playback read the path's shape and the element's resting position once, when it started. If the path was dragged partway through, the remaining frames kept moving the element along the path's old position. The last frame then put the element back at its old resting spot, leaving it detached from the moved path.
 
 **Fix** (in `packages/excalidraw/pathPlayback.ts`):
+
 - Every frame now uses the path's current position, so the element rides the path wherever it is.
 - When playback ends, the element is put back at its resting spot shifted by however far the path's start point moved. Normally it rests centered on the start point, so it lands right back on the moved path's start, with no trip into edit mode needed. If the path wasn't moved, nothing changes from before.
 - Dragging the element itself mid-playback is covered by the same fix, because dragging the element also drags its path.
@@ -6985,6 +7256,7 @@ Coommit all the changes files, i'll download the ai log from specstory manually.
 _**Agent (claude-opus-5-5 2026-10-08 05:03:36Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Show working tree status and recent commits
 
@@ -7030,6 +7302,7 @@ Show working tree status and recent commits
 12955131 Merge pull request #101 from CSCI-435-SE/feat/issue-48-motion-edit
 6f099db8 chore: run prettier on issue 48 AI log
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 05:03:38Z)**_
@@ -7039,6 +7312,7 @@ I'll commit the feature's code and test files. I'm leaving out the `.specstory/`
 _**Agent (claude-opus-5-5 2026-10-08 05:03:53Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Commit motion config changes
 
@@ -7079,6 +7353,7 @@ M  packages/excalidraw/pathPlayback.ts
 M  packages/excalidraw/tests/helpers/api.ts
 A  packages/excalidraw/tests/pathMotionConfig.test.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 05:03:55Z)**_
@@ -7088,6 +7363,7 @@ PowerShell doesn't pass the message through stdin that way, so I'll write it to 
 _**Agent (claude-opus-5-5 2026-10-08 05:03:59Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```txt
@@ -7113,11 +7389,13 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```text
 File created successfully at: C:\Users\tonyw\AppData\Local\Temp\claude\C--Users-tonyw-projects-draw-main-proj-excalidraw\2be28e9e-f30d-4ad5-b4d0-455d6334db0d\scratchpad\commit-msg.txt (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 05:04:07Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Commit staged changes using message file
 
@@ -7125,6 +7403,7 @@ Commit staged changes using message file
 04156afa feat(editor): configurable motion speed, easing and start/end (#46)
 5fa543a3 Merge pull request #100 from CSCI-435-SE/feat/issue-67-gradient-transformations
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 05:04:09Z)**_
@@ -7146,6 +7425,7 @@ push it
 _**Agent (claude-opus-5-5 2026-10-08 05:04:26Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Push branch to origin
 </details></tool-use>
