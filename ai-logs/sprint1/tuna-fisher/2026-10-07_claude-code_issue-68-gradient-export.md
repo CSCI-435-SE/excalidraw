@@ -4075,7 +4075,7 @@ _**Agent (claude-opus-5-5 2026-10-07 07:40:01Z)**_
 
 The #68 tests are in two files.
 
-**1. [packages/element/src/**tests**/gradient.test.ts](packages/element/src/__tests__/gradient.test.ts)** holds the unit tests from step 1. They're in the `describe("getGradientGeometry")` block at the end of the file:
+**1. [`packages/element/src/__tests__/gradient.test.ts`](packages/element/src/__tests__/gradient.test.ts)** holds the unit tests from step 1. They're in the `describe("getGradientGeometry")` block at the end of the file:
 
 - a straight gradient spanning the element's box
 - a round gradient's center and size
