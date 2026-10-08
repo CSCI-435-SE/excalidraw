@@ -12,21 +12,15 @@ Do not modify any files yet. First inspect the existing repository and explain h
 
 Issue #56 requirements
 
-User story:
-As a user, I want to have access to the grid board so that I can use it to organize elements.
+User story: As a user, I want to have access to the grid board so that I can use it to organize elements.
 
 Acceptance criteria:
 
-A grid icon/button is placed in the primary application toolbar alongside the existing canvas tools.
-Clicking the toolbar grid control toggles grid visibility on the canvas and provides a clear active/inactive visual state.
-The toolbar layout remains properly aligned without overlapping adjacent controls.
+A grid icon/button is placed in the primary application toolbar alongside the existing canvas tools. Clicking the toolbar grid control toggles grid visibility on the canvas and provides a clear active/inactive visual state. The toolbar layout remains properly aligned without overlapping adjacent controls.
 
 Out of scope:
 
-Grid rendering logic or pan/zoom coordinate math.
-Grid appearance customization such as scale, color, or transparency.
-Object edge-snapping mathematics.
-Intended design
+Grid rendering logic or pan/zoom coordinate math. Grid appearance customization such as scale, color, or transparency. Object edge-snapping mathematics. Intended design
 
 My intended design is to replace the existing separate grid visibility and grid snapping controls with a dedicated grid menu in the toolbar. The menu should be accessible beneath the top toolbar's existing dropdown menu, between "Insert Image" and "Frame Tool. It should contain the available grid-related toggles in a side menu, copying the same side menu functionality tool's are implemented with.
 
@@ -34,23 +28,11 @@ The alternative would be to leave the grid controls in the existing right-click/
 
 I currently prefer the dedicated toolbar menu because it should provide a less clunky and more discoverable interface than keeping the controls in a context menu.
 
-Before making changes, investigate:
-Where the current grid visibility state and toggle are implemented.
-Where the current grid snapping state and toggle are implemented.
-Where the existing primary toolbar is implemented.
-How the existing toolbar buttons and dropdown/menu controls are implemented.
-How the existing right-click/context menu implements the grid controls.
-What existing components, actions, commands, state, and styling should be reused rather than duplicated.
-Whether there are existing tests for the grid controls, toolbar, menus, or related actions.
-Whether the open question about a keyboard shortcut is already addressed by the existing application.
+Before making changes, investigate: Where the current grid visibility state and toggle are implemented. Where the current grid snapping state and toggle are implemented. Where the existing primary toolbar is implemented. How the existing toolbar buttons and dropdown/menu controls are implemented. How the existing right-click/context menu implements the grid controls. What existing components, actions, commands, state, and styling should be reused rather than duplicated. Whether there are existing tests for the grid controls, toolbar, menus, or related actions. Whether the open question about a keyboard shortcut is already addressed by the existing application.
 
 Then give me:
 
-The relevant files/components.
-A brief description of how the current implementation works.
-Your recommended implementation approach.
-Any potential conflicts between the issue requirements and my intended design.
-The tests that should be added or modified.
+The relevant files/components. A brief description of how the current implementation works. Your recommended implementation approach. Any potential conflicts between the issue requirements and my intended design. The tests that should be added or modified.
 
 Do not edit, create, or delete files yet. Wait for my approval after presenting the analysis.
 
@@ -63,6 +45,7 @@ I'll investigate read-only. Starting with grid state and actions.
 _**Agent (claude-opus-5-5 2026-10-08 15:41:47Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages` pattern `gridModeEnabled|objectsSnapModeEnabled`
 
@@ -94,11 +77,13 @@ packages\excalidraw\tests\fixtures\diagramFixture.ts
 packages\excalidraw\actions\actionToggleShapeSwitch.tsx
 packages\excalidraw\actions\actionToggleSearchMenu.ts
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:41:47Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./` pattern `actionToggleGridMode|actionToggleObjectsSnapMode`
 
@@ -121,6 +106,7 @@ ai-logs\sprint1\CashenCroft\2026-10-03_claude-code_issue-55-implementation.md:42
 ...
 </persisted-output>
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:41:48Z)**_
@@ -130,6 +116,7 @@ There was prior work (Issue #55) here. Let me read the grid actions.
 _**Agent (claude-opus-5-5 2026-10-08 15:41:52Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read grid-related action files
 
@@ -240,11 +227,13 @@ types.ts:63:  | "gridSnapMode"
 types.ts:65:  | "objectsSnapMode"
 types.ts:67:  | "midpointSnapping"
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:41:55Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find all grid/snap state usages and recent commits
 
@@ -369,6 +358,7 @@ ed3cdc97 fix: gradients can go across closed line/arrow shapes
 d174dac8 added ctrl k hotkey to bring up dialogue box for hyperlinks
 9b7126d7 feat: render hyperlinks w/ proper underline and coloration specifications
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:41:56Z)**_
@@ -378,6 +368,7 @@ Now the context menu, main menu items, and the toolbar.
 _**Agent (claude-opus-5-5 2026-10-08 15:41:58Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read context menu items, preferences menu, and grid tests
 
@@ -650,6 +641,7 @@ export const PreferencesToggleZenModeItem = () => {
         const { container } = await render(
           <Excalidraw UIOptions={undefined} />,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:42:00Z)**_
@@ -659,6 +651,7 @@ Now the primary toolbar and its "extra tools" dropdown.
 _**Agent (claude-opus-5-5 2026-10-08 15:42:02Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Locate toolbar and extra-tools dropdown code
 
@@ -684,11 +677,13 @@ Tooltip.scss
 Tooltip.tsx
 dropdownMenu/
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:42:05Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read the primary Toolbar component
 
@@ -969,11 +964,13 @@ export const Toolbar = ({
   );
 };
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:42:10Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read ToolPopover, Tools, dropdown menu components
 
@@ -1221,6 +1218,7 @@ dropdownMenu/DropdownMenuSub.tsx:11:  const MenuTriggerComp = getSubMenuTriggerC
 dropdownMenu/DropdownMenuSub.tsx:12:  const MenuContentComp = getSubMenuContentComponent(children);
 dropdownMenu/DropdownMenuSub.tsx:14:    <DropdownMenuPrimitive.Sub>
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:42:12Z)**_
@@ -1230,6 +1228,7 @@ _**Agent (claude-opus-5-5 2026-10-08 15:42:12Z)**_
 _**Agent (claude-opus-5-5 2026-10-08 15:42:16Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find submenu usages, checkbox item, shortcuts, tests, i18n
 
@@ -1299,11 +1298,13 @@ tests/selection.test.tsx
 117:    "toggleGridSnap": "Snap to grid",
 357:    "extraTools": "More tools",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:42:20Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read submenu implementation, preferences submenu, mobile dropdown
 
@@ -1497,11 +1498,13 @@ describe("Test <DropdownMenu/>", () => {
   });
 });
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:42:25Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check command palette, help dialog, toolbar styles
 
@@ -1567,6 +1570,7 @@ Check command palette, help dialog, toolbar styles
 59:import { Toolbar } from "./Toolbar";
 344:                        <Toolbar
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:43:08Z)**_
@@ -1576,7 +1580,7 @@ I didn't change any files. Here's what I found.
 ## Relevant files
 
 | Area | File |
-|---|---|
+| --- | --- |
 | Grid state | [appState.ts:73-74](packages/excalidraw/appState.ts#L73-L74): `gridModeEnabled` and `gridSnapEnabled` (both saved), types in [types.ts:502-504](packages/excalidraw/types.ts#L502-L504) |
 | Grid visibility action | [actionToggleGridMode.tsx](packages/excalidraw/actions/actionToggleGridMode.tsx): name `gridMode`, shortcut `Ctrl/Cmd+'`, `viewMode: true`, hidden when the host passes the `gridModeEnabled` prop |
 | Grid snap action | [actionToggleGridSnapMode.tsx](packages/excalidraw/actions/actionToggleGridSnapMode.tsx): no shortcut; turning it on turns object snapping off |
@@ -1630,6 +1634,7 @@ This is already handled. `Ctrl/Cmd+'` toggles the grid, and it's shown in the He
 ## Tests
 
 **Existing:**
+
 - [excalidraw.test.tsx:121-205](packages/excalidraw/tests/excalidraw.test.tsx#L121-L205): toggling grid from the context menu, the `gridModeEnabled` prop, and grid/snap independence.
 - [restore.test.ts:775](packages/excalidraw/tests/data/restore.test.ts#L775): migration for older files.
 - [DropdownMenu.test.tsx](packages/excalidraw/components/dropdownMenu/DropdownMenu.test.tsx): only covers opening and closing the main menu.
@@ -1637,6 +1642,7 @@ This is already handled. `Ctrl/Cmd+'` toggles the grid, and it's shown in the He
 - There are no toolbar or More tools tests.
 
 **To add** (new `Toolbar.test.tsx` or in `excalidraw.test.tsx`):
+
 - The grid control renders in the toolbar or More tools menu.
 - Clicking "Toggle grid" flips `gridModeEnabled` and its check mark; clicking again turns it back off.
 - "Snap to grid" flips `gridSnapEnabled` and clears `objectsSnapModeEnabled`.
@@ -1654,8 +1660,7 @@ _**User (2026-10-08 15:58:36Z)**_
 
 <ide_opened_file>The user opened the file c:\Users\super\excalidraw\.specstory\history\2026-10-08_15-41-41Z-use-this-as-your.md in the IDE. This may or may not be related to the current task.</ide_opened_file>
 
-I think design-wise, this grid functionality makes the most sense next to the framing tool, as they serve similar purposes. Messing with the main toolbar goes against the design philophy of reducing clutter. The issue can be reworded slightly to realize this. 
-I do think clicking the grid should initially toggle it on, if its visibility is toggled off, but it should not be toggled off by pressing the button again, you should be able to manually toggle it off in the menu.
+I think design-wise, this grid functionality makes the most sense next to the framing tool, as they serve similar purposes. Messing with the main toolbar goes against the design philophy of reducing clutter. The issue can be reworded slightly to realize this. I do think clicking the grid should initially toggle it on, if its visibility is toggled off, but it should not be toggled off by pressing the button again, you should be able to manually toggle it off in the menu.
 
 Yes, I meant the first tool in more tools. I was looking at the original excalidraw and wasnt taking into account previous implementations.
 
@@ -1670,6 +1675,7 @@ Understood: I'll keep this additive, so the context menu and Preferences stay as
 _**Agent (claude-opus-5-5 2026-10-08 15:58:45Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read dropdown menu internals
 
@@ -2082,11 +2088,13 @@ export const getSubMenuContentComponent = getMenuComponent(
           max-width: 232px;
         }
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:58:51Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read dropdown common helpers, icons, locale keys
 
@@ -2153,18 +2161,19 @@ export const useHandleDropdownMenuItemSelect = (
     "text": "Text",
     "image": "Image",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:59:01Z)**_
 
-<think><details><summary>Thought Process</summary>
-Found that the Preferences checkboxes already prevent menu close and the submenu inherits the select handler via context—the only missing piece is that `DropdownMenuSubTrigger` lacks click/selected-state support. Now checking whether `app` exposes `actionManager`.
+<think><details><summary>Thought Process</summary> Found that the Preferences checkboxes already prevent menu close and the submenu inherits the select handler via context—the only missing piece is that `DropdownMenuSubTrigger` lacks click/selected-state support. Now checking whether `app` exposes `actionManager`.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:59:01Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check AppClassProperties and composeEventHandlers
 
@@ -2189,11 +2198,13 @@ Check AppClassProperties and composeEventHandlers
 805-  };
 806-};
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:59:04Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check actionManager on AppClassProperties
 
@@ -2240,6 +2251,7 @@ Check actionManager on AppClassProperties
 59:  bindModeHandler: App["bindModeHandler"];
 61:  setAppState: App["setAppState"];
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:59:06Z)**_
@@ -2249,11 +2261,13 @@ _**Agent (claude-opus-5-5 2026-10-08 15:59:06Z)**_
 _**Agent (claude-opus-5-5 2026-10-08 15:59:10Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\dropdownMenu\DropdownMenuSubTrigger.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:59:11Z)**_
@@ -2263,50 +2277,59 @@ Now the Grid submenu in the toolbar:
 _**Agent (claude-opus-5-5 2026-10-08 15:59:24Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:59:25Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:59:26Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:59:27Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:59:28Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Add locale key and check imports/signatures
 
-`cd /c/Users/super/excalidraw/packages/excalidraw; sed -i 's/    "extraTools": "More tools",/    "extraTools": "More tools",\n    "grid": "Grid",/' locales/en.json; grep -n '"grid": "Grid"' locales/en.json; grep -n "executeAction" actions/manager.tsx | head -3; grep -rn "from \"../actions\"" components/*.tsx | head -2; grep -n "import.*Toolbar\|from \"../Toolbar\|from \"./Toolbar" components/main-menu/DefaultItems.tsx`
+`cd /c/Users/super/excalidraw/packages/excalidraw; sed -i 's/ "extraTools": "More tools",/ "extraTools": "More tools",\n "grid": "Grid",/' locales/en.json; grep -n '"grid": "Grid"' locales/en.json; grep -n "executeAction" actions/manager.tsx | head -3; grep -rn "from \"../actions\"" components/*.tsx | head -2; grep -n "import.*Toolbar\|from \"../Toolbar\|from \"./Toolbar" components/main-menu/DefaultItems.tsx`
 
 ```text
 358:    "grid": "Grid",
@@ -2314,6 +2337,7 @@ Add locale key and check imports/signatures
 components/Actions.tsx:15:import { actionToggleZenMode } from "../actions";
 components/ActiveConfirmDialog.tsx:1:import { actionClearCanvas } from "../actions";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:59:31Z)**_
@@ -2323,6 +2347,7 @@ I'll have `GridSubMenu` read from the `useUIAppState` hook rather than `app.stat
 _**Agent (claude-opus-5-5 2026-10-08 15:59:32Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find useUIAppState import source
 
@@ -2332,41 +2357,49 @@ Find useUIAppState import source
 25:import { useUIAppState } from "../../context/ui-appState";
 248:  const appState = useUIAppState();
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:59:40Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:59:41Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 15:59:42Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:00:31Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Typecheck, lint, and format-check changes
 
@@ -2383,6 +2416,7 @@ npm notice
 Checking formatting...
 All matched files use Prettier code style!
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:00:33Z)**_
@@ -2392,6 +2426,7 @@ Typecheck, lint and Prettier all pass. Now I'll run the test suite without the s
 _**Agent (claude-opus-5-5 2026-10-08 16:00:34Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 List test scripts
 
@@ -2409,11 +2444,13 @@ List test scripts
 76:    "test:coverage:watch": "vitest --coverage --watch",
 77:    "test:ui": "yarn test --ui --coverage.enabled=true",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:02:34Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run full test suite without snapshot updates
 
@@ -2429,6 +2466,7 @@ Run full test suite without snapshot updates
  Test Files ** **1 failed** | ****119 passed** (120)
       Tests ** **1 failed** | ****1689 passed** | **47 skipped | **1 todo (1738)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:02:35Z)**_
@@ -2438,6 +2476,7 @@ One failure, in the Mermaid dialog. To check whether my change caused it, I'll r
 _**Agent (claude-opus-5-5 2026-10-08 16:02:46Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check whether Mermaid failure predates the change
 
@@ -2450,6 +2489,7 @@ Check whether Mermaid failure predates the change
  M packages/excalidraw/locales/en.json
 ?? excalidraw-app/vite.config.mts.timestamp-1791475285863-a5845b68ec2c8.mjs
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:02:47Z)**_
@@ -2459,6 +2499,7 @@ It passes without my change, so I need to see the snapshot diff with the change 
 _**Agent (claude-opus-5-5 2026-10-08 16:02:57Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show Mermaid snapshot diff with change
 
@@ -2467,6 +2508,7 @@ Show Mermaid snapshot diff with change
 ```text
       Tests  2 passed (2)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:02:59Z)**_
@@ -2476,6 +2518,7 @@ It passes in isolation with the change too, which points to a timing flake when 
 _**Agent (claude-opus-5-5 2026-10-08 16:04:09Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Rerun full suite to check for flakiness
 
@@ -2485,6 +2528,7 @@ Rerun full suite to check for flakiness
  Test Files  120 passed (120)
       Tests  1690 passed | 47 skipped | 1 todo (1738)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:04:21Z)**_
@@ -2492,6 +2536,7 @@ _**Agent (claude-opus-5-5 2026-10-08 16:04:21Z)**_
 I've added a Grid submenu as the first item in More tools, above Frame tool, and the full test suite passes (1,690 tests). I haven't looked at it in a running browser yet, only in tests.
 
 **How it behaves:**
+
 - The new "Grid" row uses the grid icon and has a side menu like the main menu's Preferences submenu.
 - Clicking the row shows the grid if it's hidden. If the grid is already showing, the click only opens the side menu, so it never turns the grid off.
 - The side menu has the existing "Toggle grid" (still shows `Ctrl+'`) and "Snap to grid" items, each with a check mark. The menu stays open while you toggle them.
@@ -2499,6 +2544,7 @@ I've added a Grid submenu as the first item in More tools, above Frame tool, and
 - The row is hidden when a host app sets the grid through the `gridModeEnabled` prop, the same way the existing grid action is hidden.
 
 **Files changed:**
+
 - [Toolbar.tsx](packages/excalidraw/components/Toolbar.tsx): new `GridSubMenu`, placed before Frame tool. It reuses the existing grid actions and Preferences checkboxes rather than copying them.
 - [DropdownMenuSubTrigger.tsx](packages/excalidraw/components/dropdownMenu/DropdownMenuSubTrigger.tsx): now accepts optional `selected`, `onClick` and `data-testid`. Existing submenus don't pass these, so they're unaffected.
 - [en.json](packages/excalidraw/locales/en.json): added the "Grid" label.
@@ -2506,11 +2552,13 @@ I've added a Grid submenu as the first item in More tools, above Frame tool, and
 The grid controls in the right-click menu and Preferences are unchanged. Removing them would break tests tied to those menus, so that's a decision for later.
 
 **Checks:**
+
 - Typecheck, ESLint and Prettier are clean, and no tests or snapshots were changed.
 - On the first full run, one Mermaid snapshot test (`MermaidToExcalidraw.test.tsx`) failed. It passes on its own both with and without my change, and the full suite passed on the second run. It looks like a timing flake unrelated to this issue.
 - The test run left a temporary Vite file in `excalidraw-app/` (`vite.config.mts.timestamp-*.mjs`), and I deleted it.
 
 **Still to do:**
+
 - **Issue wording:** the first acceptance criterion should say "in the toolbar's More tools menu, above Frame tool." The second should say "selecting it shows the grid; it is turned off from its side menu."
 - **Mobile:** the mobile toolbar's own dropdown doesn't have the Grid row yet. Say if you want it added.
 - **Tests for the next chat:**
@@ -2541,6 +2589,7 @@ I'll look at what appears on the left when Frame tool is active, so I copy the r
 _**Agent (claude-opus-5-5 2026-10-08 16:09:53Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find left-side panel logic in LayerUI
 
@@ -2573,18 +2622,19 @@ Find left-side panel logic in LayerUI
 ../../element/src/showSelectedShapeActions.ts-21-        getSelectedElements(elements, appState).length),
 ../../element/src/showSelectedShapeActions.ts-22-  );
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:09:57Z)**_
 
-<think><details><summary>Thought Process</summary>
-Selecting the Frame tool makes it active, which opens the left SelectedShapeActions panel (shown for any tool besides selection, lasso, eraser, hand, and laser). Now I'll check what that panel displays for Frame and how it's structured.
+<think><details><summary>Thought Process</summary> Selecting the Frame tool makes it active, which opens the left SelectedShapeActions panel (shown for any tool besides selection, lasso, eraser, hand, and laser). Now I'll check what that panel displays for Frame and how it's structured.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:09:57Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read LayerUI left panel rendering
 
@@ -2704,11 +2754,13 @@ Read LayerUI left panel rendering
                       <tunnels.WelcomeScreenToolbarHintTunnel.Out />
 136:export const SelectedShapeActions = ({
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:10:07Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read openPopup type and SelectedShapeActions
 
@@ -2797,18 +2849,19 @@ export const SelectedShapeActions = ({
       {predicates.showExtraActions && (
         <fieldset>
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:10:15Z)**_
 
-<think><details><summary>Thought Process</summary>
-I see the panel is built from fieldsets via renderAction. Now I'll check how openPopup is cleared and how renderAction works, since using a new openPopup value could avoid adding an appState field and breaking many snapshots.
+<think><details><summary>Thought Process</summary> I see the panel is built from fieldsets via renderAction. Now I'll check how openPopup is cleared and how renderAction works, since using a new openPopup value could avoid adding an appState field and breaking many snapshots.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:10:16Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check openPopup resets, renderAction, toggle components
 
@@ -2865,11 +2918,13 @@ RadioSelection.tsx
 Switch.scss
 Switch.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:10:19Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect Switch component and pointerdown popup reset
 
@@ -2940,6 +2995,7 @@ components/ImageExportDialog.tsx:274:          <Switch
 --
 861:  PanelComponent: ({ elements, appState, app, updateData }) => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:10:34Z)**_
@@ -2949,6 +3005,7 @@ Canvas clicks reset `openPopup`, so using it would make the panel vanish on the 
 _**Agent (claude-opus-5-5 2026-10-08 16:10:36Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find jotai atom patterns in components
 
@@ -2965,18 +3022,19 @@ components/LayerUI.tsx:437:  const isSidebarDocked = useAtomValue(isSidebarDocke
 14:export const EditorJotaiProvider: ReturnType<
 18:export const editorJotaiStore: ReturnType<typeof createStore> = createStore();
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:10:47Z)**_
 
-<think><details><summary>Thought Process</summary>
-I'll use a jotai atom for the panel's open state, matching how the library menu works. First, let me check the left panel's markup, Preferences' item structure, and existing labels.
+<think><details><summary>Thought Process</summary> I'll use a jotai atom for the panel's open state, matching how the library menu works. First, let me check the left panel's markup, Preferences' item structure, and existing labels.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:10:49Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check Preferences exports, references, panel markup
 
@@ -3089,18 +3147,19 @@ export const actionChangeFontSize = register<ExcalidrawTextElement["fontSize"]>(
       border: 1px solid var(--Switch-hover-background);
     }
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:10:53Z)**_
 
-<think><details><summary>Thought Process</summary>
-Keeping the `Preferences.ToggleGridMode` and `Preferences.ToggleGridSnapMode` exports since they're public API, just dropping them from the default Preferences list. Next I'll look at the Switch row layout used in the export dialog.
+<think><details><summary>Thought Process</summary> Keeping the `Preferences.ToggleGridMode` and `Preferences.ToggleGridSnapMode` exports since they're public API, just dropping them from the default Preferences list. Next I'll look at the Switch row layout used in the export dialog.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:10:54Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read Switch layout and panel CSS
 
@@ -3190,11 +3249,13 @@ Read Switch layout and panel CSS
 391:  .selected-shape-actions-container {
 392-    width: fit-content;
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:05Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check class usage in tests and LayerUI imports
 
@@ -3258,6 +3319,7 @@ excalidraw/components/App.tsx:542: * (`.App-menu__left` width / `.compact-shape-
 58:import { Toast } from "./Toast";
 59:import { Toolbar } from "./Toolbar";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:06Z)**_
@@ -3267,6 +3329,7 @@ I have what I need. Starting the rework by reverting the submenu-trigger change,
 _**Agent (claude-opus-5-5 2026-10-08 16:11:08Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Revert submenu trigger changes
 
@@ -3276,6 +3339,7 @@ Revert submenu trigger changes
  M packages/excalidraw/components/Toolbar.tsx
  M packages/excalidraw/locales/en.json
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:08Z)**_
@@ -3285,6 +3349,7 @@ Now the left-side panel component:
 _**Agent (claude-opus-5-5 2026-10-08 16:11:21Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -3373,17 +3438,18 @@ const GridPanelToggle = ({
     <Switch name={name} title={label} checked={checked} onChange={onChange} />
   </div>
 );
-
 ```
 
 ```text
 File created successfully at: c:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:22Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```scss
@@ -3426,26 +3492,28 @@ _**Agent (claude-opus-5-5 2026-10-08 16:11:22Z)**_
     }
   }
 }
-
 ```
 
 ```text
 File created successfully at: c:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.scss (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:23Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Add Show grid locale label
 
-`cd /c/Users/super/excalidraw/packages/excalidraw; sed -i 's/    "toggleGridSnap": "Snap to grid",/    "toggleGridSnap": "Snap to grid",\n    "showGrid": "Show grid",/' locales/en.json; grep -n '"showGrid"' locales/en.json; grep -n "showGrid" locales/en.json | wc -l`
+`cd /c/Users/super/excalidraw/packages/excalidraw; sed -i 's/ "toggleGridSnap": "Snap to grid",/ "toggleGridSnap": "Snap to grid",\n "showGrid": "Show grid",/' locales/en.json; grep -n '"showGrid"' locales/en.json; grep -n "showGrid" locales/en.json | wc -l`
 
 ```text
 118:    "showGrid": "Show grid",
 1
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:24Z)**_
@@ -3455,20 +3523,21 @@ Now I'll swap the toolbar's submenu for a Frame-style item:
 _**Agent (claude-opus-5-5 2026-10-08 16:11:25Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/Toolbar.tsx`
 
 ```text
 1	import clsx from "clsx";
 2	import { useState } from "react";
-3	
+3
 4	import { KEYS } from "@excalidraw/common";
-5	
+5
 6	import { actionToggleGridMode } from "../actions";
 7	import { useTunnels } from "../context/tunnels";
 8	import { useUIAppState } from "../context/ui-appState";
 9	import { t } from "../i18n";
-10	
+10
 11	import {
 12	  useEditorInterface,
 13	  useExcalidrawActionManager,
@@ -3511,14 +3580,14 @@ _**Agent (claude-opus-5-5 2026-10-08 16:11:25Z)**_
 50	  SelectionToolPopover,
 51	  TextToolButton,
 52	} from "./Tools";
-53	
+53
 54	import type {
 55	  AppClassProperties,
 56	  AppProps,
 57	  AppState,
 58	  UIAppState,
 59	} from "../types";
-60	
+60
 61	/**
 62	 * Grid submenu in the extra-tools dropdown. Clicking the trigger shows the
 63	 * grid if it's hidden (but never hides it); the submenu holds the toggles.
@@ -3526,12 +3595,12 @@ _**Agent (claude-opus-5-5 2026-10-08 16:11:25Z)**_
 65	const GridSubMenu = () => {
 66	  const actionManager = useExcalidrawActionManager();
 67	  const { gridModeEnabled } = useUIAppState();
-68	
+68
 69	  // hidden when the host app controls the grid via the `gridModeEnabled` prop
 70	  if (!actionManager.isActionEnabled(actionToggleGridMode)) {
 71	    return null;
 72	  }
-73	
+73
 74	  return (
 75	    <DropdownMenu.Sub>
 76	      <DropdownMenu.Sub.Trigger
@@ -3553,7 +3622,7 @@ _**Agent (claude-opus-5-5 2026-10-08 16:11:25Z)**_
 92	    </DropdownMenu.Sub>
 93	  );
 94	};
-95	
+95
 96	const ExtraToolsDropdown = ({
 97	  app,
 98	  activeTool,
@@ -3566,7 +3635,7 @@ _**Agent (claude-opus-5-5 2026-10-08 16:11:25Z)**_
 105	  const [isExtraToolsMenuOpen, setIsExtraToolsMenuOpen] = useState(false);
 106	  const isFullStylesPanel = useStylesPanelMode() === "full";
 107	  const { TTDDialogTriggerTunnel } = useTunnels();
-108	
+108
 109	  const frameToolSelected = activeTool.type === "frame";
 110	  const laserToolSelected = activeTool.type === "laser";
 111	  const lassoToolSelected =
@@ -3575,7 +3644,7 @@ _**Agent (claude-opus-5-5 2026-10-08 16:11:25Z)**_
 114	    app.state.preferredSelectionTool.type !== "lasso";
 115	  const embeddableToolSelected = activeTool.type === "embeddable";
 116	  const pathToolSelected = activeTool.type === "path";
-117	
+117
 118	  return (
 119	    <DropdownMenu open={isExtraToolsMenuOpen}>
 120	      <DropdownMenu.Trigger
@@ -3600,11 +3669,13 @@ _**Agent (claude-opus-5-5 2026-10-08 16:11:25Z)**_
 139	          ? frameToolIcon
 140	          : embeddableToolSelected
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:26Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check Island props
 
@@ -3655,6 +3726,7 @@ export const Island = React.forwardRef<HTMLDivElement, IslandProps>(
   ),
 );
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:28Z)**_
@@ -3664,66 +3736,79 @@ _**Agent (claude-opus-5-5 2026-10-08 16:11:28Z)**_
 _**Agent (claude-opus-5-5 2026-10-08 16:11:41Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:42Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:43Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:44Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:45Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:46Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:52Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/Toolbar.tsx`
 
@@ -3740,7 +3825,7 @@ _**Agent (claude-opus-5-5 2026-10-08 16:11:52Z)**_
 69	  const { TTDDialogTriggerTunnel } = useTunnels();
 70	  const actionManager = useExcalidrawActionManager();
 71	  const [isGridPanelOpen, setIsGridPanelOpen] = useAtom(isGridPanelOpenAtom);
-72	
+72
 73	  // hidden when the host app controls the grid via the `gridModeEnabled` prop
 74	  const showGridItem = actionManager.isActionEnabled(actionToggleGridMode);
 75	  const frameToolSelected = activeTool.type === "frame";
@@ -3751,7 +3836,7 @@ _**Agent (claude-opus-5-5 2026-10-08 16:11:52Z)**_
 80	    app.state.preferredSelectionTool.type !== "lasso";
 81	  const embeddableToolSelected = activeTool.type === "embeddable";
 82	  const pathToolSelected = activeTool.type === "path";
-83	
+83
 84	  return (
 85	    <DropdownMenu open={isExtraToolsMenuOpen}>
 86	      <DropdownMenu.Trigger
@@ -3789,11 +3874,13 @@ _**Agent (claude-opus-5-5 2026-10-08 16:11:52Z)**_
 118	        onSelect={() => setIsExtraToolsMenuOpen(false)}
 119	        className="App-toolbar__extra-tools-dropdown"
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:58Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Add Frame-style Grid item and trigger state
 
@@ -3839,6 +3926,7 @@ grep -n "GridSubMenu\|isGridPanelOpen\|toolbar-grid" Toolbar.tsx
 71:  const [isGridPanelOpen, setIsGridPanelOpen] = useAtom(isGridPanelOpenAtom);
 121:        <GridSubMenu />
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:11:59Z)**_
@@ -3848,31 +3936,37 @@ No Python on this machine, so I'll use Edit instead.
 _**Agent (claude-opus-5-5 2026-10-08 16:12:04Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:12:05Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:12:07Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:12:08Z)**_
@@ -3882,36 +3976,43 @@ Next, render the panel in the left column of `LayerUI`, and remove the two grid 
 _**Agent (claude-opus-5-5 2026-10-08 16:12:16Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\LayerUI.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:12:17Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\LayerUI.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:12:18Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\main-menu\DefaultItems.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:12:35Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Typecheck, lint, and format-check
 
@@ -3923,6 +4024,7 @@ Typecheck, lint, and format-check
 Checking formatting...
 All matched files use Prettier code style!
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:12:42Z)**_
@@ -3932,36 +4034,43 @@ Typecheck, lint and Prettier are clean. One usability gap: with the selection to
 _**Agent (claude-opus-5-5 2026-10-08 16:12:51Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:12:52Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:12:53Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:14:13Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Recheck types/lint and run full test suite
 
@@ -3974,6 +4083,7 @@ All matched files use Prettier code style!
  Test Files  120 passed (120)
       Tests  1690 passed | 47 skipped | 1 todo (1738)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:14:23Z)**_
@@ -3981,6 +4091,7 @@ _**Agent (claude-opus-5-5 2026-10-08 16:14:23Z)**_
 I fixed both issues. "Grid" in More tools now opens a panel on the left with two toggles, and the grid toggles are gone from Preferences. The full test suite passes (1,690 tests) and typecheck, lint and Prettier are clean, but I haven't looked at it in a running browser yet.
 
 **How it behaves now:**
+
 - **Grid item:** it's the first item in More tools and works like the Frame item. Picking it turns the grid on if it's off; picking it again never turns the grid off.
 - **Left panel:** it opens where the properties panel appears for Frame. It has "Show grid" and "Snap to grid" on/off switches, and the grid can only be turned off here.
 - **Active state:** while the panel is open, the Grid item is highlighted and the More tools button shows the grid icon in blue, as it does for Frame.
@@ -3989,6 +4100,7 @@ I fixed both issues. "Grid" in More tools now opens a panel on the left with two
 - **Preferences:** both grid items are removed from the default list. I kept `Preferences.ToggleGridMode` and `Preferences.ToggleGridSnapMode` available for host apps because they're public, so removing them would be a breaking change.
 
 **Files:**
+
 - [GridPanel.tsx](packages/excalidraw/components/GridPanel.tsx) and [GridPanel.scss](packages/excalidraw/components/GridPanel.scss) are new and hold the panel. Its open/closed state is kept outside the main app state, so no app-state snapshots changed.
 - [Toolbar.tsx](packages/excalidraw/components/Toolbar.tsx): the submenu is replaced by the Frame-style item.
 - [LayerUI.tsx](packages/excalidraw/components/LayerUI.tsx): renders the panel in the left column.
@@ -3997,12 +4109,14 @@ I fixed both issues. "Grid" in More tools now opens a panel on the left with two
 - The earlier `DropdownMenuSubTrigger` change is reverted.
 
 **Choices to confirm:**
+
 - **Escape to close:** I added this myself. Without it, there was no way to close the panel while the selection tool is already active.
 - **Your current tool is kept:** opening the panel doesn't switch tools. If a drawing tool is active, its properties panel shows below the grid panel. Switching to the selection tool on open would make the panel close immediately with the current close-on-tool-change rule.
 - **Switches, not buttons:** I used the existing on/off switch from the export dialog for the toggles. I can change them to buttons if you meant toggle buttons literally.
 - **Mobile toolbar:** it still has no Grid item.
 
 **Tests for the next chat:**
+
 - Grid is the first item in More tools.
 - Picking it turns the grid on, never off, and opens the panel.
 - Each switch toggles its setting.
@@ -4021,6 +4135,7 @@ Right now it is broken. Usually, interacting with another menu toggles the other
 _**Agent (claude-opus-5-5 2026-10-08 16:42:59Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/components/App.tsx` pattern `setActiveTool = \(`
 
@@ -4102,11 +4217,13 @@ _**Agent (claude-opus-5-5 2026-10-08 16:42:59Z)**_
 5879-
 5880-      if (nextActiveTool.type === "freedraw") {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:43:01Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/App.tsx`
 
@@ -4114,7 +4231,7 @@ _**Agent (claude-opus-5-5 2026-10-08 16:43:01Z)**_
 5880	      if (nextActiveTool.type === "freedraw") {
 5881	        this.store.scheduleCapture();
 5882	      }
-5883	
+5883
 5884	      if (nextActiveTool.type === "lasso") {
 5885	        return {
 5886	          ...prevState,
@@ -4147,23 +4264,24 @@ _**Agent (claude-opus-5-5 2026-10-08 16:43:01Z)**_
 5913	      };
 5914	    });
 5915	  };
-5916	
+5916
 5917	  setOpenDialog = (dialogType: AppState["openDialog"]) => {
 5918	    this.setState({ openDialog: dialogType });
 5919	  };
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:43:13Z)**_
 
-<think><details><summary>Thought Process</summary>
-Opening Grid currently leaves the old tool highlighted and its panel open instead of switching properly. I'll fix this by making Grid switch to the selection tool, clear the selection, and close the panel whenever the user leaves the selection tool.
+<think><details><summary>Thought Process</summary> Opening Grid currently leaves the old tool highlighted and its panel open instead of switching properly. I'll fix this by making Grid switch to the selection tool, clear the selection, and close the panel whenever the user leaves the selection tool.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:43:14Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find isSelectionLikeTool and radix event batching
 
@@ -4180,6 +4298,7 @@ common/src/utils.ts-249-  data: ((
 18:import { Primitive, dispatchDiscreteCustomEvent } from "@radix-ui/react-primitive";
 379:        dispatchDiscreteCustomEvent(menuItem, itemSelectEvent);
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:43:15Z)**_
@@ -4189,46 +4308,55 @@ Radix fires menu selections inside `flushSync`, so the tool switch and the panel
 _**Agent (claude-opus-5-5 2026-10-08 16:43:25Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:43:26Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:43:27Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:43:28Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:43:29Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Confirm setAppState and export availability
 
@@ -4238,18 +4366,19 @@ Confirm setAppState and export availability
 953:  setAppState: App["setAppState"];
 ../common/src/utils.ts:243:export const isSelectionLikeTool = (type: ToolType | "custom") => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:43:32Z)**_
 
-<think><details><summary>Thought Process</summary>
-I'll run a quick throwaway jsdom test to confirm switching from the rectangle tool to Grid updates the tool and shows the panel, then delete the test file afterward.
+<think><details><summary>Thought Process</summary> I'll run a quick throwaway jsdom test to confirm switching from the rectangle tool to Grid updates the tool and shows the panel, then delete the test file afterward.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:44:02Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run throwaway behavior check then delete it
 
@@ -4292,28 +4421,31 @@ tool: frame grid: true panel: false shapePanel: true frameItemSelected: 0 trigge
 after R tool: frame panel: false triggerSelected: true
       Tests  1 passed (1)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:44:09Z)**_
 
-<think><details><summary>Thought Process</summary>
-Found another bug: the grid action snapshots and rewrites the entire app state, overwriting a queued tool switch. I'll reorder the calls so the grid action runs first, then the tool switch.
+<think><details><summary>Thought Process</summary> Found another bug: the grid action snapshots and rewrites the entire app state, overwriting a queued tool switch. I'll reorder the calls so the grid action runs first, then the tool switch.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:44:21Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:44:28Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Rerun throwaway behavior check then delete it
 
@@ -4375,6 +4507,7 @@ OPENED tool: selection grid: true selected: 0 panel: true shapePanel: false trig
 ESC tool: selection grid: true selected: 0 panel: false shapePanel: false triggerSelected: false
       Tests  2 passed (2)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:44:30Z)**_
@@ -4384,6 +4517,7 @@ Every case now behaves correctly. Running the full checks:
 _**Agent (claude-opus-5-5 2026-10-08 16:45:50Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Typecheck, lint, format, full test suite
 
@@ -4402,6 +4536,7 @@ All matched files use Prettier code style!
 ?? packages/excalidraw/components/GridPanel.scss
 ?? packages/excalidraw/components/GridPanel.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:45:58Z)**_
@@ -4411,7 +4546,7 @@ It's fixed: picking Grid now works like picking a tool. The previous tool and an
 I checked this with a throwaway test in the test environment (since deleted), not in a browser:
 
 | Starting from | After picking Grid | Then |
-|---|---|---|
+| --- | --- | --- |
 | Frame tool | Selection tool active, grid on, only the grid panel shows | Picking Grid again keeps the grid on and the panel open; picking Rectangle closes the panel and the Rectangle panel shows |
 | A selected rectangle | Rectangle deselected, its panel gone, only the grid panel shows | Escape closes the panel |
 
@@ -4444,39 +4579,42 @@ Two changes: picking Grid will only open the panel without turning the grid on, 
 _**Agent (claude-opus-5-5 2026-10-08 16:59:50Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 16:59:50Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/GridPanel.tsx`
 
 ```text
 1	import { useEffect } from "react";
-2	
+2
 3	import { EVENT, KEYS, isSelectionLikeTool } from "@excalidraw/common";
-4	
+4
 5	import { actionToggleGridMode, actionToggleGridSnapMode } from "../actions";
 6	import { atom, useAtom } from "../editor-jotai";
 7	import { t } from "../i18n";
-8	
+8
 9	import { useExcalidrawActionManager } from "./App";
 10	import { Island } from "./Island";
 11	import { Switch } from "./Switch";
-12	
+12
 13	import "./GridPanel.scss";
-14	
+14
 15	import type { UIAppState } from "../types";
-16	
+16
 17	/** whether the grid settings panel (opened from the extra-tools menu) is open */
 18	export const isGridPanelOpenAtom = atom(false);
-19	
+19
 20	/**
 21	 * Left-side panel with the grid toggles, shown after picking "Grid" in the
 22	 * extra-tools menu (like the properties panel shown for the frame tool).
@@ -4486,7 +4624,7 @@ _**Agent (claude-opus-5-5 2026-10-08 16:59:50Z)**_
 26	  const [isOpen, setIsOpen] = useAtom(isGridPanelOpenAtom);
 27	  const actionManager = useExcalidrawActionManager();
 28	  const activeToolType = appState.activeTool.type;
-29	
+29
 30	  // opening the panel switches to the selection tool, so picking any other
 31	  // tool closes it (and the panel never shows alongside another tool's)
 32	  const isSelectionTool = isSelectionLikeTool(activeToolType);
@@ -4495,7 +4633,7 @@ _**Agent (claude-opus-5-5 2026-10-08 16:59:50Z)**_
 35	      setIsOpen(false);
 36	    }
 37	  }, [isSelectionTool, setIsOpen]);
-38	
+38
 39	  useEffect(() => {
 40	    if (!isOpen) {
 41	      return;
@@ -4508,7 +4646,7 @@ _**Agent (claude-opus-5-5 2026-10-08 16:59:50Z)**_
 48	    document.addEventListener(EVENT.KEYDOWN, onKeyDown);
 49	    return () => document.removeEventListener(EVENT.KEYDOWN, onKeyDown);
 50	  }, [isOpen, setIsOpen]);
-51	
+51
 52	  if (
 53	    !isOpen ||
 54	    !isSelectionTool ||
@@ -4519,46 +4657,55 @@ _**Agent (claude-opus-5-5 2026-10-08 16:59:50Z)**_
 59	  }
 60
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:00:00Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:00:01Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:00:02Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:00:03Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\LayerUI.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:00:06Z)**_
@@ -4568,6 +4715,7 @@ Running the throwaway check again (deleted afterwards): picking Grid shouldn't t
 _**Agent (claude-opus-5-5 2026-10-08 17:00:41Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Typecheck and run throwaway check then delete it
 
@@ -4623,6 +4771,7 @@ CLICK ELEMENT tool: selection grid: false selected: 1 panel: false shapePanel: t
 CLICK EMPTY CANVAS tool: selection grid: false selected: 0 panel: true shapePanel: false
       Tests  1 passed (1)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:00:43Z)**_
@@ -4632,6 +4781,7 @@ Everything matches. The panel stays open when you click empty canvas, because th
 _**Agent (claude-opus-5-5 2026-10-08 17:02:32Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Lint, format, and full test suite
 
@@ -4651,6 +4801,7 @@ All matched files use Prettier code style!
 ?? packages/excalidraw/components/GridPanel.scss
 ?? packages/excalidraw/components/GridPanel.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:02:34Z)**_
@@ -4660,6 +4811,7 @@ One z-index test failed after taking 6 seconds, which looks like a timeout. I'll
 _**Agent (claude-opus-5-5 2026-10-08 17:03:06Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Rerun z-index test file in isolation twice
 
@@ -4669,6 +4821,7 @@ Rerun z-index test file in isolation twice
       Tests  20 passed (20)
       Tests  20 passed (20)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:03:07Z)**_
@@ -4678,6 +4831,7 @@ It passes on its own, both runs. One more full-suite run to confirm:
 _**Agent (claude-opus-5-5 2026-10-08 17:04:17Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Rerun full test suite
 
@@ -4687,6 +4841,7 @@ Rerun full test suite
  Test Files  120 passed (120)
       Tests  1690 passed | 47 skipped | 1 todo (1738)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:04:24Z)**_
@@ -4694,6 +4849,7 @@ _**Agent (claude-opus-5-5 2026-10-08 17:04:24Z)**_
 Both changes are in. Picking Grid now only opens the panel and leaves the grid as it was. Selecting or editing an element closes the grid panel, so only the properties panel shows.
 
 The grid panel closes when:
+
 - you select or edit an element (by click or any other way);
 - you switch to another tool;
 - you press Escape.
@@ -4702,16 +4858,17 @@ It stays open when you click empty canvas, since that doesn't bring up another p
 
 I checked this with a throwaway test in the test environment (deleted afterwards), not in a browser:
 
-| Step | Grid | Grid panel | Properties panel |
-|---|---|---|---|
-| Pick Grid | stays off | open | hidden |
-| Click an element | — | closes | shows |
-| Pick Grid again | — | open | hidden (element deselected) |
-| Click empty canvas | — | stays open | hidden |
+| Step               | Grid      | Grid panel | Properties panel            |
+| ------------------ | --------- | ---------- | --------------------------- |
+| Pick Grid          | stays off | open       | hidden                      |
+| Click an element   | —         | closes     | shows                       |
+| Pick Grid again    | —         | open       | hidden (element deselected) |
+| Click empty canvas | —         | stays open | hidden                      |
 
 The panel now closes in exactly the cases where the element properties panel would appear, using the same check that panel uses. So the two can't both be on screen in any case.
 
 Changes this round:
+
 - [Toolbar.tsx](packages/excalidraw/components/Toolbar.tsx): removed the automatic grid-on. That also removes the ordering workaround from the last fix.
 - [GridPanel.tsx](packages/excalidraw/components/GridPanel.tsx): the new closing rule.
 - [LayerUI.tsx](packages/excalidraw/components/LayerUI.tsx): passes the canvas elements to the panel so the closing check can see them.
@@ -4735,10 +4892,11 @@ First I'll check whether G is already bound anywhere.
 _**Agent (claude-opus-5-5 2026-10-08 17:09:45Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Search for existing G keybindings
 
-`cd /c/Users/super/excalidraw/packages; grep -rn "KEYS\.G\b\|CODES\.G\b\|KEYS\[\"G\"\]\|key === \"g\"\|key === \"G\"\|\"G\"\|letterKey: \"g\"" --include=*.ts --include=*.tsx . ../excalidraw-app | grep -v "node_modules\|\.test\.\|__snapshots__" | head -30; grep -n "  G:\|  g:" common/src/keys.ts`
+`cd /c/Users/super/excalidraw/packages; grep -rn "KEYS\.G\b\|CODES\.G\b\|KEYS\[\"G\"\]\|key === \"g\"\|key === \"G\"\|\"G\"\|letterKey: \"g\"" --include=*.ts --include=*.tsx . ../excalidraw-app | grep -v "node_modules\|\.test\.\|__snapshots__" | head -30; grep -n " G:\| g:" common/src/keys.ts`
 
 ```text
 ./common/src/utils.ts:437:    { value: 1e9, symbol: "G" },
@@ -4752,11 +4910,13 @@ Search for existing G keybindings
 ./excalidraw/tests/helpers/ui.ts:661:      Keyboard.keyPress(KEYS.G);
 58:  G: "g",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:09:47Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read existing G key handlers
 
@@ -4845,6 +5005,7 @@ Read existing G key handlers
 
   static queryContextMenu = () => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:09:53Z)**_
@@ -4854,6 +5015,7 @@ I didn't make the change, because plain G is already taken.
 **G opens the background color picker.** The Help dialog lists it as "Show background" ([HelpDialog.tsx:506-509](packages/excalidraw/components/HelpDialog.tsx#L506-L509)), and it's handled in [App.tsx:5574-5598](packages/excalidraw/components/App.tsx#L5574-L5598). It only fires when there's a fillable selection or tool (for example, rectangle selected or rectangle tool active). With the selection tool and nothing selected, it does nothing.
 
 G is also used with modifiers:
+
 - **Ctrl/Cmd+G:** group ([actionGroup.tsx:200](packages/excalidraw/actions/actionGroup.tsx#L200))
 - **Ctrl/Cmd+Shift+G:** ungroup ([actionGroup.tsx:306](packages/excalidraw/actions/actionGroup.tsx#L306))
 - **Shift+G:** background eyedropper ([App.tsx:5644](packages/excalidraw/components/App.tsx#L5644))
@@ -4877,6 +5039,7 @@ You've approved overlapping with the existing G shortcut, so I'll implement it. 
 _**Agent (claude-opus-5-5 2026-10-08 17:11:55Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Locate keydown handler structure
 
@@ -4906,11 +5069,13 @@ tests/regressionTests.test.tsx:567:      Keyboard.keyPress(KEYS.G);
 tests/regressionTests.test.tsx:604:      Keyboard.keyPress(KEYS.G);
 tests/regressionTests.test.tsx:621:      Keyboard.keyPress(KEYS.G);
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:11:58Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read keydown guards and tool-key handling
 
@@ -5024,6 +5189,7 @@ Read keydown guards and tool-key handling
       Keyboard.keyPress(KEYS.G);
     });
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:12:11Z)**_
@@ -5033,6 +5199,7 @@ All the existing tests that press G hold Ctrl, so plain G is safe for them. Next
 _**Agent (claude-opus-5-5 2026-10-08 17:12:13Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read keydown flow after tool keys
 
@@ -5093,38 +5260,43 @@ Read keydown flow after tool keys
 13577:          actionToggleGridMode,
 13595:        actionToggleGridMode,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:12:17Z)**_
 
-<think><details><summary>Thought Process</summary>
-Found that a plain G hits the background-picker code at App.tsx:5574, since view mode exits beforehand. I'll make G toggle the grid panel when no modifier is held and no fillable tool/selection is active, but keep opening the background picker otherwise — starting with a shared open helper.
+<think><details><summary>Thought Process</summary> Found that a plain G hits the background-picker code at App.tsx:5574, since view mode exits beforehand. I'll make G toggle the grid panel when no modifier is held and no fillable tool/selection is active, but keep opening the background picker otherwise — starting with a shared open helper.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:12:22Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:12:23Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:12:23Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/Toolbar.tsx`
 
@@ -5141,7 +5313,7 @@ _**Agent (claude-opus-5-5 2026-10-08 17:12:23Z)**_
 69	  const { TTDDialogTriggerTunnel } = useTunnels();
 70	  const actionManager = useExcalidrawActionManager();
 71	  const [isGridPanelOpen, setIsGridPanelOpen] = useAtom(isGridPanelOpenAtom);
-72	
+72
 73	  // hidden when the host app controls the grid via the `gridModeEnabled` prop
 74	  const showGridItem = actionManager.isActionEnabled(actionToggleGridMode);
 75	  const frameToolSelected = activeTool.type === "frame";
@@ -5152,7 +5324,7 @@ _**Agent (claude-opus-5-5 2026-10-08 17:12:23Z)**_
 80	    app.state.preferredSelectionTool.type !== "lasso";
 81	  const embeddableToolSelected = activeTool.type === "embeddable";
 82	  const pathToolSelected = activeTool.type === "path";
-83	
+83
 84	  return (
 85	    <DropdownMenu open={isExtraToolsMenuOpen}>
 86	      <DropdownMenu.Trigger
@@ -5210,46 +5382,55 @@ _**Agent (claude-opus-5-5 2026-10-08 17:12:23Z)**_
 138	          >
 139	            {t("toolBar.grid")}
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:12:30Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:12:31Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:12:32Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:12:33Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\Toolbar.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:12:35Z)**_
@@ -5259,16 +5440,19 @@ Now the key handler in `App.tsx`:
 _**Agent (claude-opus-5-5 2026-10-08 17:12:42Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\App.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:12:42Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find import spot and isActionEnabled
 
@@ -5278,21 +5462,25 @@ Find import spot and isActionEnabled
 470:import LayerUI from "./LayerUI";
 192:  isActionEnabled = (action: Action) => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:12:47Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\Users\super\excalidraw\packages\excalidraw\components\App.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:13:03Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Typecheck, lint, format-check
 
@@ -5303,6 +5491,7 @@ Typecheck, lint, format-check
 (Use `node --trace-deprecation ...` to show where the warning was created)
 All matched files use Prettier code style!
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:13:05Z)**_
@@ -5312,6 +5501,7 @@ Clean. Throwaway check again (deleted afterwards), covering G on its own, G with
 _**Agent (claude-opus-5-5 2026-10-08 17:13:21Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run throwaway keybind check then delete it
 
@@ -5356,29 +5546,30 @@ cd /c/Users/super/excalidraw; yarn -s vitest run packages/excalidraw/tests/tmpGr
 ```
 
 ```text
-G | tool: selection grid: false selected: 0 panel: false popup: null groups: 
-G again | tool: selection grid: false selected: 0 panel: false popup: null groups: 
-Shift+G | tool: selection grid: false selected: 0 panel: false popup: null groups: 
-Alt+G | tool: selection grid: false selected: 0 panel: false popup: null groups: 
-Ctrl+G | tool: selection grid: false selected: 0 panel: false popup: null groups: 
-frame tool, G | tool: frame grid: false selected: 0 panel: false popup: null groups: 
-rectangle tool, G | tool: rectangle grid: false selected: 0 panel: false popup: null groups: 
+G | tool: selection grid: false selected: 0 panel: false popup: null groups:
+G again | tool: selection grid: false selected: 0 panel: false popup: null groups:
+Shift+G | tool: selection grid: false selected: 0 panel: false popup: null groups:
+Alt+G | tool: selection grid: false selected: 0 panel: false popup: null groups:
+Ctrl+G | tool: selection grid: false selected: 0 panel: false popup: null groups:
+frame tool, G | tool: frame grid: false selected: 0 panel: false popup: null groups:
+rectangle tool, G | tool: rectangle grid: false selected: 0 panel: false popup: null groups:
 rects selected, G | tool: selection grid: false selected: 2 panel: false popup: null groups: 0,0
 rects selected, Ctrl+G | tool: selection grid: false selected: 2 panel: false popup: null groups: 0,0
       Tests  1 passed (1)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:13:26Z)**_
 
-<think><details><summary>Thought Process</summary>
-Key events weren't being delivered since the harness wasn't set up for it—existing keyboard tests render Excalidraw with `handleKeyboardGlobally={true}`. I'll re-run with that prop added.
+<think><details><summary>Thought Process</summary> Key events weren't being delivered since the harness wasn't set up for it—existing keyboard tests render Excalidraw with `handleKeyboardGlobally={true}`. I'll re-run with that prop added.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:13:26Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Confirm keyboard test setup
 
@@ -5387,11 +5578,13 @@ Confirm keyboard test setup
 ```text
 68:  await render(<Excalidraw handleKeyboardGlobally={true} />);
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:13:42Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Rerun throwaway keybind check then delete it
 
@@ -5438,29 +5631,30 @@ cd /c/Users/super/excalidraw; yarn -s vitest run packages/excalidraw/tests/tmpGr
 ```
 
 ```text
-G | tool: selection grid: false selected: 0 panel: true popup: null groups: 
-G again | tool: selection grid: false selected: 0 panel: false popup: null groups: 
-Shift+G | tool: selection grid: false selected: 0 panel: false popup: null groups: 
-Alt+G | tool: selection grid: false selected: 0 panel: false popup: null groups: 
-Ctrl+G | tool: selection grid: false selected: 0 panel: false popup: null groups: 
-frame tool, G | tool: selection grid: false selected: 0 panel: true popup: null groups: 
+G | tool: selection grid: false selected: 0 panel: true popup: null groups:
+G again | tool: selection grid: false selected: 0 panel: false popup: null groups:
+Shift+G | tool: selection grid: false selected: 0 panel: false popup: null groups:
+Alt+G | tool: selection grid: false selected: 0 panel: false popup: null groups:
+Ctrl+G | tool: selection grid: false selected: 0 panel: false popup: null groups:
+frame tool, G | tool: selection grid: false selected: 0 panel: true popup: null groups:
    × tmp 247ms
 ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
 ReferenceError: ResizeObserver is not defined
       Tests  1 failed (1)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:13:46Z)**_
 
-<think><details><summary>Thought Process</summary>
-All cases pass until the "rectangle tool, G" one, which crashes on a missing `ResizeObserver` in the test environment (the picker itself opened fine). I'll stub `ResizeObserver` and finish the remaining cases.
+<think><details><summary>Thought Process</summary> All cases pass until the "rectangle tool, G" one, which crashes on a missing `ResizeObserver` in the test environment (the picker itself opened fine). I'll stub `ResizeObserver` and finish the remaining cases.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:13:59Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check background-picker cases then delete test
 
@@ -5501,11 +5695,12 @@ cd /c/Users/super/excalidraw; yarn -s vitest run packages/excalidraw/tests/tmpGr
 ```
 
 ```text
-rectangle tool, G | tool: rectangle selected: 0 panel: false popup: elementBackground groups: 
+rectangle tool, G | tool: rectangle selected: 0 panel: false popup: elementBackground groups:
 rects selected, G | tool: selection selected: 2 panel: false popup: elementBackground groups: 0,0
 rects selected, Ctrl+G | tool: selection selected: 2 panel: false popup: null groups: 1,1
       Tests  1 passed (1)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:14:00Z)**_
@@ -5515,6 +5710,7 @@ Every case is correct. Running the full checks:
 _**Agent (claude-opus-5-5 2026-10-08 17:15:06Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run full test suite
 
@@ -5531,6 +5727,7 @@ Run full test suite
 ?? packages/excalidraw/components/GridPanel.scss
 ?? packages/excalidraw/components/GridPanel.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:15:14Z)**_
@@ -5540,7 +5737,7 @@ G now opens and closes the grid panel, but only when no modifier key is held and
 I checked each case with a throwaway test (deleted afterwards), not in a browser:
 
 | Situation | Result |
-|---|---|
+| --- | --- |
 | G, nothing selected | Grid panel opens |
 | G again | Grid panel closes |
 | G with Frame tool active | Grid panel opens and the tool switches to selection, same as picking Grid from the menu |
@@ -5552,11 +5749,13 @@ I checked each case with a throwaway test (deleted afterwards), not in a browser
 The full suite passes (1,690 tests), and typecheck, lint and Prettier are clean.
 
 **Changes this round:**
+
 - [App.tsx](packages/excalidraw/components/App.tsx): the G handler sits just before the existing background-picker shortcut. View mode exits earlier in that handler, so G does nothing there. It's also skipped when a host app controls the grid through the `gridModeEnabled` prop.
 - [GridPanel.tsx](packages/excalidraw/components/GridPanel.tsx): the open logic (switch to selection, clear selection, open panel) now lives in one `openGridPanel` helper, used by both the menu item and the G key.
 - [Toolbar.tsx](packages/excalidraw/components/Toolbar.tsx): the Grid item in More tools now shows "G" as its shortcut, like Frame shows "F".
 
 **Not done:**
+
 - The Help dialog's shortcut list still shows G only as "Show background". I can add a grid panel entry.
 - When you write the keyboard tests in the other chat, render with `<Excalidraw handleKeyboardGlobally={true} />`, or key presses won't reach the editor. Tests that open the background picker also need a `ResizeObserver` stub, because the test environment doesn't provide one.
 
@@ -5571,6 +5770,7 @@ Perfect. Can you summarize the changes, with file references. Label specific cha
 _**Agent (claude-opus-5-5 2026-10-08 17:18:12Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Collect line numbers for summary
 
@@ -5606,6 +5806,7 @@ Collect line numbers for summary
 118:    "showGrid": "Show grid",
 359:    "grid": "Grid",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:18:42Z)**_
@@ -5623,7 +5824,7 @@ No new grid logic was written. The panel and shortcut reuse the existing grid ac
 **Files touched**
 
 | File | Status |
-|---|---|
+| --- | --- |
 | [GridPanel.tsx](packages/excalidraw/components/GridPanel.tsx) | new |
 | [GridPanel.scss](packages/excalidraw/components/GridPanel.scss) | new |
 | [Toolbar.tsx](packages/excalidraw/components/Toolbar.tsx) | modified |
@@ -5642,6 +5843,7 @@ No new grid logic was written. The panel and shortcut reuse the existing grid ac
   - It's a small jotai atom, the same mechanism the editor already uses for UI-only state such as the library menu.
   - It's kept out of the main app state on purpose. App state is saved with the drawing and appears in many test snapshots, so adding a field there would have changed unrelated tests and persisted a purely visual setting.
 - **Open function:** [GridPanel.tsx:27](packages/excalidraw/components/GridPanel.tsx#L27), `openGridPanel(app)`. It does three things, in the same way picking a tool does:
+
   1. Switches to the selection tool, so the previous tool loses its blue highlight.
   2. Clears the selected elements, so their properties panel disappears.
   3. Opens the grid panel.
@@ -5672,12 +5874,14 @@ No new grid logic was written. The panel and shortcut reuse the existing grid ac
 - **Grid item:** [Toolbar.tsx:124-130](packages/excalidraw/components/Toolbar.tsx#L124-L130). It's the first item in More tools, shows the grid icon and a "G" shortcut hint, and calls `openGridPanel`.
 - **Hidden when the host controls the grid:** [Toolbar.tsx:74](packages/excalidraw/components/Toolbar.tsx#L74), `showGridItem`. This matches how the existing grid action hides itself.
 - **Active state:**
+
   - [Toolbar.tsx:71](packages/excalidraw/components/Toolbar.tsx#L71) reads the open flag.
   - [Toolbar.tsx:89](packages/excalidraw/components/Toolbar.tsx#L89): the More tools button turns blue while the panel is open.
   - [Toolbar.tsx:105](packages/excalidraw/components/Toolbar.tsx#L105): the More tools button swaps to the grid icon.
   - [Toolbar.tsx:130](packages/excalidraw/components/Toolbar.tsx#L130): the Grid item is highlighted inside the menu.
 
   This is the same pattern Frame uses when it's the active tool.
+
 - **Grid stays as it was:** picking Grid only opens the panel. Showing or hiding the grid is done with the switches.
 
 ## Chain 4: Placing the panel on screen
@@ -5698,12 +5902,12 @@ No new grid logic was written. The panel and shortcut reuse the existing grid ac
   - The background color shortcut wouldn't apply. That means no fillable tool is active (rectangle, ellipse and so on) and no fillable element is selected.
 - **Existing G shortcuts still work:**
 
-  | Keys | Action |
-  |---|---|
+  | Keys                                | Action                  |
+  | ----------------------------------- | ----------------------- |
   | G with a fillable tool or selection | Background color picker |
-  | Shift+G | Background eyedropper |
-  | Ctrl/Cmd+G | Group |
-  | Ctrl/Cmd+Shift+G | Ungroup |
+  | Shift+G                             | Background eyedropper   |
+  | Ctrl/Cmd+G                          | Group                   |
+  | Ctrl/Cmd+Shift+G                    | Ungroup                 |
 
   The new handler runs just before the background-picker code and returns early only in the cases above. View mode exits earlier in the handler, so G does nothing there.
 
@@ -5766,27 +5970,32 @@ _**Agent (claude-opus-5-5 2026-10-08 17:21:57Z)**_
 ## Changes by chain
 
 1. **Panel state and open logic** in [GridPanel.tsx](packages/excalidraw/components/GridPanel.tsx)
+
    - [L21](packages/excalidraw/components/GridPanel.tsx#L21) `isGridPanelOpenAtom`: open/closed flag. It's a jotai atom, kept out of app state so it isn't saved or added to snapshots.
    - [L27](packages/excalidraw/components/GridPanel.tsx#L27) `openGridPanel()`: switches to the selection tool, clears the selection and opens the panel. The menu item and the G key both use it.
 
 2. **Panel component** in [GridPanel.tsx](packages/excalidraw/components/GridPanel.tsx) and [GridPanel.scss](packages/excalidraw/components/GridPanel.scss)
+
    - [L91](packages/excalidraw/components/GridPanel.tsx#L91), [L99](packages/excalidraw/components/GridPanel.tsx#L99): the switches run the existing grid actions.
    - [L51](packages/excalidraw/components/GridPanel.tsx#L51) `shouldClose`: closes the panel on a tool change, or when the element properties panel would appear.
    - [L69](packages/excalidraw/components/GridPanel.tsx#L69): Escape closes the panel.
    - [L75](packages/excalidraw/components/GridPanel.tsx#L75): hidden in view mode, and when a host app sets the `gridModeEnabled` prop.
 
 3. **Toolbar item** in [Toolbar.tsx](packages/excalidraw/components/Toolbar.tsx)
+
    - [L124-130](packages/excalidraw/components/Toolbar.tsx#L124-L130): Grid item with a "G" hint; it doesn't turn the grid on.
    - [L89](packages/excalidraw/components/Toolbar.tsx#L89), [L105](packages/excalidraw/components/Toolbar.tsx#L105): More tools turns blue and shows the grid icon while the panel is open.
 
 4. **Placement** in [LayerUI.tsx:305](packages/excalidraw/components/LayerUI.tsx#L305): the panel sits in the left column, above the properties panel.
 
 5. **G shortcut** in [App.tsx:5575](packages/excalidraw/components/App.tsx#L5575)
+
    - It only works with no modifier held.
    - It's skipped when the background picker applies (a fillable tool or selection is active), so that G keeps opening the picker.
    - Shift+G, Ctrl+G and Ctrl+Shift+G are unchanged.
 
 6. **Preferences cleanup** in [DefaultItems.tsx:638](packages/excalidraw/components/main-menu/DefaultItems.tsx#L638)
+
    - The grid items are removed from the default list.
    - The public `Preferences.ToggleGridMode` and `Preferences.ToggleGridSnapMode` exports are kept.
    - The right-click menu and `Ctrl+'` are unchanged.

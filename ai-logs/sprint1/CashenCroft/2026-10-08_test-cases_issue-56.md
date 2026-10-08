@@ -13,6 +13,7 @@ I am working on an issue that implements grid toolbar. I need to update and add 
 Here is a summary on the completion so far.
 
 <pasted_content id="b024">
+
 # Issue #56: Quick reference
 
 **What it does:** "Grid" is the first item in **More tools**. Picking it, or pressing **G**, opens a left-side panel with **Show grid** and **Snap to grid** switches. The grid toggles were removed from **Preferences**.
@@ -20,27 +21,32 @@ Here is a summary on the completion so far.
 ## Changes by chain
 
 1. **Panel state and open logic** in [GridPanel.tsx](packages/excalidraw/components/GridPanel.tsx)
+
    - [L21](packages/excalidraw/components/GridPanel.tsx#L21) `isGridPanelOpenAtom`: open/closed flag. It's a jotai atom, kept out of app state so it isn't saved or added to snapshots.
    - [L27](packages/excalidraw/components/GridPanel.tsx#L27) `openGridPanel()`: switches to the selection tool, clears the selection and opens the panel. The menu item and the G key both use it.
 
 2. **Panel component** in [GridPanel.tsx](packages/excalidraw/components/GridPanel.tsx) and [GridPanel.scss](packages/excalidraw/components/GridPanel.scss)
+
    - [L91](packages/excalidraw/components/GridPanel.tsx#L91), [L99](packages/excalidraw/components/GridPanel.tsx#L99): the switches run the existing grid actions.
    - [L51](packages/excalidraw/components/GridPanel.tsx#L51) `shouldClose`: closes the panel on a tool change, or when the element properties panel would appear.
    - [L69](packages/excalidraw/components/GridPanel.tsx#L69): Escape closes the panel.
    - [L75](packages/excalidraw/components/GridPanel.tsx#L75): hidden in view mode, and when a host app sets the `gridModeEnabled` prop.
 
 3. **Toolbar item** in [Toolbar.tsx](packages/excalidraw/components/Toolbar.tsx)
+
    - [L124-130](packages/excalidraw/components/Toolbar.tsx#L124-L130): Grid item with a "G" hint; it doesn't turn the grid on.
    - [L89](packages/excalidraw/components/Toolbar.tsx#L89), [L105](packages/excalidraw/components/Toolbar.tsx#L105): More tools turns blue and shows the grid icon while the panel is open.
 
 4. **Placement** in [LayerUI.tsx:305](packages/excalidraw/components/LayerUI.tsx#L305): the panel sits in the left column, above the properties panel.
 
 5. **G shortcut** in [App.tsx:5575](packages/excalidraw/components/App.tsx#L5575)
+
    - It only works with no modifier held.
    - It's skipped when the background picker applies (a fillable tool or selection is active), so that G keeps opening the picker.
    - Shift+G, Ctrl+G and Ctrl+Shift+G are unchanged.
 
 6. **Preferences cleanup** in [DefaultItems.tsx:638](packages/excalidraw/components/main-menu/DefaultItems.tsx#L638)
+
    - The grid items are removed from the default list.
    - The public `Preferences.ToggleGridMode` and `Preferences.ToggleGridSnapMode` exports are kept.
    - The right-click menu and `Ctrl+'` are unchanged.
@@ -55,9 +61,7 @@ Here is a summary on the completion so far.
 ## Follow-ups
 
 - **Tests (separate chat):** use `handleKeyboardGlobally={true}` for key tests, and stub `ResizeObserver` for tests that open the background picker.
-- **Optional:** add a Help dialog entry for G, and add the Grid item to the mobile toolbar.
-</pasted_content id="b024">
-
+- **Optional:** add a Help dialog entry for G, and add the Grid item to the mobile toolbar. </pasted_content id="b024">
 
 ---
 
@@ -68,6 +72,7 @@ I'll start by reading the changed files and the existing tests that cover the gr
 _**Agent (claude-opus-5-5 2026-10-08 17:23:10Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show grid panel source, diff, and related tests
 
@@ -211,7 +216,7 @@ index be17e948..dc70427a 100644
 @@ -5571,6 +5572,29 @@ class App extends React.Component<AppProps, AppState> {
          event.preventDefault();
        }
- 
+
 +      // G toggles the grid panel, unless it opens the background color
 +      // picker below (a fillable tool or selected element)
 +      if (
@@ -263,14 +268,14 @@ index ef9b17d6..d9d2170f 100644
 --- a/packages/excalidraw/components/Toolbar.tsx
 +++ b/packages/excalidraw/components/Toolbar.tsx
 @@ -3,10 +3,17 @@ import { useState } from "react";
- 
+
  import { KEYS } from "@excalidraw/common";
- 
+
 +import { actionToggleGridMode } from "../actions";
  import { useTunnels } from "../context/tunnels";
 +import { useAtomValue } from "../editor-jotai";
  import { t } from "../i18n";
- 
+
 -import { useEditorInterface, useStylesPanelMode } from "./App";
 +import {
 +  useEditorInterface,
@@ -295,7 +300,7 @@ index ef9b17d6..d9d2170f 100644
    const { TTDDialogTriggerTunnel } = useTunnels();
 +  const actionManager = useExcalidrawActionManager();
 +  const isGridPanelOpen = useAtomValue(isGridPanelOpenAtom);
- 
+
 +  // hidden when the host app controls the grid via the `gridModeEnabled` prop
 +  const showGridItem = actionManager.isActionEnabled(actionToggleGridMode);
    const frameToolSelected = activeTool.type === "frame";
@@ -376,11 +381,13 @@ packages/excalidraw/tests/excalidraw.test.tsx
 packages/excalidraw/tests/contextmenu.test.tsx
 packages/excalidraw/tests/excalidraw.test.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:23:13Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Locate existing grid tests and test helpers
 
@@ -474,11 +481,13 @@ packages/excalidraw/tests/contextmenu.test.tsx:65:    await render(<Excalidraw h
 packages/excalidraw/tests/convertElementType.test.tsx:13:    await render(<Excalidraw handleKeyboardGlobally={true} />);
 packages/excalidraw/tests/test-utils.ts
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:23:17Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read existing grid tests and shortcut test patterns
 
@@ -679,11 +688,13 @@ describe("shortcuts", () => {
   });
 });
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:23:22Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect test utilities and action enablement
 
@@ -763,11 +774,13 @@ packages/excalidraw/tests/regressionTests.test.tsx:1050:      Keyboard.keyPress(
 29:  predicate: (element, appState, props) => {
 30:    return props.gridModeEnabled === undefined;
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:23:27Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect dropdown testing pattern and G handler
 
@@ -863,11 +876,13 @@ describe("selectedElementIds stability", () => {
 
       if (
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:23:33Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check keyboard helpers and keydown guards
 
@@ -950,6 +965,7 @@ packages/excalidraw/components/Toolbar.tsx:156:          data-testid="toolbar-pa
 5382:        if (this.state.viewModeEnabled && !oneOf(shape, ["laser", "hand"])) {
 5432:      if (this.state.viewModeEnabled) {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:23:36Z)**_
@@ -959,6 +975,7 @@ I've read the implementation and the test helpers. Next I'm checking how the dro
 _**Agent (claude-opus-5-5 2026-10-08 17:23:39Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read dropdown trigger, switch, and Preferences menu
 
@@ -1106,11 +1123,13 @@ packages/excalidraw/components/dropdownMenu/DropdownMenuSub.tsx:22:DropdownMenuS
 packages/excalidraw/components/dropdownMenu/DropdownMenuSub.tsx:24:DropdownMenuSub.displayName = "DropdownMenuSub";
 packages/excalidraw/components/dropdownMenu/DropdownMenuSub.tsx:26:export default DropdownMenuSub;
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:23:44Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect dropdown menu primitives
 
@@ -1226,6 +1245,7 @@ const MenuTrigger = ({
 export default MenuTrigger;
 MenuTrigger.displayName = "DropdownMenuTrigger";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:23:53Z)**_
@@ -1235,6 +1255,7 @@ I'll write the new test file now, then iterate until it passes.
 _**Agent (claude-opus-5-5 2026-10-08 17:24:29Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -1572,17 +1593,18 @@ describe("context menu grid toggle", () => {
     expect(getGridPanel()).toBe(null);
   });
 });
-
 ```
 
 ```text
 File created successfully at: C:\Users\super\excalidraw\packages\excalidraw\tests\gridPanel.test.tsx (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:24:29Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Verify labels and helper names used in tests
 
@@ -1599,11 +1621,13 @@ Verify labels and helper names used in tests
 91:  static setSelectedElements = (elements: NonDeletedExcalidrawElement[], editingGroupId?: string | null) => {
 153:  static clearSelection = () => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:24:40Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run the new grid panel tests
 
@@ -1623,7 +1647,7 @@ Expected the element not to have class:
 Received:
   dropdown-menu-button App-toolbar__extra-tools-trigger App-toolbar__extra-tools-trigger--selected zen-mode-transition
  ❯** packages/excalidraw/tests/gridPanel.test.tsx:85:42**
-     83| 
+     83|
      84|     it("should highlight More tools while the panel is open", () => {
      85|       expect(getExtraToolsTrigger()).not.toHaveClass(
        |                                          ^
@@ -1642,7 +1666,7 @@ Received:
     158|     expect(API.getSelectedElements().length).toBe(0);
        |                                              ^
     159|   };
-    160| 
+    160|
  ❯** packages/excalidraw/tests/gridPanel.test.tsx:170:13**
  ❯** node_modules/@testing-library/react/dist/act-compat.js:48:24**
  ❯** process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:1081:22**
@@ -1657,7 +1681,7 @@ Received:
     189|       expect(getGridPanel()).not.toBe(null);
        |                                  ^
     190|       expect(h.state.gridModeEnabled).toBe(false);
-    191| 
+    191|
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯**
 ** FAIL ** packages/excalidraw/tests/gridPanel.test.tsx > **grid panel > **gridModeEnabled prop > **should ignore the G shortcut
 **AssertionError**: expected false to be true // Object.is equality
@@ -1691,6 +1715,7 @@ Received:
 error Command failed with exit code 1.
 info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:24:46Z)**_
@@ -1700,6 +1725,7 @@ Five tests failed. The likely cause is that the panel's open flag carries over b
 _**Agent (claude-opus-5-5 2026-10-08 17:24:48Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect jotai store scope and gridModeEnabled sync
 
@@ -1734,11 +1760,13 @@ export const editorJotaiStore: ReturnType<typeof createStore> = createStore();
 877:      gridModeEnabled = false,
 892:      gridModeEnabled: gridModeEnabled ?? defaultAppState.gridModeEnabled,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:24:54Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check gridModeEnabled prop sync and menu markup
 
@@ -1774,11 +1802,13 @@ Check gridModeEnabled prop sync and menu markup
 21:    class="Island dropdown-menu-container"
 32:        class="dropdown-menu-item__text"
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:24:58Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check which items the default main menu renders
 
@@ -1797,18 +1827,19 @@ Check which items the default main menu renders
 122:DefaultItems.ChangeCanvasBackground
 79:      <MainMenu.DefaultItems.Preferences />
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:25:02Z)**_
 
-<think><details><summary>Thought Process</summary>
-I found that the default library menu lacks a Preferences entry, so I'll update the tests to render it explicitly, reset the shared atom before each test, and fix the other two assertions.
+<think><details><summary>Thought Process</summary> I found that the default library menu lacks a Preferences entry, so I'll update the tests to render it explicitly, reset the shared atom before each test, and fix the other two assertions.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:25:16Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Apply test fixes and rerun
 
@@ -1899,6 +1930,7 @@ yarn vitest run $f 2>&1 | grep -E "✓|×|→|Tests |Error" | head -60
 **TypeError**: Cannot read properties of null (reading 'closest')
       Tests ** **5 failed** | ****21 passed** (26)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:25:17Z)**_
@@ -1908,56 +1940,67 @@ Python isn't installed, so that edit script never ran. I'll make the changes wit
 _**Agent (claude-opus-5-5 2026-10-08 17:25:27Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\gridPanel.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:25:28Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\gridPanel.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:25:29Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\gridPanel.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:25:30Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\gridPanel.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:25:31Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\gridPanel.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:25:41Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Rerun the grid panel tests
 
@@ -1966,28 +2009,31 @@ Rerun the grid panel tests
 ```text
       Tests ** **26 passed** (26)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:25:47Z)**_
 
-<think><details><summary>Thought Process</summary>
-All 26 new tests pass. I noticed an existing test incorrectly checks for "Show grid" instead of the actual "Toggle grid" label, so I'll update it to check the correct text now that "Show grid" is a real label.
+<think><details><summary>Thought Process</summary> All 26 new tests pass. I noticed an existing test incorrectly checks for "Show grid" instead of the actual "Toggle grid" label, so I'll update it to check the correct text now that "Show grid" is a real label.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:25:49Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\excalidraw.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:25:50Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 List test and lint scripts
 
@@ -2008,6 +2054,7 @@ List test and lint scripts
 79:    "fix:other": "yarn prettier --write",
 80:    "fix": "yarn fix:other && yarn fix:code",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:25:51Z)**_
@@ -2017,6 +2064,7 @@ Now I'm running the full suite, typecheck, lint and Prettier.
 _**Agent (claude-opus-5-5 2026-10-08 17:27:14Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run full tests, typecheck, lint and prettier
 
@@ -2040,11 +2088,13 @@ eslint exit 1
 packages\excalidraw\tests\excalidraw.test.tsx
 prettier exit 1
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:27:38Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Format and recheck lint and tests
 
@@ -2055,6 +2105,7 @@ exit 0
       Tests ** **35 passed** (35)
 [This command modified 1 file you've previously read: packages\excalidraw\tests\excalidraw.test.tsx. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:27:49Z)**_
@@ -2062,6 +2113,7 @@ _**Agent (claude-opus-5-5 2026-10-08 17:27:49Z)**_
 I added 26 tests for the grid toolbar in a new file, [gridPanel.test.tsx](packages/excalidraw/tests/gridPanel.test.tsx), and fixed one existing test. The full suite passes (1,716 tests), and typecheck, ESLint and Prettier are clean. Nothing is committed.
 
 **What the new tests cover:**
+
 - **More tools item:** Grid is the first item and shows a "G" hint. Picking it opens the panel without turning the grid on, switches to the selection tool, and clears the selection. More tools is highlighted while the panel is open and goes back to normal after Escape.
 - **Panel:**
   - The Show grid and Snap to grid switches each toggle their setting and leave the other one alone.
@@ -2078,6 +2130,7 @@ I added 26 tests for the grid toolbar in a new file, [gridPanel.test.tsx](packag
 **Existing test fixed:** [excalidraw.test.tsx:154](packages/excalidraw/tests/excalidraw.test.tsx#L154) checked that "Show grid" was missing from the right-click menu. That item has always been labelled "Toggle grid", so the check passed no matter what. Since "Show grid" is now a real label, I changed it to check for "Toggle grid".
 
 **Two things I found while writing the tests:**
+
 1. **The panel's open/closed flag is shared and survives a reload of the editor.** It lives in a store shared by every Excalidraw instance on the page, and it isn't reset when the editor unmounts. The tests reset it before each run. In a real host app, if Excalidraw unmounts with the panel open and then remounts, the panel comes back open. Other panels that use the same store behave the same way, so this may be acceptable, but you should decide that on purpose.
 2. **The `gridModeEnabled={true}` prop doesn't turn the grid on.** In the tests, the grid stays off after load. This isn't caused by your changes, but it means the "G is ignored" test only checks that the grid setting doesn't change, not that it stays on.
 
@@ -2092,44 +2145,45 @@ Explain out each test case and why it needed implementation. It may be helpful t
 _**Agent (claude-opus-5-5 2026-10-08 17:31:16Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `C:\Users\super\excalidraw\packages\excalidraw\tests\gridPanel.test.tsx`
 
 ```text
 1	import { queryByTestId, queryByText } from "@testing-library/react";
-2	
+2
 3	import { KEYS } from "@excalidraw/common";
-4	
+4
 5	import { isGridPanelOpenAtom } from "../components/GridPanel";
 6	import { editorJotaiStore } from "../editor-jotai";
 7	import { Excalidraw, MainMenu } from "../index";
-8	
+8
 9	import { API } from "./helpers/api";
 10	import { Keyboard, UI } from "./helpers/ui";
 11	import { act, fireEvent, GlobalTestState, render } from "./test-utils";
-12	
+12
 13	const { h } = window;
-14	
+14
 15	const getGridPanel = () => document.querySelector(".GridPanel");
-16	
+16
 17	const getExtraToolsTrigger = () =>
 18	  document.querySelector<HTMLElement>(".App-toolbar__extra-tools-trigger")!;
-19	
+19
 20	const openExtraToolsMenu = () => {
 21	  fireEvent.click(getExtraToolsTrigger());
 22	  return document.querySelector<HTMLElement>(
 23	    ".App-toolbar__extra-tools-dropdown",
 24	  )!;
 25	};
-26	
+26
 27	const pickGridFromExtraTools = () => {
 28	  const menu = openExtraToolsMenu();
 29	  fireEvent.click(queryByTestId(menu, "toolbar-grid")!);
 30	};
-31	
+31
 32	const getSwitch = (name: string) =>
 33	  document.querySelector<HTMLInputElement>(`input[name="${name}"]`)!;
-34	
+34
 35	const stubResizeObserver = () => {
 36	  // radix popovers (e.g. the background color picker) need ResizeObserver
 37	  (global as any).ResizeObserver = class ResizeObserver {
@@ -2138,130 +2192,130 @@ _**Agent (claude-opus-5-5 2026-10-08 17:31:16Z)**_
 40	    disconnect() {}
 41	  };
 42	};
-43	
+43
 44	beforeEach(() => {
 45	  // the editor jotai store is module-level, so reset the panel between tests
 46	  editorJotaiStore.set(isGridPanelOpenAtom, false);
 47	});
-48	
+48
 49	describe("grid panel", () => {
 50	  describe("extra tools menu item", () => {
 51	    beforeEach(async () => {
 52	      await render(<Excalidraw handleKeyboardGlobally={true} />);
 53	    });
-54	
+54
 55	    it("should be the first item in More tools, with a G shortcut", () => {
 56	      const menu = openExtraToolsMenu();
 57	      const items = menu.querySelectorAll(".dropdown-menu-item");
 58	      const gridItem = queryByTestId(menu, "toolbar-grid")!;
-59	
+59
 60	      expect(items[0]).toBe(gridItem);
 61	      expect(gridItem.textContent).toContain("Grid");
 62	      expect(
 63	        gridItem.querySelector(".dropdown-menu-item__shortcut")?.textContent,
 64	      ).toBe("G");
 65	    });
-66	
+66
 67	    it("should open the panel without turning the grid on", () => {
 68	      expect(getGridPanel()).toBe(null);
-69	
+69
 70	      pickGridFromExtraTools();
-71	
+71
 72	      expect(getGridPanel()).not.toBe(null);
 73	      expect(h.state.gridModeEnabled).toBe(false);
 74	      expect(h.state.gridSnapEnabled).toBe(false);
 75	    });
-76	
+76
 77	    it("should switch to the selection tool and clear the selection", () => {
 78	      const rectangle = API.createElement({ type: "rectangle" });
 79	      API.setElements([rectangle]);
 80	      API.setSelectedElements([rectangle]);
 81	      UI.clickTool("rectangle");
 82	      expect(h.state.activeTool.type).toBe("rectangle");
-83	
+83
 84	      pickGridFromExtraTools();
-85	
+85
 86	      expect(h.state.activeTool.type).toBe("selection");
 87	      expect(h.state.selectedElementIds).toEqual({});
 88	      expect(getGridPanel()).not.toBe(null);
 89	    });
-90	
+90
 91	    it("should highlight More tools while the panel is open", () => {
 92	      expect(getExtraToolsTrigger()).not.toHaveClass(
 93	        "App-toolbar__extra-tools-trigger--selected",
 94	      );
-95	
+95
 96	      pickGridFromExtraTools();
 97	      expect(getExtraToolsTrigger()).toHaveClass(
 98	        "App-toolbar__extra-tools-trigger--selected",
 99	      );
-100	
+100
 101	      Keyboard.keyPress(KEYS.ESCAPE);
 102	      expect(getExtraToolsTrigger()).not.toHaveClass(
 103	        "App-toolbar__extra-tools-trigger--selected",
 104	      );
 105	    });
 106	  });
-107	
+107
 108	  describe("panel", () => {
 109	    beforeEach(async () => {
 110	      await render(<Excalidraw handleKeyboardGlobally={true} />);
 111	      pickGridFromExtraTools();
 112	    });
-113	
+113
 114	    it("should toggle grid visibility from the Show grid switch", () => {
 115	      const showGrid = getSwitch("grid-panel-show-grid");
 116	      expect(showGrid.checked).toBe(false);
-117	
+117
 118	      fireEvent.click(showGrid);
 119	      expect(h.state.gridModeEnabled).toBe(true);
 120	      expect(h.state.gridSnapEnabled).toBe(false);
 121	      expect(getSwitch("grid-panel-show-grid").checked).toBe(true);
-122	
+122
 123	      fireEvent.click(getSwitch("grid-panel-show-grid"));
 124	      expect(h.state.gridModeEnabled).toBe(false);
 125	    });
-126	
+126
 127	    it("should toggle grid snapping from the Snap to grid switch", () => {
 128	      const snapToGrid = getSwitch("grid-panel-snap-to-grid");
 129	      expect(snapToGrid.checked).toBe(false);
-130	
+130
 131	      fireEvent.click(snapToGrid);
 132	      expect(h.state.gridSnapEnabled).toBe(true);
 133	      expect(h.state.gridModeEnabled).toBe(false);
 134	      expect(getSwitch("grid-panel-snap-to-grid").checked).toBe(true);
-135	
+135
 136	      fireEvent.click(getSwitch("grid-panel-snap-to-grid"));
 137	      expect(h.state.gridSnapEnabled).toBe(false);
 138	    });
-139	
+139
 140	    it("should reflect grid state changed elsewhere", () => {
 141	      API.setAppState({ gridModeEnabled: true, gridSnapEnabled: true });
-142	
+142
 143	      expect(getSwitch("grid-panel-show-grid").checked).toBe(true);
 144	      expect(getSwitch("grid-panel-snap-to-grid").checked).toBe(true);
 145	    });
-146	
+146
 147	    it("should stay open after toggling a switch", () => {
 148	      fireEvent.click(getSwitch("grid-panel-show-grid"));
 149	      fireEvent.click(getSwitch("grid-panel-snap-to-grid"));
 150	      expect(getGridPanel()).not.toBe(null);
 151	    });
-152	
+152
 153	    it("should close on Escape", () => {
 154	      Keyboard.keyPress(KEYS.ESCAPE);
 155	      expect(getGridPanel()).toBe(null);
 156	    });
-157	
+157
 158	    it("should close when switching to another tool", () => {
 159	      UI.clickTool("rectangle");
 160	      expect(getGridPanel()).toBe(null);
-161	
+161
 162	      // and stay closed when coming back to the selection tool
 163	      UI.clickTool("selection");
 164	      expect(getGridPanel()).toBe(null);
 165	    });
-166	
+166
 167	    it("should close when an element gets selected", () => {
 168	      const rectangle = API.createElement({ type: "rectangle" });
 169	      API.setElements([rectangle]);
@@ -2269,57 +2323,57 @@ _**Agent (claude-opus-5-5 2026-10-08 17:31:16Z)**_
 171	        API.setSelectedElements([rectangle]);
 172	      });
 173	      expect(getGridPanel()).toBe(null);
-174	
+174
 175	      // and stay closed after deselecting
 176	      API.setAppState({ selectedElementIds: {} });
 177	      expect(getGridPanel()).toBe(null);
 178	    });
-179	
+179
 180	    it("should be hidden in view mode", () => {
 181	      API.setAppState({ viewModeEnabled: true });
 182	      expect(getGridPanel()).toBe(null);
 183	    });
 184	  });
-185	
+185
 186	  describe("G shortcut", () => {
 187	    beforeEach(async () => {
 188	      stubResizeObserver();
 189	      await render(<Excalidraw handleKeyboardGlobally={true} />);
 190	    });
-191	
+191
 192	    it("should toggle the panel with the selection tool and nothing selected", () => {
 193	      Keyboard.keyPress(KEYS.G);
 194	      expect(getGridPanel()).not.toBe(null);
 195	      expect(h.state.gridModeEnabled).toBe(false);
-196	
+196
 197	      Keyboard.keyPress(KEYS.G);
 198	      expect(getGridPanel()).toBe(null);
 199	    });
-200	
+200
 201	    it("should keep opening the background picker for fillable tools", () => {
 202	      UI.clickTool("rectangle");
-203	
+203
 204	      Keyboard.keyPress(KEYS.G);
-205	
+205
 206	      expect(getGridPanel()).toBe(null);
 207	      expect(h.state.openPopup).toBe("elementBackground");
 208	      expect(h.state.activeTool.type).toBe("rectangle");
 209	    });
-210	
+210
 211	    it("should keep opening the background picker for selected fillable elements", () => {
 212	      const rectangle = API.createElement({ type: "rectangle" });
 213	      API.setElements([rectangle]);
 214	      act(() => {
 215	        API.setSelectedElements([rectangle]);
 216	      });
-217	
+217
 218	      Keyboard.keyPress(KEYS.G);
-219	
+219
 220	      expect(getGridPanel()).toBe(null);
 221	      expect(h.state.openPopup).toBe("elementBackground");
 222	      expect(h.state.selectedElementIds).toEqual({ [rectangle.id]: true });
 223	    });
-224	
+224
 225	    it.each([
 226	      ["Shift", { shift: true }],
 227	      ["Alt", { alt: true }],
@@ -2331,7 +2385,7 @@ _**Agent (claude-opus-5-5 2026-10-08 17:31:16Z)**_
 233	      });
 234	      expect(getGridPanel()).toBe(null);
 235	    });
-236	
+236
 237	    it("should still group elements with Ctrl+G", () => {
 238	      const rect1 = API.createElement({ type: "rectangle", x: 0 });
 239	      const rect2 = API.createElement({ type: "rectangle", x: 100 });
@@ -2339,37 +2393,37 @@ _**Agent (claude-opus-5-5 2026-10-08 17:31:16Z)**_
 241	      act(() => {
 242	        API.setSelectedElements([rect1, rect2]);
 243	      });
-244	
+244
 245	      Keyboard.withModifierKeys({ ctrl: true }, () => {
 246	        Keyboard.keyPress(KEYS.G);
 247	      });
-248	
+248
 249	      expect(getGridPanel()).toBe(null);
 250	      expect(h.elements[0].groupIds).toHaveLength(1);
 251	      expect(h.elements[0].groupIds).toEqual(h.elements[1].groupIds);
 252	    });
-253	
+253
 254	    it("should not open the panel in view mode", () => {
 255	      API.setAppState({ viewModeEnabled: true });
 256	      Keyboard.keyPress(KEYS.G);
 257	      expect(getGridPanel()).toBe(null);
 258	    });
 259	  });
-260	
+260
 261	  describe("gridModeEnabled prop", () => {
 262	    beforeEach(async () => {
 263	      await render(
 264	        <Excalidraw gridModeEnabled={true} handleKeyboardGlobally={true} />,
 265	      );
 266	    });
-267	
+267
 268	    it("should hide the Grid item in More tools", () => {
 269	      const menu = openExtraToolsMenu();
 270	      expect(queryByTestId(menu, "toolbar-grid")).toBe(null);
 271	      // the rest of the menu still renders
 272	      expect(queryByTestId(menu, "toolbar-frame")).not.toBe(null);
 273	    });
-274	
+274
 275	    it("should ignore the G shortcut", () => {
 276	      const gridModeEnabled = h.state.gridModeEnabled;
 277	      Keyboard.keyPress(KEYS.G);
@@ -2378,7 +2432,7 @@ _**Agent (claude-opus-5-5 2026-10-08 17:31:16Z)**_
 280	    });
 281	  });
 282	});
-283	
+283
 284	describe("Preferences menu", () => {
 285	  const openPreferences = (container: HTMLElement) => {
 286	    fireEvent.click(container.querySelector(".dropdown-menu-button")!);
@@ -2391,7 +2445,7 @@ _**Agent (claude-opus-5-5 2026-10-08 17:31:16Z)**_
 293	      ".excalidraw-main-menu-preferences-submenu",
 294	    )!;
 295	  };
-296	
+296
 297	  it("should no longer list the grid toggles by default", async () => {
 298	    const { container } = await render(
 299	      <Excalidraw>
@@ -2401,14 +2455,14 @@ _**Agent (claude-opus-5-5 2026-10-08 17:31:16Z)**_
 303	      </Excalidraw>,
 304	    );
 305	    const submenu = openPreferences(container);
-306	
+306
 307	    expect(submenu).not.toBe(null);
 308	    // sanity check that the submenu contents rendered
 309	    expect(queryByText(submenu, "Zen mode")).not.toBe(null);
 310	    expect(queryByText(submenu, "Toggle grid")).toBe(null);
 311	    expect(queryByText(submenu, "Snap to grid")).toBe(null);
 312	  });
-313	
+313
 314	  it("should still allow hosts to add the grid toggles explicitly", async () => {
 315	    const { container } = await render(
 316	      <Excalidraw>
@@ -2421,12 +2475,12 @@ _**Agent (claude-opus-5-5 2026-10-08 17:31:16Z)**_
 323	      </Excalidraw>,
 324	    );
 325	    const submenu = openPreferences(container);
-326	
+326
 327	    expect(queryByText(submenu, "Toggle grid")).not.toBe(null);
 328	    expect(queryByText(submenu, "Snap to grid")).not.toBe(null);
 329	  });
 330	});
-331	
+331
 332	describe("context menu grid toggle", () => {
 333	  it("should not open the grid panel", async () => {
 334	    await render(<Excalidraw />);
@@ -2437,13 +2491,14 @@ _**Agent (claude-opus-5-5 2026-10-08 17:31:16Z)**_
 339	    });
 340	    const contextMenu = document.querySelector(".context-menu");
 341	    fireEvent.click(queryByText(contextMenu as HTMLElement, "Toggle grid")!);
-342	
+342
 343	    expect(h.state.gridModeEnabled).toBe(true);
 344	    expect(getGridPanel()).toBe(null);
 345	  });
 346	});
 347
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:32:36Z)**_
@@ -2943,6 +2998,7 @@ it("should not open the grid panel", async () => {
 ---
 
 **What's still untested:**
+
 - The ⌘ (Cmd) key check, because the `Keyboard` helper can't hold it.
 - What G does with a tool that has no fill, such as arrow or line. G doesn't open the picker for those tools, so the new code switches to the selection tool and opens the panel. That may or may not be what you want. If it is, add a test for it.
 - The panel's layout in the left column. Tests here don't check where things appear on screen, so you'd need to look at it in the running app.
@@ -2962,8 +3018,8 @@ No. That test isn't checking that something old was removed. The right-click "To
 ```tsx
 fireEvent.click(queryByText(contextMenu as HTMLElement, "Toggle grid")!);
 
-expect(h.state.gridModeEnabled).toBe(true);  // 1. it still turns the grid on
-expect(getGridPanel()).toBe(null);           // 2. it doesn't also open the new panel
+expect(h.state.gridModeEnabled).toBe(true); // 1. it still turns the grid on
+expect(getGridPanel()).toBe(null); // 2. it doesn't also open the new panel
 ```
 
 The "removed" checks are in the Preferences tests (5a), since Preferences is the only place grid items were taken out.
@@ -2997,6 +3053,7 @@ I'll remove the grid toggles from the right-click menu and the remaining Prefere
 _**Agent (claude-opus-5-5 2026-10-08 17:37:03Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find all grid toggle usages and test references
 
@@ -3045,11 +3102,13 @@ packages/excalidraw/tests/gridPanel.test.tsx:341:    fireEvent.click(queryByText
 packages/excalidraw/tests/__snapshots__/contextmenu.test.tsx.snap:8247:        "label": "labels.toggleGrid",
 packages/excalidraw/tests/__snapshots__/contextmenu.test.tsx.snap:8302:        "label": "labels.toggleGridSnap",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:37:08Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read context menu items and Preferences grid items
 
@@ -3164,58 +3223,67 @@ examples/with-nextjs/node_modules/typescript/lib/_tsc.js:45186:      moduleSpeci
 examples/with-script-in-browser/node_modules/typescript/lib/typescript.d.ts:799:                 * Display parts when UserPreferences.displayPartsForJSDoc is true, flattened to string otherwise.
 examples/with-script-in-browser/node_modules/typescript/lib/typescript.d.ts:925:                 * If {@link UserPreferences.disableLineTextInReferences} is enabled, the property won't be filled
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:37:13Z)**_
 
-<think><details><summary>Thought Process</summary>
-I'll remove the duplicate grid toggles from both the normal and view-mode right-click menus, along with the two Preferences components and their exports—keeping the underlying grid actions intact since the panel and Ctrl+' still rely on them.
+<think><details><summary>Thought Process</summary> I'll remove the duplicate grid toggles from both the normal and view-mode right-click menus, along with the two Preferences components and their exports—keeping the underlying grid actions intact since the panel and Ctrl+' still rely on them.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:37:21Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\components\App.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:37:22Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\components\App.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:37:24Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\components\main-menu\DefaultItems.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:37:25Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\components\main-menu\DefaultItems.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:37:25Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check now-unused imports
 
@@ -3226,15 +3294,17 @@ Check now-unused imports
 14:  actionToggleGridSnapMode,
 328:  actionToggleGridSnapMode,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:37:28Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Remove unused grid action imports
 
-`sed -i '13,14{/actionToggleGridMode,\|actionToggleGridSnapMode,/d}' packages/excalidraw/components/main-menu/DefaultItems.tsx && sed -i '328{/^  actionToggleGridSnapMode,$/d}' packages/excalidraw/components/App.tsx && sed -n 8,20p packages/excalidraw/components/main-menu/DefaultItems.tsx && sed -n 322,332p packages/excalidraw/components/App.tsx`
+`sed -i '13,14{/actionToggleGridMode,\|actionToggleGridSnapMode,/d}' packages/excalidraw/components/main-menu/DefaultItems.tsx && sed -i '328{/^ actionToggleGridSnapMode,$/d}' packages/excalidraw/components/App.tsx && sed -n 8,20p packages/excalidraw/components/main-menu/DefaultItems.tsx && sed -n 322,332p packages/excalidraw/components/App.tsx`
 
 ```text
   actionClearCanvas,
@@ -3262,30 +3332,31 @@ import { actionToggleViewMode } from "../../actions/actionToggleViewMode";
   actionBindText,
   actionUngroup,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:37:37Z)**_
 
-<think><details><summary>Thought Process</summary>
-I'll remove the Preferences test for `ToggleGridMode` and the right-click test in `gridPanel.test.tsx`, plus the two right-click tests under "Test gridModeEnabled prop" in `excalidraw.test.tsx`, since they all reference the removed menu item.
+<think><details><summary>Thought Process</summary> I'll remove the Preferences test for `ToggleGridMode` and the right-click test in `gridPanel.test.tsx`, plus the two right-click tests under "Test gridModeEnabled prop" in `excalidraw.test.tsx`, since they all reference the removed menu item.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:37:37Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `C:\Users\super\excalidraw\packages\excalidraw\tests\excalidraw.test.tsx`
 
 ```text
 118	    );
 119	  });
-120	
+120
 121	  describe("Test gridModeEnabled prop", () => {
 122	    it('should show grid mode in context menu when gridModeEnabled is "undefined"', async () => {
 123	      const { container } = await render(<Excalidraw />);
 124	      expect(h.state.gridModeEnabled).toBe(false);
-125	
+125
 126	      expect(
 127	        container.getElementsByClassName("disable-zen-mode--visible").length,
 128	      ).toBe(0);
@@ -3298,13 +3369,13 @@ _**Agent (claude-opus-5-5 2026-10-08 17:37:37Z)**_
 135	      fireEvent.click(queryByText(contextMenu as HTMLElement, "Toggle grid")!);
 136	      expect(h.state.gridModeEnabled).toBe(true);
 137	    });
-138	
+138
 139	    it('should not show grid mode in context menu when gridModeEnabled is not "undefined"', async () => {
 140	      const { container } = await render(
 141	        <Excalidraw gridModeEnabled={false} />,
 142	      );
 143	      expect(h.state.gridModeEnabled).toBe(false);
-144	
+144
 145	      expect(
 146	        container.getElementsByClassName("disable-zen-mode--visible").length,
 147	      ).toBe(0);
@@ -3318,34 +3389,40 @@ _**Agent (claude-opus-5-5 2026-10-08 17:37:37Z)**_
 155	      expect(h.state.gridModeEnabled).toBe(false);
 156	    });
 157	  });
-158	
+158
 159	  describe("Test grid visibility and grid snapping are independent", () => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:37:50Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\excalidraw.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:37:51Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\gridPanel.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:38:01Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Fix import and update context menu snapshots
 
@@ -3359,18 +3436,19 @@ Fix import and update context menu snapshots
  .../tests/__snapshots__/contextmenu.test.tsx.snap  | 110 ---------------------
  1 file changed, 110 deletions(-)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:38:03Z)**_
 
-<think><details><summary>Thought Process</summary>
-The right-click and Preferences code is removed and the snapshot updated. Now I'll fix the "shows context menu for canvas" test, which still lists the old grid items.
+<think><details><summary>Thought Process</summary> The right-click and Preferences code is removed and the snapshot updated. Now I'll fix the "shows context menu for canvas" test, which still lists the old grid items.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:38:04Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find grid entries in the canvas context menu test
 
@@ -3382,18 +3460,20 @@ Find grid entries in the canvas context menu test
 22:101-    expectedShortcutNames.forEach((shortcutName) => {
 28:107-      contextMenu?.querySelector(`li[data-testid="gridSnapMode"]`),
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:38:05Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `C:\Users\super\excalidraw\packages\excalidraw\tests\contextmenu.test.tsx`
 
 ```text
 80	    mouse.down(0, 0);
 81	  });
-82	
+82
 83	  it("shows context menu for canvas", () => {
 84	    fireEvent.contextMenu(GlobalTestState.interactiveCanvas, {
 85	      button: 2,
@@ -3410,7 +3490,7 @@ _**Agent (claude-opus-5-5 2026-10-08 17:38:05Z)**_
 96	      "viewMode",
 97	      "stats",
 98	    ];
-99	
+99
 100	    expect(contextMenu).not.toBeNull();
 101	    expectedShortcutNames.forEach((shortcutName) => {
 102	      expect(
@@ -3421,32 +3501,36 @@ _**Agent (claude-opus-5-5 2026-10-08 17:38:05Z)**_
 107	      contextMenu?.querySelector(`li[data-testid="gridSnapMode"]`),
 108	    ).not.toBeNull();
 109	  });
-110	
+110
 111	  it("shows context menu for element", () => {
 112	    UI.clickTool("rectangle");
 113	    mouse.down(0, 0);
 114	    mouse.up(10, 10);
-115	
+115
 116	    fireEvent.contextMenu(GlobalTestState.interactiveCanvas, {
 117	      button: 2,
 118	      clientX: 3,
 119	      clientY: 3,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:38:15Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\contextmenu.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:39:43Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run full tests, typecheck, lint and prettier
 
@@ -3463,6 +3547,7 @@ tsc exit 0
 eslint exit 0
 prettier exit 0
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:39:45Z)**_
@@ -3472,6 +3557,7 @@ Two snapshot tests in `excalidraw.test.tsx` fail now. They passed before, so I'm
 _**Agent (claude-opus-5-5 2026-10-08 17:40:00Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show snapshot mismatch lines
 
@@ -3480,11 +3566,13 @@ Show snapshot mismatch lines
 ```text
 (Bash completed with no output)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:40:14Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show snapshot mismatch without colors
 
@@ -3510,25 +3598,26 @@ Show snapshot mismatch without colors
 +   id="radix-:r98:"
       Tests  2 failed | 31 passed (33)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:40:17Z)**_
 
-<think><details><summary>Thought Process</summary>
-The only differences are auto-incrementing Radix IDs shifted by removing earlier tests, no actual menu content changed. I'll update those snapshots now.
+<think><details><summary>Thought Process</summary> The only differences are auto-incrementing Radix IDs shifted by removing earlier tests, no actual menu content changed. I'll update those snapshots now.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:42:17Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Update snapshots, verify only IDs changed, rerun suite
 
 `yarn vitest run packages/excalidraw/tests/excalidraw.test.tsx --update 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E "Tests |Snapshots"; git diff --stat -- packages/excalidraw/tests/__snapshots__/ && git diff packages/excalidraw/tests/__snapshots__/excalidraw.test.tsx.snap | grep "^[-+] " | grep -v radix; yarn test:app --watch=false 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E "×|Test Files|Tests "`
 
 ```text
-  Snapshots  2 updated 
+  Snapshots  2 updated
       Tests  33 passed (33)
  .../tests/__snapshots__/contextmenu.test.tsx.snap  | 110 ---------------------
  .../tests/__snapshots__/excalidraw.test.tsx.snap   |  10 +-
@@ -3536,11 +3625,13 @@ Update snapshots, verify only IDs changed, rerun suite
  Test Files  121 passed (121)
       Tests  1712 passed | 47 skipped | 1 todo (1760)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:42:20Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Confirm removed snapshot entries are grid actions
 
@@ -3552,6 +3643,7 @@ Confirm removed snapshot entries are grid actions
 -        "label": "labels.toggleGridSnap",
 -        "name": "gridSnapMode",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:42:28Z)**_
@@ -3559,11 +3651,13 @@ _**Agent (claude-opus-5-5 2026-10-08 17:42:28Z)**_
 The grid toggles are gone from the right-click menu and from Preferences, and the tests for them are removed or updated. The full suite passes (1,712 tests), and typecheck, ESLint and Prettier are clean. Nothing is committed.
 
 **Code changes:**
+
 - **Right-click menu** ([App.tsx](packages/excalidraw/components/App.tsx)): removed "Toggle grid" and "Snap to grid" from the canvas menu. Toggle grid also appeared in the view-mode version of the menu, so I removed it there too. I removed the import that was no longer used.
 - **Preferences** ([DefaultItems.tsx](packages/excalidraw/components/main-menu/DefaultItems.tsx)): deleted the two grid menu components and the `Preferences.ToggleGridMode` and `Preferences.ToggleGridSnapMode` exports, plus their imports.
 - **Kept:** the grid actions themselves, because the panel's switches and the `Ctrl+'` shortcut still use them.
 
 **Test changes:**
+
 - [gridPanel.test.tsx](packages/excalidraw/tests/gridPanel.test.tsx): removed "should still allow hosts to add the grid toggles explicitly" and the right-click test. I kept "should no longer list the grid toggles by default", which still applies.
 - [excalidraw.test.tsx](packages/excalidraw/tests/excalidraw.test.tsx): removed the "Test gridModeEnabled prop" group. Both of its tests only checked the right-click item. The prop's effect on the new UI is still tested in `gridPanel.test.tsx`.
 - [contextmenu.test.tsx](packages/excalidraw/tests/contextmenu.test.tsx): removed the grid entries from the expected items in "shows context menu for canvas".
@@ -3588,6 +3682,7 @@ I'll check what grid code is still left over from the right-click menu.
 _**Agent (claude-opus-5-5 2026-10-08 17:45:26Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read grid actions and find remaining grid UI references
 
@@ -3668,11 +3763,13 @@ packages/excalidraw/actions/shortcuts.ts:98:  gridMode: [getShortcutKey("CtrlOrC
 packages/excalidraw/actions/types.ts:62:  | "gridMode"
 packages/excalidraw/actions/types.ts:63:  | "gridSnapMode"
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:45:33Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect Help dialog and command palette grid entries
 
@@ -3747,11 +3844,13 @@ Inspect Help dialog and command palette grid entries
  packages/excalidraw/tests/excalidraw.test.tsx      |  38 -------
  9 files changed, 61 insertions(+), 206 deletions(-)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:45:40Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Confirm grid actions left in App.tsx
 
@@ -3761,22 +3860,24 @@ Confirm grid actions left in App.tsx
 327:  actionToggleGridMode,
 5582:        this.actionManager.isActionEnabled(actionToggleGridMode) &&
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:45:43Z)**_
 
-<think><details><summary>Thought Process</summary>
-The right-click menu no longer references the grid items—only the G-key check remains in App.tsx—so "the right-click component" likely refers to the two action files those menu items used. Since deleting them would affect more than just the menu, I'll confirm before removing anything.
+<think><details><summary>Thought Process</summary> The right-click menu no longer references the grid items—only the G-key check remains in App.tsx—so "the right-click component" likely refers to the two action files those menu items used. Since deleting them would affect more than just the menu, I'll confirm before removing anything.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:48:04Z)**_
 
 <tool-use data-tool-type="generic" data-tool-name="AskUserQuestion"><details>
+
 <summary>Tool use: **AskUserQuestion**</summary>
 **What still needs to be removed? The right-click menu no longer lists the grid items. What's left are the two action files the menu used (actionToggleGridMode.tsx, actionToggleGridSnapMode.tsx). The grid panel's switches, the Ctrl+' shortcut, the command palette and the Help dialog all depend on them.**
 
 Options:
+
 - **Delete the action files** - Delete both action files. The panel switches set gridModeEnabled/gridSnapEnabled directly, and the Ctrl+' handling moves into the grid panel/toolbar code. The command palette's 'Toggle grid' and 'Snap to grid' commands also go.
 - **Keep files, cut UI ties** - Keep the action files but remove them from the command palette, and change Ctrl+' to toggle the grid panel. The switches keep using the actions.
 - **I still see it in the app** - You still see grid items when you right-click in the running app. That would be a stale dev server; restarting it should clear it.
@@ -3784,18 +3885,20 @@ Options:
 **Where should the Ctrl+' shortcut text appear in the grid toolbar?**
 
 Options:
+
 - **Next to Show grid** - Show the shortcut next to the Show grid switch in the panel, the way the old Preferences item showed it, and keep G on the More tools item.
 - **On the More tools item** - Show Ctrl+' instead of G as the hint on the Grid item in More tools.
 - **Both places** - Show G on the More tools item and Ctrl+' next to Show grid in the panel.
 
-**Should the Help dialog's 'Toggle grid  Ctrl+'' entry move as well?**
+**Should the Help dialog's 'Toggle grid Ctrl+'' entry move as well?**
 
 Options:
+
 - **Remove from Help** - Delete the Help dialog entry, so the shortcut text only appears in the grid toolbar.
 - **Keep in Help** - Leave the Help dialog entry as it is, and also show the shortcut in the grid toolbar.
 
-
 **Answer:** I still see it in the app, Both places, Keep in Help
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:48:06Z)**_
@@ -3805,6 +3908,7 @@ I'll check whether the app gets the right-click menu from somewhere other than t
 _**Agent (claude-opus-5-5 2026-10-08 17:48:09Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check app for other grid menu sources
 
@@ -3813,11 +3917,13 @@ Check app for other grid menu sources
 ```text
 25:      alias: [
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:48:11Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read app alias config and context menu builder
 
@@ -3866,18 +3972,19 @@ Read app alias config and context menu builder
 13234:          contextMenu: { top, left, items: this.getContextMenuItems(type) },
 13586:  private getContextMenuItems = (
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:48:17Z)**_
 
-<think><details><summary>Thought Process</summary>
-The stale menu you're seeing is likely a hot-reload issue—restarting the dev server and hard-refreshing should fix it. Next I'll add the `Ctrl+'` label next to Show grid in the panel, since More tools already displays G.
+<think><details><summary>Thought Process</summary> The stale menu you're seeing is likely a hot-reload issue—restarting the dev server and hard-refreshing should fix it. Next I'll add the `Ctrl+'` label next to Show grid in the panel, since More tools already displays G.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:48:18Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read panel styles and shortcut helpers
 
@@ -3935,46 +4042,55 @@ Read panel styles and shortcut helpers
 165-          padding: 0 0.625rem;
 166-        }
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:48:31Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:48:32Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:48:33Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:48:34Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\components\GridPanel.scss has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:48:37Z)**_
@@ -3984,26 +4100,31 @@ Now I'm adding two tests: one for the shortcut text, and one that `Ctrl+'` still
 _**Agent (claude-opus-5-5 2026-10-08 17:48:46Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\gridPanel.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:48:47Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\gridPanel.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:51:09Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run new tests, full suite, typecheck, lint and prettier
 
@@ -4020,6 +4141,7 @@ tsc exit 0
 eslint exit 0
 prettier exit 0
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:51:11Z)**_
@@ -4029,6 +4151,7 @@ The new tests pass, but two unrelated tests failed in the full run. Both were sl
 _**Agent (claude-opus-5-5 2026-10-08 17:52:59Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Rerun failing files alone, then the full suite
 
@@ -4039,6 +4162,7 @@ Rerun failing files alone, then the full suite
  Test Files  121 passed (121)
       Tests  1714 passed | 47 skipped | 1 todo (1762)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:53:06Z)**_
@@ -4048,11 +4172,13 @@ The grid panel now shows `Ctrl+'` next to Show grid. I didn't remove anything mo
 **Why you still see them:** no code in the repo puts grid items in the right-click menu anymore. The app builds straight from that source, and nothing in `excalidraw-app` adds them back. Changes to `App.tsx` often don't hot-reload, so the page you have open is probably out of date. Restart the dev server and hard-refresh the browser (Ctrl+Shift+R). If the items are still there after that, tell me how you're running the app and I'll keep looking.
 
 **Shortcut text:**
+
 - **In the panel** ([GridPanel.tsx](packages/excalidraw/components/GridPanel.tsx)): Show grid now shows `Ctrl+'` (`⌘+'` on Mac) in grey before its switch. It uses the same shortcut lookup the old Preferences item used. The styling is in [GridPanel.scss](packages/excalidraw/components/GridPanel.scss) and matches the dimmed hints in dropdown menus.
 - **On the More tools item:** the Grid item still shows "G".
-- **Help dialog:** the "Toggle grid  Ctrl+'" entry is unchanged, as you asked.
+- **Help dialog:** the "Toggle grid Ctrl+'" entry is unchanged, as you asked.
 
 **Two new tests** in [gridPanel.test.tsx](packages/excalidraw/tests/gridPanel.test.tsx):
+
 - "should show the Ctrl+' shortcut next to Show grid": the shortcut text appears on the Show grid row but not on the Snap to grid row.
 - "should update the Show grid switch when using Ctrl+'": with the panel open, `Ctrl+'` turns the grid on, the switch flips to on, and the panel stays open.
 
@@ -4073,6 +4199,7 @@ I'll lint and format-check the changed files, then stage only the files for this
 _**Agent (claude-opus-5-5 2026-10-08 17:54:34Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 List changes and lint changed files
 
@@ -4095,6 +4222,7 @@ List changes and lint changed files
 eslint exit 0
 prettier exit 0
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:54:37Z)**_
@@ -4104,6 +4232,7 @@ ESLint and Prettier are clean on every changed file. All 12 files belong to this
 _**Agent (claude-opus-5-5 2026-10-08 17:54:40Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Stage the grid toolbar changes
 
@@ -4124,6 +4253,7 @@ M  packages/excalidraw/tests/excalidraw.test.tsx
 A  packages/excalidraw/tests/gridPanel.test.tsx
  12 files changed, 573 insertions(+), 206 deletions(-)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 17:54:43Z)**_
