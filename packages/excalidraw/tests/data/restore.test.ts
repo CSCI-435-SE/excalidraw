@@ -2,8 +2,13 @@ import { pointFrom } from "@excalidraw/math";
 import { vi } from "vitest";
 
 import {
+  DEFAULT_GRID_COLOR,
+  DEFAULT_GRID_OPACITY,
+  DEFAULT_GRID_SCALE,
   DEFAULT_SIDEBAR,
   FONT_FAMILY,
+  MAX_GRID_SCALE,
+  MIN_GRID_SCALE,
   ROUNDNESS,
   STROKE_WIDTH,
   MIN_STROKE_WIDTH,
@@ -785,6 +790,83 @@ describe("restoreAppState", () => {
         null,
       ).gridSnapEnabled,
     ).toBe(false);
+  });
+
+  it("should keep valid grid appearance settings", () => {
+    const restoredAppState = restore.restoreAppState(
+      {
+        gridScale: 2.5,
+        gridSnapLinked: false,
+        gridSnapScale: 0.5,
+        gridColor: "#e03131",
+        gridOpacity: 40,
+        gridLayer: "above",
+      },
+      null,
+    );
+
+    expect(restoredAppState).toMatchObject({
+      gridScale: 2.5,
+      gridSnapLinked: false,
+      gridSnapScale: 0.5,
+      gridColor: "#e03131",
+      gridOpacity: 40,
+      gridLayer: "above",
+    });
+  });
+
+  it("should default missing grid appearance settings", () => {
+    expect(restore.restoreAppState({}, null)).toMatchObject({
+      gridScale: DEFAULT_GRID_SCALE,
+      gridSnapLinked: true,
+      gridSnapScale: DEFAULT_GRID_SCALE,
+      gridColor: DEFAULT_GRID_COLOR,
+      gridOpacity: DEFAULT_GRID_OPACITY,
+      gridLayer: "below",
+    });
+  });
+
+  it("should clamp and round out-of-range grid appearance settings", () => {
+    expect(
+      restore.restoreAppState(
+        { gridScale: 100, gridSnapScale: 0.01, gridOpacity: 250 },
+        null,
+      ),
+    ).toMatchObject({
+      gridScale: MAX_GRID_SCALE,
+      gridSnapScale: MIN_GRID_SCALE,
+      gridOpacity: 100,
+    });
+
+    expect(
+      restore.restoreAppState(
+        { gridScale: 1.234, gridSnapScale: 3.456, gridOpacity: -5 },
+        null,
+      ),
+    ).toMatchObject({ gridScale: 1.23, gridSnapScale: 3.46, gridOpacity: 0 });
+  });
+
+  it("should replace invalid grid appearance settings with defaults", () => {
+    expect(
+      restore.restoreAppState(
+        {
+          gridScale: NaN,
+          gridSnapLinked: "yes",
+          gridSnapScale: Infinity,
+          gridColor: 42,
+          gridOpacity: "50",
+          gridLayer: "sideways",
+        } as any,
+        null,
+      ),
+    ).toMatchObject({
+      gridScale: DEFAULT_GRID_SCALE,
+      gridSnapLinked: true,
+      gridSnapScale: DEFAULT_GRID_SCALE,
+      gridColor: DEFAULT_GRID_COLOR,
+      gridOpacity: DEFAULT_GRID_OPACITY,
+      gridLayer: "below",
+    });
   });
 
   it("when appState is null it should return the local app state property", () => {

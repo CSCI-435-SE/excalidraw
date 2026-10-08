@@ -79,7 +79,12 @@ export const Picker = React.forwardRef(
       if (type === "canvasBackground") {
         return [];
       }
-      return getMostUsedCustomColors(elements, type, palette);
+      // the grid is drawn with lines, so offer the scene's stroke colors
+      return getMostUsedCustomColors(
+        elements,
+        type === "gridColor" ? "elementStroke" : type,
+        palette,
+      );
     });
 
     const [activeColorPickerSection, setActiveColorPickerSection] = useAtom(

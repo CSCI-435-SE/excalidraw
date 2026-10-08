@@ -1,6 +1,7 @@
 import {
   applyDarkModeFilter,
   COLOR_WHITE,
+  DEFAULT_GRID_COLOR,
   FRAME_STYLE,
   THEME,
   throttleRAF,
@@ -35,6 +36,8 @@ import {
   getLinkHandleFromCoords,
 } from "../components/hyperlink/helpers";
 
+import { getGridSpacing } from "../snapping";
+
 import { bootstrapCanvas, getNormalizedCanvasDimensions } from "./helpers";
 
 import type {
@@ -54,12 +57,28 @@ const GridLineColor = {
   },
 } as const;
 
+const getGridLineColor = (
+  gridColor: string,
+  theme: StaticCanvasRenderConfig["theme"],
+) => {
+  // keep the default grid's slightly lighter regular lines
+  if (gridColor === DEFAULT_GRID_COLOR) {
+    return GridLineColor[theme];
+  }
+  const color =
+    theme === THEME.DARK ? applyDarkModeFilter(gridColor) : gridColor;
+  return { bold: color, regular: color };
+};
+
 const strokeGrid = (
   context: CanvasRenderingContext2D,
   /** grid cell pixel size */
   gridSize: number,
   /** setting to 1 will disble bold lines */
   gridStep: number,
+  gridColor: string,
+  /** 0-100 */
+  gridOpacity: number,
   scrollX: number,
   scrollY: number,
   zoom: Zoom,
@@ -67,6 +86,7 @@ const strokeGrid = (
   width: number,
   height: number,
 ) => {
+  const lineColor = getGridLineColor(gridColor, theme);
   const offsetX = (scrollX % gridSize) - gridSize;
   const offsetY = (scrollY % gridSize) - gridSize;
 
@@ -75,6 +95,7 @@ const strokeGrid = (
   const spaceWidth = 1 / zoom.value;
 
   context.save();
+  context.globalAlpha = gridOpacity / 100;
 
   // Offset rendering by 0.5 to ensure that 1px wide lines are crisp.
   // We only do this when zoomed to 100% because otherwise the offset is
@@ -99,9 +120,7 @@ const strokeGrid = (
 
     context.beginPath();
     context.setLineDash(isBold ? [] : lineDash);
-    context.strokeStyle = isBold
-      ? GridLineColor[theme].bold
-      : GridLineColor[theme].regular;
+    context.strokeStyle = isBold ? lineColor.bold : lineColor.regular;
     context.moveTo(x, offsetY - gridSize);
     context.lineTo(x, Math.ceil(offsetY + height + gridSize * 2));
     context.stroke();
@@ -120,9 +139,7 @@ const strokeGrid = (
 
     context.beginPath();
     context.setLineDash(isBold ? [] : lineDash);
-    context.strokeStyle = isBold
-      ? GridLineColor[theme].bold
-      : GridLineColor[theme].regular;
+    context.strokeStyle = isBold ? lineColor.bold : lineColor.regular;
     context.moveTo(offsetX - gridSize, y);
     context.lineTo(Math.ceil(offsetX + width + gridSize * 2), y);
     context.stroke();
@@ -267,12 +284,13 @@ const _renderStaticScene = ({
   // Apply zoom
   context.scale(appState.zoom.value, appState.zoom.value);
 
-  // Grid
-  if (renderGrid) {
+  const renderGridLayer = () =>
     strokeGrid(
       context,
-      appState.gridSize,
+      getGridSpacing(appState),
       appState.gridStep,
+      appState.gridColor,
+      appState.gridOpacity,
       appState.scrollX,
       appState.scrollY,
       appState.zoom,
@@ -280,6 +298,10 @@ const _renderStaticScene = ({
       normalizedWidth / appState.zoom.value,
       normalizedHeight / appState.zoom.value,
     );
+
+  // Grid
+  if (renderGrid && appState.gridLayer !== "above") {
+    renderGridLayer();
   }
 
   const groupsToBeAddedToFrame = new Set<string>();
@@ -483,6 +505,12 @@ const _renderStaticScene = ({
       console.error(error);
     }
   });
+
+  // grid drawn over the elements, still on the static canvas so it never
+  // receives pointer events
+  if (renderGrid && appState.gridLayer === "above") {
+    renderGridLayer();
+  }
 };
 
 /** throttled to animation framerate */

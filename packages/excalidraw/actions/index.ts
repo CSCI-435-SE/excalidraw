@@ -87,6 +87,14 @@ export {
 
 export { actionToggleGridMode } from "./actionToggleGridMode";
 export { actionToggleGridSnapMode } from "./actionToggleGridSnapMode";
+export {
+  actionChangeGridScale,
+  actionToggleGridSnapLink,
+  actionChangeGridSnapScale,
+  actionChangeGridColor,
+  actionChangeGridOpacity,
+  actionChangeGridLayer,
+} from "./actionGridAppearance";
 export { actionToggleZenMode } from "./actionToggleZenMode";
 export { actionToggleObjectsSnapMode } from "./actionToggleObjectsSnapMode";
 export { actionToggleArrowBinding } from "./actionToggleArrowBinding";

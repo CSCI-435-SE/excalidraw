@@ -162,6 +162,29 @@ export const isGridModeEnabled = (app: AppClassProperties): boolean =>
 export const isGridSnapEnabled = (app: AppClassProperties): boolean =>
   app.state.gridSnapEnabled;
 
+const getScaledGridSize = (gridSize: number, scale: number) =>
+  Math.max(1, Math.round(gridSize * scale));
+
+/** pixel spacing of the rendered grid (base `gridSize` scaled by `gridScale`) */
+export const getGridSpacing = (
+  appState: Pick<AppState, "gridSize" | "gridScale">,
+) => getScaledGridSize(appState.gridSize, appState.gridScale);
+
+/**
+ * pixel spacing elements snap to. Follows the rendered grid while
+ * `gridSnapLinked`, otherwise scales the base `gridSize` by `gridSnapScale`.
+ */
+export const getGridSnapSpacing = (
+  appState: Pick<
+    AppState,
+    "gridSize" | "gridScale" | "gridSnapScale" | "gridSnapLinked"
+  >,
+) =>
+  getScaledGridSize(
+    appState.gridSize,
+    appState.gridSnapLinked ? appState.gridScale : appState.gridSnapScale,
+  );
+
 export const isSnappingEnabled = ({
   event,
   app,

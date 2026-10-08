@@ -328,6 +328,7 @@ export const actionFinalize = register<FormData>({
               appState,
               {
                 newArrow,
+                gridSize: app.getEffectiveGridSize(),
               },
             );
           }
