@@ -32,6 +32,12 @@ import { getContainingFrame } from "@excalidraw/element";
 
 import { getCornerRadius, isPathALoop } from "@excalidraw/element";
 
+import {
+  canHaveGradient,
+  getGradientGeometry,
+  GRADIENT_FILL_PLACEHOLDER,
+} from "@excalidraw/element";
+
 import { ShapeCache } from "@excalidraw/element";
 import { getPathSamplePoints } from "@excalidraw/element";
 
@@ -62,6 +68,77 @@ const roughSVGDrawWithPrecision = (
     options: { ...drawable.options, fixedDecimalPlaceDigits: precision },
   };
   return rsvg.draw(pshape);
+};
+
+/**
+ * Adds the element's gradient background to the SVG's <defs>, in
+ * element-local coordinates so the element node's own translate/rotate
+ * places it (same geometry as the canvas renderer). Returns the fill
+ * reference, or null when the element has no visible gradient.
+ */
+const addGradientDef = (
+  element: Readonly<NonDeletedExcalidrawElement>,
+  svgRoot: SVGElement,
+  renderConfig: SVGRenderConfig,
+): string | null => {
+  const geometry = canHaveGradient(element)
+    ? getGradientGeometry(element)
+    : null;
+  if (!geometry) {
+    return null;
+  }
+
+  const id = `gradient-${element.id}`;
+  const gradient = svgRoot.ownerDocument.createElementNS(
+    SVG_NS,
+    geometry.type === "linear" ? "linearGradient" : "radialGradient",
+  );
+  gradient.setAttribute("id", id);
+  gradient.setAttribute("gradientUnits", "userSpaceOnUse");
+  // same precision as the rough paths
+  const setNumber = (name: string, value: number) =>
+    gradient.setAttribute(
+      name,
+      `${Number(value.toFixed(MAX_DECIMALS_FOR_SVG_EXPORT))}`,
+    );
+  if (geometry.type === "linear") {
+    setNumber("x1", geometry.x1);
+    setNumber("y1", geometry.y1);
+    setNumber("x2", geometry.x2);
+    setNumber("y2", geometry.y1);
+  } else {
+    setNumber("cx", geometry.cx);
+    setNumber("cy", geometry.cy);
+    setNumber("r", geometry.r);
+  }
+
+  [geometry.startColor, geometry.endColor].forEach((color, index) => {
+    const stop = svgRoot.ownerDocument.createElementNS(SVG_NS, "stop");
+    stop.setAttribute("offset", `${index}`);
+    stop.setAttribute(
+      "stop-color",
+      applyDarkModeFilter(color, renderConfig.theme === THEME.DARK),
+    );
+    gradient.appendChild(stop);
+  });
+
+  (svgRoot.querySelector("defs") || svgRoot).appendChild(gradient);
+  return `url(#${id})`;
+};
+
+/**
+ * Gradient shapes are generated with a placeholder solid fill (see
+ * generateRoughOptions), so roughjs only emits the fill path itself; point
+ * it at the gradient. Arrowheads keep their own fills since they never use
+ * the placeholder.
+ */
+const applyGradientFill = (node: SVGElement, gradientFill: string) => {
+  const placeholderFill = `[fill="${GRADIENT_FILL_PLACEHOLDER}"]`;
+  const paths = Array.from(node.querySelectorAll(placeholderFill));
+  if (node.matches(placeholderFill)) {
+    paths.push(node);
+  }
+  paths.forEach((path) => path.setAttribute("fill", gradientFill));
 };
 
 const maybeWrapNodesInFrameClipPath = (
@@ -128,9 +205,14 @@ const renderElementToSvg = (
     root = anchorTag;
   }
 
+  const gradientFill = addGradientDef(element, svgRoot, renderConfig);
+
   const addToRoot = (node: SVGElement, element: ExcalidrawElement) => {
     if (isTestEnv()) {
       node.setAttribute("data-id", element.id);
+    }
+    if (gradientFill) {
+      applyGradientFill(node, gradientFill);
     }
     root.appendChild(node);
   };

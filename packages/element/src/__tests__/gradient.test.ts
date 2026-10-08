@@ -7,6 +7,7 @@ import {
   createGradientBackground,
   flipGradientHorizontally,
   getGradientColors,
+  getGradientGeometry,
 } from "../gradient";
 
 import type { ExcalidrawElement } from "../types";
@@ -127,4 +128,64 @@ describe("canHaveGradient", () => {
       expect(canHaveGradient(element(type, THREE_POINTS_OPEN))).toBe(false);
     },
   );
+});
+
+describe("getGradientGeometry", () => {
+  const LINEAR = createGradientBackground("linear", "#ff0000", "#0000ff");
+  const RADIAL = createGradientBackground("radial", "#ff0000", "#0000ff");
+
+  const shape = (
+    type: string,
+    backgroundColor: string,
+    points?: [number, number][],
+  ) =>
+    ({
+      ...element(type, points),
+      backgroundColor,
+      width: 200,
+      height: 100,
+    } as unknown as ExcalidrawElement);
+
+  it("spans the element box for a linear gradient", () => {
+    expect(getGradientGeometry(shape("rectangle", LINEAR))).toMatchObject({
+      type: "linear",
+      startColor: "#ff0000",
+      endColor: "#0000ff",
+      x1: 0,
+      y1: 0,
+      x2: 200,
+    });
+  });
+
+  it("centers a radial gradient and reaches the corners", () => {
+    expect(getGradientGeometry(shape("ellipse", RADIAL))).toMatchObject({
+      type: "radial",
+      cx: 100,
+      cy: 50,
+      r: Math.hypot(100, 50),
+    });
+  });
+
+  it("uses point bounds for closed lines, including negative points", () => {
+    const points: [number, number][] = [
+      [0, 0],
+      [-50, 40],
+      [60, -20],
+      [0, 0],
+    ];
+    expect(getGradientGeometry(shape("line", LINEAR, points))).toMatchObject({
+      x1: -50,
+      y1: -20,
+      x2: 60,
+      cx: 5,
+      cy: 10,
+    });
+  });
+
+  it("returns null for open lines and solid colors", () => {
+    expect(
+      getGradientGeometry(shape("line", LINEAR, THREE_POINTS_OPEN)),
+    ).toBeNull();
+    expect(getGradientGeometry(shape("rectangle", "#ff0000"))).toBeNull();
+  });
 });

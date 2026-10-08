@@ -2,18 +2,27 @@ import React from "react";
 import rough from "roughjs/bin/rough";
 import { vi } from "vitest";
 
-import { arrayToMap, KEYS, ROUNDNESS } from "@excalidraw/common";
+import {
+  applyDarkModeFilter,
+  arrayToMap,
+  COLOR_PALETTE,
+  KEYS,
+  ROUNDNESS,
+} from "@excalidraw/common";
 
 import { pointFrom } from "@excalidraw/math";
+
+import { exportToSvg as exportLibraryItemSvg } from "@excalidraw/utils/export";
 
 import {
   createGradientBackground,
   getGradientColors,
+  GRADIENT_FILL_PLACEHOLDER,
   getTransformHandles,
   renderElement,
 } from "@excalidraw/element";
 
-import type { LocalPoint } from "@excalidraw/math";
+import type { LocalPoint, Radians } from "@excalidraw/math";
 
 import type {
   ExcalidrawElement,
@@ -28,6 +37,8 @@ import {
   actionFlipVertical,
 } from "../actions";
 import { createPasteEvent, serializeAsClipboardJSON } from "../clipboard";
+import { exportToCanvas, exportToSvg } from "../scene/export";
+import { getDefaultAppState } from "../appState";
 import { Excalidraw } from "../index";
 
 import { API } from "./helpers/api";
@@ -349,6 +360,374 @@ describe("gradient rendering geometry", () => {
     const opened = API.getElement(line);
     expect(opened.backgroundColor).toBe(LINEAR);
     expect(renderGradientCalls(opened).gradientFills).toBe(0);
+  });
+});
+
+describe("gradient SVG export", () => {
+  const exportGradientDefs = async (
+    elements: NonDeletedExcalidrawElement[],
+    exportWithDarkMode = false,
+  ) => {
+    const svg = await exportToSvg(
+      elements,
+      {
+        exportBackground: false,
+        viewBackgroundColor: "#ffffff",
+        exportWithDarkMode,
+      },
+      null,
+      { skipInliningFonts: true },
+    );
+    return Array.from(
+      svg.querySelectorAll("defs linearGradient, defs radialGradient"),
+    );
+  };
+
+  const stopColors = (gradient: Element) =>
+    Array.from(gradient.querySelectorAll("stop")).map((stop) => [
+      stop.getAttribute("offset"),
+      stop.getAttribute("stop-color"),
+    ]);
+
+  it("adds a linear gradient spanning the element", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      width: 200,
+      height: 100,
+      backgroundColor: LINEAR,
+    });
+    const [gradient] = await exportGradientDefs([rectangle]);
+
+    expect(gradient.tagName).toBe("linearGradient");
+    expect(gradient.id).toBe(`gradient-${rectangle.id}`);
+    expect(gradient.getAttribute("gradientUnits")).toBe("userSpaceOnUse");
+    expect(
+      ["x1", "y1", "x2", "y2"].map((attr) => gradient.getAttribute(attr)),
+    ).toEqual(["0", "0", "200", "0"]);
+    expect(stopColors(gradient)).toEqual([
+      ["0", "#000000"],
+      ["1", "#ffffff"],
+    ]);
+  });
+
+  it("adds a radial gradient centered on the element", async () => {
+    const ellipse = API.createElement({
+      type: "ellipse",
+      width: 200,
+      height: 100,
+      backgroundColor: RADIAL,
+    });
+    const [gradient] = await exportGradientDefs([ellipse]);
+
+    expect(gradient.tagName).toBe("radialGradient");
+    expect(
+      ["cx", "cy", "r"].map((attr) => Number(gradient.getAttribute(attr))),
+    ).toEqual([100, 50, 111.8]); // hypot(100, 50), to 2 decimals
+  });
+
+  it("uses the point bounds of a closed line", async () => {
+    const line = API.createElement({
+      type: "line",
+      width: 100,
+      height: 100,
+      points: [
+        pointFrom<LocalPoint>(0, 0),
+        pointFrom<LocalPoint>(-50, 40),
+        pointFrom<LocalPoint>(60, -20),
+        pointFrom<LocalPoint>(0, 0),
+      ],
+      backgroundColor: LINEAR,
+    });
+    const [gradient] = await exportGradientDefs([line]);
+
+    expect(
+      ["x1", "y1", "x2"].map((attr) => gradient.getAttribute(attr)),
+    ).toEqual(["-50", "-20", "60"]);
+  });
+
+  it("applies the dark mode filter to the stops", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      backgroundColor: LINEAR,
+    });
+    const [gradient] = await exportGradientDefs([rectangle], true);
+
+    expect(stopColors(gradient)).toEqual([
+      ["0", applyDarkModeFilter("#000000", true)],
+      ["1", applyDarkModeFilter("#ffffff", true)],
+    ]);
+  });
+
+  it("gives each gradient element its own definition", async () => {
+    const elements = [
+      API.createElement({ type: "rectangle", backgroundColor: LINEAR }),
+      API.createElement({ type: "diamond", backgroundColor: RADIAL }),
+    ];
+    const gradients = await exportGradientDefs(elements);
+
+    expect(gradients.map((gradient) => gradient.id)).toEqual(
+      elements.map((element) => `gradient-${element.id}`),
+    );
+  });
+
+  const exportSvg = (elements: NonDeletedExcalidrawElement[]) =>
+    exportToSvg(
+      elements,
+      { exportBackground: false, viewBackgroundColor: "#ffffff" },
+      null,
+      { skipInliningFonts: true },
+    );
+
+  const gradientFilled = (svg: SVGSVGElement, element: ExcalidrawElement) =>
+    svg.querySelectorAll(`[fill="url(#gradient-${element.id})"]`);
+
+  const CLOSED_LOOP = [
+    pointFrom<LocalPoint>(0, 0),
+    pointFrom<LocalPoint>(100, 0),
+    pointFrom<LocalPoint>(100, 100),
+    pointFrom<LocalPoint>(0, 100),
+    pointFrom<LocalPoint>(0, 0),
+  ];
+
+  it.each([
+    ["rectangle", { type: "rectangle" }],
+    ["diamond", { type: "diamond" }],
+    ["ellipse", { type: "ellipse" }],
+    ["embeddable", { type: "embeddable" }],
+    ["closed line", { type: "line", points: CLOSED_LOOP }],
+    ["closed freedraw", { type: "freedraw", points: CLOSED_LOOP }],
+  ] as const)("fills a %s with its gradient", async (_, props) => {
+    const element = API.createElement({
+      ...props,
+      width: 100,
+      height: 100,
+      backgroundColor: LINEAR,
+    });
+    const svg = await exportSvg([element]);
+
+    expect(gradientFilled(svg, element)).toHaveLength(1);
+    expect(
+      svg.querySelectorAll(`[fill="${GRADIENT_FILL_PLACEHOLDER}"]`),
+    ).toHaveLength(0);
+  });
+
+  it("fills a closed arrow but leaves its arrowhead alone", async () => {
+    const arrow = API.createElement({
+      type: "arrow",
+      width: 100,
+      height: 100,
+      points: CLOSED_LOOP,
+      endArrowhead: "triangle",
+      strokeColor: "#ff0000",
+      backgroundColor: LINEAR,
+    });
+    const svg = await exportSvg([arrow]);
+
+    expect(gradientFilled(svg, arrow)).toHaveLength(1);
+    expect(svg.querySelector('[fill="#ff0000"]')).not.toBeNull();
+  });
+
+  it("fills a linked element inside its anchor", async () => {
+    // API.createElement doesn't pass `link` through
+    const rectangle = {
+      ...API.createElement({ type: "rectangle", backgroundColor: LINEAR }),
+      link: "https://excalidraw.com",
+    };
+    const svg = await exportSvg([rectangle]);
+
+    expect(svg.querySelectorAll("a")).toHaveLength(1);
+    expect(
+      svg
+        .querySelector("a")!
+        .querySelectorAll(`[fill="url(#gradient-${rectangle.id})"]`),
+    ).toHaveLength(1);
+  });
+
+  it("keeps the element's opacity on the gradient fill", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      backgroundColor: LINEAR,
+      opacity: 50,
+    });
+    const svg = await exportSvg([rectangle]);
+    const [fill] = gradientFilled(svg, rectangle);
+
+    expect(fill.closest("[fill-opacity]")?.getAttribute("fill-opacity")).toBe(
+      "0.5",
+    );
+  });
+
+  it("fills a gradient element clipped by its frame", async () => {
+    const frame = API.createElement({ type: "frame", width: 100, height: 100 });
+    const rectangle = API.createElement({
+      type: "rectangle",
+      x: 50,
+      width: 100,
+      height: 100,
+      frameId: frame.id,
+      backgroundColor: LINEAR,
+    });
+    const svg = await exportToSvg(
+      [frame, rectangle],
+      {
+        exportBackground: false,
+        viewBackgroundColor: "#ffffff",
+        frameRendering: {
+          enabled: true,
+          clip: true,
+          name: false,
+          outline: false,
+        },
+      },
+      null,
+      { skipInliningFonts: true },
+    );
+
+    expect(
+      svg.querySelectorAll(
+        `[clip-path] [fill="url(#gradient-${rectangle.id})"]`,
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("fills a gradient element when exporting its frame", async () => {
+    const frame = API.createElement({ type: "frame", width: 100, height: 100 });
+    const rectangle = API.createElement({
+      type: "rectangle",
+      width: 100,
+      height: 100,
+      frameId: frame.id,
+      backgroundColor: RADIAL,
+    });
+    const svg = await exportToSvg(
+      [frame, rectangle],
+      {
+        exportBackground: false,
+        exportPadding: 0,
+        viewBackgroundColor: "#ffffff",
+      },
+      null,
+      { skipInliningFonts: true, exportingFrame: frame },
+    );
+
+    expect(svg.querySelector(`#gradient-${rectangle.id}`)).not.toBeNull();
+    expect(gradientFilled(svg, rectangle)).toHaveLength(1);
+  });
+
+  it("adds nothing for an open line or a solid fill", async () => {
+    const gradients = await exportGradientDefs([
+      API.createElement({
+        type: "line",
+        points: OPEN_LINE,
+        backgroundColor: LINEAR,
+      }),
+      API.createElement({ type: "rectangle", backgroundColor: "#ff0000" }),
+    ]);
+
+    expect(gradients).toEqual([]);
+  });
+});
+
+describe("gradient PNG export and library thumbnails", () => {
+  const exportPngGradientCalls = async (
+    element: NonDeletedExcalidrawElement,
+    exportWithDarkMode = false,
+  ) => {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d")!;
+    const linear = vi.spyOn(context, "createLinearGradient");
+    const colorStops: [number, string][] = [];
+    const addColorStop = vi
+      .spyOn(CanvasGradient.prototype, "addColorStop")
+      .mockImplementation((offset, color) => {
+        colorStops.push([offset, color]);
+      });
+    let gradientFills = 0;
+    vi.spyOn(context, "fill").mockImplementation(() => {
+      if (context.fillStyle instanceof CanvasGradient) {
+        gradientFills++;
+      }
+    });
+
+    await exportToCanvas(
+      [element],
+      {
+        ...getDefaultAppState(),
+        // layout fields, unused by export
+        width: 0,
+        height: 0,
+        offsetTop: 0,
+        offsetLeft: 0,
+        exportScale: 1,
+        exportWithDarkMode,
+      },
+      {},
+      { exportBackground: false, viewBackgroundColor: "#ffffff" },
+      (width, height) => {
+        canvas.width = width;
+        canvas.height = height;
+        return { canvas, scale: 1 };
+      },
+    );
+    addColorStop.mockRestore();
+
+    return { linear: linear.mock.calls, colorStops, gradientFills };
+  };
+
+  it("paints the gradient in element space when exporting to PNG", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      x: 300,
+      y: 200,
+      width: 200,
+      height: 100,
+      angle: (Math.PI / 4) as Radians,
+      backgroundColor: LINEAR,
+    });
+    const { linear, gradientFills } = await exportPngGradientCalls(rectangle);
+
+    // the export canvas is translated/rotated to the element, so the
+    // gradient itself stays in element-local coordinates
+    expect(linear).toEqual([[0, 0, 200, 0]]);
+    expect(gradientFills).toBe(1);
+  });
+
+  it("applies the dark mode filter to PNG export stops", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      backgroundColor: LINEAR,
+    });
+    const { colorStops } = await exportPngGradientCalls(rectangle, true);
+
+    expect(colorStops).toEqual([
+      [0, applyDarkModeFilter("#000000", true)],
+      [1, applyDarkModeFilter("#ffffff", true)],
+    ]);
+  });
+
+  it("keeps the gradient in library item thumbnails", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      backgroundColor: RADIAL,
+    });
+    // same call useLibraryItemSvg makes, which restores the elements first
+    const svg = await exportLibraryItemSvg({
+      elements: [rectangle],
+      appState: {
+        exportBackground: false,
+        viewBackgroundColor: COLOR_PALETTE.white,
+      },
+      files: null,
+      renderEmbeddables: false,
+      skipInliningFonts: true,
+    });
+
+    expect(
+      svg.querySelector(`radialGradient#gradient-${rectangle.id}`),
+    ).not.toBeNull();
+    expect(
+      svg.querySelectorAll(`[fill="url(#gradient-${rectangle.id})"]`),
+    ).toHaveLength(1);
   });
 });
 

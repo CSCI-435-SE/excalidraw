@@ -42,11 +42,7 @@ import type {
   InteractiveCanvasRenderConfig,
 } from "@excalidraw/excalidraw/scene/types";
 
-import {
-  getBoundsFromPoints,
-  getElementAbsoluteCoords,
-  getElementBounds,
-} from "./bounds";
+import { getElementAbsoluteCoords, getElementBounds } from "./bounds";
 import { getUncroppedImageElement } from "./cropElement";
 import { LinearElementEditor } from "./linearElementEditor";
 import {
@@ -74,8 +70,8 @@ import {
   isPathElement,
 } from "./typeChecks";
 import { getContainingFrame } from "./frame";
-import { getCornerRadius, isPathALoop } from "./utils";
-import { getGradientColors } from "./gradient";
+import { getCornerRadius } from "./utils";
+import { getGradientGeometry } from "./gradient";
 
 import { ShapeCache } from "./shape";
 import { getPathSamplePoints } from "./pathSamples";
@@ -393,51 +389,26 @@ const drawElementOnCanvas = (
    * element has none (or can't be filled, e.g. an open line).
    */
   const createGradientFill = () => {
-    const gradientColors = getGradientColors(element.backgroundColor);
-    if (!gradientColors) {
+    const geometry = getGradientGeometry(element);
+    if (!geometry) {
       return null;
     }
 
-    // box the gradient spans, in element-local coordinates
-    let [x1, y1, x2, y2] = [0, 0, element.width, element.height];
-    if (
-      element.type === "line" ||
-      element.type === "arrow" ||
-      element.type === "freedraw"
-    ) {
-      if (!isPathALoop(element.points) || !element.points.length) {
-        return null;
-      }
-      // points can extend left of / above the element origin
-      [x1, y1, x2, y2] = getBoundsFromPoints(element.points);
-    }
-
-    const centerX = (x1 + x2) / 2;
-    const centerY = (y1 + y2) / 2;
+    const { x1, y1, x2, cx, cy, r } = geometry;
     const gradient =
-      gradientColors.type === "linear"
+      geometry.type === "linear"
         ? context.createLinearGradient(x1, y1, x2, y1)
-        : context.createRadialGradient(
-            centerX,
-            centerY,
-            0,
-            centerX,
-            centerY,
-            Math.hypot((x2 - x1) / 2, (y2 - y1) / 2),
-          );
+        : context.createRadialGradient(cx, cy, 0, cx, cy, r);
     gradient.addColorStop(
       0,
       applyDarkModeFilter(
-        gradientColors.startColor,
+        geometry.startColor,
         renderConfig.theme === THEME.DARK,
       ),
     );
     gradient.addColorStop(
       1,
-      applyDarkModeFilter(
-        gradientColors.endColor,
-        renderConfig.theme === THEME.DARK,
-      ),
+      applyDarkModeFilter(geometry.endColor, renderConfig.theme === THEME.DARK),
     );
     return gradient;
   };
