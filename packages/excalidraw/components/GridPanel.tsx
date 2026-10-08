@@ -5,7 +5,11 @@ import { showSelectedShapeActions } from "@excalidraw/element";
 
 import type { NonDeletedExcalidrawElement } from "@excalidraw/element/types";
 
-import { actionToggleGridMode, actionToggleGridSnapMode } from "../actions";
+import {
+  actionToggleGridMode,
+  actionToggleGridSnapLink,
+  actionToggleGridSnapMode,
+} from "../actions";
 import { getShortcutFromShortcutName } from "../actions/shortcuts";
 import { atom, useAtom } from "../editor-jotai";
 import { t } from "../i18n";
@@ -96,12 +100,30 @@ export const GridPanel = ({
         <GridPanelToggle
           name="grid-panel-snap-to-grid"
           label={t("labels.toggleGridSnap")}
+          shortcut={getShortcutFromShortcutName("gridSnapMode")}
           checked={appState.gridSnapEnabled}
           onChange={() =>
             actionManager.executeAction(actionToggleGridSnapMode, "ui")
           }
         />
       </fieldset>
+      <fieldset>
+        {actionManager.renderAction("changeGridScale")}
+        <GridPanelToggle
+          name="grid-panel-link-snap"
+          label={t("labels.linkGridSnapScale")}
+          checked={appState.gridSnapLinked}
+          onChange={() =>
+            actionManager.executeAction(actionToggleGridSnapLink, "ui")
+          }
+        />
+        {/* snap distance follows the grid size while linked */}
+        {!appState.gridSnapLinked &&
+          actionManager.renderAction("changeGridSnapScale")}
+      </fieldset>
+      {actionManager.renderAction("changeGridColor")}
+      {actionManager.renderAction("changeGridOpacity")}
+      {actionManager.renderAction("changeGridLayer")}
     </Island>
   );
 };

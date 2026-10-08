@@ -1,3 +1,5 @@
+import { CODES, KEYS } from "@excalidraw/common";
+
 import { CaptureUpdateAction } from "@excalidraw/element";
 
 import { gridIcon } from "../components/icons";
@@ -26,4 +28,5 @@ export const actionToggleGridSnapMode = register({
     };
   },
   checked: (appState) => appState.gridSnapEnabled,
+  keyTest: (event) => event[KEYS.CTRL_OR_CMD] && event.code === CODES.SEMICOLON,
 });

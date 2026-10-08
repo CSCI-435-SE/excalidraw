@@ -419,6 +419,7 @@ import {
   getVisibleGaps,
   getReferenceSnapPoints,
   SnapCache,
+  getGridSnapSpacing,
   isGridModeEnabled,
   isGridSnapEnabled,
 } from "../snapping";
@@ -1365,12 +1366,12 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   /**
-   * Returns gridSize taking into account `gridSnapEnabled`.
+   * Returns the grid snapping distance taking into account `gridSnapEnabled`.
    * If disabled, returns null.
    */
   public getEffectiveGridSize = () => {
     return (
-      isGridSnapEnabled(this) ? this.state.gridSize : null
+      isGridSnapEnabled(this) ? getGridSnapSpacing(this.state) : null
     ) as NullableGridSize;
   };
 
@@ -9837,6 +9838,7 @@ class App extends React.Component<AppProps, AppState> {
               {
                 newArrow: Boolean(this.state.newElement),
                 zoom: this.state.zoom,
+                gridSize: this.getEffectiveGridSize(),
               },
             )
           : { end: { mode: undefined } };
@@ -10001,6 +10003,7 @@ class App extends React.Component<AppProps, AppState> {
             altKey: event.altKey,
             initialBinding: true,
             angleLocked: shouldRotateWithDiscreteAngle(event.nativeEvent),
+            gridSize: this.getEffectiveGridSize(),
           },
         );
       }

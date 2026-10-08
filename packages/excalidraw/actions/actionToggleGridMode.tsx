@@ -1,4 +1,4 @@
-import { CODES, KEYS } from "@excalidraw/common";
+import { CODES, DEFAULT_GRID_OPACITY, KEYS } from "@excalidraw/common";
 
 import { CaptureUpdateAction } from "@excalidraw/element";
 
@@ -17,10 +17,17 @@ export const actionToggleGridMode = register({
     predicate: (appState) => appState.gridModeEnabled,
   },
   perform(elements, appState) {
+    const gridModeEnabled = !this.checked!(appState);
     return {
       appState: {
         ...appState,
-        gridModeEnabled: !this.checked!(appState),
+        gridModeEnabled,
+        // opacity 0 hid the grid, so showing it again starts fully visible.
+        // Hiding it keeps the opacity to restore it as it was.
+        gridOpacity:
+          gridModeEnabled && appState.gridOpacity === 0
+            ? DEFAULT_GRID_OPACITY
+            : appState.gridOpacity,
       },
       captureUpdate: CaptureUpdateAction.EVENTUALLY,
     };

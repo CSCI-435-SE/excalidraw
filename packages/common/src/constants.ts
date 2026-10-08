@@ -233,6 +233,13 @@ export const CANVAS_ONLY_ACTIONS = ["selectAll"];
 
 export const DEFAULT_GRID_SIZE = 20;
 export const DEFAULT_GRID_STEP = 5;
+/** multiplier applied to `gridSize` for the rendered grid and grid snapping */
+export const DEFAULT_GRID_SCALE = 1;
+export const MIN_GRID_SCALE = 0.25;
+export const MAX_GRID_SCALE = 8;
+export const GRID_SCALE_STEP = 0.05;
+export const DEFAULT_GRID_COLOR = "#dddddd";
+export const DEFAULT_GRID_OPACITY = 100;
 
 export const IMAGE_MIME_TYPES = {
   svg: "image/svg+xml",

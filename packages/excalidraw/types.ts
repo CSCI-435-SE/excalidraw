@@ -208,6 +208,10 @@ export type StaticCanvasAppState = Readonly<
     selectedElementsAreBeingDragged: AppState["selectedElementsAreBeingDragged"];
     gridSize: AppState["gridSize"];
     gridStep: AppState["gridStep"];
+    gridScale: AppState["gridScale"];
+    gridColor: AppState["gridColor"];
+    gridOpacity: AppState["gridOpacity"];
+    gridLayer: AppState["gridLayer"];
     frameRendering: AppState["frameRendering"];
     currentHoveredFontFamily: AppState["currentHoveredFontFamily"];
     hoveredElementIds: AppState["hoveredElementIds"];
@@ -456,6 +460,7 @@ export interface AppState {
     | "canvasBackground"
     | "elementBackground"
     | "elementStroke"
+    | "gridColor"
     | "fontFamily"
     | "compactTextProperties"
     | "compactStrokeStyles"
@@ -498,6 +503,17 @@ export interface AppState {
   /** grid cell px size */
   gridSize: number;
   gridStep: number;
+  /** multiplier of `gridSize` for the rendered grid cell size */
+  gridScale: number;
+  /** whether the snapping distance follows `gridScale` */
+  gridSnapLinked: boolean;
+  /** multiplier of `gridSize` for the snapping distance when unlinked */
+  gridSnapScale: number;
+  gridColor: string;
+  /** 0-100 */
+  gridOpacity: number;
+  /** whether the grid is rendered below or above the elements */
+  gridLayer: "below" | "above";
   /** whether the grid is rendered on the canvas */
   gridModeEnabled: boolean;
   /** whether elements snap to the grid (independent of grid visibility) */

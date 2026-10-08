@@ -1,4 +1,9 @@
-import { MAX_ZOOM, MIN_ZOOM } from "@excalidraw/common";
+import {
+  MAX_GRID_SCALE,
+  MAX_ZOOM,
+  MIN_GRID_SCALE,
+  MIN_ZOOM,
+} from "@excalidraw/common";
 
 import { clamp, round } from "@excalidraw/math";
 
@@ -14,4 +19,12 @@ export const getNormalizedGridSize = (gridStep: number) => {
 
 export const getNormalizedGridStep = (gridStep: number) => {
   return clamp(Math.round(gridStep), 1, 100);
+};
+
+export const getNormalizedGridScale = (gridScale: number) => {
+  return clamp(round(gridScale, 2), MIN_GRID_SCALE, MAX_GRID_SCALE);
+};
+
+export const getNormalizedGridOpacity = (gridOpacity: number) => {
+  return clamp(Math.round(gridOpacity), 0, 100);
 };

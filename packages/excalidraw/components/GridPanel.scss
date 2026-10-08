@@ -2,8 +2,17 @@
 
 .excalidraw {
   .GridPanel {
-    width: fit-content;
-    min-width: 11rem;
+    // the panel isn't inside .App-menu__left, which defines these for the
+    // properties panel controls (Range uses --button-bg for its track)
+    --button-border: transparent;
+    --button-bg: var(--color-surface-mid);
+
+    display: flex;
+    flex-direction: column;
+    row-gap: 0.75rem;
+    // fixed width so the scale sliders have a stable track length
+    width: 16rem;
+    box-sizing: border-box;
 
     fieldset {
       display: flex;
@@ -14,7 +23,9 @@
       border: none;
     }
 
-    legend {
+    legend,
+    .control-label {
+      display: block;
       margin: 0;
       margin-bottom: 0.25rem;
       padding: 0;
@@ -36,6 +47,40 @@
       }
     }
 
+    .control-label input {
+      display: block;
+      width: 100%;
+    }
+
+    .buttonList {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    // scale presets (e.g. "0.25×") are text, so let the buttons size to fit
+    &__scale .range-notches button {
+      width: auto;
+      min-width: 2rem;
+      padding: 0 0.25rem;
+      font-size: 0.75rem;
+    }
+
+    // larger color swatches to fill the wider panel (~12% over the
+    // properties panel's 1.375rem / 1.625rem)
+    .color-picker-container {
+      grid-template-columns: 1fr 20px 1.825rem;
+    }
+
+    .color-picker__button {
+      --size: 1.54rem;
+
+      &.active-color {
+        width: 1.825rem;
+        height: 1.825rem;
+      }
+    }
+
     &__shortcut {
       // keep the shortcut next to the switch, like dropdown menu shortcuts
       margin-inline-start: auto;
@@ -43,5 +88,9 @@
       color: var(--text-primary-color);
       opacity: 0.5;
     }
+  }
+
+  &.theme--dark .GridPanel {
+    --button-bg: var(--color-surface-high);
   }
 }

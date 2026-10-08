@@ -17,6 +17,9 @@ import {
   DEFAULT_ELEMENT_PROPS,
   DEFAULT_GRID_SIZE,
   DEFAULT_GRID_STEP,
+  DEFAULT_GRID_SCALE,
+  DEFAULT_GRID_COLOR,
+  DEFAULT_GRID_OPACITY,
   randomId,
   getUpdatedTimestamp,
   updateActiveTool,
@@ -94,6 +97,8 @@ import { getDefaultAppState } from "../appState";
 import {
   getNormalizedGridSize,
   getNormalizedGridStep,
+  getNormalizedGridScale,
+  getNormalizedGridOpacity,
   getNormalizedZoom,
 } from "../scene";
 
@@ -1251,6 +1256,30 @@ export const restoreAppState = (
     gridStep: getNormalizedGridStep(
       isFiniteNumber(appState.gridStep) ? appState.gridStep : DEFAULT_GRID_STEP,
     ),
+    gridScale: getNormalizedGridScale(
+      isFiniteNumber(nextAppState.gridScale)
+        ? nextAppState.gridScale
+        : DEFAULT_GRID_SCALE,
+    ),
+    gridSnapLinked:
+      typeof nextAppState.gridSnapLinked === "boolean"
+        ? nextAppState.gridSnapLinked
+        : defaultAppState.gridSnapLinked,
+    gridSnapScale: getNormalizedGridScale(
+      isFiniteNumber(nextAppState.gridSnapScale)
+        ? nextAppState.gridSnapScale
+        : DEFAULT_GRID_SCALE,
+    ),
+    gridColor:
+      typeof nextAppState.gridColor === "string"
+        ? nextAppState.gridColor
+        : DEFAULT_GRID_COLOR,
+    gridOpacity: getNormalizedGridOpacity(
+      isFiniteNumber(nextAppState.gridOpacity)
+        ? nextAppState.gridOpacity
+        : DEFAULT_GRID_OPACITY,
+    ),
+    gridLayer: nextAppState.gridLayer === "above" ? "above" : "below",
     editingFrame: null,
   };
 };

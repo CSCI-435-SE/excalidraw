@@ -843,7 +843,7 @@ const getBindingStrategyForDraggingBindingElementEndpoints_simple = (
                     pointFrom<GlobalPoint>(scenePointerX, scenePointerY),
                     hit,
                     elementsMap,
-                    appState.gridSize as NullableGridSize,
+                    (opts?.gridSize ?? appState.gridSize) as NullableGridSize,
                     arrow,
                     LinearElementEditor.getPointAtIndexGlobalCoordinates(
                       arrow,
