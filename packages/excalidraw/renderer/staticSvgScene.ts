@@ -105,16 +105,20 @@ const addGradientDef = (
     setNumber("x1", geometry.x1);
     setNumber("y1", geometry.y1);
     setNumber("x2", geometry.x2);
-    setNumber("y2", geometry.y1);
+    setNumber("y2", geometry.y2);
   } else {
     setNumber("cx", geometry.cx);
     setNumber("cy", geometry.cy);
     setNumber("r", geometry.r);
   }
 
-  [geometry.startColor, geometry.endColor].forEach((color, index) => {
+  const stops: [string, number][] = [
+    [geometry.startColor, geometry.startPosition ?? 0],
+    [geometry.endColor, geometry.endPosition ?? 100],
+  ];
+  stops.forEach(([color, position]) => {
     const stop = svgRoot.ownerDocument.createElementNS(SVG_NS, "stop");
-    stop.setAttribute("offset", `${index}`);
+    stop.setAttribute("offset", `${position / 100}`);
     stop.setAttribute(
       "stop-color",
       applyDarkModeFilter(color, renderConfig.theme === THEME.DARK),

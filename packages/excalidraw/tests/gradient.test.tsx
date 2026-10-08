@@ -139,6 +139,12 @@ const renderGradientCalls = (element: ExcalidrawElement) => {
   const context = canvas.getContext("2d")!;
   const linear = vi.spyOn(context, "createLinearGradient");
   const radial = vi.spyOn(context, "createRadialGradient");
+  const colorStops: [number, string][] = [];
+  const addColorStop = vi
+    .spyOn(CanvasGradient.prototype, "addColorStop")
+    .mockImplementation((offset, color) => {
+      colorStops.push([offset, color]);
+    });
   // createLinearGradient runs before the "is it closed" check, so count the
   // fills actually painted with a gradient to know whether one is visible
   let gradientFills = 0;
@@ -148,10 +154,12 @@ const renderGradientCalls = (element: ExcalidrawElement) => {
     }
   });
   drawOnCanvas(element, canvas, context);
+  addColorStop.mockRestore();
 
   return {
     linear: linear.mock.calls as number[][],
     radial: radial.mock.calls as number[][],
+    colorStops,
     gradientFills,
   };
 };
@@ -201,6 +209,43 @@ describe("gradient rendering geometry", () => {
     expect(resized.width).toBe(200);
 
     expect(renderGradientCalls(resized).linear).toEqual([[0, 0, 200, 0]]);
+  });
+
+  it("renders a linear gradient at its selected angle", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      width: 100,
+      height: 60,
+      backgroundColor: createGradientBackground(
+        "linear",
+        "#000000",
+        "#ffffff",
+        180,
+      ),
+    });
+    expect(renderGradientCalls(rectangle).linear).toEqual([[50, 0, 50, 60]]);
+  });
+
+  it("renders linear gradients with the selected color-stop positions", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      width: 100,
+      height: 60,
+      backgroundColor: createGradientBackground(
+        "linear",
+        "#000000",
+        "#ffffff",
+        90,
+        20,
+        80,
+      ),
+    });
+    const { colorStops } = renderGradientCalls(rectangle);
+
+    expect(colorStops).toEqual([
+      [0.2, "#000000"],
+      [0.8, "#ffffff"],
+    ]);
   });
 
   it("centers a radial gradient and follows the element when resized", async () => {
@@ -407,6 +452,45 @@ describe("gradient SVG export", () => {
     expect(stopColors(gradient)).toEqual([
       ["0", "#000000"],
       ["1", "#ffffff"],
+    ]);
+  });
+
+  it("exports the selected linear gradient angle to SVG", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      width: 200,
+      height: 100,
+      backgroundColor: createGradientBackground(
+        "linear",
+        "#000000",
+        "#ffffff",
+        180,
+      ),
+    });
+    const [gradient] = await exportGradientDefs([rectangle]);
+
+    expect(
+      ["x1", "y1", "x2", "y2"].map((attr) => gradient.getAttribute(attr)),
+    ).toEqual(["100", "0", "100", "100"]);
+  });
+
+  it("exports the selected color-stop positions to SVG", async () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      backgroundColor: createGradientBackground(
+        "linear",
+        "#000000",
+        "#ffffff",
+        90,
+        20,
+        80,
+      ),
+    });
+    const [gradient] = await exportGradientDefs([rectangle]);
+
+    expect(stopColors(gradient)).toEqual([
+      ["0.2", "#000000"],
+      ["0.8", "#ffffff"],
     ]);
   });
 
@@ -981,6 +1065,86 @@ describe("gradient through flipping by dragging a handle", () => {
 
 describe("gradient picker availability", () => {
   const gradientToggle = () => screen.queryByText("Use gradient");
+
+  it("adjusts the color stops with the preview handles", async () => {
+    const rect = API.createElement({
+      type: "rectangle",
+      backgroundColor: LINEAR,
+    });
+    API.setElements([rect]);
+    API.setSelectedElements([rect]);
+    togglePopover("Background");
+
+    const leftHandle = screen.getByRole("slider", {
+      name: "End color stop position",
+    });
+    const rightHandle = screen.getByRole("slider", {
+      name: "Start color stop position",
+    });
+    expect(leftHandle).toHaveAttribute("aria-valuenow", "0");
+    expect(rightHandle).toHaveAttribute("aria-valuenow", "100");
+
+    fireEvent.keyDown(leftHandle, { key: "ArrowRight" });
+
+    expect(leftHandle).toHaveAttribute("aria-valuenow", "1");
+    expect(
+      document.querySelector(".background-gradient-picker__preview"),
+    ).toHaveStyle({
+      backgroundImage: expect.stringContaining("#000000 1%"),
+    });
+  });
+
+  it("drags the color-stop handles along the preview", async () => {
+    const rect = API.createElement({
+      type: "rectangle",
+      backgroundColor: LINEAR,
+    });
+    API.setElements([rect]);
+    API.setSelectedElements([rect]);
+    togglePopover("Background");
+
+    const preview = document.querySelector(
+      ".background-gradient-picker__preview",
+    )!;
+    Object.defineProperty(preview, "getBoundingClientRect", {
+      value: () => ({
+        left: 0,
+        right: 100,
+        top: 0,
+        bottom: 24,
+        width: 100,
+        height: 24,
+        x: 0,
+        y: 0,
+        toJSON: () => {},
+      }),
+    });
+    const leftHandle = screen.getByRole("slider", {
+      name: "End color stop position",
+    });
+    Object.defineProperties(leftHandle, {
+      setPointerCapture: { value: vi.fn() },
+      hasPointerCapture: { value: () => true },
+      releasePointerCapture: { value: vi.fn() },
+    });
+
+    fireEvent.pointerDown(leftHandle, {
+      pointerId: 1,
+      clientX: 0,
+      buttons: 1,
+    });
+    fireEvent.pointerMove(leftHandle, {
+      pointerId: 1,
+      clientX: 25,
+      buttons: 1,
+    });
+    fireEvent.pointerUp(leftHandle, { pointerId: 1 });
+
+    expect(leftHandle).toHaveAttribute("aria-valuenow", "25");
+    expect(preview).toHaveStyle({
+      backgroundImage: expect.stringContaining("#000000 25%"),
+    });
+  });
 
   it("is offered for a rectangle", async () => {
     const rect = API.createElement({ type: "rectangle" });

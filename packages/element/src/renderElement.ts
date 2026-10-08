@@ -394,20 +394,20 @@ const drawElementOnCanvas = (
       return null;
     }
 
-    const { x1, y1, x2, cx, cy, r } = geometry;
+    const { x1, y1, x2, y2, cx, cy, r } = geometry;
     const gradient =
       geometry.type === "linear"
-        ? context.createLinearGradient(x1, y1, x2, y1)
+        ? context.createLinearGradient(x1, y1, x2, y2)
         : context.createRadialGradient(cx, cy, 0, cx, cy, r);
     gradient.addColorStop(
-      0,
+      (geometry.startPosition ?? 0) / 100,
       applyDarkModeFilter(
         geometry.startColor,
         renderConfig.theme === THEME.DARK,
       ),
     );
     gradient.addColorStop(
-      1,
+      (geometry.endPosition ?? 100) / 100,
       applyDarkModeFilter(geometry.endColor, renderConfig.theme === THEME.DARK),
     );
     return gradient;

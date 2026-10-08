@@ -19,44 +19,80 @@ export type GradientColors = Readonly<{
   type: GradientType;
   startColor: string;
   endColor: string;
+  angle?: number;
+  startPosition?: number;
+  endPosition?: number;
 }>;
 
 export const getGradientColors = (
   backgroundColor: string,
 ): GradientColors | null => {
-  const isLinear = backgroundColor.startsWith("linear-gradient(90deg,");
+  const linearPrefix =
+    /^linear-gradient\((-?(?:\d+(?:\.\d*)?|\.\d+))deg,\s*/.exec(
+      backgroundColor,
+    );
   const isRadial = backgroundColor.startsWith("radial-gradient(circle,");
-  if ((!isLinear && !isRadial) || !backgroundColor.endsWith(")")) {
+  if ((!linearPrefix && !isRadial) || !backgroundColor.endsWith(")")) {
     return null;
   }
 
-  const prefix = isLinear
-    ? "linear-gradient(90deg,"
-    : "radial-gradient(circle,";
-  const stops = backgroundColor.slice(prefix.length, -1);
+  const stops = backgroundColor.slice(
+    linearPrefix?.[0].length ?? "radial-gradient(circle,".length,
+    -1,
+  );
+  const stopParts: string[] = [];
   let parentheses = 0;
+  let stopStart = 0;
   for (let index = 0; index < stops.length; index++) {
     if (stops[index] === "(") {
       parentheses++;
     } else if (stops[index] === ")") {
       parentheses--;
     } else if (stops[index] === "," && parentheses === 0) {
-      const startColor = stops.slice(0, index).trim();
-      const endColor = stops.slice(index + 1).trim();
-      return startColor && endColor
-        ? { type: isLinear ? "linear" : "radial", startColor, endColor }
-        : null;
+      stopParts.push(stops.slice(stopStart, index).trim());
+      stopStart = index + 1;
     }
   }
-  return null;
+  stopParts.push(stops.slice(stopStart).trim());
+  if (stopParts.length !== 2) {
+    return null;
+  }
+
+  const parseStop = (stop: string) => {
+    const match = /^(.*?)(?:\s+((?:\d+(?:\.\d*)?|\.\d+))%)?$/.exec(stop);
+    const color = match?.[1].trim();
+    const position = match?.[2] ? Number(match[2]) : undefined;
+    return color ? { color, position } : null;
+  };
+  const start = parseStop(stopParts[0]);
+  const end = parseStop(stopParts[1]);
+  if (!start || !end) {
+    return null;
+  }
+
+  const angle = linearPrefix ? Number(linearPrefix[1]) : undefined;
+  const startPosition = Math.min(100, Math.max(0, start.position ?? 0));
+  const endPosition = Math.max(
+    startPosition,
+    Math.min(100, Math.max(0, end.position ?? 100)),
+  );
+  return {
+    type: linearPrefix ? "linear" : "radial",
+    startColor: start.color,
+    endColor: end.color,
+    ...(angle !== undefined && angle !== 90 ? { angle } : {}),
+    ...(startPosition !== 0 ? { startPosition } : {}),
+    ...(endPosition !== 100 ? { endPosition } : {}),
+  };
 };
 
 export type GradientGeometry = GradientColors &
   Readonly<{
-    // linear: runs horizontally from x1 to x2 at y1
+    // linear: runs between (x1, y1) and (x2, y2)
     x1: number;
     y1: number;
     x2: number;
+    y2: number;
     // radial: centered at (cx, cy), reaching the box corners at r
     cx: number;
     cy: number;
@@ -90,13 +126,36 @@ export const getGradientGeometry = (
     [x1, y1, x2, y2] = getBoundsFromPoints(element.points);
   }
 
+  const cx = (x1 + x2) / 2;
+  const cy = (y1 + y2) / 2;
+  const angleDegrees = gradientColors.angle ?? 90;
+  const normalizedAngle = ((angleDegrees % 360) + 360) % 360;
+  if (normalizedAngle === 90) {
+    return {
+      ...gradientColors,
+      x1,
+      y1,
+      x2,
+      y2: y1,
+      cx,
+      cy,
+      r: Math.hypot((x2 - x1) / 2, (y2 - y1) / 2),
+    };
+  }
+
+  const angle = (normalizedAngle * Math.PI) / 180;
+  const dx = Math.round(Math.sin(angle) * 1e10) / 1e10;
+  const dy = -Math.round(Math.cos(angle) * 1e10) / 1e10;
+  const halfLength = (Math.abs(dx) * (x2 - x1) + Math.abs(dy) * (y2 - y1)) / 2;
+
   return {
     ...gradientColors,
-    x1,
-    y1,
-    x2,
-    cx: (x1 + x2) / 2,
-    cy: (y1 + y2) / 2,
+    x1: cx - dx * halfLength,
+    y1: cy - dy * halfLength,
+    x2: cx + dx * halfLength,
+    y2: cy + dy * halfLength,
+    cx,
+    cy,
     r: Math.hypot((x2 - x1) / 2, (y2 - y1) / 2),
   };
 };
@@ -123,25 +182,52 @@ export const canHaveGradient = (element: ExcalidrawElement) => {
 };
 
 /**
- * Mirrors a linear gradient for a horizontal flip by swapping its stops.
+ * Mirrors a linear gradient horizontally. Default-angle gradients retain the
+ * existing stop-swap representation; other angles reflect their direction.
  * Radial gradients and solid colors are symmetric, so they're returned as-is.
  */
 export const flipGradientHorizontally = (backgroundColor: string) => {
   const gradientColors = getGradientColors(backgroundColor);
-  return gradientColors?.type === "linear"
-    ? createGradientBackground(
-        "linear",
-        gradientColors.endColor,
-        gradientColors.startColor,
-      )
-    : backgroundColor;
+  if (gradientColors?.type !== "linear") {
+    return backgroundColor;
+  }
+
+  const angle = gradientColors.angle ?? 90;
+  const normalizedAngle = ((angle % 360) + 360) % 360;
+  if (normalizedAngle === 90) {
+    const startPosition = gradientColors.startPosition ?? 0;
+    const endPosition = gradientColors.endPosition ?? 100;
+    return createGradientBackground(
+      "linear",
+      gradientColors.endColor,
+      gradientColors.startColor,
+      90,
+      100 - endPosition,
+      100 - startPosition,
+    );
+  }
+  return createGradientBackground(
+    "linear",
+    gradientColors.startColor,
+    gradientColors.endColor,
+    (360 - normalizedAngle) % 360,
+    gradientColors.startPosition,
+    gradientColors.endPosition,
+  );
 };
 
 export const createGradientBackground = (
   type: GradientType,
   startColor: string,
   endColor: string,
+  angle = 90,
+  startPosition = 0,
+  endPosition = 100,
 ) =>
   type === "linear"
-    ? `linear-gradient(90deg, ${startColor}, ${endColor})`
-    : `radial-gradient(circle, ${startColor}, ${endColor})`;
+    ? `linear-gradient(${angle}deg, ${startColor}${
+        startPosition === 0 ? "" : ` ${startPosition}%`
+      }, ${endColor}${endPosition === 100 ? "" : ` ${endPosition}%`})`
+    : `radial-gradient(circle, ${startColor}${
+        startPosition === 0 ? "" : ` ${startPosition}%`
+      }, ${endColor}${endPosition === 100 ? "" : ` ${endPosition}%`})`;
