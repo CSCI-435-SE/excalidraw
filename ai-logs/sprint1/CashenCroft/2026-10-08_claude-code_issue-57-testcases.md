@@ -11,6 +11,7 @@ _**User (2026-10-08 22:51:19Z)**_
 Implement the test file modifications for this issue please:
 
 <pasted_content id="5520">
+
 # Issue #57 — Final review
 
 Everything below is uncommitted: 25 files changed plus 1 new file, [actionGridAppearance.tsx](packages/excalidraw/actions/actionGridAppearance.tsx). Typecheck, ESLint and Prettier are clean.
@@ -18,7 +19,7 @@ Everything below is uncommitted: 25 files changed plus 1 new file, [actionGridAp
 ## 1. Settings: where the grid settings live and how they're saved
 
 | Step | File:line | What it does |
-|---|---|---|
+| --- | --- | --- |
 | Constants | [constants.ts:237-242](packages/common/src/constants.ts#L237-L242) | `DEFAULT_GRID_SCALE` (1), `MIN/MAX_GRID_SCALE` (0.25 / 8), `GRID_SCALE_STEP` (0.05), `DEFAULT_GRID_COLOR`, `DEFAULT_GRID_OPACITY` |
 | Types | [types.ts:507-516](packages/excalidraw/types.ts#L507-L516) | New `AppState` fields: `gridScale`, `gridSnapLinked`, `gridSnapScale`, `gridColor`, `gridOpacity`, `gridLayer`. `gridSize` stays the base spacing, unchanged. |
 | Renderer slice | [types.ts:211-214](packages/excalidraw/types.ts#L211-L214) | `StaticCanvasAppState` gets only the 4 visual fields. The snap settings never reach the renderer. |
@@ -53,7 +54,7 @@ Everything below is uncommitted: 25 files changed plus 1 new file, [actionGridAp
 **[actionGridAppearance.tsx](packages/excalidraw/actions/actionGridAppearance.tsx)** (new). Every action uses `captureUpdate: EVENTUALLY`, like the grid toggles, so grid changes aren't undo steps.
 
 | Action | Line | Behavior |
-|---|---|---|
+| --- | --- | --- |
 | `GridScaleRange` | [:43](packages/excalidraw/actions/actionGridAppearance.tsx#L43) | Shared slider for grid size and snap distance (sketch after this table) |
 | `changeGridScale` | [:89](packages/excalidraw/actions/actionGridAppearance.tsx#L89) | Grid size slider |
 | `toggleGridSnapLink` | [:112](packages/excalidraw/actions/actionGridAppearance.tsx#L112) | Copies the current grid scale into the snap distance when unlinking, so snapping doesn't jump ([:123](packages/excalidraw/actions/actionGridAppearance.tsx#L123)) |
@@ -63,11 +64,13 @@ Everything below is uncommitted: 25 files changed plus 1 new file, [actionGridAp
 | `changeGridLayer` | [:228](packages/excalidraw/actions/actionGridAppearance.tsx#L228) | Behind / Above elements buttons |
 
 How `GridScaleRange` works:
+
 - It uses the shared `Range` with preset buttons, the same pattern as the stroke width slider.
 - Range is 0.25×–8× in 0.05 steps, with presets 0.25×, 0.5×, 1×, 2×, 4×, 8×.
 - [:61](packages/excalidraw/actions/actionGridAppearance.tsx#L61) cancels the stray label click so releasing a drag no longer selects 0.25×.
 
 **Wiring:**
+
 - **Registration:** names added to [actions/types.ts:64-69](packages/excalidraw/actions/types.ts#L64-L69) and exported from [actions/index.ts:97](packages/excalidraw/actions/index.ts#L97).
 - **Grid toggle:** [actionToggleGridMode.tsx:27-28](packages/excalidraw/actions/actionToggleGridMode.tsx#L27-L28). Turning the grid on at 0% opacity resets it to 100%; turning it off keeps the value.
 - **[GridPanel.tsx:111-126](packages/excalidraw/components/GridPanel.tsx#L111-L126):** layout only.
@@ -110,8 +113,7 @@ How `GridScaleRange` works:
    - [regressionTests.test.tsx.snap](packages/excalidraw/tests/__snapshots__/regressionTests.test.tsx.snap)
    - [export.test.tsx.snap](packages/excalidraw/tests/__snapshots__/export.test.tsx.snap)
    - [utils export.test.ts.snap](packages/utils/tests/__snapshots__/export.test.ts.snap)
-3. **[data/restore.test.ts](packages/excalidraw/tests/data/restore.test.ts)** (optional). The `restoreAppState` block at line 759 is the natural place for tests that cleaning up invalid saved grid settings works.
-</pasted_content id="5520">
+3. **[data/restore.test.ts](packages/excalidraw/tests/data/restore.test.ts)** (optional). The `restoreAppState` block at line 759 is the natural place for tests that cleaning up invalid saved grid settings works. </pasted_content id="5520">
 
 Mention the files you change, why, and give me each test case you add and its reasoning. Show code while explaining so I can fact check.
 
@@ -124,6 +126,7 @@ I'll start by reading the existing test file and the new action code.
 _**Agent (claude-opus-5-5 2026-10-08 22:51:25Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read grid panel test, action, and component
 
@@ -131,40 +134,40 @@ Read grid panel test, action, and component
 
 ```text
      1	import { queryByTestId, queryByText } from "@testing-library/react";
-     2	
+     2
      3	import { CODES, KEYS } from "@excalidraw/common";
-     4	
+     4
      5	import { getShortcutFromShortcutName } from "../actions/shortcuts";
      6	import { isGridPanelOpenAtom } from "../components/GridPanel";
      7	import { editorJotaiStore } from "../editor-jotai";
      8	import { Excalidraw, MainMenu } from "../index";
-     9	
+     9
     10	import { API } from "./helpers/api";
     11	import { Keyboard, UI } from "./helpers/ui";
     12	import { act, fireEvent, render } from "./test-utils";
-    13	
+    13
     14	const { h } = window;
-    15	
+    15
     16	const getGridPanel = () => document.querySelector(".GridPanel");
-    17	
+    17
     18	const getExtraToolsTrigger = () =>
     19	  document.querySelector<HTMLElement>(".App-toolbar__extra-tools-trigger")!;
-    20	
+    20
     21	const openExtraToolsMenu = () => {
     22	  fireEvent.click(getExtraToolsTrigger());
     23	  return document.querySelector<HTMLElement>(
     24	    ".App-toolbar__extra-tools-dropdown",
     25	  )!;
     26	};
-    27	
+    27
     28	const pickGridFromExtraTools = () => {
     29	  const menu = openExtraToolsMenu();
     30	  fireEvent.click(queryByTestId(menu, "toolbar-grid")!);
     31	};
-    32	
+    32
     33	const getSwitch = (name: string) =>
     34	  document.querySelector<HTMLInputElement>(`input[name="${name}"]`)!;
-    35	
+    35
     36	const stubResizeObserver = () => {
     37	  // radix popovers (e.g. the background color picker) need ResizeObserver
     38	  (global as any).ResizeObserver = class ResizeObserver {
@@ -173,110 +176,110 @@ Read grid panel test, action, and component
     41	    disconnect() {}
     42	  };
     43	};
-    44	
+    44
     45	beforeEach(() => {
     46	  // the editor jotai store is module-level, so reset the panel between tests
     47	  editorJotaiStore.set(isGridPanelOpenAtom, false);
     48	});
-    49	
+    49
     50	describe("grid panel", () => {
     51	  describe("extra tools menu item", () => {
     52	    beforeEach(async () => {
     53	      await render(<Excalidraw handleKeyboardGlobally={true} />);
     54	    });
-    55	
+    55
     56	    it("should be the first item in More tools, with a G shortcut", () => {
     57	      const menu = openExtraToolsMenu();
     58	      const items = menu.querySelectorAll(".dropdown-menu-item");
     59	      const gridItem = queryByTestId(menu, "toolbar-grid")!;
-    60	
+    60
     61	      expect(items[0]).toBe(gridItem);
     62	      expect(gridItem.textContent).toContain("Grid");
     63	      expect(
     64	        gridItem.querySelector(".dropdown-menu-item__shortcut")?.textContent,
     65	      ).toBe("G");
     66	    });
-    67	
+    67
     68	    it("should open the panel without turning the grid on", () => {
     69	      expect(getGridPanel()).toBe(null);
-    70	
+    70
     71	      pickGridFromExtraTools();
-    72	
+    72
     73	      expect(getGridPanel()).not.toBe(null);
     74	      expect(h.state.gridModeEnabled).toBe(false);
     75	      expect(h.state.gridSnapEnabled).toBe(false);
     76	    });
-    77	
+    77
     78	    it("should switch to the selection tool and clear the selection", () => {
     79	      const rectangle = API.createElement({ type: "rectangle" });
     80	      API.setElements([rectangle]);
     81	      API.setSelectedElements([rectangle]);
     82	      UI.clickTool("rectangle");
     83	      expect(h.state.activeTool.type).toBe("rectangle");
-    84	
+    84
     85	      pickGridFromExtraTools();
-    86	
+    86
     87	      expect(h.state.activeTool.type).toBe("selection");
     88	      expect(h.state.selectedElementIds).toEqual({});
     89	      expect(getGridPanel()).not.toBe(null);
     90	    });
-    91	
+    91
     92	    it("should highlight More tools while the panel is open", () => {
     93	      expect(getExtraToolsTrigger()).not.toHaveClass(
     94	        "App-toolbar__extra-tools-trigger--selected",
     95	      );
-    96	
+    96
     97	      pickGridFromExtraTools();
     98	      expect(getExtraToolsTrigger()).toHaveClass(
     99	        "App-toolbar__extra-tools-trigger--selected",
    100	      );
-   101	
+   101
    102	      Keyboard.keyPress(KEYS.ESCAPE);
    103	      expect(getExtraToolsTrigger()).not.toHaveClass(
    104	        "App-toolbar__extra-tools-trigger--selected",
    105	      );
    106	    });
    107	  });
-   108	
+   108
    109	  describe("panel", () => {
    110	    beforeEach(async () => {
    111	      await render(<Excalidraw handleKeyboardGlobally={true} />);
    112	      pickGridFromExtraTools();
    113	    });
-   114	
+   114
    115	    it("should toggle grid visibility from the Show grid switch", () => {
    116	      const showGrid = getSwitch("grid-panel-show-grid");
    117	      expect(showGrid.checked).toBe(false);
-   118	
+   118
    119	      fireEvent.click(showGrid);
    120	      expect(h.state.gridModeEnabled).toBe(true);
    121	      expect(h.state.gridSnapEnabled).toBe(false);
    122	      expect(getSwitch("grid-panel-show-grid").checked).toBe(true);
-   123	
+   123
    124	      fireEvent.click(getSwitch("grid-panel-show-grid"));
    125	      expect(h.state.gridModeEnabled).toBe(false);
    126	    });
-   127	
+   127
    128	    it("should toggle grid snapping from the Snap to grid switch", () => {
    129	      const snapToGrid = getSwitch("grid-panel-snap-to-grid");
    130	      expect(snapToGrid.checked).toBe(false);
-   131	
+   131
    132	      fireEvent.click(snapToGrid);
    133	      expect(h.state.gridSnapEnabled).toBe(true);
    134	      expect(h.state.gridModeEnabled).toBe(false);
    135	      expect(getSwitch("grid-panel-snap-to-grid").checked).toBe(true);
-   136	
+   136
    137	      fireEvent.click(getSwitch("grid-panel-snap-to-grid"));
    138	      expect(h.state.gridSnapEnabled).toBe(false);
    139	    });
-   140	
+   140
    141	    it("should reflect grid state changed elsewhere", () => {
    142	      API.setAppState({ gridModeEnabled: true, gridSnapEnabled: true });
-   143	
+   143
    144	      expect(getSwitch("grid-panel-show-grid").checked).toBe(true);
    145	      expect(getSwitch("grid-panel-snap-to-grid").checked).toBe(true);
    146	    });
-   147	
+   147
    148	    it("should show the Ctrl+' shortcut next to Show grid", () => {
    149	      const showGridRow = getSwitch("grid-panel-show-grid").closest(
    150	        ".GridPanel__toggle",
@@ -284,43 +287,43 @@ Read grid panel test, action, and component
    152	      const snapRow = getSwitch("grid-panel-snap-to-grid").closest(
    153	        ".GridPanel__toggle",
    154	      )!;
-   155	
+   155
    156	      expect(
    157	        showGridRow.querySelector(".GridPanel__shortcut")?.textContent,
    158	      ).toBe(getShortcutFromShortcutName("gridMode"));
    159	      expect(snapRow.querySelector(".GridPanel__shortcut")).toBe(null);
    160	    });
-   161	
+   161
    162	    it("should update the Show grid switch when using Ctrl+'", () => {
    163	      Keyboard.withModifierKeys({ ctrl: true }, () => {
    164	        Keyboard.codeDown(CODES.QUOTE);
    165	      });
-   166	
+   166
    167	      expect(h.state.gridModeEnabled).toBe(true);
    168	      expect(getSwitch("grid-panel-show-grid").checked).toBe(true);
    169	      expect(getGridPanel()).not.toBe(null);
    170	    });
-   171	
+   171
    172	    it("should stay open after toggling a switch", () => {
    173	      fireEvent.click(getSwitch("grid-panel-show-grid"));
    174	      fireEvent.click(getSwitch("grid-panel-snap-to-grid"));
    175	      expect(getGridPanel()).not.toBe(null);
    176	    });
-   177	
+   177
    178	    it("should close on Escape", () => {
    179	      Keyboard.keyPress(KEYS.ESCAPE);
    180	      expect(getGridPanel()).toBe(null);
    181	    });
-   182	
+   182
    183	    it("should close when switching to another tool", () => {
    184	      UI.clickTool("rectangle");
    185	      expect(getGridPanel()).toBe(null);
-   186	
+   186
    187	      // and stay closed when coming back to the selection tool
    188	      UI.clickTool("selection");
    189	      expect(getGridPanel()).toBe(null);
    190	    });
-   191	
+   191
    192	    it("should close when an element gets selected", () => {
    193	      const rectangle = API.createElement({ type: "rectangle" });
    194	      API.setElements([rectangle]);
@@ -328,57 +331,57 @@ Read grid panel test, action, and component
    196	        API.setSelectedElements([rectangle]);
    197	      });
    198	      expect(getGridPanel()).toBe(null);
-   199	
+   199
    200	      // and stay closed after deselecting
    201	      API.setAppState({ selectedElementIds: {} });
    202	      expect(getGridPanel()).toBe(null);
    203	    });
-   204	
+   204
    205	    it("should be hidden in view mode", () => {
    206	      API.setAppState({ viewModeEnabled: true });
    207	      expect(getGridPanel()).toBe(null);
    208	    });
    209	  });
-   210	
+   210
    211	  describe("G shortcut", () => {
    212	    beforeEach(async () => {
    213	      stubResizeObserver();
    214	      await render(<Excalidraw handleKeyboardGlobally={true} />);
    215	    });
-   216	
+   216
    217	    it("should toggle the panel with the selection tool and nothing selected", () => {
    218	      Keyboard.keyPress(KEYS.G);
    219	      expect(getGridPanel()).not.toBe(null);
    220	      expect(h.state.gridModeEnabled).toBe(false);
-   221	
+   221
    222	      Keyboard.keyPress(KEYS.G);
    223	      expect(getGridPanel()).toBe(null);
    224	    });
-   225	
+   225
    226	    it("should keep opening the background picker for fillable tools", () => {
    227	      UI.clickTool("rectangle");
-   228	
+   228
    229	      Keyboard.keyPress(KEYS.G);
-   230	
+   230
    231	      expect(getGridPanel()).toBe(null);
    232	      expect(h.state.openPopup).toBe("elementBackground");
    233	      expect(h.state.activeTool.type).toBe("rectangle");
    234	    });
-   235	
+   235
    236	    it("should keep opening the background picker for selected fillable elements", () => {
    237	      const rectangle = API.createElement({ type: "rectangle" });
    238	      API.setElements([rectangle]);
    239	      act(() => {
    240	        API.setSelectedElements([rectangle]);
    241	      });
-   242	
+   242
    243	      Keyboard.keyPress(KEYS.G);
-   244	
+   244
    245	      expect(getGridPanel()).toBe(null);
    246	      expect(h.state.openPopup).toBe("elementBackground");
    247	      expect(h.state.selectedElementIds).toEqual({ [rectangle.id]: true });
    248	    });
-   249	
+   249
    250	    it.each([
    251	      ["Shift", { shift: true }],
    252	      ["Alt", { alt: true }],
@@ -390,7 +393,7 @@ Read grid panel test, action, and component
    258	      });
    259	      expect(getGridPanel()).toBe(null);
    260	    });
-   261	
+   261
    262	    it("should still group elements with Ctrl+G", () => {
    263	      const rect1 = API.createElement({ type: "rectangle", x: 0 });
    264	      const rect2 = API.createElement({ type: "rectangle", x: 100 });
@@ -398,37 +401,37 @@ Read grid panel test, action, and component
    266	      act(() => {
    267	        API.setSelectedElements([rect1, rect2]);
    268	      });
-   269	
+   269
    270	      Keyboard.withModifierKeys({ ctrl: true }, () => {
    271	        Keyboard.keyPress(KEYS.G);
    272	      });
-   273	
+   273
    274	      expect(getGridPanel()).toBe(null);
    275	      expect(h.elements[0].groupIds).toHaveLength(1);
    276	      expect(h.elements[0].groupIds).toEqual(h.elements[1].groupIds);
    277	    });
-   278	
+   278
    279	    it("should not open the panel in view mode", () => {
    280	      API.setAppState({ viewModeEnabled: true });
    281	      Keyboard.keyPress(KEYS.G);
    282	      expect(getGridPanel()).toBe(null);
    283	    });
    284	  });
-   285	
+   285
    286	  describe("gridModeEnabled prop", () => {
    287	    beforeEach(async () => {
    288	      await render(
    289	        <Excalidraw gridModeEnabled={true} handleKeyboardGlobally={true} />,
    290	      );
    291	    });
-   292	
+   292
    293	    it("should hide the Grid item in More tools", () => {
    294	      const menu = openExtraToolsMenu();
    295	      expect(queryByTestId(menu, "toolbar-grid")).toBe(null);
    296	      // the rest of the menu still renders
    297	      expect(queryByTestId(menu, "toolbar-frame")).not.toBe(null);
    298	    });
-   299	
+   299
    300	    it("should ignore the G shortcut", () => {
    301	      const gridModeEnabled = h.state.gridModeEnabled;
    302	      Keyboard.keyPress(KEYS.G);
@@ -437,7 +440,7 @@ Read grid panel test, action, and component
    305	    });
    306	  });
    307	});
-   308	
+   308
    309	describe("Preferences menu", () => {
    310	  const openPreferences = (container: HTMLElement) => {
    311	    fireEvent.click(container.querySelector(".dropdown-menu-button")!);
@@ -450,7 +453,7 @@ Read grid panel test, action, and component
    318	      ".excalidraw-main-menu-preferences-submenu",
    319	    )!;
    320	  };
-   321	
+   321
    322	  it("should no longer list the grid toggles by default", async () => {
    323	    const { container } = await render(
    324	      <Excalidraw>
@@ -460,7 +463,7 @@ Read grid panel test, action, and component
    328	      </Excalidraw>,
    329	    );
    330	    const submenu = openPreferences(container);
-   331	
+   331
    332	    expect(submenu).not.toBe(null);
    333	    // sanity check that the submenu contents rendered
    334	    expect(queryByText(submenu, "Zen mode")).not.toBe(null);
@@ -476,23 +479,23 @@ Read grid panel test, action, and component
      6	  MAX_GRID_SCALE,
      7	  MIN_GRID_SCALE,
      8	} from "@excalidraw/common";
-     9	
+     9
     10	import { CaptureUpdateAction } from "@excalidraw/element";
-    11	
+    11
     12	import type { ColorTuple } from "@excalidraw/common";
-    13	
+    13
     14	import { ColorPicker } from "../components/ColorPicker/ColorPicker";
     15	import { RadioSelection } from "../components/RadioSelection";
     16	import { Range } from "../components/Range";
     17	import { BringToFrontIcon, SendToBackIcon } from "../components/icons";
     18	import { t } from "../i18n";
     19	import { getNormalizedGridOpacity, getNormalizedGridScale } from "../scene";
-    20	
+    20
     21	import { register } from "./register";
-    22	
+    22
     23	import type { RangeNotch } from "../components/Range";
     24	import type { AppState } from "../types";
-    25	
+    25
     26	const GRID_COLOR_PICKS = [
     27	  DEFAULT_GRID_COLOR,
     28	  COLOR_PALETTE.gray[3],
@@ -500,15 +503,15 @@ Read grid panel test, action, and component
     30	  COLOR_PALETTE.green[1],
     31	  COLOR_PALETTE.blue[1],
     32	] as ColorTuple;
-    33	
+    33
     34	/**
     35	 * Grid and snapping sizes are multipliers of the base `gridSize`, so the
     36	 * visible grid itself is the reference instead of exact pixel counts.
     37	 */
     38	const GRID_SCALE_PRESETS = [MIN_GRID_SCALE, 0.5, 1, 2, 4, MAX_GRID_SCALE];
-    39	
+    39
     40	const formatGridScale = (value: number) => `${value}×`;
-    41	
+    41
     42	/** shared slider (with presets) for the grid size and the snap distance */
     43	const GridScaleRange = ({
     44	  label,
@@ -555,7 +558,7 @@ Read grid panel test, action, and component
     85	    />
     86	  </div>
     87	);
-    88	
+    88
     89	export const actionChangeGridScale = register<AppState["gridScale"]>({
     90	  name: "changeGridScale",
     91	  label: "labels.gridScale",
@@ -578,7 +581,7 @@ Read grid panel test, action, and component
    108	    />
    109	  ),
    110	});
-   111	
+   111
    112	export const actionToggleGridSnapLink = register({
    113	  name: "toggleGridSnapLink",
    114	  label: "labels.linkGridSnapScale",
@@ -599,7 +602,7 @@ Read grid panel test, action, and component
    129	  },
    130	  checked: (appState) => appState.gridSnapLinked,
    131	});
-   132	
+   132
    133	export const actionChangeGridSnapScale = register<AppState["gridSnapScale"]>({
    134	  name: "changeGridSnapScale",
    135	  label: "labels.gridSnapScale",
@@ -622,7 +625,7 @@ Read grid panel test, action, and component
    152	    />
    153	  ),
    154	});
-   155	
+   155
    156	export const actionChangeGridColor = register<
    157	  Partial<Pick<AppState, "gridColor" | "openPopup">>
    158	>({
@@ -657,7 +660,7 @@ Read grid panel test, action, and component
    187	    </fieldset>
    188	  ),
    189	});
-   190	
+   190
    191	export const actionChangeGridOpacity = register<AppState["gridOpacity"]>({
    192	  name: "changeGridOpacity",
    193	  label: "labels.gridOpacity",
@@ -694,7 +697,7 @@ Read grid panel test, action, and component
    224	    />
    225	  ),
    226	});
-   227	
+   227
    228	export const actionChangeGridLayer = register<AppState["gridLayer"]>({
    229	  name: "changeGridLayer",
    230	  label: "labels.gridLayer",
@@ -736,12 +739,12 @@ Read grid panel test, action, and component
    266	  ),
    267	});
      1	import { useEffect } from "react";
-     2	
+     2
      3	import { EVENT, KEYS, isSelectionLikeTool } from "@excalidraw/common";
      4	import { showSelectedShapeActions } from "@excalidraw/element";
-     5	
+     5
      6	import type { NonDeletedExcalidrawElement } from "@excalidraw/element/types";
-     7	
+     7
      8	import {
      9	  actionToggleGridMode,
     10	  actionToggleGridSnapLink,
@@ -750,18 +753,18 @@ Read grid panel test, action, and component
     13	import { getShortcutFromShortcutName } from "../actions/shortcuts";
     14	import { atom, useAtom } from "../editor-jotai";
     15	import { t } from "../i18n";
-    16	
+    16
     17	import { useExcalidrawActionManager } from "./App";
     18	import { Island } from "./Island";
     19	import { Switch } from "./Switch";
-    20	
+    20
     21	import "./GridPanel.scss";
-    22	
+    22
     23	import type { AppClassProperties, UIAppState } from "../types";
-    24	
+    24
     25	/** whether the grid settings panel (opened from the extra-tools menu) is open */
     26	export const isGridPanelOpenAtom = atom(false);
-    27	
+    27
     28	/**
     29	 * Opens the grid panel like picking a tool: switches to the selection tool
     30	 * and clears the selection so no other tool or properties panel stays active.
@@ -771,7 +774,7 @@ Read grid panel test, action, and component
     34	  app.setAppState({ selectedElementIds: {}, selectedGroupIds: {} });
     35	  app.updateEditorAtom(isGridPanelOpenAtom, true);
     36	};
-    37	
+    37
     38	/**
     39	 * Left-side panel with the grid toggles, shown after picking "Grid" in the
     40	 * extra-tools menu (like the properties panel shown for the frame tool).
@@ -787,7 +790,7 @@ Read grid panel test, action, and component
     50	}) => {
     51	  const [isOpen, setIsOpen] = useAtom(isGridPanelOpenAtom);
     52	  const actionManager = useExcalidrawActionManager();
-    53	
+    53
     54	  // opening the panel switches to the selection tool and clears the
     55	  // selection, so this only becomes true once the user moves on
     56	  const shouldClose =
@@ -798,7 +801,7 @@ Read grid panel test, action, and component
     61	      setIsOpen(false);
     62	    }
     63	  }, [shouldClose, setIsOpen]);
-    64	
+    64
     65	  useEffect(() => {
     66	    if (!isOpen) {
     67	      return;
@@ -811,7 +814,7 @@ Read grid panel test, action, and component
     74	    document.addEventListener(EVENT.KEYDOWN, onKeyDown);
     75	    return () => document.removeEventListener(EVENT.KEYDOWN, onKeyDown);
     76	  }, [isOpen, setIsOpen]);
-    77	
+    77
     78	  if (
     79	    !isOpen ||
     80	    shouldClose ||
@@ -820,7 +823,7 @@ Read grid panel test, action, and component
     83	  ) {
     84	    return null;
     85	  }
-    86	
+    86
     87	  return (
     88	    <Island className="GridPanel" padding={2} data-viewport-ui="side">
     89	      <fieldset>
@@ -864,7 +867,7 @@ Read grid panel test, action, and component
    127	    </Island>
    128	  );
    129	};
-   130	
+   130
    131	const GridPanelToggle = ({
    132	  name,
    133	  label,
@@ -885,6 +888,7 @@ Read grid panel test, action, and component
    148	  </div>
    149	);
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:51:27Z)**_
@@ -894,6 +898,7 @@ Next I'll read the supporting pieces: Range, the snapping helpers, the renderer,
 _**Agent (claude-opus-5-5 2026-10-08 22:51:31Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read supporting source for grid feature
 
@@ -901,20 +906,20 @@ Read supporting source for grid feature
 
 ```text
      1	import React, { useEffect } from "react";
-     2	
+     2
      3	import { RadioButton } from "./RadioButton";
-     4	
+     4
      5	import "./Range.scss";
-     6	
+     6
      7	import type { JSX } from "react";
-     8	
+     8
      9	export type RangeNotch = {
     10	  value: number;
     11	  icon: JSX.Element;
     12	  label: string;
     13	  testId?: string;
     14	};
-    15	
+    15
     16	export type RangeProps = {
     17	  label: React.ReactNode;
     18	  value: number;
@@ -932,7 +937,7 @@ Read supporting source for grid feature
     30	  /** show the value bubble even when value === min (default: hidden at min) */
     31	  alwaysShowValue?: boolean;
     32	};
-    33	
+    33
     34	export const Range = ({
     35	  label,
     36	  value,
@@ -950,10 +955,10 @@ Read supporting source for grid feature
     48	  const rangeRef = React.useRef<HTMLInputElement>(null);
     49	  const valueRef = React.useRef<HTMLDivElement>(null);
     50	  const minLabelRef = React.useRef<HTMLDivElement>(null);
-    51	
+    51
     52	  const displayValue = formatValue ? formatValue(value) : value;
     53	  const showsValue = alwaysShowValue || value !== min;
-    54	
+    54
     55	  useEffect(() => {
     56	    if (rangeRef.current && valueRef.current) {
     57	      const rangeElement = rangeRef.current;
@@ -971,7 +976,7 @@ Read supporting source for grid feature
     69	      valueElement.style.left = `${position}px`;
     70	      rangeElement.style.background = `linear-gradient(to right, var(--color-slider-track) 0%, var(--color-slider-track) ${progress}%, var(--button-bg) ${progress}%, var(--button-bg) 100%)`;
     71	    }
-    72	
+    72
     73	    if (valueRef.current && minLabelRef.current) {
     74	      const minLabelElement = minLabelRef.current;
     75	      // hide the min-value tick label whenever the value bubble would render
@@ -983,7 +988,7 @@ Read supporting source for grid feature
     81	      minLabelElement.style.visibility = overlapping ? "hidden" : "visible";
     82	    }
     83	  }, [max, min, value, showsValue]);
-    84	
+    84
     85	  return (
     86	    <label className="control-label">
     87	      {label}
@@ -1363,6 +1368,7 @@ export const DEFAULT_GRID_OPACITY = 100;
 export const IMAGE_MIME_TYPES = {
   svg: "image/svg+xml",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:51:33Z)**_
@@ -1372,6 +1378,7 @@ Now I'll check the test helpers I can build on: canvas inspection, grid snap tes
 _**Agent (claude-opus-5-5 2026-10-08 22:51:38Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find canvas mock usage and related tests
 
@@ -1446,11 +1453,13 @@ describe("restoreAppState", () => {
 vitest.config.mts:82:    setupFiles: ["./setupTests.ts"],
 setupTests.ts:4:import "vitest-canvas-mock";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:51:38Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect color picker internals and existing tests
 
@@ -1534,11 +1543,13 @@ textHyperlinks.test.tsx
 tool.test.tsx
 viewMode.test.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:51:45Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Look at render config and canvas inspection helpers
 
@@ -1635,6 +1646,7 @@ packages/excalidraw/tests/dragCreate.test.tsx:350:      expect(renderStaticScene
 106-  callback: (data: RenderInteractiveSceneCallback) => void;
 107-  animationState?: InteractiveSceneRenderAnimationState;
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:51:50Z)**_
@@ -1644,6 +1656,7 @@ I'll read the full renderer entry and `strokeGrid` so the layer/opacity/color te
 _**Agent (claude-opus-5-5 2026-10-08 22:51:52Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read static scene renderer
 
@@ -1815,6 +1828,7 @@ export const renderStaticScene = (
   _renderStaticScene(renderConfig);
 };
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:52:05Z)**_
@@ -1824,10 +1838,11 @@ I'll look at how existing tests exercise grid snapping so the new snap-distance 
 _**Agent (claude-opus-5-5 2026-10-08 22:52:07Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find grid snapping test patterns and UI helpers
 
-`grep -rn "gridSnapEnabled: true\|gridSize:" packages/excalidraw/tests/*.tsx | head; grep -n "createElement = \|static createElement\|clickOnTestId\|static clickTool\|export class Pointer\|  drag\|  click\|  down\|  up\|  move" packages/excalidraw/tests/helpers/ui.ts | head -40`
+`grep -rn "gridSnapEnabled: true\|gridSize:" packages/excalidraw/tests/*.tsx | head; grep -n "createElement = \|static createElement\|clickOnTestId\|static clickTool\|export class Pointer\| drag\| click\| down\| up\| move" packages/excalidraw/tests/helpers/ui.ts | head -40`
 
 ```text
 packages/excalidraw/tests/arrowBinding.test.tsx:433:      API.setAppState({ gridSnapEnabled: false, gridSize: 20 });
@@ -1847,11 +1862,13 @@ packages/excalidraw/tests/gridPanel.test.tsx:142:      API.setAppState({ gridMod
 462:  static clickOnTestId = (testId: string) => {
 484:  static createElement<T extends DrawingToolName>(
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:52:09Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read arrow binding grid test and UI helpers
 
@@ -2081,6 +2098,7 @@ export class UI {
 
     return proxy(origElement);
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:52:17Z)**_
@@ -2090,6 +2108,7 @@ I'll check the ColorPicker's DOM hooks (trigger, swatches, custom colors) so the
 _**Agent (claude-opus-5-5 2026-10-08 22:52:19Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find ColorPicker test hooks and grid strings
 
@@ -2157,11 +2176,13 @@ packages/excalidraw/components/ColorPicker/TopPicks.tsx:68:          <div classN
 125:    "gridLayerBelow": "Behind elements",
 126:    "gridLayerAbove": "Above elements",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:52:23Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read custom color list and picker trigger
 
@@ -2257,6 +2278,7 @@ Read custom color list and picker trigger
             {strokeIcon}
           </span>
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:52:32Z)**_
@@ -2266,6 +2288,7 @@ I'll check how StaticCanvas triggers a render, to decide whether render tests ca
 _**Agent (claude-opus-5-5 2026-10-08 22:52:34Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read StaticCanvas render and memo logic
 
@@ -2382,6 +2405,7 @@ const areEqual = (
 
 export default React.memo(StaticCanvas, areEqual);
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:52:36Z)**_
@@ -2391,6 +2415,7 @@ The renderer approach is settled: watch the real static canvas's draw calls via 
 _**Agent (claude-opus-5-5 2026-10-08 22:52:51Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run a throwaway spike to inspect canvas mock events
 
@@ -2433,40 +2458,42 @@ stdout | packages/excalidraw/tests/tmpSpike/spike.test.tsx > **spike
    Duration ** 8.89s (transform 4.39s, setup 771ms, collect 7.07s, tests 269ms, environment 404ms, prepare 160ms)**
 Done in 9.41s.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:52:57Z)**_
 
-<think><details><summary>Thought Process</summary>
-The canvas is rendering as 0×0 in jsdom, causing the rectangle to be culled. I'll set a viewport size and re-check for the element draw.
+<think><details><summary>Thought Process</summary> The canvas is rendering as 0×0 in jsdom, causing the rectangle to be culled. I'll set a viewport size and re-check for the element draw.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:53:08Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Re-run spike with a sized viewport
 
-`sed -i 's/ctx.__clearEvents();/act(() => API.setAppState({ width: 200, height: 200 }));\n  ctx.__clearEvents();/' packages/excalidraw/tests/tmpSpike/spike.test.tsx && yarn vitest run packages/excalidraw/tests/tmpSpike 2>&1 | grep -A3 "stdout" | tail -3 | cut -c1-1500`
+`sed -i 's/ctx.__clearEvents();/act(() => API.setAppState({ width: 200, height: 200 }));\n ctx.__clearEvents();/' packages/excalidraw/tests/tmpSpike/spike.test.tsx && yarn vitest run packages/excalidraw/tests/tmpSpike 2>&1 | grep -A3 "stdout" | tail -3 | cut -c1-1500`
 
 ```text
 **200 200 193
 [["setTransform",""],["scale",""],["save",""],["fillStyle","#ffffff"],["fillStyle","#ffffff"],["fillRect",""],["restore",""],["scale",""],["save",""],["globalAlpha",1],["imageSmoothingEnabled",false],["save",""],["scale",""],["translate",""],["rotate",""],["translate",""],["drawImage","img"],["restore",""],["imageSmoothingEnabled",true],["globalAlpha",1],["restore",""],["save",""],["globalAlpha",0.4],["translate",""],["lineWidth",1],["beginPath",""],["setLineDash",""],["strokeStyle","#e03131"],["moveTo",""],["lineTo",""],["stroke",""],["lineWidth",1],["beginPath",""],["setLineDash",""],["strokeStyle","#e03131"],["moveTo",""],["lineTo",""],["stroke",""],["lineWidth",1],["beginPath",""]]
 ["setTransform","scale","save","fillStyle","fillRect","restore","scale","save","globalAlpha","imageSmoothingEnabled","save","scale","translate","rotate","translate","drawImage","restore","imageSmoothingEnabled","globalAlpha","restore","save","globalAlpha","translate","lineWidth","beginPath","setLineDash","strokeStyle","moveTo","lineTo","stroke","lineWidth","beginPath","setLineDash","strokeStyle","moveTo","lineTo","stroke","lineWidth","beginPath","setLineDash","strokeStyle","moveTo","lineTo","stroke","lineWidth","beginPath","setLineDash","strokeStyle","moveTo","lineTo","stroke","lineWidth","beginPath","setLineDash","strokeStyle","moveTo","lineTo","stroke","lineWidth","beginPath","setLineDash","strokeStyle","moveTo","lineTo","stroke","lineWidth","beginPath","setLineDash","strokeStyle","moveTo","lineTo","stroke","lineWidth","beginPath","setLineDash","strokeStyle","moveTo","lineTo","stroke","lineWidth","beginPath","setLineDash","strokeStyle","moveTo","lineTo","stroke","lineWidth","beginPath","setLineDash","strokeStyle","moveTo","lineTo","stroke","lineWidth","beginPath","setLineDash","strokeStyle","moveTo","lineTo","stroke","lineWidth","beginPath","setLineDash","strokeStyle","moveTo","lineTo","stroke","lineWidth","beginPath","setLineDash","strokeStyle","moveTo","lineTo","stroke","lineWidth","beginPath","setLineDash","strokeStyle","moveTo","lineTo","stroke","lineWidth","beginPath","setLineDash","strokeStyle","moveTo","lineTo","stroke","lineWidth","beginPath","setLineDash","strokeSt
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:53:39Z)**_
 
-<think><details><summary>Thought Process</summary>
-Elements appear as `drawImage` and grid lines as `stroke` in the event stream, confirming layer order and spacing are checkable from it. Next I'll check RadioSelection's test IDs and the Keyboard/Pointer helpers.
+<think><details><summary>Thought Process</summary> Elements appear as `drawImage` and grid lines as `stroke` in the event stream, confirming layer order and spacing are checkable from it. Next I'll check RadioSelection's test IDs and the Keyboard/Pointer helpers.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:53:40Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check radio testIds and keyboard helpers
 
@@ -2492,6 +2519,7 @@ packages/excalidraw/tests/appState.test.tsx:87:    const mouse = new Pointer("mo
 17-  QUOTE: "Quote",
 18:  SEMICOLON: "Semicolon",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:53:42Z)**_
@@ -2501,6 +2529,7 @@ I have what I need. I'll remove the spike and write the tests.
 _**Agent (claude-opus-5-5 2026-10-08 22:53:44Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Remove spike and read RadioSelection
 
@@ -2543,6 +2572,7 @@ Remove spike and read RadioSelection
   </>
 );
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:53:45Z)**_
@@ -2552,11 +2582,13 @@ First, the fix to the existing shortcut-hint test:
 _**Agent (claude-opus-5-5 2026-10-08 22:53:52Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\gridPanel.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:53:54Z)**_
@@ -2566,26 +2598,31 @@ Now the #57 coverage block. It goes inside `describe("grid panel")`, after the `
 _**Agent (claude-opus-5-5 2026-10-08 22:54:44Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\gridPanel.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:54:45Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\gridPanel.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:55:04Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run grid panel tests
 
@@ -2596,18 +2633,19 @@ Run grid panel tests
    ✓** grid panel > **extra tools menu item > **should be the first item in More tools, with a G shortcut 310ms**
       Tests ** **54 passed** (54)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:55:09Z)**_
 
-<think><details><summary>Thought Process</summary>
-All 54 tests passed right away, which seems suspicious, so I'll back up the source files and intentionally break the feature piece by piece to verify the correct tests fail.
+<think><details><summary>Thought Process</summary> All 54 tests passed right away, which seems suspicious, so I'll back up the source files and intentionally break the feature piece by piece to verify the correct tests fail.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:57:50Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Mutation-check that tests catch regressions
 
@@ -2721,18 +2759,19 @@ f
  M packages/excalidraw/types.ts
 ?? packages/excalidraw/actions/actionGridAppearance.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:57:57Z)**_
 
-<think><details><summary>Thought Process</summary>
-Nine of ten mutations were caught; the one miss was removing `gridOpacity` from StaticCanvas's comparison, since my opacity test also toggled the grid on, masking the effect. I'll enable the grid in `beforeEach` so each render test isolates the single field it's checking.
+<think><details><summary>Thought Process</summary> Nine of ten mutations were caught; the one miss was removing `gridOpacity` from StaticCanvas's comparison, since my opacity test also toggled the grid on, masking the effect. I'll enable the grid in `beforeEach` so each render test isolates the single field it's checking.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:59:22Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Isolate render tests and re-check redraw mutations
 
@@ -2809,6 +2848,7 @@ git diff --stat packages/excalidraw/components/canvases/StaticCanvas.tsx
  1 file changed, 4 insertions(+)
 [This command modified 2 files you've previously read: packages\excalidraw\tests\gridPanel.test.tsx, packages\excalidraw\components\canvases\StaticCanvas.tsx. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 22:59:25Z)**_
@@ -2818,6 +2858,7 @@ Python isn't installed, so none of those edits were applied. Prettier did run, a
 _**Agent (claude-opus-5-5 2026-10-08 23:01:17Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Apply edits via node and re-run mutation checks
 
@@ -3152,18 +3193,19 @@ packages\excalidraw\tests\gridPanel.test.tsx 41ms
  2 files changed, 41 insertions(+), 9 deletions(-)
 [This command modified 3 files you've previously read: packages\excalidraw\tests\gridPanel.test.tsx, packages\excalidraw\components\canvases\StaticCanvas.tsx, packages\excalidraw\renderer\staticScene.ts. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:01:22Z)**_
 
-<think><details><summary>Thought Process</summary>
-I found two issues: the prettier script reformatted the whole repo instead of just the test file, and the spacing test now fails on a clean tree. I'll check the formatter damage first.
+<think><details><summary>Thought Process</summary> I found two issues: the prettier script reformatted the whole repo instead of just the test file, and the spacing test now fails on a clean tree. I'll check the formatter damage first.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:01:23Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check which files prettier changed
 
@@ -3201,18 +3243,19 @@ Check which files prettier changed
 50:  "prettier": "@excalidraw/prettier-config",
 84:    "prettier": "prettier \"**/*.{css,scss,json,md,html,yml}\" --ignore-path=.eslintignore",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:01:28Z)**_
 
-<think><details><summary>Thought Process</summary>
-Git status matches the original snapshot, so no tracked files changed. Since .specstory/ is likely git-ignored, I'll check file modification times to confirm those weren't altered either.
+<think><details><summary>Thought Process</summary> Git status matches the original snapshot, so no tracked files changed. Since .specstory/ is likely git-ignored, I'll check file modification times to confirm those weren't altered either.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:01:55Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find files modified in the last few minutes
 
@@ -3237,18 +3280,19 @@ Find files modified in the last few minutes
 ./packages/excalidraw/snapping.ts
 ./packages/excalidraw/tests/gridPanel.test.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:02:04Z)**_
 
-<think><details><summary>Thought Process</summary>
-No tracked files changed, but one SpecStory log updated recently and I can't tell if that was the formatter or SpecStory itself—I'll note that at the end. Next I'll verify the mutation restores left the source byte-identical, then fix the spacing test since `gridScale: 1` was already the current value and nothing redrew.
+<think><details><summary>Thought Process</summary> No tracked files changed, but one SpecStory log updated recently and I can't tell if that was the formatter or SpecStory itself—I'll note that at the end. Next I'll verify the mutation restores left the source byte-identical, then fix the spacing test since `gridScale: 1` was already the current value and nothing redrew.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:02:08Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Verify all mutated source lines are restored
 
@@ -3273,11 +3317,13 @@ packages/excalidraw/renderer/staticScene.ts:303:  if (renderGrid && appState.gri
 85:        type === "gridColor" ? "elementStroke" : type,
 125:          : appState.gridScale,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:02:08Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Locate spacing test assertions
 
@@ -3291,6 +3337,7 @@ Locate spacing test assertions
 696-        new Set([DEFAULT_GRID_SIZE * 2]),
 697-      );
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:02:09Z)**_
@@ -3300,13 +3347,14 @@ All source lines are intact. Now the spacing test fix: go to 2× first, then bac
 _**Agent (claude-opus-5-5 2026-10-08 23:02:10Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `C:\Users\super\excalidraw\packages\excalidraw\tests\gridPanel.test.tsx`
 
 ```text
 676	      ]);
 677	    });
-678	
+678
 679	    it("should space grid lines by the base size times the grid scale", () => {
 680	      const getVerticalLineGaps = (events: { type: string; props: any }[]) => {
 681	        const xs = events
@@ -3319,7 +3367,7 @@ _**Agent (claude-opus-5-5 2026-10-08 23:02:10Z)**_
 688	          .map((event) => event.props.x);
 689	        return new Set(xs.slice(1).map((x, index) => x - xs[index]));
 690	      };
-691	
+691
 692	      expect(getVerticalLineGaps(renderWith({ gridScale: 1 }))).toEqual(
 693	        new Set([DEFAULT_GRID_SIZE]),
 694	      );
@@ -3327,24 +3375,28 @@ _**Agent (claude-opus-5-5 2026-10-08 23:02:10Z)**_
 696	        new Set([DEFAULT_GRID_SIZE * 2]),
 697	      );
 698	    });
-699	
+699
 700	    // each of these changes only one setting, so they also check that
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:02:17Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\gridPanel.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:02:51Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Lint, format-check, and run grid panel tests
 
@@ -3355,6 +3407,7 @@ Checking formatting...
 All matched files use Prettier code style!
       Tests  54 passed (54)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:02:53Z)**_
@@ -3364,6 +3417,7 @@ The panel file passes: 54 tests, clean ESLint and Prettier. Next, the `restoreAp
 _**Agent (claude-opus-5-5 2026-10-08 23:02:54Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check restore test imports
 
@@ -3382,18 +3436,20 @@ Check restore test imports
 28:import * as restore from "../../data/restore";
 29:import { getDefaultAppState } from "../../appState";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:02:56Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `C:\Users\super\excalidraw\packages\excalidraw\tests\data\restore.test.ts`
 
 ```text
 1	import { pointFrom } from "@excalidraw/math";
 2	import { vi } from "vitest";
-3	
+3
 4	import {
 5	  DEFAULT_SIDEBAR,
 6	  FONT_FAMILY,
@@ -3402,30 +3458,35 @@ _**Agent (claude-opus-5-5 2026-10-08 23:02:56Z)**_
 9	  MIN_STROKE_WIDTH,
 10	  MAX_STROKE_WIDTH,
 11	} from "@excalidraw/common";
-12	
+12
 13	import { newElementWith } from "@excalidraw/element";
 14	import * as sizeHelpers from "@excalidraw/element";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:03:08Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\data\restore.test.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:03:09Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\super\excalidraw\packages\excalidraw\tests\data\restore.test.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:03:11Z)**_
@@ -3435,6 +3496,7 @@ Next I'll lint and format-check the restore tests, then run `yarn test:update` t
 _**Agent (claude-opus-5-5 2026-10-08 23:03:17Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Lint restore test and check test:update script
 
@@ -3446,11 +3508,13 @@ All matched files use Prettier code style!
 69:    "test:app": "vitest",
 73:    "test:update": "yarn test:app --update --watch=false",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:04:25Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run full test suite with snapshot updates
 
@@ -3462,10 +3526,11 @@ Run full test suite with snapshot updates
    ✓ textWysiwyg > Test container-bound text > should update font family correctly on undo/redo by selecting bounded text when font family was updated 327ms
    ✓ textWysiwyg > Test container-bound text > should reset the container height cache when font properties updated 386ms
    ✓ textWysiwyg > Test container-bound text > should update line height when font family updated 345ms
-  Snapshots  134 updated 
+  Snapshots  134 updated
  Test Files  123 passed (123)
       Tests  1810 passed | 47 skipped | 1 todo (1858)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:04:27Z)**_
@@ -3475,6 +3540,7 @@ The whole suite passes: 1810 tests, 134 snapshots updated. I'll confirm the snap
 _**Agent (claude-opus-5-5 2026-10-08 23:04:28Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Summarize snapshot diff lines
 
@@ -3497,18 +3563,19 @@ Summarize snapshot diff lines
       1 -"<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36"><!-- svg-source:excalidraw --><metadata><!-- payload-type:application/vnd.excalidraw+json --><!-- payload-version:2 --><!-- payload-start -->eyJ2ZXJzaW9uIjoiMSIsImVuY29kaW5nIjoiYnN0cmluZyIsImNvbXByZXNzZWQiOnRydWUsImVuY29kZWQiOiJ4nHVTzY7TMFx1MDAxML7zXHUwMDE0UfaK2LRcYlx1MDAwZb0t7K52XHUwMDBmy4FcInFAXHUwMDFjvPE0XHUwMDE51bUte7JtqSrxXHUwMDE43HhFXHUwMDFlgbFcdTAwMTPiOi2JZMnf/H3zzfjwqihK2lsoXHUwMDE3RVx0u1oolE5sy9dcdTAwMDF/XHUwMDAx59FoNs3j3ZvO1dGzJbKL62tlOKA1nlx1MDAxNm+rquqDQMFcdTAwMDY0eXb7xveiOMSTLShD6E10i8C/ulx1MDAwNDtK6I6harzts9tcdTAwMTYltYzM3o9QXHUwMDBi2LSUY0I3XG6yQE/OrOGjUcaFilczXGJ/Kvos6nXjTKfl6ENOaG+F42aS31xulVrSPmZnPVitclLj60BxPsH/XHUwMDE3xUWbVoNcdTAwMGaCzUbUWFEjheZnVepcIjC0jzJq+z1xcmJcdTAwMDOPQVxc3Sk1wqgl7KZgbHGollx1MDAxOTyAzFx1MDAxOKThn2GfjK5zedHf8twpplhcdOUhXHRcdTAwMWJcbt6lnciKdlZcbprUVajXUz/es/WF3HFvWNE/v3/9PFx1MDAxOZHRtMRcdTAwMWaB4LzK0HuxQVx1MDAxNTR9l6W4UdiEPktcdTAwMDWrk1Fzs4S836OZjE3WmvNcdNTgzoU3XHUwMDBlXHUwMDFi1EJ9uUhPdGQ+g+9cdJLr4LRzeFx1MDAxOLf5zTxn+cCPxVx1MDAwNXH66UfTkc+4XHUwMDA3pbB2Sawl2/r3xruCclwiQ49cdTAwMTHYJEGEnoyEOy2e1VTjPkBcdTAwMGJ72fqCsP1w/nCuVvFcdTAwMWJaXHUwMDFlhvfUKcIlL0lNvEGhh0Ngf4zs+VXBXHUwMDAwXHUwMDFk/1x1MDAwMp5ccjnWIn0=<!-- payload-end --></metadata><defs><style class="style-fonts">
       1 +"<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36"><!-- svg-source:excalidraw --><metadata><!-- payload-type:application/vnd.excalidraw+json --><!-- payload-version:2 --><!-- payload-start -->eyJ2ZXJzaW9uIjoiMSIsImVuY29kaW5nIjoiYnN0cmluZyIsImNvbXByZXNzZWQiOnRydWUsImVuY29kZWQiOiJ4nHVTwY7TMFx1MDAxML3zXHUwMDE1VfaK2LRcYlx1MDAwZb0tsGhX2lx1MDAwNYlcInFAXHUwMDFj3HiajOralj3ZtlSV+FxmbvxcIp/A2OnGcVpSqZLfzPjNvHk+vJhMXG7aWyjmk1x1MDAwMnaVUCid2Fx1MDAxNi9cdTAwMDP+XHUwMDA0zqPRXHUwMDFjmsWzN62rYmZDZOfX18pwQWM8zV+XZdlcdTAwMTWBglxyaPKc9p3Pk8kh/nNcdTAwMDRlKL2JaVx1MDAxMXjmJdhRQndcZpX9aZ+dtiipYWT6todcdTAwMWHAuqFcdTAwMWNcdTAwMTO6VpBcdTAwMTV6cmZccu+NMi4wXk0h/Fx1MDAxMulSVOvamVbLPoec0N5cbsfDpLxcdTAwMTUqtaB9vJ31YLWKXHUwMDExx7dTi7NcdTAwMTH+vyomrVx1MDAxYlxyPlxiNu1RY0WFXHUwMDE0hp+WaYrQob2XUdtcdTAwMWapJyc2cFx1MDAxZsTVrVI9jFrCblxmxlx1MDAxMU9sWcBcdTAwMDPIrIO0/DPsk9FVLi/6XHUwMDBmvHeKV6yE8pCEXHKEt8lcdTAwMTNcdTAwMTlpa6WgXHUwMDExr0K9XHUwMDFl57HP1lx1MDAxN+6OvmFF//75/WuwXCKjaYE/Q4OzMkM/ilxyqqDpm+yKXHUwMDFihXWYs1CwXHUwMDFhrJqHJWR/92EyNkUrvk+gXHUwMDA2dy68cVijXHUwMDE26uvF9kRL5lx1MDAwYviuQXItXGYnh7veza9meZd3/FhcXFx1MDAxMKfbflxmXHUwMDFk+T/6oFx1MDAxMNYuiLXkWPfe2CsoRzJ0XHUwMDE4gU1cdTAwMTJ0XHUwMDEwT1x0aVx0XHUwMDFkpoV9YLYoe2qzj12qSc9Lxq9cdTAwMTjEPp9cdTAwMWI64lx1MDAwZmJcdTAwMGaxZlx0ymyHXHUwMDE1j0bCrVx1MDAxNks13nzfw+XoXHUwMDEzwvbd+XO+WsXvmaGz1GOrXGJcdTAwMTds3YrY10HZQ9D0XHUwMDE4NeW3XHUwMDBlJ+j4XHUwMDBmJs5joSJ9<!-- payload-end --></metadata><defs><style class="style-fonts">
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:04:33Z)**_
 
-<think><details><summary>Thought Process</summary>
-Confirmed each grid field was added 133 times, with the only other change being the updated exported SVG snapshot in `export.test.tsx.snap` now including grid settings. Running the typecheck next.
+<think><details><summary>Thought Process</summary> Confirmed each grid field was added 133 times, with the only other change being the updated exported SVG snapshot in `export.test.tsx.snap` now including grid settings. Running the typecheck next.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:04:44Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Typecheck and list test-file changes
 
@@ -3529,6 +3596,7 @@ exit=0
  M packages/excalidraw/tests/gridPanel.test.tsx
  M packages/utils/tests/__snapshots__/export.test.ts.snap
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:04:47Z)**_
@@ -3538,10 +3606,11 @@ One type error in my `renderWith` helper: `API.setAppState` doesn't accept `Part
 _**Agent (claude-opus-5-5 2026-10-08 23:05:16Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Fix helper type, re-typecheck and re-run tests
 
-`grep -n "const renderWith" packages/excalidraw/tests/gridPanel.test.tsx && sed -i 's/    const renderWith = (appState: Partial<AppState>) => {/    const renderWith = <K extends keyof AppState>(\n      appState: Pick<AppState, K>,\n    ) => {/' packages/excalidraw/tests/gridPanel.test.tsx && npx prettier --check packages/excalidraw/tests/gridPanel.test.tsx && npx eslint packages/excalidraw/tests/gridPanel.test.tsx && yarn -s test:typecheck 2>&1 | tail -3; echo "tsc done"; yarn vitest run packages/excalidraw/tests/gridPanel.test.tsx packages/excalidraw/tests/data/restore.test.ts 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E "FAIL|Tests "`
+`grep -n "const renderWith" packages/excalidraw/tests/gridPanel.test.tsx && sed -i 's/ const renderWith = (appState: Partial<AppState>) => {/ const renderWith = <K extends keyof AppState>(\n appState: Pick<AppState, K>,\n ) => {/' packages/excalidraw/tests/gridPanel.test.tsx && npx prettier --check packages/excalidraw/tests/gridPanel.test.tsx && npx eslint packages/excalidraw/tests/gridPanel.test.tsx && yarn -s test:typecheck 2>&1 | tail -3; echo "tsc done"; yarn vitest run packages/excalidraw/tests/gridPanel.test.tsx packages/excalidraw/tests/data/restore.test.ts 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E "FAIL|Tests "`
 
 ```text
 641:    const renderWith = (appState: Partial<AppState>) => {
@@ -3552,6 +3621,7 @@ All matched files use Prettier code style!
 tsc done
       Tests  109 passed (109)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:05:47Z)**_
@@ -3563,7 +3633,7 @@ To check that the new tests can actually fail, I broke the feature on purpose, o
 ## Files changed
 
 | File | Why |
-|---|---|
+| --- | --- |
 | [gridPanel.test.tsx](packages/excalidraw/tests/gridPanel.test.tsx) | Fixed the Snap to grid shortcut test and added the #57 coverage |
 | [data/restore.test.ts](packages/excalidraw/tests/data/restore.test.ts) | Tests that invalid saved grid settings get cleaned up on load |
 | The 5 `.snap` files | Regenerated with `yarn test:update`; 134 snapshots updated |
@@ -3573,6 +3643,7 @@ To check that the new tests can actually fail, I broke the feature on purpose, o
 ## gridPanel.test.tsx
 
 New helpers at the top of the file:
+
 ```ts
 const getSlider = (testId: string) =>
   document.querySelector<HTMLInputElement>(`input[data-testid="${testId}"]`)!;
@@ -3581,7 +3652,9 @@ const getGridColorTrigger = () =>
 ```
 
 ### Fix (the old line 148/159)
+
 **"should show the Ctrl+' and Ctrl+; shortcuts next to the switches"**: the Snap to grid row now expects the Ctrl+; hint. I also check the hint contains `;`, so the test can't pass just because both sides are empty strings.
+
 ```ts
 expect(getShortcutFromShortcutName("gridSnapMode")).toContain(";");
 expect(snapRow.querySelector(".GridPanel__shortcut")?.textContent).toBe(
@@ -3590,9 +3663,11 @@ expect(snapRow.querySelector(".GridPanel__shortcut")?.textContent).toBe(
 ```
 
 ### Ctrl+; (in the existing `panel` block)
+
 **"should update the Snap to grid switch when using Ctrl+;"**: presses Ctrl+; twice. It checks that snapping turns on, the switch updates, the grid stays hidden, and the second press turns snapping off. This follows the existing Ctrl+' test.
 
 ### `appearance settings` → grid size
+
 - **"should scale the grid from the slider and the presets"**: drag to 3×, then click the 0.5× preset, and check the slider follows the preset. It also checks that `gridSize` (the base spacing) doesn't change, since the scale is only a multiplier.
 - **"should offer presets from 0.25× to 8×"**: all six preset buttons are rendered.
 - **"should not select 0.25× when a slider drag is released on the label"**: this is the regression test for the fix at [actionGridAppearance.tsx:61](packages/excalidraw/actions/actionGridAppearance.tsx#L61).
@@ -3606,6 +3681,7 @@ expect(snapRow.querySelector(".GridPanel__shortcut")?.textContent).toBe(
 - **"should not create undo steps"**: draw a rectangle, change the scale, then undo. The rectangle is removed but the scale stays at 2. With the actions switched to a recorded history step, this fails.
 
 ### `appearance settings` → snap distance
+
 - **"should follow the grid size while linked"**: the snap slider is hidden, and at 2× scale `getEffectiveGridSize()` is 40.
 - **"should start from the current grid size when unlinking"**: covers the unlink behavior (no jump in snap distance).
   ```ts
@@ -3616,13 +3692,14 @@ expect(snapRow.querySelector(".GridPanel__shortcut")?.textContent).toBe(
 - **"should snap independently of the grid size once unlinked"**: grid at 4× with snap at 0.5× gives a 10px snap. Linking again brings it back to 80px and hides the snap slider.
 - **"should snap drawn elements to %s"** (3 cases): a real pointer drag from (13,13) to (63,63) with snapping on. This tests snapping through the actual drawing path, not just the helper.
 
-  | Case | Snap spacing | Expected x / width |
-  |---|---|---|
-  | base grid | 20 | 20 / 40 |
-  | 2× while linked | 40 | 0 / 80 |
-  | 0.5× while unlinked | 10 | 10 / 50 |
+  | Case                | Snap spacing | Expected x / width |
+  | ------------------- | ------------ | ------------------ |
+  | base grid           | 20           | 20 / 40            |
+  | 2× while linked     | 40           | 0 / 80             |
+  | 0.5× while unlinked | 10           | 10 / 50            |
 
 ### `appearance settings` → color
+
 - **"should change the grid color from the picker"**: opens the picker, which sets `openPopup` to `"gridColor"`, then clicks the red top pick. The color changes and the panel stays open.
 - **"should list the drawing's stroke colors as custom colors"**: covers [Picker.tsx:85](packages/excalidraw/components/ColorPicker/Picker.tsx#L85).
   ```ts
@@ -3635,24 +3712,31 @@ expect(snapRow.querySelector(".GridPanel__shortcut")?.textContent).toBe(
 - **"should only change the grid color and popup state"**: passes an extra `currentItemStrokeColor` to the action, and the stroke color stays unchanged. This guards the "only accepts `gridColor` and `openPopup`" rule.
 
 ### `appearance settings` → opacity
+
 - **"should hide the grid at 0% and show it again when raised"**: 0% turns the grid and the Show grid switch off; 40% turns both back on.
 - **"should not turn the grid on when changing a non-zero opacity"**: moving the slider while the grid is off, and not at 0%, leaves it off. This checks the "only when raising from 0%" condition.
 - **"should restore 100% when turning the grid on from 0%"**: covers the grid toggle at [actionToggleGridMode.tsx:27](packages/excalidraw/actions/actionToggleGridMode.tsx#L27).
 - **"should keep the opacity when turning the grid off and on"**: 60% survives turning the grid off and back on.
 
 ### `appearance settings` → layer
+
 - **"should switch between behind and above elements"**: clicking the two buttons updates `gridLayer`.
 
 ### `rendering` (new block)
+
 These tests read the actual draw calls on the static canvas, which `vitest-canvas-mock` records. The grid is turned on in `beforeEach`, and each test changes only one setting. So they also check that StaticCanvas redraws when that setting changes.
+
 ```ts
 const renderWith = <K extends keyof AppState>(appState: Pick<AppState, K>) => {
   const context = getStaticContext();
   context.__clearEvents();
-  act(() => { API.setAppState(appState); });
+  act(() => {
+    API.setAppState(appState);
+  });
   return context.__getEvents();
 };
 ```
+
 - **"should space grid lines by the base size times the grid scale"**: the gaps between vertical lines are 40 at 2× and 20 at 1×.
 - **"should redraw with the grid opacity"**: a `globalAlpha` of 0.4 is set when the opacity changes to 40.
 - **"should keep the two-tone lines for the default color"**: the line colors are exactly `#dddddd` and `#e5e5e5`.
@@ -3666,10 +3750,12 @@ const renderWith = <K extends keyof AppState>(appState: Pick<AppState, K>) => {
 Removing any one of the four visual fields from the StaticCanvas comparison makes at least one of these fail.
 
 ### `clicking the grid` (new block, grid shown above elements)
+
 - **"should select nothing when clicking on grid lines"**: clicking at (100,100), where two grid lines cross, selects nothing and creates no element.
 - **"should select the element under a grid line drawn above it"**: clicking a grid line that crosses a filled rectangle selects the rectangle. A grid drawn above elements doesn't block clicks.
 
 ## data/restore.test.ts (inside `restoreAppState`)
+
 - **"should keep valid grid appearance settings"**: valid values come back unchanged.
 - **"should default missing grid appearance settings"**: `{}` gives the defaults (1, linked, 1, `#dddddd`, 100, `"below"`).
 - **"should clamp and round out-of-range grid appearance settings"**:
@@ -3680,6 +3766,7 @@ Removing any one of the four visual fields from the StaticCanvas comparison make
 - **"should replace invalid grid appearance settings with defaults"**: `NaN`, `"yes"`, `Infinity`, `42`, `"50"` and `"sideways"` each fall back to the default.
 
 ## Something to check
+
 I ran `yarn prettier --write <file>`, but that script formats the whole repo. No git-tracked file changed. However, [.specstory/history/2026-10-08_21-17-49Z-i-need-you-to.md](.specstory/history/2026-10-08_21-17-49Z-i-need-you-to.md) changed in the last few minutes, and it isn't tracked by git (it's excluded in `.git/info/exclude`). I can't tell whether the formatter changed it or SpecStory itself did, so it's worth a quick look before you copy it into `ai-logs/`.
 
 ---
@@ -3697,6 +3784,7 @@ I'll check the repo's commit message style before committing.
 _**Agent (claude-opus-5-5 2026-10-08 23:18:52Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check recent commit message style and branch
 
@@ -3721,6 +3809,7 @@ refactor: gradient geometry now uses a shard helper for canvas and svg export
 ---
 feature/grid-appearance-scale
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:18:56Z)**_
@@ -3730,6 +3819,7 @@ The branch is `feature/grid-appearance-scale` and the only untracked file is `ac
 _**Agent (claude-opus-5-5 2026-10-08 23:18:59Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Stage all changes and commit
 
@@ -3787,6 +3877,7 @@ M  packages/excalidraw/types.ts
 M  packages/utils/tests/__snapshots__/export.test.ts.snap
 fdcbe103 feat: grid appearance and snap scale settings (Issue #57)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-08 23:19:02Z)**_
