@@ -236,7 +236,7 @@ describe("exportToSvg", () => {
     expect(radialGradient).not.toBeNull();
     expect(radialGradient?.getAttribute("cx")).toBe("50");
     expect(radialGradient?.getAttribute("cy")).toBe("25");
-    expect(radialGradient?.getAttribute("r")).toBe(`${Math.hypot(50, 25)}`);
+    expect(radialGradient?.getAttribute("r")).toBe("55.9"); // hypot(50, 25), to 2 decimals
 
     expect(
       svgElement.querySelector(`[fill="url(#gradient-${linearRectangle.id})"]`),
