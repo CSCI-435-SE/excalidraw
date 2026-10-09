@@ -82,6 +82,15 @@
       background: var(--button-hover-bg);
     }
 
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+
+      &:hover {
+        background: transparent;
+      }
+    }
+
     &[aria-pressed="true"] {
       background: var(--color-surface-primary-container);
       border-color: var(--color-primary);
