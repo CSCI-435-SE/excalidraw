@@ -171,7 +171,9 @@
     },
     "pathEditor": {
       "edit": "Edit motion path",
-      "testAnimation": "Test animation",
+      "play": "Play",
+      "pause": "Pause",
+      "reset": "Reset",
       "curved": "Curved",
       "straight": "Straight",
       "reject": "Reject",

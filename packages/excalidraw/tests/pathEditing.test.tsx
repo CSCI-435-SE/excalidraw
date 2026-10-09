@@ -173,13 +173,55 @@ describe("editing the path's points", () => {
 });
 
 describe("testing the edited path", () => {
-  it("the Test animation button plays the edited path", () => {
+  it("the Play button plays the edited path and flips to Pause", () => {
     const { path } = setup();
     enterEditViaContextMenu(350, 300);
 
-    UI.clickOnTestId("motion-path-test");
+    expect(
+      document.querySelector('[data-testid="motion-path-play"]'),
+    ).not.toBeNull();
+
+    UI.clickOnTestId("motion-path-play");
 
     expect(h.app.pathPlayback.isPlaying(getPath(path.id))).toBe(true);
+    expect(
+      document.querySelector('[data-testid="motion-path-pause"]'),
+    ).not.toBeNull();
+
+    h.app.pathPlayback.cancel(getPath(path.id));
+  });
+
+  it("Pause stops the element exactly where it is", () => {
+    const { path, rectangle } = setup();
+    enterEditViaContextMenu(350, 300);
+
+    UI.clickOnTestId("motion-path-play");
+    UI.clickOnTestId("motion-path-pause");
+
+    expect(h.app.pathPlayback.isPlaying(getPath(path.id))).toBe(false);
+    const { x, y } = getRect(rectangle.id);
+
+    // nothing moves further once paused
+    UI.clickOnTestId("motion-path-reset");
+    expect(getRect(rectangle.id)).not.toMatchObject({ x, y });
+  });
+
+  it("Reset sends the element back to its original location", () => {
+    const { path, rectangle } = setup();
+    enterEditViaContextMenu(350, 300);
+
+    const original = { x: getRect(rectangle.id).x, y: getRect(rectangle.id).y };
+
+    UI.clickOnTestId("motion-path-play");
+    UI.clickOnTestId("motion-path-pause");
+    expect(getRect(rectangle.id)).not.toMatchObject(original);
+
+    UI.clickOnTestId("motion-path-reset");
+    expect(getRect(rectangle.id)).toMatchObject(original);
+    expect(h.app.pathPlayback.hasControlledSession(getPath(path.id))).toBe(
+      false,
+    );
+
     h.app.pathPlayback.cancel(getPath(path.id));
   });
 });
