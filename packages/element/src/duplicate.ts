@@ -32,6 +32,7 @@ import {
   hasBoundTextElement,
   isBoundToContainer,
   isFrameLikeElement,
+  isPathElement,
 } from "./typeChecks";
 
 import { getBoundTextElement, getContainerElement } from "./textElement";
@@ -159,7 +160,7 @@ export const duplicateElements = (
   // For convenience we mark even the newly created ones even though we don't
   // loop over them.
   const processedIds = new Map<ExcalidrawElement["id"], true>();
-  const groupIdMap = new Map();
+  const groupIdMap = new Map<GroupId, GroupId>();
   const duplicatedElements: NonDeletedExcalidrawElement[] = [];
   const origElements: ExcalidrawElement[] = [];
   const origIdToDuplicateId = new Map<
@@ -407,6 +408,25 @@ export const duplicateElements = (
     origElements,
     origIdToDuplicateId,
   );
+
+  // a duplicated path follows its target into the duplicate when the target
+  // was duplicated alongside it, so the original path/target pair is left
+  // untouched. A path duplicated without its target is left with no target
+  // (inert) rather than also driving the original.
+  for (const duplicateElement of duplicatedElements) {
+    if (!isPathElement(duplicateElement)) {
+      continue;
+    }
+    const mutablePath = duplicateElement as Mutable<typeof duplicateElement>;
+    if (mutablePath.targetElementId) {
+      mutablePath.targetElementId =
+        origIdToDuplicateId.get(mutablePath.targetElementId) ?? null;
+    }
+    if (mutablePath.targetGroupId) {
+      mutablePath.targetGroupId =
+        groupIdMap.get(mutablePath.targetGroupId) ?? null;
+    }
+  }
 
   if (opts.overrides) {
     for (const duplicateElement of duplicatedElements) {
