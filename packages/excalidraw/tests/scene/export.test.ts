@@ -199,6 +199,53 @@ describe("exportToSvg", () => {
     expect(svgElement.innerHTML).toMatchSnapshot();
   });
 
+  it("exports linear and radial background gradients", async () => {
+    const linearRectangle = API.createElement({
+      type: "rectangle",
+      width: 100,
+      height: 50,
+      backgroundColor: "linear-gradient(90deg, #ff0000, #0000ff)",
+      fillStyle: "hachure",
+    });
+    const radialEllipse = API.createElement({
+      type: "ellipse",
+      width: 100,
+      height: 50,
+      backgroundColor: "radial-gradient(circle, #ffffff, #000000)",
+      fillStyle: "solid",
+    });
+
+    const svgElement = await exportUtils.exportToSvg(
+      [linearRectangle, radialEllipse] as NonDeletedExcalidrawElement[],
+      DEFAULT_OPTIONS,
+      null,
+    );
+
+    const linearGradient = svgElement.querySelector("linearGradient");
+    expect(linearGradient).not.toBeNull();
+    expect(linearGradient?.getAttribute("x2")).toBe("100");
+    expect(linearGradient?.querySelectorAll("stop")[0]).toHaveAttribute(
+      "stop-color",
+      "#ff0000",
+    );
+    expect(linearGradient?.querySelectorAll("stop")[1]).toHaveAttribute(
+      "stop-color",
+      "#0000ff",
+    );
+    const radialGradient = svgElement.querySelector("radialGradient");
+    expect(radialGradient).not.toBeNull();
+    expect(radialGradient?.getAttribute("cx")).toBe("50");
+    expect(radialGradient?.getAttribute("cy")).toBe("25");
+    expect(radialGradient?.getAttribute("r")).toBe("55.9"); // hypot(50, 25), to 2 decimals
+
+    expect(
+      svgElement.querySelector(`[fill="url(#gradient-${linearRectangle.id})"]`),
+    ).not.toBeNull();
+    expect(
+      svgElement.querySelector(`[fill="url(#gradient-${radialEllipse.id})"]`),
+    ).not.toBeNull();
+  });
+
   // #11439: a perfectly horizontal/vertical arrow has a zero-size bounding box.
   // The bound-text "gap" mask must use userSpaceOnUse units, otherwise its
   // objectBoundingBox region collapses to zero area and the whole arrow line

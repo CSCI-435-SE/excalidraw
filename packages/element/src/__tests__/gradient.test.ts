@@ -50,6 +50,45 @@ describe("gradient background", () => {
     });
   });
 
+  it("creates and parses a linear gradient with an adjustable angle", () => {
+    const backgroundColor = createGradientBackground(
+      "linear",
+      "#000000",
+      "#ffffff",
+      135,
+    );
+
+    expect(getGradientColors(backgroundColor)).toEqual({
+      type: "linear",
+      startColor: "#000000",
+      endColor: "#ffffff",
+      angle: 135,
+    });
+  });
+
+  it("creates and parses adjustable color-stop positions", () => {
+    const backgroundColor = createGradientBackground(
+      "linear",
+      "#000000",
+      "#ffffff",
+      135,
+      20,
+      80,
+    );
+
+    expect(backgroundColor).toBe(
+      "linear-gradient(135deg, #000000 20%, #ffffff 80%)",
+    );
+    expect(getGradientColors(backgroundColor)).toEqual({
+      type: "linear",
+      startColor: "#000000",
+      endColor: "#ffffff",
+      angle: 135,
+      startPosition: 20,
+      endPosition: 80,
+    });
+  });
+
   it("creates and parses a radial two-color gradient", () => {
     const backgroundColor = createGradientBackground(
       "radial",
@@ -88,6 +127,24 @@ describe("gradient background", () => {
         createGradientBackground("linear", "rgb(0, 0, 0)", "#ffffff"),
       ),
     ).toBe(createGradientBackground("linear", "#ffffff", "rgb(0, 0, 0)"));
+  });
+
+  it("reflects the angle of a non-horizontal gradient when flipped", () => {
+    expect(
+      flipGradientHorizontally(
+        createGradientBackground("linear", "#000000", "#ffffff", 45),
+      ),
+    ).toBe(createGradientBackground("linear", "#000000", "#ffffff", 315));
+  });
+
+  it("preserves color-stop positions when flipped horizontally", () => {
+    expect(
+      flipGradientHorizontally(
+        createGradientBackground("linear", "#000000", "#ffffff", 90, 15, 60),
+      ),
+    ).toBe(
+      createGradientBackground("linear", "#ffffff", "#000000", 90, 40, 85),
+    );
   });
 
   it("leaves radial gradients and solid colors unchanged when flipped horizontally", () => {
@@ -154,6 +211,22 @@ describe("getGradientGeometry", () => {
       x1: 0,
       y1: 0,
       x2: 200,
+    });
+  });
+
+  it("rotates the linear gradient across the element box", () => {
+    const geometry = getGradientGeometry(
+      shape(
+        "rectangle",
+        createGradientBackground("linear", "#ff0000", "#0000ff", 180),
+      ),
+    );
+
+    expect(geometry).toMatchObject({
+      x1: 100,
+      y1: 0,
+      x2: 100,
+      y2: 100,
     });
   });
 

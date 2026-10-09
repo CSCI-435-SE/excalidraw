@@ -15,9 +15,34 @@
   }
 
   .background-gradient-picker__preview {
+    position: relative;
     height: 1.5rem;
     margin-top: 0.5rem;
     border-radius: 4px;
+  }
+
+  .background-gradient-picker__stop-handle {
+    position: absolute;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    padding: 0;
+    border: 2px solid var(--color-slider-thumb);
+    border-radius: 50%;
+    background: var(--island-bg-color);
+    transform: translate(-50%, -50%);
+    cursor: ew-resize;
+    touch-action: none;
+    z-index: 1;
+
+    &:focus-visible {
+      outline: 2px solid var(--focus-highlight-color);
+      outline-offset: 2px;
+    }
+  }
+
+  .background-gradient-picker__angle-label {
+    font-size: 0.6875rem;
   }
 
   .background-gradient-picker__type-switch {
