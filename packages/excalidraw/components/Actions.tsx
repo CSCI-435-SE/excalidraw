@@ -4,7 +4,7 @@ import { Popover } from "radix-ui";
 
 import { CLASSES } from "@excalidraw/common";
 
-import { isArrowElement } from "@excalidraw/element";
+import { isArrowElement, isPathElement } from "@excalidraw/element";
 
 import type {
   ExcalidrawElement,
@@ -151,9 +151,18 @@ export const SelectedShapeActions = ({
     elementsMap,
     app,
   );
+  const showMotionPathHint =
+    targetElements.length === 1 &&
+    isPathElement(targetElements[0]) &&
+    !appState.motionPathEditor;
 
   return (
     <div className="selected-shape-actions">
+      {showMotionPathHint && (
+        <p className="control-label" data-testid="motion-path-hint">
+          {t("labels.pathEditor.selectedHint")}
+        </p>
+      )}
       <div>{predicates.strokeColor && renderAction("changeStrokeColor")}</div>
       {predicates.backgroundColor && (
         <div>{renderAction("changeBackgroundColor")}</div>

@@ -171,6 +171,7 @@
     },
     "pathEditor": {
       "edit": "Edit motion path",
+      "selectedHint": "Right click on the path and select 'Edit motion path' to edit and run animation",
       "testAnimation": "Test animation",
       "curved": "Curved",
       "straight": "Straight",

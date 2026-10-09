@@ -26,7 +26,11 @@ import type { LocalPoint } from "@excalidraw/math";
 
 import { duplicateElement, duplicateElements } from "../src/duplicate";
 
-import type { ExcalidrawLinearElement } from "../src/types";
+import type {
+  ExcalidrawElement,
+  ExcalidrawLinearElement,
+  ExcalidrawPathElement,
+} from "../src/types";
 
 const { h } = window;
 const mouse = new Pointer("mouse");
@@ -395,6 +399,81 @@ describe("duplicating multiple elements", () => {
 
       expect(typeof clonedRectangle1.groupIds[0]).toBe("string");
       expect(rectangle1.groupIds[0]).not.toBe(clonedRectangle1.groupIds[0]);
+    });
+  });
+
+  describe("motion paths", () => {
+    it("should retarget a duplicated path to its duplicated target element", () => {
+      const rectangle = API.createElement({ type: "rectangle" });
+      const path = API.createElement({
+        type: "path",
+        targetElementId: rectangle.id,
+      });
+
+      const { duplicatedElements, origIdToDuplicateId } = duplicateElements({
+        type: "everything",
+        elements: [rectangle, path],
+      });
+      const clonedPath = duplicatedElements.find(
+        (el) => el.type === "path",
+      ) as ExcalidrawPathElement;
+
+      expect(path.targetElementId).toBe(rectangle.id);
+      expect(clonedPath.targetElementId).toBe(
+        origIdToDuplicateId.get(rectangle.id),
+      );
+    });
+
+    it("should retarget a duplicated path to its duplicated target group", () => {
+      const rectangle1 = API.createElement({
+        type: "rectangle",
+        groupIds: ["g1"],
+      });
+      const rectangle2 = API.createElement({
+        type: "rectangle",
+        groupIds: ["g1"],
+      });
+      const path = API.createElement({ type: "path", targetGroupId: "g1" });
+
+      const { duplicatedElements } = duplicateElements({
+        type: "everything",
+        elements: [rectangle1, rectangle2, path],
+      });
+      const [clonedRectangle1, , clonedPath] = duplicatedElements as [
+        ExcalidrawElement,
+        ExcalidrawElement,
+        ExcalidrawPathElement,
+      ];
+
+      expect(path.targetGroupId).toBe("g1");
+      expect(clonedPath.targetGroupId).toBe(clonedRectangle1.groupIds[0]);
+      expect(clonedPath.targetGroupId).not.toBe("g1");
+    });
+
+    it("should drop the target element when the target isn't duplicated", () => {
+      const rectangle = API.createElement({ type: "rectangle" });
+      const path = API.createElement({
+        type: "path",
+        targetElementId: rectangle.id,
+      });
+
+      const {
+        duplicatedElements: [clonedPath],
+      } = duplicateElements({ type: "everything", elements: [path] });
+
+      expect(path.targetElementId).toBe(rectangle.id);
+      expect((clonedPath as ExcalidrawPathElement).targetElementId).toBeNull();
+    });
+
+    it("should drop the target group when the group isn't duplicated", () => {
+      const path = API.createElement({ type: "path", targetGroupId: "g1" });
+
+      const {
+        duplicatedElements: [clonedPath],
+      } = duplicateElements({ type: "everything", elements: [path] });
+
+      expect(path.targetGroupId).toBe("g1");
+      expect((clonedPath as ExcalidrawPathElement).targetGroupId).toBeNull();
     });
   });
 });

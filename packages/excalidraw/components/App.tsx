@@ -10533,6 +10533,12 @@ class App extends React.Component<AppProps, AppState> {
         this.clearPathPlaybackArm();
       }
 
+      // the hold already started playback: the rest of this press belongs to
+      // the animation, so don't let it drag the target along with the pointer
+      if (this.pathPlaybackJustTriggered) {
+        return;
+      }
+
       if (this.state.activeLockedId) {
         this.setState({
           activeLockedId: null,

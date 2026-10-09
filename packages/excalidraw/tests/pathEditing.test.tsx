@@ -105,6 +105,21 @@ describe("entering motion path edit mode", () => {
 
     expect(h.state.motionPathEditor?.pathId).toEqual(path.id);
   });
+
+  it("hints how to edit the path in the properties panel until editing starts", () => {
+    const { rectangle, path } = setup();
+    const queryHint = () =>
+      document.querySelector('[data-testid="motion-path-hint"]');
+
+    API.setSelectedElements([rectangle]);
+    expect(queryHint()).toBeNull();
+
+    API.setSelectedElements([path]);
+    expect(queryHint()).not.toBeNull();
+
+    enterEditViaContextMenu(350, 300);
+    expect(queryHint()).toBeNull();
+  });
 });
 
 describe("editing the path's points", () => {
