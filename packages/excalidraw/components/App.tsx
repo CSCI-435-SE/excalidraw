@@ -2436,11 +2436,32 @@ class App extends React.Component<AppProps, AppState> {
                               <MotionPathEditToolbar
                                 path={firstSelectedElement}
                                 elementsMap={renderableElementsMap}
-                                onTestAnimation={() =>
+                                isPlaying={this.pathPlayback.isPlaying(
+                                  firstSelectedElement,
+                                )}
+                                canReset={this.pathPlayback.hasControlledSession(
+                                  firstSelectedElement,
+                                )}
+                                onPlay={() => {
                                   this.pathPlayback.startForPath(
                                     firstSelectedElement,
-                                  )
-                                }
+                                    // natural completion happens off the
+                                    // React render cycle (inside the shared
+                                    // AnimationController's RAF loop), so the
+                                    // toolbar needs an explicit nudge to flip
+                                    // its Pause button back to Play
+                                    () => this.setState({}),
+                                  );
+                                  this.setState({});
+                                }}
+                                onPause={() => {
+                                  this.pathPlayback.pause(firstSelectedElement);
+                                  this.setState({});
+                                }}
+                                onReset={() => {
+                                  this.pathPlayback.reset(firstSelectedElement);
+                                  this.setState({});
+                                }}
                               />
                             )}
 
@@ -10278,7 +10299,7 @@ class App extends React.Component<AppProps, AppState> {
       );
       if (targets.length > 0) {
         this.pathPlaybackJustTriggered = true;
-        this.pathPlayback.start(path, targets);
+        this.pathPlayback.preview(path, targets);
       }
     }, PATH_PLAYBACK_HOLD_MS);
   }

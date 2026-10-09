@@ -38,11 +38,19 @@ const HANDLE_CLEARANCE = 24;
 export const MotionPathEditToolbar = ({
   path,
   elementsMap,
-  onTestAnimation,
+  isPlaying,
+  canReset,
+  onPlay,
+  onPause,
+  onReset,
 }: {
   path: NonDeleted<ExcalidrawPathElement>;
   elementsMap: ElementsMap;
-  onTestAnimation: () => void;
+  isPlaying: boolean;
+  canReset: boolean;
+  onPlay: () => void;
+  onPause: () => void;
+  onReset: () => void;
 }) => {
   const appState = useExcalidrawAppState();
   const actionManager = useExcalidrawActionManager();
@@ -79,10 +87,21 @@ export const MotionPathEditToolbar = ({
         <button
           type="button"
           className="motion-path-edit-toolbar__button motion-path-edit-toolbar__button--primary"
-          data-testid="motion-path-test"
-          onClick={onTestAnimation}
+          data-testid={isPlaying ? "motion-path-pause" : "motion-path-play"}
+          onClick={isPlaying ? onPause : onPlay}
         >
-          {t("labels.pathEditor.testAnimation")}
+          {isPlaying
+            ? t("labels.pathEditor.pause")
+            : t("labels.pathEditor.play")}
+        </button>
+        <button
+          type="button"
+          className="motion-path-edit-toolbar__button"
+          data-testid="motion-path-reset"
+          disabled={!canReset}
+          onClick={onReset}
+        >
+          {t("labels.pathEditor.reset")}
         </button>
         <button
           type="button"

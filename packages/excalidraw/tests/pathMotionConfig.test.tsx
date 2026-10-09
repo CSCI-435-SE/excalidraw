@@ -219,12 +219,35 @@ describe("motion settings in the edit toolbar", () => {
     expect(getPath(path.id).motion.speed).toEqual(1);
   });
 
-  it("changing the speed changes the Test animation duration", () => {
+  it("changing the speed changes the playback duration", () => {
     const { path } = setup({ length: 300 });
     enterEditMode();
 
     UI.clickOnTestId("motion-path-speed-fast");
     expect(startPlayback(path).totalDuration).toBeCloseTo(500);
+  });
+
+  it("Play re-reads a tweaked End when resuming a paused session", () => {
+    const { path } = setup({ length: 400 });
+    enterEditMode();
+
+    const first = startPlayback(path);
+    // snapshot before pausing: `first`'s session is the very object Play
+    // will mutate in place on resume, so its `totalDuration` getter would
+    // otherwise reflect the *post*-refresh value once read afterwards
+    const firstDuration = first.totalDuration;
+    first.step(firstDuration / 2);
+    expect(getTargetsCenter(getPath(path.id))).toEqual({ x: 500, y: 300 });
+
+    h.app.pathPlayback.pause(getPath(path.id));
+    setSlider("motion-path-end", 50);
+
+    // span shrank from 0%..100% to 0%..50%, so the duration halves
+    const second = startPlayback(path);
+    expect(second.totalDuration).toBeCloseTo(firstDuration / 2);
+    // the same progress fraction (50%) within the shrunk span lands at 25%
+    // along the path, not where the stale (pre-tweak) session would have it
+    expect(getTargetsCenter(getPath(path.id))).toEqual({ x: 400, y: 300 });
   });
 
   it("the easing select sets the path's easing", () => {
@@ -306,7 +329,6 @@ describe("playback with configured movement", () => {
   it("travels smoothly from the configured start to the configured end", () => {
     // 400px path, 25%..75% → 200px at 300px/s
     const { path } = setup({ length: 400, motion: { start: 0.25, end: 0.75 } });
-    const restingCenter = getTargetsCenter(path);
     const playback = startPlayback(path);
     const duration = playback.totalDuration;
 
@@ -322,9 +344,10 @@ describe("playback with configured movement", () => {
       previousX = x;
     }
 
-    // last frame finishes and puts the element back where it was
+    // last frame finishes and the element rests at the configured end,
+    // not back where it started — Reset is what sends it back
     expect(playback.step(duration)).toBe(false);
-    expect(getTargetsCenter(path)).toEqual(restingCenter);
+    expect(getTargetsCenter(path)).toEqual({ x: 600, y: 300 });
   });
 
   it.each([
@@ -415,7 +438,7 @@ describe("moving the path while it's playing", () => {
     return result;
   };
 
-  it("the element follows the moved path and ends back on its start", () => {
+  it("the element follows the moved path and ends at its (moved) end", () => {
     const { path } = setupSnapped();
     const playback = startPlayback(path);
 
@@ -432,9 +455,9 @@ describe("moving the path while it's playing", () => {
     playback.step(playback.totalDuration / 4);
     expect(getTargetsCenter(getPath(path.id))).toEqual({ x: 600, y: 400 });
 
-    // and the element comes to rest on the moved path's start
+    // and the element comes to rest on the moved path's end (300,400)→(700,400)
     expect(playback.step(playback.totalDuration)).toBe(false);
-    expect(getTargetsCenter(getPath(path.id))).toEqual({ x: 300, y: 400 });
+    expect(getTargetsCenter(getPath(path.id))).toEqual({ x: 700, y: 400 });
   });
 
   it("also stays in sync with a configured start", () => {
@@ -447,8 +470,9 @@ describe("moving the path while it's playing", () => {
     mouse.upAt(550, 450);
 
     expect(playback.step(playback.totalDuration)).toBe(false);
-    // 25% along the moved path (200,450)→(600,450)
-    expect(getTargetsCenter(getPath(path.id))).toEqual({ x: 300, y: 450 });
+    // the moved path is (200,450)→(600,450); playback still finishes at its
+    // configured end (100%), unaffected by the mid-flight move
+    expect(getTargetsCenter(getPath(path.id))).toEqual({ x: 600, y: 450 });
   });
 });
 
