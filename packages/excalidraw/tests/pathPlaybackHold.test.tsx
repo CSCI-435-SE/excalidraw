@@ -59,7 +59,7 @@ describe("press-and-hold path playback", () => {
 
     // isolate the pointer handling from the animation itself
     const start = vi
-      .spyOn(h.app.pathPlayback, "start")
+      .spyOn(h.app.pathPlayback.onPlay())
       .mockImplementation(() => {});
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
 
