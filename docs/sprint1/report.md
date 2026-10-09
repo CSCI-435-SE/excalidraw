@@ -59,7 +59,8 @@ Require (Out of Scope, Acceptance Criteria, User Scenario, [Open Question - N/A 
 Debatable: (Design needed to be complete before or during implementation)
 
 
-[Design](...)
+[Design](https://github.com/CSCI-435-SE/excalidraw/blob/master/docs/sprint1/design.md)
+Most other decision design recorded in issue comments
 
 # Completed Issues
 
@@ -73,7 +74,7 @@ Debatable: (Design needed to be complete before or during implementation)
 | [#57 — Improve Grid Appearance and Scale Controls](https://github.com/CSCI-435-SE/excalidraw/issues/57) | AntWill-08/CashenCroft | [PR #109](https://github.com/CSCI-435-SE/excalidraw/pull/109) — Author: Cashen (@CashenCroft); Reviewer: Anthony (@AntWill-08); Merged | Add controls for grid appearance and spacing, including color, transparency, and scale customization. |
 | [#56 — Integrate Grid Toolbar](https://github.com/CSCI-435-SE/excalidraw/issues/56) | AntWill-08/CashenCroft | [PR #106](https://github.com/CSCI-435-SE/excalidraw/pull/106) — Author: Cashen (@CashenCroft); Reviewer: Anthony (@AntWill-08); Merged | Integrate grid controls into the toolbar, allowing users to access and toggle the grid from the main interface. |
 | [#55 — Implement Board Grid](https://github.com/CSCI-435-SE/excalidraw/issues/55) | AntWill-08/CashenCroft | [PR #94](https://github.com/CSCI-435-SE/excalidraw/pull/94) — Author: Cashen (@CashenCroft); Merged by Thomas (@NotaThomas); Reviewer: No explicit approval recorded in the visible PR activity; Merged | Establish board-wide grid functionality and separate grid visibility from snapping, preserving existing snapping behavior and settings. |
-| [#49 — Ensure Path and motion element consistency/compatibility with existing functions.](https://github.com/CSCI-435-SE/excalidraw/issues/48) | AntWill-08/NotaThomas  | [PR #101](https://github.com/CSCI-435-SE/excalidraw/pull/101) — Author: Thomas(@NotaThomas ); Reviewer: Anthony(@AntWill-08 ); Merged | Allow existing motion paths and associated elements to be edited, transformed, and adjusted without recreating the animation. |
+| [#49 — Ensure Path and motion element consistency/compatibility with existing functions.](https://github.com/CSCI-435-SE/excalidraw/issues/48) | AntWill-08/NotaThomas  | [PR #111](https://github.com/CSCI-435-SE/excalidraw/pull/101) — Author: Thomas(@NotaThomas ); Reviewer: Cashen(@CashenCroft ); Merged | Allow existing motion paths and associated elements to be edited, transformed, and adjusted without recreating the animation. |
 | [#48 — Implement Path and Element Editing](https://github.com/CSCI-435-SE/excalidraw/issues/48) | AntWill-08 | [PR #101](https://github.com/CSCI-435-SE/excalidraw/pull/101) — Author: Anthony (@AntWill-08); Reviewer: Alex (@tuna-fisher); Merged | Allow existing motion paths and associated elements to be edited, transformed, and adjusted without recreating the animation. |
 | [#47 — Add Playback and Animation Controls](https://github.com/CSCI-435-SE/excalidraw/issues/47) | AntWill-08/NotaThomas | [PR #110](https://github.com/CSCI-435-SE/excalidraw/pull/110) — Author: Thomas (@NotaThomas); Reviewer: Anthony (@AntWill-08); Merged | Add controls for playing, pausing, and resetting element animations along motion paths. |
 | [#46 — Configure Element Movement](https://github.com/CSCI-435-SE/excalidraw/issues/46) | AntWill-08 | [PR #105](https://github.com/CSCI-435-SE/excalidraw/pull/105) — Author: Anthony (@AntWill-08); Reviewer: Cashen (@CashenCroft); Merged | Add movement configuration, including speed, easing, and start/end positions for animated elements. |
@@ -130,8 +131,7 @@ Patterns: Like the previous sprint, I used AI to create broad changes and establ
 
 
 # Release
-v0.1.0-csci435-s1
-[Release 1](...)
+[v0.1.0-csci435-s1](https://github.com/CSCI-435-SE/excalidraw/releases/tag/v0.1.0-csci435-s1)
 
 # Risks and Retrospective
 Similar to the previous sprint, we were slow to start work. We also have continued to have some issues with the automatic review suite, with the Bundle Size check always failing and some files needed to be linted in a separate PR. In Sprint 2, we definitely should begin working earlier and establish strict deadlines with goals being completed at certain times.
