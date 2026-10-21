@@ -1,0 +1,56 @@
+// styled after the FollowMode badge
+.excalidraw {
+  .own-drawings-hidden {
+    position: absolute;
+    top: 0.75rem;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 9999;
+
+    &__badge {
+      background-color: var(--color-primary-hover);
+      color: var(--color-primary-light);
+      padding: 0.25rem 0.25rem 0.25rem 0.75rem;
+      border-radius: 0.5rem;
+      pointer-events: all;
+      font-size: 0.75rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      max-width: calc(100% - 2rem);
+    }
+
+    &__label {
+      line-height: 1.2;
+    }
+
+    &__show-btn {
+      all: unset;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      white-space: nowrap;
+      font-weight: 600;
+
+      &:hover {
+        background-color: var(--color-primary-darker);
+      }
+
+      &:active {
+        background-color: var(--color-primary-darkest);
+      }
+
+      svg {
+        display: block;
+        width: 1rem;
+        height: 1rem;
+      }
+    }
+  }
+}

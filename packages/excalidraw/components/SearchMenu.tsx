@@ -38,6 +38,7 @@ import { atom, useAtom } from "../editor-jotai";
 
 import { useStable } from "../hooks/useStable";
 import { t } from "../i18n";
+import { getLocallyVisibleElements } from "../scene/visibility";
 
 import { useApp, useExcalidrawSetAppState } from "./App";
 import { Button } from "./Button";
@@ -788,7 +789,12 @@ const handleSearch = debounce(
       return;
     }
 
-    const elements = app.scene.getNonDeletedElements();
+    // hidden collaborators' text must not be found (or focused/selected)
+    const elements = getLocallyVisibleElements(
+      app.scene.getNonDeletedElements(),
+      app.state,
+      app.scene.getNonDeletedElementsMap(),
+    );
     const texts = elements.filter((el) =>
       isTextElement(el),
     ) as ExcalidrawTextElement[];

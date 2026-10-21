@@ -34,6 +34,7 @@ import type { GlobalPoint, LineSegment } from "@excalidraw/math/types";
 import type { ElementsMap, ExcalidrawElement } from "@excalidraw/element/types";
 
 import { AnimatedTrail } from "../animatedTrail";
+import { isElementHiddenLocally } from "../scene/visibility";
 
 import type App from "../components/App";
 
@@ -154,12 +155,23 @@ export class EraserTrail extends AnimatedTrail {
           const shallowestGroupId = element.groupIds.at(-1)!;
 
           if (!this.groupsToErase.has(shallowestGroupId)) {
+            const elementsMap = this.app.scene.getNonDeletedElementsMap();
             const elementsInGroup = getElementsInGroup(
-              this.app.scene.getNonDeletedElementsMap(),
+              elementsMap,
               shallowestGroupId,
             );
 
             for (const elementInGroup of elementsInGroup) {
+              // groups can mix collaborators — never erase hidden members
+              if (
+                isElementHiddenLocally(
+                  elementInGroup,
+                  elementsMap,
+                  this.app.state,
+                )
+              ) {
+                continue;
+              }
               this.elementsToErase.add(elementInGroup.id);
             }
             this.groupsToErase.add(shallowestGroupId);

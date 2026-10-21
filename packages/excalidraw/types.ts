@@ -92,6 +92,13 @@ export type Collaborator = Readonly<{
   isMuted?: boolean;
 }>;
 
+/** a collaborator seen at some point in the current room */
+export type CollaboratorDirectoryEntry = Readonly<{
+  username: string | null;
+  /** epoch ms */
+  lastSeen: number;
+}>;
+
 export type CollaboratorPointer = {
   x: number;
   y: number;
@@ -549,6 +556,19 @@ export interface AppState {
   userToFollow: UserToFollow | null;
   /** the socket ids of the users following the current user */
   followedBy: Set<SocketId>;
+  /** creator ids whose elements are hidden on this client only (never synced) */
+  hiddenCollaboratorIds: ReadonlySet<string>;
+  /**
+   * collaborators this client has seen in the current room, keyed by their
+   * client id (= elements' creator id). Supplied by the host app; `null`
+   * outside of a room.
+   */
+  collaboratorDirectory: ReadonlyMap<string, CollaboratorDirectoryEntry> | null;
+  /**
+   * while the user's own drawings are hidden the editor is locked to view
+   * mode; this holds the view mode to restore afterwards (`null` = not locked)
+   */
+  viewModeBeforeSelfHide: boolean | null;
 
   /** image cropping */
   isCropping: boolean;

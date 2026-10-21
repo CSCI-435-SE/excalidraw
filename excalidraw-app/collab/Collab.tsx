@@ -87,9 +87,17 @@ import {
 } from "../data/localStorage";
 import { resetBrowserStateVersions } from "../data/tabSync";
 
+import { getClientId } from "./clientIdentity";
+import {
+  loadCollaboratorDirectory,
+  recordCollaboratorSighting,
+  saveCollaboratorDirectory,
+} from "./collaboratorDirectory";
 import { collabErrorIndicatorAtom } from "./CollabError";
+import { getElementsToStamp, getStampedCustomData } from "./creatorStamp";
 import Portal from "./Portal";
 
+import type { CollaboratorDirectory } from "./collaboratorDirectory";
 import type {
   SocketUpdateDataSource,
   SyncableExcalidrawElement,
@@ -139,6 +147,17 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   private socketInitializationTimer?: number;
   private lastBroadcastedOrReceivedSceneVersion: number = -1;
   private collaborators = new Map<SocketId, Collaborator>();
+  /** this tab's collaborator id (see clientIdentity.ts) */
+  private clientId: string | null = null;
+  /**
+   * ids of elements that first reached this client from the room (peers or
+   * the stored scene). Everything else in the scene was introduced by this
+   * client and gets its creator stamp (see creatorStamp.ts).
+   */
+  private remoteElementIds = new Set<string>();
+  /** collaborators seen in the current room (see collaboratorDirectory.ts) */
+  private collaboratorDirectory: CollaboratorDirectory = new Map();
+  private directoryRoomId: string | null = null;
 
   constructor(props: CollabProps) {
     super(props);
@@ -404,14 +423,23 @@ class Collab extends PureComponent<CollabProps, CollabState> {
 
   private destroySocketClient = (opts?: { isUnload: boolean }) => {
     this.lastBroadcastedOrReceivedSceneVersion = -1;
+    this.remoteElementIds = new Set();
     this.portal.close();
     this.fileManager.reset();
     if (!opts?.isUnload) {
       this.setIsCollaborating(false);
       this.setActiveRoomLink(null);
       this.collaborators = new Map();
+      this.collaboratorDirectory = new Map();
+      this.directoryRoomId = null;
       this.excalidrawAPI.updateScene({
         collaborators: this.collaborators,
+        appState: {
+          // back to solo: no directory (every creator its own bucket) and
+          // nothing hidden
+          collaboratorDirectory: null,
+          hiddenCollaboratorIds: new Set(),
+        },
       });
       LocalData.resumeSave("collaboration");
     }
@@ -482,6 +510,10 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       return null;
     }
 
+    // before the socket opens, so all our messages carry the id
+    this.clientId = await getClientId();
+    this.remoteElementIds = new Set();
+
     let roomId;
     let roomKey;
 
@@ -495,6 +527,20 @@ class Collab extends PureComponent<CollabProps, CollabState> {
         getCollaborationLink({ roomId, roomKey }),
       );
     }
+
+    // "Previously seen" survives tab close (per room); include ourselves so
+    // a future tab of ours that gets a different id can still name these
+    // drawings
+    this.directoryRoomId = roomId;
+    this.collaboratorDirectory = loadCollaboratorDirectory(roomId);
+    this.recordSighting(this.clientId, this.state.username);
+    this.excalidrawAPI.updateScene({
+      appState: {
+        collaboratorDirectory: this.collaboratorDirectory,
+        // visibility choices never carry over between rooms
+        hiddenCollaboratorIds: new Set(),
+      },
+    });
 
     // TODO: `ImportedDataState` type here seems abused
     const scenePromise = resolvablePromise<
@@ -554,6 +600,11 @@ class Collab extends PureComponent<CollabProps, CollabState> {
         captureUpdate: CaptureUpdateAction.NEVER,
       });
 
+      // a new room starts from our own canvas, so everything in it is ours.
+      // Stamp now (syncElements only stamps once the socket is initialized)
+      // so the room's stored scene carries the stamps from the first save
+      this.stampLocallyCreatedElements(elements);
+
       this.saveCollabRoomToFirebase(getSyncableElements(elements));
     }
 
@@ -608,7 +659,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
             );
             break;
           case WS_SUBTYPES.MOUSE_LOCATION: {
-            const { pointer, button, username, selectedElementIds } =
+            const { pointer, button, username, selectedElementIds, clientId } =
               decryptedData.payload;
 
             const socketId: SocketUpdateDataSource["MOUSE_LOCATION"]["payload"]["socketId"] =
@@ -621,8 +672,15 @@ class Collab extends PureComponent<CollabProps, CollabState> {
               button,
               selectedElementIds,
               username,
+              ...(clientId ? { id: clientId } : {}),
             });
 
+            break;
+          }
+
+          case WS_SUBTYPES.USER_IDENTITY: {
+            const { socketId, clientId, username } = decryptedData.payload;
+            this.updateCollaborator(socketId, { id: clientId, username });
             break;
           }
 
@@ -660,10 +718,12 @@ class Collab extends PureComponent<CollabProps, CollabState> {
           }
 
           case WS_SUBTYPES.IDLE_STATUS: {
-            const { userState, socketId, username } = decryptedData.payload;
+            const { userState, socketId, username, clientId } =
+              decryptedData.payload;
             this.updateCollaborator(socketId, {
               userState,
               username,
+              ...(clientId ? { id: clientId } : {}),
             });
             break;
           }
@@ -733,6 +793,10 @@ class Collab extends PureComponent<CollabProps, CollabState> {
           this.setLastBroadcastedOrReceivedSceneVersion(
             getSceneVersion(elements),
           );
+          // the stored room scene is returned to the app directly (not via
+          // _reconcileElements), so mark it here. The scene was just reset,
+          // so all of it is remote.
+          this.markRemoteElements(elements, null);
 
           return {
             elements,
@@ -744,9 +808,14 @@ class Collab extends PureComponent<CollabProps, CollabState> {
         console.error(error);
       } finally {
         this.portal.socketInitialized = true;
+        this.portal.broadcastUserIdentity();
+        // resetScene() above wiped it from appState
+        this.publishCollaboratorDirectory();
       }
     } else {
       this.portal.socketInitialized = true;
+      this.portal.broadcastUserIdentity();
+      this.publishCollaboratorDirectory();
     }
     return null;
   };
@@ -757,6 +826,13 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     const appState = this.excalidrawAPI.getAppState();
 
     const existingElements = this.getSceneElementsIncludingDeleted();
+
+    // peers' new elements (INIT/UPDATE) + stored-scene echoes. Our own
+    // elements are already in the scene, so they're never marked remote.
+    this.markRemoteElements(
+      remoteElements,
+      this.excalidrawAPI.getSceneElementsMapIncludingDeleted(),
+    );
 
     // NOTE ideally we restore _after_ reconciliation but we can't do that
     // as we'd regenerate even elements such as appState.newElement which would
@@ -869,15 +945,29 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     const collaborators: InstanceType<typeof Collab>["collaborators"] =
       new Map();
     for (const socketId of sockets) {
+      const isCurrentUser = socketId === this.portal.socket?.id;
       collaborators.set(
         socketId,
-        Object.assign({}, this.collaborators.get(socketId), {
-          isCurrentUser: socketId === this.portal.socket?.id,
-        }),
+        Object.assign(
+          {},
+          this.collaborators.get(socketId),
+          { isCurrentUser },
+          // lets the editor tell which creator id is "you"
+          isCurrentUser && this.clientId ? { id: this.clientId } : {},
+        ),
       );
     }
+    // collaborators who just left: refresh when we last saw them
+    for (const [socketId, collaborator] of this.collaborators) {
+      if (!collaborators.has(socketId) && collaborator.id) {
+        this.recordSighting(collaborator.id, collaborator.username);
+      }
+    }
     this.collaborators = collaborators;
-    this.excalidrawAPI.updateScene({ collaborators });
+    this.excalidrawAPI.updateScene({
+      collaborators,
+      appState: { collaboratorDirectory: this.collaboratorDirectory },
+    });
   }
 
   updateCollaborator = (socketId: SocketId, updates: Partial<Collaborator>) => {
@@ -893,8 +983,13 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     collaborators.set(socketId, user);
     this.collaborators = collaborators;
 
+    if (user.id) {
+      this.recordSighting(user.id, user.username);
+    }
+
     this.excalidrawAPI.updateScene({
       collaborators,
+      appState: { collaboratorDirectory: this.collaboratorDirectory },
     });
   };
 
@@ -908,6 +1003,76 @@ class Collab extends PureComponent<CollabProps, CollabState> {
 
   public getSceneElementsIncludingDeleted = () => {
     return this.excalidrawAPI.getSceneElementsIncludingDeleted();
+  };
+
+  public getClientId = () => this.clientId;
+
+  /**
+   * Records a sighting of `clientId` in the current room's directory, saving
+   * it when it changed. Returns whether it changed.
+   */
+  private recordSighting = (clientId: string, username?: string | null) => {
+    if (!this.directoryRoomId) {
+      return false;
+    }
+    const next = recordCollaboratorSighting(
+      this.collaboratorDirectory,
+      clientId,
+      username,
+    );
+    if (!next) {
+      return false;
+    }
+    this.collaboratorDirectory = next;
+    saveCollaboratorDirectory(this.directoryRoomId, next);
+    return true;
+  };
+
+  /**
+   * (Re)publishes the directory to the editor. Also called after scene resets
+   * (joining a room resets appState), so it's safe to call redundantly.
+   */
+  private publishCollaboratorDirectory = () => {
+    this.excalidrawAPI.updateScene({
+      appState: { collaboratorDirectory: this.collaboratorDirectory },
+    });
+  };
+
+  private markRemoteElements = (
+    elements: readonly ExcalidrawElement[],
+    existingElementsMap: ReadonlyMap<string, unknown> | null,
+  ) => {
+    for (const element of elements) {
+      // already in our scene → either ours (an echo) or already known
+      if (!existingElementsMap?.has(element.id)) {
+        this.remoteElementIds.add(element.id);
+      }
+    }
+  };
+
+  /**
+   * One-time creator stamp for elements this client introduced to the room.
+   * Mutates in place (safe during in-progress drawing) and bumps versions so
+   * the stamp syncs.
+   */
+  private stampLocallyCreatedElements = (
+    elements: readonly ExcalidrawElement[],
+  ) => {
+    if (!this.clientId) {
+      return;
+    }
+    for (const element of getElementsToStamp(
+      elements,
+      this.remoteElementIds,
+      this.clientId,
+    )) {
+      this.excalidrawAPI.mutateElement(
+        element as Mutable<ExcalidrawElement>,
+        { customData: getStampedCustomData(element, this.clientId) },
+        // not a visual change → no re-render needed
+        false,
+      );
+    }
   };
 
   onPointerUpdate = throttle(
@@ -952,6 +1117,11 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   };
 
   syncElements = (elements: readonly OrderedExcalidrawElement[]) => {
+    // only once the room's scene has loaded, so every room element is already
+    // marked remote and can't be mistaken for one of ours
+    if (this.portal.socketInitialized) {
+      this.stampLocallyCreatedElements(elements);
+    }
     this.broadcastElements(elements);
     this.queueSaveToFirebase();
   };
@@ -987,6 +1157,11 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   setUsername = (username: string) => {
     this.setState({ username });
     saveUsernameToLocalStorage(username);
+    // no-op unless in an initialized room
+    this.portal.broadcastUserIdentity(username);
+    if (this.clientId && this.recordSighting(this.clientId, username)) {
+      this.publishCollaboratorDirectory();
+    }
   };
 
   getUsername = () => this.state.username;

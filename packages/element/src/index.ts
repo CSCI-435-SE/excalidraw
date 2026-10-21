@@ -82,6 +82,7 @@ export * from "./image";
 export * from "./linearElementEditor";
 export * from "./mutateElement";
 export * from "./newElement";
+export * from "./ownership";
 export * from "./path";
 export * from "./pathMotion";
 export * from "./pathSamples";

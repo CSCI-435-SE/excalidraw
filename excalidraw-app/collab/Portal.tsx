@@ -52,6 +52,9 @@ class Portal {
         this.collab.getSceneElementsIncludingDeleted(),
         /* syncAll */ true,
       );
+      // introduce ourselves so the newcomer knows our name/id right away
+      // (otherwise it only learns them once we move the pointer)
+      this.broadcastUserIdentity();
     });
     this.socket.on("room-user-change", (clients: SocketId[]) => {
       this.collab.setCollaborators(clients);
@@ -190,12 +193,35 @@ class Portal {
           socketId: this.socket.id as SocketId,
           userState,
           username: this.collab.state.username,
+          clientId: this.collab.getClientId() ?? undefined,
         },
       };
       return this._broadcastSocketData(
         data as SocketUpdateData,
         true, // volatile
       );
+    }
+  };
+
+  /**
+   * Non-volatile, so it isn't dropped: collaborator visibility depends on
+   * knowing every client's id.
+   *
+   * @param username pass when the name just changed (collab state may not
+   * have updated yet)
+   */
+  broadcastUserIdentity = (username = this.collab.state.username) => {
+    const clientId = this.collab.getClientId();
+    if (this.socket?.id && this.socketInitialized && clientId) {
+      const data: SocketUpdateDataSource["USER_IDENTITY"] = {
+        type: WS_SUBTYPES.USER_IDENTITY,
+        payload: {
+          socketId: this.socket.id as SocketId,
+          clientId,
+          username,
+        },
+      };
+      return this._broadcastSocketData(data as SocketUpdateData);
     }
   };
 
@@ -213,6 +239,7 @@ class Portal {
           selectedElementIds:
             this.collab.excalidrawAPI.getAppState().selectedElementIds,
           username: this.collab.state.username,
+          clientId: this.collab.getClientId() ?? undefined,
         },
       };
 

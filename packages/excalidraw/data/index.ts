@@ -30,6 +30,7 @@ import {
 import { t } from "../i18n";
 import { getSelectedElements, isSomeElementSelected } from "../scene";
 import { exportToCanvas, exportToSvg } from "../scene/export";
+import { getLocallyVisibleElements } from "../scene/visibility";
 
 import { canvasToBlob } from "./blob";
 import { fileSave } from "./filesystem";
@@ -47,10 +48,22 @@ export type ExportedElements = readonly NonDeletedExcalidrawElement[] & {
 
 export const prepareElementsForExport = (
   allElements: readonly ExcalidrawElement[],
-  { selectedElementIds }: Pick<AppState, "selectedElementIds">,
+  {
+    selectedElementIds,
+    hiddenCollaboratorIds,
+    collaboratorDirectory,
+  }: Pick<AppState, "selectedElementIds"> &
+    Partial<Pick<AppState, "hiddenCollaboratorIds" | "collaboratorDirectory">>,
   exportSelectionOnly: boolean,
 ) => {
-  const elements = getNonDeletedElements(allElements);
+  const nonDeletedElements = getNonDeletedElements(allElements);
+  // exports only contain what's visible on this client
+  const elements = hiddenCollaboratorIds
+    ? getLocallyVisibleElements(nonDeletedElements, {
+        hiddenCollaboratorIds,
+        collaboratorDirectory: collaboratorDirectory ?? null,
+      })
+    : nonDeletedElements;
   const elementsMap = arrayToMap(elements);
 
   const isExportingSelection =

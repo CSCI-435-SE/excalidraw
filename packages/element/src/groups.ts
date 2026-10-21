@@ -1,9 +1,16 @@
+import { arrayToMap } from "@excalidraw/common";
+
 import type {
   AppClassProperties,
   AppState,
   InteractiveCanvasAppState,
 } from "@excalidraw/excalidraw/types";
 import type { Mutable } from "@excalidraw/common/utility-types";
+
+import {
+  excludeElementsByHiddenCreators,
+  isElementByHiddenCreator,
+} from "./ownership";
 
 import { getBoundTextElement } from "./textElement";
 
@@ -165,7 +172,8 @@ export const selectGroupsForSelectedElements = (function () {
   const selectGroupsForSelectedElements = (
     appState: Pick<AppState, "selectedElementIds" | "editingGroupId">,
     elements: readonly NonDeletedExcalidrawElement[],
-    prevAppState: InteractiveCanvasAppState,
+    prevAppState: InteractiveCanvasAppState &
+      Pick<AppState, "hiddenCollaboratorIds" | "collaboratorDirectory">,
     /**
      * supply null in cases where you don't have access to App instance and
      * you don't care about optimizing selectElements retrieval
@@ -177,6 +185,29 @@ export const selectGroupsForSelectedElements = (function () {
       "selectedGroupIds" | "editingGroupId" | "selectedElementIds"
     >
   > => {
+    // selection chokepoint: elements of collaborators hidden on this client
+    // can never be selected, neither directly nor through their group
+    // (optional chaining: exported API, host apps may pass partial states)
+    if (prevAppState.hiddenCollaboratorIds?.size) {
+      const elementsMap = arrayToMap(elements);
+      elements = excludeElementsByHiddenCreators(
+        elements,
+        prevAppState,
+        elementsMap,
+      );
+      const selectedElementIds: Record<string, true> = {};
+      for (const id of Object.keys(appState.selectedElementIds)) {
+        const element = elementsMap.get(id);
+        if (
+          !element ||
+          !isElementByHiddenCreator(element, elementsMap, prevAppState)
+        ) {
+          selectedElementIds[id] = true;
+        }
+      }
+      appState = { ...appState, selectedElementIds };
+    }
+
     const selectedElements = app
       ? app.scene.getSelectedElements({
           selectedElementIds: appState.selectedElementIds,
