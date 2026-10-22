@@ -39,6 +39,7 @@ import {
 import { getGridSpacing } from "../snapping";
 
 import { bootstrapCanvas, getNormalizedCanvasDimensions } from "./helpers";
+import { applyMaskClip } from "./maskClip";
 
 import type {
   StaticCanvasRenderConfig,
@@ -362,6 +363,15 @@ const _renderStaticScene = ({
           ) {
             frameClip(frame, context, renderConfig, appState);
           }
+          applyMaskClip(
+            element,
+            elementsMap,
+            allElementsMap,
+            rc,
+            context,
+            renderConfig,
+            appState,
+          );
           renderElement(
             element,
             elementsMap,
@@ -372,6 +382,15 @@ const _renderStaticScene = ({
             appState,
           );
         } else {
+          applyMaskClip(
+            element,
+            elementsMap,
+            allElementsMap,
+            rc,
+            context,
+            renderConfig,
+            appState,
+          );
           renderElement(
             element,
             elementsMap,
