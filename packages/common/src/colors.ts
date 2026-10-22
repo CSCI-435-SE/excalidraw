@@ -300,6 +300,145 @@ export const isTransparent = (color: string) => {
 };
 
 // -----------------------------------------------------------------------------
+// OKLCH helpers (https://bottosson.github.io/posts/oklab/)
+// -----------------------------------------------------------------------------
+
+export type Oklch = { l: number; c: number; h: number };
+
+/** max chroma shown on gradient color wheel (roughly sRGB gamut boundary) */
+export const OKLCH_MAX_CHROMA = 0.37;
+
+const OKLCH_GAMUT_EPSILON = 0.0001;
+
+const srgbToLinear = (value: number) =>
+  value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+
+const linearToSrgb = (value: number) =>
+  value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055;
+
+const oklchToLinearRgb = ({ l, c, h }: Oklch): [number, number, number] => {
+  const hueRad = (h * Math.PI) / 180;
+  const a = c * Math.cos(hueRad);
+  const b = c * Math.sin(hueRad);
+
+  const l_ = (l + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m_ = (l - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s_ = (l - 0.0894841775 * a - 1.291485548 * b) ** 3;
+
+  return [
+    4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699292 * s_,
+    -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_,
+    -0.0041960863 * l_ - 0.7034186147 * m_ + 1.707614701 * s_,
+  ];
+};
+
+const isInSrgbGamut = (rgb: [number, number, number]) =>
+  rgb.every(
+    (value) =>
+      value >= -OKLCH_GAMUT_EPSILON && value <= 1 + OKLCH_GAMUT_EPSILON,
+  );
+
+/** @returns OKLCH (l 0-1, c 0-~0.37, h 0-360) or null if invalid color */
+export const colorToOklch = (color: string): Oklch | null => {
+  const tc = tinycolor(color);
+  if (!tc.isValid()) {
+    return null;
+  }
+  const { r, g, b } = tc.toRgb();
+  const lr = srgbToLinear(r / 255);
+  const lg = srgbToLinear(g / 255);
+  const lb = srgbToLinear(b / 255);
+
+  const l_ = Math.cbrt(
+    0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb,
+  );
+  const m_ = Math.cbrt(
+    0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb,
+  );
+  const s_ = Math.cbrt(
+    0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb,
+  );
+
+  const l = 0.2104542553 * l_ + 0.793617785 * m_ - 0.0040720468 * s_;
+  const a = 1.9779984951 * l_ - 2.428592205 * m_ + 0.4505937099 * s_;
+  const bb = 0.0259040371 * l_ + 0.7827717662 * m_ - 0.808675766 * s_;
+
+  const c = Math.hypot(a, bb);
+  // achromatic colors have no meaningful hue
+  const h = c < OKLCH_GAMUT_EPSILON ? 0 : (Math.atan2(bb, a) * 180) / Math.PI;
+
+  return { l, c, h: (h + 360) % 360 };
+};
+
+/**
+ * Converts OKLCH to #RRGGBB. Out-of-gamut colors are mapped into sRGB by
+ * reducing chroma while keeping lightness and hue.
+ */
+export const oklchToHex = (oklch: Oklch): string => {
+  const l = Math.min(1, Math.max(0, oklch.l));
+  const c = Math.max(0, oklch.c);
+  let rgb = oklchToLinearRgb({ l, c, h: oklch.h });
+
+  if (!isInSrgbGamut(rgb)) {
+    rgb = oklchToLinearRgb({
+      l,
+      c: getMaxSrgbChroma(l, oklch.h, c),
+      h: oklch.h,
+    });
+  }
+
+  const [r, g, b] = rgb.map((value) =>
+    Math.round(Math.min(1, Math.max(0, linearToSrgb(value))) * 255),
+  );
+  return rgbToHex(r, g, b);
+};
+
+/** highest chroma (up to `upper`) that is still in sRGB at given l and h */
+const getMaxSrgbChroma = (l: number, h: number, upper = OKLCH_MAX_CHROMA) => {
+  let low = 0;
+  let high = upper;
+  for (let i = 0; i < 16; i++) {
+    const c = (low + high) / 2;
+    if (isInSrgbGamut(oklchToLinearRgb({ l, c, h }))) {
+      low = c;
+    } else {
+      high = c;
+    }
+  }
+  return low;
+};
+
+const oklchCuspCache = new Map<number, { l: number; c: number }>();
+
+/**
+ * The most saturated color sRGB can show for a hue. The sRGB gamut's upper
+ * edge runs (roughly straight) from white down to this cusp.
+ */
+export const getOklchCusp = (hue: number): { l: number; c: number } => {
+  const key = Math.round((((hue % 360) + 360) % 360) * 2) / 2;
+  const cached = oklchCuspCache.get(key);
+  if (cached) {
+    return cached;
+  }
+  // max chroma is unimodal in lightness, so ternary search for its peak
+  let low = 0;
+  let high = 1;
+  for (let i = 0; i < 24; i++) {
+    const l1 = low + (high - low) / 3;
+    const l2 = high - (high - low) / 3;
+    if (getMaxSrgbChroma(l1, key) < getMaxSrgbChroma(l2, key)) {
+      low = l1;
+    } else {
+      high = l2;
+    }
+  }
+  const l = (low + high) / 2;
+  const cusp = { l, c: getMaxSrgbChroma(l, key) };
+  oklchCuspCache.set(key, cusp);
+  return cusp;
+};
+
+// -----------------------------------------------------------------------------
 // color contract helpers
 // -----------------------------------------------------------------------------
 

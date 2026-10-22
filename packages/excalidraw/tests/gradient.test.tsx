@@ -6,6 +6,7 @@ import {
   applyDarkModeFilter,
   arrayToMap,
   COLOR_PALETTE,
+  colorToOklch,
   KEYS,
   ROUNDNESS,
 } from "@excalidraw/common";
@@ -1076,10 +1077,10 @@ describe("gradient picker availability", () => {
     togglePopover("Background");
 
     const leftHandle = screen.getByRole("slider", {
-      name: "End color stop position",
+      name: "Start color stop position",
     });
     const rightHandle = screen.getByRole("slider", {
-      name: "Start color stop position",
+      name: "End color stop position",
     });
     expect(leftHandle).toHaveAttribute("aria-valuenow", "0");
     expect(rightHandle).toHaveAttribute("aria-valuenow", "100");
@@ -1087,11 +1088,45 @@ describe("gradient picker availability", () => {
     fireEvent.keyDown(leftHandle, { key: "ArrowRight" });
 
     expect(leftHandle).toHaveAttribute("aria-valuenow", "1");
-    expect(
-      document.querySelector(".background-gradient-picker__preview"),
-    ).toHaveStyle({
-      backgroundImage: expect.stringContaining("#000000 1%"),
+    expect(API.getElement(rect).backgroundColor).toContain("#000000 1%");
+
+    fireEvent.keyDown(rightHandle, { key: "ArrowLeft" });
+
+    expect(rightHandle).toHaveAttribute("aria-valuenow", "99");
+    expect(gradientOf(rect)).toMatchObject({
+      startPosition: 1,
+      endPosition: 99,
     });
+  });
+
+  it("shows A on the left and B on the right of the preview", async () => {
+    const rect = API.createElement({
+      type: "rectangle",
+      backgroundColor: createGradientBackground(
+        "linear",
+        "#f47950",
+        "#8160e8",
+        90,
+        20,
+        70,
+      ),
+    });
+    API.setElements([rect]);
+    API.setSelectedElements([rect]);
+    togglePopover("Background");
+
+    expect(
+      screen.getByRole("slider", { name: "Start color stop position" }).style
+        .left,
+    ).toBe("20%");
+    expect(
+      screen.getByRole("slider", { name: "End color stop position" }).style
+        .left,
+    ).toBe("70%");
+    expect(
+      document.querySelector(".background-gradient-picker__amounts")!
+        .textContent,
+    ).toMatch(/A · 20%.*B · 70%/);
   });
 
   it("drags the color-stop handles along the preview", async () => {
@@ -1120,7 +1155,7 @@ describe("gradient picker availability", () => {
       }),
     });
     const leftHandle = screen.getByRole("slider", {
-      name: "End color stop position",
+      name: "Start color stop position",
     });
     Object.defineProperties(leftHandle, {
       setPointerCapture: { value: vi.fn() },
@@ -1141,8 +1176,190 @@ describe("gradient picker availability", () => {
     fireEvent.pointerUp(leftHandle, { pointerId: 1 });
 
     expect(leftHandle).toHaveAttribute("aria-valuenow", "25");
-    expect(preview).toHaveStyle({
-      backgroundImage: expect.stringContaining("#000000 25%"),
+    expect(API.getElement(rect).backgroundColor).toContain("#000000 25%");
+  });
+
+  describe("color wheel", () => {
+    const COLORED = createGradientBackground("linear", "#f47950", "#8160e8");
+
+    const openPicker = () => {
+      const rect = API.createElement({
+        type: "rectangle",
+        backgroundColor: COLORED,
+      });
+      API.setElements([rect]);
+      API.setSelectedElements([rect]);
+      togglePopover("Background");
+      return rect;
+    };
+
+    const mockWheel = () => {
+      const wheel = document.querySelector(".gradient-color-wheel__wheel")!;
+      Object.defineProperties(wheel, {
+        getBoundingClientRect: {
+          value: () => ({
+            left: 0,
+            right: 100,
+            top: 0,
+            bottom: 100,
+            width: 100,
+            height: 100,
+            x: 0,
+            y: 0,
+            toJSON: () => {},
+          }),
+        },
+        setPointerCapture: { value: vi.fn() },
+        hasPointerCapture: { value: () => true },
+        releasePointerCapture: { value: vi.fn() },
+      });
+      return wheel;
+    };
+
+    it("colors each dot with its stop color", async () => {
+      openPicker();
+
+      expect(
+        screen.getByRole("slider", { name: "Gradient color A" }),
+      ).toHaveStyle({ background: "#f47950" });
+      expect(
+        screen.getByRole("slider", { name: "Gradient color B" }),
+      ).toHaveStyle({ background: "#8160e8" });
+    });
+
+    it("drags a dot to change hue and chroma", async () => {
+      const rect = openPicker();
+      const wheel = mockWheel();
+      const dotA = screen.getByRole("slider", { name: "Gradient color A" });
+      const lightness = screen.getByTestId<HTMLInputElement>(
+        "gradient-lightness-a",
+      ).value;
+
+      fireEvent.pointerDown(dotA, { pointerId: 1, clientX: 70, clientY: 70 });
+      // straight down from the center at full radius -> hue 90, max chroma
+      fireEvent.pointerMove(wheel, { pointerId: 1, clientX: 50, clientY: 100 });
+      fireEvent.pointerUp(wheel, { pointerId: 1 });
+
+      const { startColor, endColor } = gradientOf(rect)!;
+      const start = colorToOklch(startColor)!;
+      expect(Math.abs(start.h - 90)).toBeLessThan(5);
+      expect(start.c).toBeGreaterThan(0.1);
+      expect(
+        screen.getByTestId<HTMLInputElement>("gradient-lightness-a").value,
+      ).toBe(lightness);
+      expect(endColor).toBe("#8160e8");
+      expect(dotA).toHaveAttribute("aria-valuenow", "90");
+    });
+
+    it("moves the nearest dot when clicking empty wheel space", async () => {
+      const rect = openPicker();
+      const wheel = mockWheel();
+
+      // B (hue ~285) sits near the top of the wheel
+      fireEvent.pointerDown(wheel, { pointerId: 1, clientX: 50, clientY: 5 });
+      fireEvent.pointerUp(wheel, { pointerId: 1 });
+
+      const { startColor, endColor } = gradientOf(rect)!;
+      expect(startColor).toBe("#f47950");
+      expect(Math.abs(colorToOklch(endColor)!.h - 270)).toBeLessThan(5);
+    });
+
+    it("changes a stop's lightness while keeping its hue", async () => {
+      const rect = openPicker();
+      const before = colorToOklch("#f47950")!;
+
+      fireEvent.change(screen.getByTestId("gradient-lightness-a"), {
+        target: { value: "40" },
+      });
+
+      const start = colorToOklch(gradientOf(rect)!.startColor)!;
+      expect(start.l).toBeLessThan(before.l);
+      expect(Math.abs(start.h - before.h)).toBeLessThan(5);
+      expect(gradientOf(rect)!.endColor).toBe("#8160e8");
+    });
+
+    it("only reaches white at full lightness with no chroma", async () => {
+      const rect = openPicker();
+      const slider = screen.getByTestId("gradient-lightness-a");
+
+      fireEvent.change(slider, { target: { value: "100" } });
+      const tint = colorToOklch(gradientOf(rect)!.startColor)!;
+      expect(gradientOf(rect)!.startColor).not.toBe("#ffffff");
+      expect(tint.c).toBeGreaterThan(0.05);
+
+      // move A to the center of the wheel (no chroma)
+      const wheel = mockWheel();
+      const dotA = screen.getByRole("slider", { name: "Gradient color A" });
+      fireEvent.pointerDown(dotA, { pointerId: 1, clientX: 70, clientY: 70 });
+      fireEvent.pointerMove(wheel, { pointerId: 1, clientX: 50, clientY: 50 });
+      fireEvent.pointerUp(wheel, { pointerId: 1 });
+
+      expect(gradientOf(rect)!.startColor).toBe("#ffffff");
+    });
+
+    it("draws a visible lightness track from black to the light color", async () => {
+      openPicker();
+      const slider = screen.getByTestId("gradient-lightness-a");
+
+      const track = slider.style.getPropertyValue("--slider-track");
+      expect(track).toMatch(/^linear-gradient\(to right, #000000, .*\)$/);
+      expect(track).not.toContain("#ffffff");
+    });
+
+    it("changes the angle with a visible angle track", async () => {
+      const rect = openPicker();
+      const slider = screen.getByTestId("gradient-angle");
+
+      fireEvent.change(slider, { target: { value: "180" } });
+
+      expect(gradientOf(rect)).toMatchObject({ type: "linear", angle: 180 });
+      expect(slider.style.getPropertyValue("--slider-track")).toContain("50%");
+    });
+
+    it("keeps A above B when the dots overlap", async () => {
+      openPicker();
+      const dotA = screen.getByRole("slider", { name: "Gradient color A" });
+      const dotB = screen.getByRole("slider", { name: "Gradient color B" });
+
+      expect(Number(dotA.style.zIndex)).toBeGreaterThan(
+        Number(dotB.style.zIndex),
+      );
+    });
+
+    it("hides the solid swatches and shades while a gradient is on", async () => {
+      openPicker();
+
+      expect(screen.queryByText("Colors")).toBeNull();
+      expect(screen.queryByText("Shades")).toBeNull();
+
+      fireEvent.click(screen.getByText("Use gradient"));
+
+      expect(screen.queryByText("Colors")).not.toBeNull();
+      expect(screen.queryByText("Shades")).not.toBeNull();
+    });
+
+    it("keeps hue when lightness passes through black", async () => {
+      openPicker();
+      const slider = screen.getByTestId("gradient-lightness-a");
+      const dotA = screen.getByRole("slider", { name: "Gradient color A" });
+      const hue = dotA.getAttribute("aria-valuenow");
+
+      fireEvent.change(slider, { target: { value: "0" } });
+      fireEvent.change(slider, { target: { value: "60" } });
+
+      expect(dotA).toHaveAttribute("aria-valuenow", hue);
+    });
+
+    it("switches to a radial gradient", async () => {
+      const rect = openPicker();
+
+      fireEvent.click(screen.getByRole("button", { name: "Radial" }));
+
+      expect(gradientOf(rect)).toMatchObject({
+        type: "radial",
+        startColor: "#f47950",
+        endColor: "#8160e8",
+      });
     });
   });
 
