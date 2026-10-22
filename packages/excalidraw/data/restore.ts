@@ -453,8 +453,12 @@ const restoreTextHyperlinks = (
 };
 
 const restoreElementWithProperties = <
-  T extends Required<Omit<ExcalidrawElement, "customData">> & {
+  T extends Required<
+    Omit<ExcalidrawElement, "customData" | "maskId" | "maskEnabled">
+  > & {
     customData?: ExcalidrawElement["customData"];
+    maskId?: ExcalidrawElement["maskId"];
+    maskEnabled?: ExcalidrawElement["maskEnabled"];
     /** @deprecated */
     boundElementIds?: readonly ExcalidrawElement["id"][];
     /** @deprecated */

@@ -193,6 +193,13 @@
       "easeOut": "Ease out",
       "easeInOut": "Ease in-out"
     },
+    "mask": {
+      "toggle": "Mask",
+      "edit": "Mask options",
+      "enabled": "Clipping",
+      "remove": "Remove mask",
+      "picking": "Double-click an element to mask it"
+    },
     "polygon": {
       "breakPolygon": "Break polygon",
       "convertToPolygon": "Convert to polygon"

@@ -264,6 +264,8 @@ import {
   getPathsTargetingElement,
   getPathTargetElements,
   snapPathTargetsToStart,
+  canBeMasked,
+  isMaskElement,
 } from "@excalidraw/element";
 
 import type { GlobalPoint, LocalPoint, Radians } from "@excalidraw/math";
@@ -340,6 +342,16 @@ import {
   actionToggleMidpointSnapping,
   actionToggleCropEditor,
   actionToggleCollaboratorVisibility,
+  actionZoomIn,
+  actionZoomInFine,
+  actionZoomOut,
+  actionZoomOutFine,
+  actionResetZoom,
+  actionToggleMask,
+  actionApplyMask,
+  actionCancelMasking,
+  actionEditMask,
+  actionCloseMaskEditor,
 } from "../actions";
 import { actionWrapTextInContainer } from "../actions/actionBoundText";
 import { actionPaste } from "../actions/actionClipboard";
@@ -450,6 +462,7 @@ import {
 } from "../cursor";
 import { ElementCanvasButtons } from "../components/ElementCanvasButtons";
 import { MotionPathEditToolbar } from "../components/MotionPathEditToolbar";
+import { MaskEditToolbar } from "../components/MaskEditToolbar";
 import { LaserTrails } from "../laserTrails";
 import { withBatchedUpdates, withBatchedUpdatesThrottled } from "../reactUtils";
 import { isPointHittingTextAutoResizeHandle } from "../textAutoResizeHandle";
@@ -2483,6 +2496,20 @@ class App extends React.Component<AppProps, AppState> {
                               />
                             )}
 
+                          {this.state.maskEditor?.mode === "editing" &&
+                            allElementsMap.has(
+                              this.state.maskEditor.maskId,
+                            ) && (
+                              <MaskEditToolbar
+                                mask={
+                                  allElementsMap.get(
+                                    this.state.maskEditor.maskId,
+                                  )!
+                                }
+                                elementsMap={allElementsMap}
+                              />
+                            )}
+
                           {this.state.contextMenu && (
                             <ContextMenu
                               items={this.state.contextMenu.items}
@@ -3813,6 +3840,22 @@ class App extends React.Component<AppProps, AppState> {
           this.actionManager.executeAction(actionFinishMotionPathEdit);
         }
       });
+    }
+
+    // the mask editor closes when its mask goes away (e.g. deleted or undone),
+    // masking mode also ends when another tool is picked, and the options
+    // close when the mask is deselected
+    const { maskEditor } = this.state;
+    if (
+      maskEditor &&
+      (!this.scene.getNonDeletedElementsMap().has(maskEditor.maskId) ||
+        (maskEditor.mode === "picking" &&
+          this.state.activeTool.type !==
+            this.state.preferredSelectionTool.type) ||
+        (maskEditor.mode === "editing" &&
+          !this.state.selectedElementIds[maskEditor.maskId]))
+    ) {
+      this.setState({ maskEditor: null });
     }
 
     if (
@@ -5218,6 +5261,45 @@ class App extends React.Component<AppProps, AppState> {
   };
 
   // Input handling
+  /**
+   * Escape leaves the mask editor. Masking mode only lets panning and zooming
+   * keys through. Returns whether the event was consumed.
+   */
+  private handleMaskEditorKeyDown = (
+    event: React.KeyboardEvent | KeyboardEvent,
+  ) => {
+    const { maskEditor } = this.state;
+    if (!maskEditor) {
+      return false;
+    }
+    if (maskEditor.mode === "editing") {
+      if (event.key === KEYS.ESCAPE) {
+        this.actionManager.executeAction(actionCloseMaskEditor);
+        return true;
+      }
+      return false;
+    }
+
+    if (event.key === KEYS.ESCAPE || actionToggleMask.keyTest?.(event)) {
+      event.preventDefault();
+      this.actionManager.executeAction(actionCancelMasking);
+      return true;
+    }
+
+    const elements = this.scene.getElementsIncludingDeleted();
+    const isZoomKey = (
+      [
+        actionZoomIn,
+        actionZoomInFine,
+        actionZoomOut,
+        actionZoomOutFine,
+        actionResetZoom,
+      ] as Action[]
+    ).some((action) => action.keyTest?.(event, this.state, elements, this));
+
+    return !isZoomKey && event.key !== KEYS.SPACE;
+  };
+
   private onKeyDown = withBatchedUpdates(
     (event: React.KeyboardEvent | KeyboardEvent) => {
       if (event.key === "Shift") {
@@ -5272,6 +5354,10 @@ class App extends React.Component<AppProps, AppState> {
       }
 
       if (!isInputLike(event.target)) {
+        if (this.handleMaskEditorKeyDown(event)) {
+          return;
+        }
+
         if (
           (event.key === KEYS.ESCAPE || event.key === KEYS.ENTER) &&
           this.state.croppingElementId
@@ -6946,6 +7032,81 @@ class App extends React.Component<AppProps, AppState> {
     });
   };
 
+  /** the mask whose text was last opened by double-clicking it */
+  private maskWithEditedText: ExcalidrawElement["id"] | null = null;
+
+  /**
+   * Double-clicking a mask shape edits its text as usual; the next
+   * double-click on it opens the mask options instead. Returns whether the
+   * options were opened.
+   */
+  private maybeOpenMaskEditor = (
+    event: Pick<React.MouseEvent<HTMLCanvasElement>, "clientX" | "clientY">,
+  ) => {
+    const { x, y } = viewportCoordsToSceneCoords(event, this.state);
+    const elementsMap = this.scene.getNonDeletedElementsMap();
+    let hitElement: ExcalidrawElement | null | undefined =
+      this.getElementAtPosition(x, y);
+
+    if (isTextElement(hitElement) && hitElement.containerId) {
+      hitElement = elementsMap.get(hitElement.containerId);
+    }
+
+    // a selected shape's (possibly transparent) inside counts as the shape
+    const [selectedElement] = this.scene.getSelectedElements(this.state);
+    if (
+      !hitElement &&
+      selectedElement &&
+      hitElementBoundingBox(pointFrom(x, y), selectedElement, elementsMap)
+    ) {
+      hitElement = selectedElement;
+    }
+
+    if (!hitElement || !isMaskElement(hitElement, elementsMap)) {
+      this.maskWithEditedText = null;
+      return false;
+    }
+
+    if (this.maskWithEditedText === hitElement.id) {
+      this.maskWithEditedText = null;
+      this.actionManager.executeAction(actionEditMask, "ui", hitElement.id);
+      return true;
+    }
+
+    // falls through to editing the mask's text
+    this.maskWithEditedText = hitElement.id;
+    return false;
+  };
+
+  /**
+   * Masking mode: double-clicking an element masks it, double-clicking empty
+   * canvas cancels. Elements that can't be masked are ignored.
+   */
+  private handleMaskingModeDoubleClick = (
+    event: Pick<React.MouseEvent<HTMLCanvasElement>, "clientX" | "clientY">,
+  ) => {
+    const { x, y } = viewportCoordsToSceneCoords(event, this.state);
+    const elementsMap = this.scene.getNonDeletedElementsMap();
+    let hitElement = this.getElementAtPosition(x, y);
+
+    // double-clicking a shape's label means the shape
+    if (isTextElement(hitElement) && hitElement.containerId) {
+      hitElement = elementsMap.get(hitElement.containerId) ?? hitElement;
+    }
+
+    if (!hitElement) {
+      this.actionManager.executeAction(actionCancelMasking, "ui");
+      return;
+    }
+
+    const mask = this.state.maskEditor
+      ? elementsMap.get(this.state.maskEditor.maskId)
+      : undefined;
+    if (mask && canBeMasked(hitElement, mask, elementsMap)) {
+      this.actionManager.executeAction(actionApplyMask, "ui", hitElement.id);
+    }
+  };
+
   private handleCanvasDoubleClick = (
     event: Pick<
       React.MouseEvent<HTMLCanvasElement>,
@@ -6964,6 +7125,16 @@ class App extends React.Component<AppProps, AppState> {
     ) {
       return;
     }
+
+    if (this.state.maskEditor?.mode === "picking") {
+      this.handleMaskingModeDoubleClick(event);
+      return;
+    }
+
+    if (this.maybeOpenMaskEditor(event)) {
+      return;
+    }
+
     // case: double-clicking with arrow/line tool selected would both create
     // text and enter multiElement mode
     if (this.state.multiElement) {
@@ -8467,6 +8638,12 @@ class App extends React.Component<AppProps, AppState> {
     // else it will send pointer state & laser pointer events in collab when
     // panning
     if (this.handleCanvasPanUsingWheelOrSpaceDrag(event)) {
+      return;
+    }
+
+    // masking mode only allows panning and zooming, elements are picked by
+    // double-clicking (see handleCanvasDoubleClick)
+    if (this.state.maskEditor?.mode === "picking") {
       return;
     }
 

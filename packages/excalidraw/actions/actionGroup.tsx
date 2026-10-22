@@ -197,7 +197,11 @@ export const actionGroup = register({
   predicate: (elements, appState, _, app) =>
     enableActionGroup(elements, appState, app),
   keyTest: (event) =>
-    !event.shiftKey && event[KEYS.CTRL_OR_CMD] && event.key === KEYS.G,
+    !event.shiftKey &&
+    // Ctrl+Alt+G toggles masks
+    !event.altKey &&
+    event[KEYS.CTRL_OR_CMD] &&
+    event.key === KEYS.G,
   PanelComponent: ({ elements, appState, updateData, app }) => (
     <IconButton
       hidden={!enableActionGroup(elements, appState, app)}
@@ -302,6 +306,7 @@ export const actionUngroup = register({
   },
   keyTest: (event) =>
     event.shiftKey &&
+    !event.altKey &&
     event[KEYS.CTRL_OR_CMD] &&
     event.key === KEYS.G.toUpperCase(),
   predicate: (elements, appState) => getSelectedGroupIds(appState).length > 0,

@@ -49,6 +49,8 @@ import type {
   NonDeletedExcalidrawElement,
 } from "@excalidraw/element/types";
 
+import { createSvgMaskGroup } from "./maskClip";
+
 import type { RenderableElementsMap, SVGRenderConfig } from "../scene/types";
 import type { AppState, BinaryFiles } from "../types";
 import type { Drawable } from "roughjs/bin/core";
@@ -880,11 +882,20 @@ export const renderSceneToSvg = (
         }
 
         try {
+          const root =
+            createSvgMaskGroup(
+              element,
+              elementsMap,
+              svgRoot,
+              renderConfig.offsetX,
+              renderConfig.offsetY,
+            ) ?? svgRoot;
+
           renderElementToSvg(
             element,
             elementsMap,
             rsvg,
-            svgRoot,
+            root,
             files,
             element.x + renderConfig.offsetX,
             element.y + renderConfig.offsetY,
@@ -897,7 +908,7 @@ export const renderSceneToSvg = (
               boundTextElement as Readonly<NonDeletedExcalidrawElement>,
               elementsMap,
               rsvg,
-              svgRoot,
+              root,
               files,
               boundTextElement.x + renderConfig.offsetX,
               boundTextElement.y + renderConfig.offsetY,

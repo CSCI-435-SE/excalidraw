@@ -51,6 +51,7 @@ export type ShortcutName =
       | "saveToActiveFile"
       | "toggleShortcuts"
       | "wrapSelectionInFrame"
+      | "toggleMask"
     >
   | "saveScene"
   | "imageExport"
@@ -96,6 +97,7 @@ const shortcutMap: Record<ShortcutName, string[]> = {
   copyAsPng: [getShortcutKey("Shift+Alt+C")],
   group: [getShortcutKey("CtrlOrCmd+G")],
   ungroup: [getShortcutKey("CtrlOrCmd+Shift+G")],
+  toggleMask: [getShortcutKey("CtrlOrCmd+Alt+G")],
   gridMode: [getShortcutKey("CtrlOrCmd+'")],
   gridSnapMode: [getShortcutKey("CtrlOrCmd+;")],
   zenMode: [getShortcutKey("Alt+Z")],
