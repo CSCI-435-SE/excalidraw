@@ -2,11 +2,11 @@
 
 ## 1. What did you implement so far in the sprint, and what remains?
 
-So far, I have worked on the gradient color picker feature for Excalidraw. The goal is to make selecting gradient colors more intuitive while maintaining compatibility with the existing color picker and application behavior. I have also worked on ensuring that gradient settings persist correctly rather than being lost when the application state changes. Remaining work includes testing the implementation across different use cases, checking for edge cases, addressing any bugs discovered during testing, and ensuring that the feature integrates cleanly with the existing codebase.
+So far, I have worked on the gradient color picker feature for Excalidraw. The goal is to make selecting gradient colors more intuitive while maintaining compatibility with the existing color picker and application behavior. I have also worked on ensuring that gradient settings persist correctly rather than being lost when the application state changes. Remaining work includes testing the implementation across different use cases, checking edge cases, addressing bugs discovered during testing, and ensuring that the feature integrates cleanly with the existing codebase.
 
 ## 2. What is one thing you learned about the codebase or about software engineering practice?
 
-I learned that implementing a feature in an existing codebase requires understanding how components interact, rather than treating each component as an isolated piece. In Excalidraw, changes to the color picker can affect state management, rendering, and compatibility with existing functionality. I also learned the importance of understanding existing patterns before introducing changes, because a solution that works in isolation may still cause problems elsewhere in the application.
+I learned that implementing a feature in an existing codebase requires understanding how components interact rather than treating each component as an isolated piece. In Excalidraw, changes to the color picker can affect state management, rendering, and compatibility with existing functionality. I also learned the importance of understanding existing patterns before introducing changes, because a solution that works in isolation may still cause problems elsewhere in the application.
 
 ## 3. What is one thing you would do differently?
 
