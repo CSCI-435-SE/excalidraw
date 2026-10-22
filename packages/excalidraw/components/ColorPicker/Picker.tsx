@@ -129,6 +129,8 @@ export const Picker = React.forwardRef(
     const [gradientEnabled, setGradientEnabled] = useState(
       !!color && !!getGradientColors(color),
     );
+    const showGradientEditor =
+      type === "elementBackground" && allowGradient && gradientEnabled;
 
     useEffect(() => {
       if (colorObj?.shade != null) {
@@ -183,7 +185,8 @@ export const Picker = React.forwardRef(
         >
           {title && <div className="color-picker__title">{title}</div>}
 
-          {!!customColors.length && (
+          {/* solid swatches are hidden while editing a gradient to save space */}
+          {!showGradientEditor && !!customColors.length && (
             <div>
               <PickerHeading>
                 {t("colorPicker.mostUsedCustomColors")}
@@ -197,26 +200,30 @@ export const Picker = React.forwardRef(
             </div>
           )}
 
-          <div>
-            <PickerHeading>{t("colorPicker.colors")}</PickerHeading>
-            <PickerColorList
-              color={color}
-              palette={palette}
-              onChange={onChange}
-              activeShade={activeShade}
-              showHotKey={showHotKey}
-            />
-          </div>
+          {!showGradientEditor && (
+            <>
+              <div>
+                <PickerHeading>{t("colorPicker.colors")}</PickerHeading>
+                <PickerColorList
+                  color={color}
+                  palette={palette}
+                  onChange={onChange}
+                  activeShade={activeShade}
+                  showHotKey={showHotKey}
+                />
+              </div>
 
-          <div>
-            <PickerHeading>{t("colorPicker.shades")}</PickerHeading>
-            <ShadeList
-              color={color}
-              onChange={onChange}
-              palette={palette}
-              showHotKey={showHotKey}
-            />
-          </div>
+              <div>
+                <PickerHeading>{t("colorPicker.shades")}</PickerHeading>
+                <ShadeList
+                  color={color}
+                  onChange={onChange}
+                  palette={palette}
+                  showHotKey={showHotKey}
+                />
+              </div>
+            </>
+          )}
           {type === "elementBackground" && allowGradient && (
             <BackgroundGradientPicker
               color={color}
@@ -224,7 +231,7 @@ export const Picker = React.forwardRef(
               onEnabledChange={setGradientEnabled}
             />
           )}
-          {!(allowGradient && gradientEnabled) && children}
+          {!showGradientEditor && children}
         </div>
       </div>
     );

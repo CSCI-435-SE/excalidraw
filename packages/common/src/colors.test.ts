@@ -1,6 +1,9 @@
 import {
   applyDarkModeFilter,
   COLOR_PALETTE,
+  colorToOklch,
+  getOklchCusp,
+  oklchToHex,
   rgbToHex,
 } from "@excalidraw/common";
 
@@ -282,5 +285,57 @@ describe("rgbToHex", () => {
       // 0.05 * 255 = 12.75 -> rounds to 13 = 0x0d
       expect(rgbToHex(255, 0, 0, 0.05)).toBe("#ff00000d");
     });
+  });
+});
+
+describe("oklch helpers", () => {
+  it("converts known colors to OKLCH", () => {
+    const red = colorToOklch("#ff0000")!;
+    expect(red.l).toBeCloseTo(0.628, 2);
+    expect(red.c).toBeCloseTo(0.258, 2);
+    expect(red.h).toBeCloseTo(29.23, 0);
+
+    const white = colorToOklch("#ffffff")!;
+    expect(white.l).toBeCloseTo(1, 3);
+    expect(white.c).toBeCloseTo(0, 3);
+    expect(white.h).toBe(0);
+  });
+
+  it("returns null for invalid colors", () => {
+    expect(colorToOklch("not-a-color")).toBeNull();
+  });
+
+  it.each([
+    "#000000",
+    "#ffffff",
+    "#ff0000",
+    "#00ff00",
+    "#0000ff",
+    "#f47950",
+    "#8160e8",
+    "#1e1e1e",
+  ])("round-trips %s", (hex) => {
+    expect(oklchToHex(colorToOklch(hex)!)).toBe(hex);
+  });
+
+  it("maps out-of-gamut colors into sRGB keeping hue", () => {
+    const hex = oklchToHex({ l: 0.7, c: 0.37, h: 200 });
+    expect(hex).toMatch(/^#[0-9a-f]{6}$/);
+    const mapped = colorToOklch(hex)!;
+    expect(mapped.l).toBeCloseTo(0.7, 1);
+    expect(mapped.c).toBeLessThan(0.37);
+    expect(Math.abs(mapped.h - 200)).toBeLessThan(3);
+  });
+});
+
+describe("getOklchCusp", () => {
+  it("finds the most saturated in-gamut color for a hue", () => {
+    // sRGB red, yellow and blue are the cusps of their hues
+    for (const hex of ["#ff0000", "#ffff00", "#0000ff"]) {
+      const { l, c, h } = colorToOklch(hex)!;
+      const cusp = getOklchCusp(h);
+      expect(cusp.l).toBeCloseTo(l, 1);
+      expect(cusp.c).toBeCloseTo(c, 1);
+    }
   });
 });
