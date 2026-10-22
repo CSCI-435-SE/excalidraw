@@ -265,6 +265,7 @@ import {
   getPathTargetElements,
   snapPathTargetsToStart,
   canBeMasked,
+  isMaskElement,
 } from "@excalidraw/element";
 
 import type { GlobalPoint, LocalPoint, Radians } from "@excalidraw/math";
@@ -461,6 +462,7 @@ import {
 } from "../cursor";
 import { ElementCanvasButtons } from "../components/ElementCanvasButtons";
 import { MotionPathEditToolbar } from "../components/MotionPathEditToolbar";
+import { MaskEditToolbar } from "../components/MaskEditToolbar";
 import { LaserTrails } from "../laserTrails";
 import { withBatchedUpdates, withBatchedUpdatesThrottled } from "../reactUtils";
 import { isPointHittingTextAutoResizeHandle } from "../textAutoResizeHandle";
@@ -2494,6 +2496,20 @@ class App extends React.Component<AppProps, AppState> {
                               />
                             )}
 
+                          {this.state.maskEditor?.mode === "editing" &&
+                            allElementsMap.has(
+                              this.state.maskEditor.maskId,
+                            ) && (
+                              <MaskEditToolbar
+                                mask={
+                                  allElementsMap.get(
+                                    this.state.maskEditor.maskId,
+                                  )!
+                                }
+                                elementsMap={allElementsMap}
+                              />
+                            )}
+
                           {this.state.contextMenu && (
                             <ContextMenu
                               items={this.state.contextMenu.items}
@@ -3827,14 +3843,17 @@ class App extends React.Component<AppProps, AppState> {
     }
 
     // the mask editor closes when its mask goes away (e.g. deleted or undone),
-    // and masking mode also ends when another tool is picked
+    // masking mode also ends when another tool is picked, and the options
+    // close when the mask is deselected
     const { maskEditor } = this.state;
     if (
       maskEditor &&
       (!this.scene.getNonDeletedElementsMap().has(maskEditor.maskId) ||
         (maskEditor.mode === "picking" &&
           this.state.activeTool.type !==
-            this.state.preferredSelectionTool.type))
+            this.state.preferredSelectionTool.type) ||
+        (maskEditor.mode === "editing" &&
+          !this.state.selectedElementIds[maskEditor.maskId]))
     ) {
       this.setState({ maskEditor: null });
     }
@@ -7013,6 +7032,52 @@ class App extends React.Component<AppProps, AppState> {
     });
   };
 
+  /** the mask whose text was last opened by double-clicking it */
+  private maskWithEditedText: ExcalidrawElement["id"] | null = null;
+
+  /**
+   * Double-clicking a mask shape edits its text as usual; the next
+   * double-click on it opens the mask options instead. Returns whether the
+   * options were opened.
+   */
+  private maybeOpenMaskEditor = (
+    event: Pick<React.MouseEvent<HTMLCanvasElement>, "clientX" | "clientY">,
+  ) => {
+    const { x, y } = viewportCoordsToSceneCoords(event, this.state);
+    const elementsMap = this.scene.getNonDeletedElementsMap();
+    let hitElement: ExcalidrawElement | null | undefined =
+      this.getElementAtPosition(x, y);
+
+    if (isTextElement(hitElement) && hitElement.containerId) {
+      hitElement = elementsMap.get(hitElement.containerId);
+    }
+
+    // a selected shape's (possibly transparent) inside counts as the shape
+    const [selectedElement] = this.scene.getSelectedElements(this.state);
+    if (
+      !hitElement &&
+      selectedElement &&
+      hitElementBoundingBox(pointFrom(x, y), selectedElement, elementsMap)
+    ) {
+      hitElement = selectedElement;
+    }
+
+    if (!hitElement || !isMaskElement(hitElement, elementsMap)) {
+      this.maskWithEditedText = null;
+      return false;
+    }
+
+    if (this.maskWithEditedText === hitElement.id) {
+      this.maskWithEditedText = null;
+      this.actionManager.executeAction(actionEditMask, "ui", hitElement.id);
+      return true;
+    }
+
+    // falls through to editing the mask's text
+    this.maskWithEditedText = hitElement.id;
+    return false;
+  };
+
   /**
    * Masking mode: double-clicking an element masks it, double-clicking empty
    * canvas cancels. Elements that can't be masked are ignored.
@@ -7063,6 +7128,10 @@ class App extends React.Component<AppProps, AppState> {
 
     if (this.state.maskEditor?.mode === "picking") {
       this.handleMaskingModeDoubleClick(event);
+      return;
+    }
+
+    if (this.maybeOpenMaskEditor(event)) {
       return;
     }
 

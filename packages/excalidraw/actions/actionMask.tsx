@@ -10,10 +10,7 @@ import {
 } from "@excalidraw/element";
 import { arrayToMap, CODES, KEYS } from "@excalidraw/common";
 
-import type {
-  ElementsMap,
-  ExcalidrawElement,
-} from "@excalidraw/element/types";
+import type { ElementsMap, ExcalidrawElement } from "@excalidraw/element/types";
 
 import { DEFAULT_CATEGORIES } from "../components/CommandPalette/CommandPalette";
 import { MaskIcon } from "../components/icons";
@@ -115,7 +112,10 @@ export const actionToggleMask = register({
       case "remove": {
         const masked = getMaskedElement(selectedElements[0], elementsMap);
         return {
-          elements: unmaskElements(elements, new Set(masked ? [masked.id] : [])),
+          elements: unmaskElements(
+            elements,
+            new Set(masked ? [masked.id] : []),
+          ),
           appState: exitedAppState(appState),
           captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         };
@@ -188,8 +188,11 @@ export const actionCancelMasking = register({
   }),
 });
 
-/** opens the mask's options (double-clicking a mask shape) */
-export const actionEditMask = register({
+/**
+ * Opens the options of the mask with id `value` (double-clicking a mask
+ * shape), or of the selected mask, and selects it.
+ */
+export const actionEditMask = register<ExcalidrawElement["id"] | null>({
   name: "editMask",
   label: "labels.mask.edit",
   trackEvent: false,
@@ -200,14 +203,20 @@ export const actionEditMask = register({
       isMaskElement(selectedElements[0], app.scene.getNonDeletedElementsMap())
     );
   },
-  perform: (elements, appState, _, app: AppClassProperties) => {
-    const [mask] = app.scene.getSelectedElements(appState);
-    if (!mask || !isMaskElement(mask, app.scene.getNonDeletedElementsMap())) {
+  perform: (elements, appState, value, app: AppClassProperties) => {
+    const elementsMap = app.scene.getNonDeletedElementsMap();
+    const mask = value
+      ? elementsMap.get(value)
+      : app.scene.getSelectedElements(appState)[0];
+    if (!mask || !isMaskElement(mask, elementsMap)) {
       return false;
     }
     return {
       appState: {
         ...appState,
+        selectedElementIds: { [mask.id]: true },
+        selectedGroupIds: {},
+        editingGroupId: null,
         maskEditor: { maskId: mask.id, mode: "editing" },
       },
       captureUpdate: CaptureUpdateAction.EVENTUALLY,
