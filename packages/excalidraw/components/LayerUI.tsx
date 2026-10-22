@@ -56,6 +56,7 @@ import { GridPanel } from "./GridPanel";
 import { HelpDialog } from "./HelpDialog";
 import { ImageExportDialog } from "./ImageExportDialog";
 import { Island } from "./Island";
+import { MaskingModeBar } from "./MaskingModeBar";
 import { JSONExportDialog } from "./JSONExportDialog";
 import { LaserPointerButton } from "./LaserPointerButton";
 import { Toast } from "./Toast";
@@ -602,7 +603,9 @@ const LayerUI = ({
               showExitZenModeBtn={showExitZenModeBtn}
               renderWelcomeScreen={renderWelcomeScreen}
             />
-            {(appState.toast || appState.scrolledOutside) && (
+            {(appState.toast ||
+              appState.scrolledOutside ||
+              appState.maskEditor?.mode === "picking") && (
               <div className="floating-status-stack">
                 {appState.toast && (
                   <Toast
@@ -624,6 +627,9 @@ const LayerUI = ({
                   >
                     {t("buttons.scrollBackToContent")}
                   </button>
+                )}
+                {appState.maskEditor?.mode === "picking" && (
+                  <MaskingModeBar actionManager={actionManager} />
                 )}
               </div>
             )}
