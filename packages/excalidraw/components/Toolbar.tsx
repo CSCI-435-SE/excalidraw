@@ -3,7 +3,8 @@ import { useState } from "react";
 
 import { KEYS } from "@excalidraw/common";
 
-import { actionToggleGridMode } from "../actions";
+import { actionToggleGridMode, actionToggleMask } from "../actions";
+import { getShortcutFromShortcutName } from "../actions/shortcuts";
 import { useTunnels } from "../context/tunnels";
 import { useAtomValue } from "../editor-jotai";
 import { t } from "../i18n";
@@ -28,6 +29,7 @@ import {
   LassoIcon,
   laserPointerToolIcon,
   MagicIcon,
+  MaskIcon,
   mermaidLogoIcon,
   PathIcon,
 } from "./icons";
@@ -140,6 +142,16 @@ const ExtraToolsDropdown = ({
           selected={frameToolSelected}
         >
           {t("toolBar.frame")}
+        </DropdownMenu.Item>
+        <DropdownMenu.Item
+          onSelect={() => actionManager.executeAction(actionToggleMask, "ui")}
+          icon={MaskIcon}
+          shortcut={getShortcutFromShortcutName("toggleMask")}
+          data-testid="toolbar-mask"
+          disabled={!actionManager.isActionEnabled(actionToggleMask)}
+          selected={app.state.maskEditor?.mode === "picking"}
+        >
+          {t("labels.mask.toggle")}
         </DropdownMenu.Item>
         <DropdownMenu.Item
           onSelect={() => app.setActiveTool({ type: "embeddable" })}
