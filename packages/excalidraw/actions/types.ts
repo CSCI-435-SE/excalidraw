@@ -162,7 +162,14 @@ export type ActionName =
   | "finishMotionPathEdit"
   | "rejectMotionPathEdit"
   | "toggleMotionPathCurve"
-  | "changeMotionPathConfig";
+  | "changeMotionPathConfig"
+  | "toggleMask"
+  | "applyMask"
+  | "cancelMasking"
+  | "editMask"
+  | "closeMaskEditor"
+  | "toggleMaskEnabled"
+  | "removeMask";
 
 export type PanelComponentProps = {
   elements: readonly ExcalidrawElement[];

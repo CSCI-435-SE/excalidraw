@@ -112,6 +112,15 @@ export {
   actionToggleMotionPathCurve,
   actionChangeMotionPathConfig,
 } from "./actionMotionPathEditor";
+export {
+  actionToggleMask,
+  actionApplyMask,
+  actionCancelMasking,
+  actionEditMask,
+  actionCloseMaskEditor,
+  actionToggleMaskEnabled,
+  actionRemoveMask,
+} from "./actionMask";
 
 export { actionToggleSearchMenu } from "./actionToggleSearchMenu";
 

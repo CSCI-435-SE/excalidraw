@@ -377,6 +377,15 @@ export interface AppState {
     originalPositions: Record<string, { x: number; y: number }>;
   } | null;
   /**
+   * set while working with a mask shape: `picking` is masking mode, where the
+   * user double-clicks the element the mask should clip; `editing` shows the
+   * mask's options. Never persisted, never undo-tracked.
+   */
+  maskEditor: {
+    maskId: ExcalidrawElement["id"];
+    mode: "picking" | "editing";
+  } | null;
+  /**
    * decoupled from newElement, dragging selection only creates selectionElement
    * - set on pointer down, updated during pointer move
    */
