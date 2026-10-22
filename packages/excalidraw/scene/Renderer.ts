@@ -18,6 +18,8 @@ import type { Scene } from "@excalidraw/element";
 
 import { renderStaticSceneThrottled } from "../renderer/staticScene";
 
+import { isElementHiddenLocally } from "./visibility";
+
 import type { RenderableElementsMap } from "./types";
 
 import type { AppState } from "../types";
@@ -35,6 +37,8 @@ type GetRenderableElementsOpts = {
   selectedElements: readonly NonDeletedExcalidrawElement[];
   selectedElementsAreBeingDragged: AppState["selectedElementsAreBeingDragged"];
   frameToHighlight: AppState["frameToHighlight"];
+  hiddenCollaboratorIds: AppState["hiddenCollaboratorIds"];
+  collaboratorDirectory: AppState["collaboratorDirectory"];
 };
 
 export class Renderer {
@@ -90,16 +94,30 @@ export class Renderer {
     elements,
     editingTextElement,
     newElement,
+    hiddenCollaboratorIds,
+    collaboratorDirectory,
   }: {
     elements: readonly NonDeletedExcalidrawElement[];
     editingTextElement: AppState["editingTextElement"];
     newElement: AppState["newElement"];
+    hiddenCollaboratorIds: AppState["hiddenCollaboratorIds"];
+    collaboratorDirectory: AppState["collaboratorDirectory"];
   }) {
     const elementsMap = toBrandedType<RenderableElementsMap>(new Map());
     const newElementCanvasElement = newElement?.frameId ? null : newElement;
+    const allElementsMap = this.scene.getNonDeletedElementsMap();
 
     for (const element of elements) {
       if (newElementCanvasElement?.id === element.id) {
+        continue;
+      }
+
+      if (
+        isElementHiddenLocally(element, allElementsMap, {
+          hiddenCollaboratorIds,
+          collaboratorDirectory,
+        })
+      ) {
         continue;
       }
 
@@ -168,6 +186,8 @@ export class Renderer {
       width,
       editingTextElement,
       newElement,
+      hiddenCollaboratorIds,
+      collaboratorDirectory,
     }: Omit<
       GetRenderableElementsOpts,
       | "selectedElements"
@@ -183,6 +203,8 @@ export class Renderer {
           elements,
           editingTextElement,
           newElement,
+          hiddenCollaboratorIds,
+          collaboratorDirectory,
         });
 
       const visibleElements = this.getVisibleCanvasElements({
@@ -225,6 +247,10 @@ export class Renderer {
       width: opts.width,
       editingTextElement: opts.editingTextElement,
       newElement: opts.newElement,
+      // scene nonce doesn't change when toggling visibility (or when a
+      // creator moves between buckets), so these must be part of the memo key
+      hiddenCollaboratorIds: opts.hiddenCollaboratorIds,
+      collaboratorDirectory: opts.collaboratorDirectory,
     });
 
     // if we're dragging elements over a frame, reorder the selected elements

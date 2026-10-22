@@ -116,3 +116,9 @@ export {
 export { actionToggleSearchMenu } from "./actionToggleSearchMenu";
 
 export { actionToggleCropEditor } from "./actionCropEditor";
+
+export {
+  actionToggleCollaboratorVisibility,
+  actionShowAllCollaborators,
+  actionHideAllCollaborators,
+} from "./actionCollaboratorVisibility";

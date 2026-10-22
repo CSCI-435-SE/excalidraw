@@ -4,6 +4,7 @@ import {
   TTDDialogTrigger,
   CaptureUpdateAction,
   reconcileElements,
+  getLocallyVisibleElements,
   useEditorInterface,
   ExcalidrawAPIProvider,
   useExcalidrawAPI,
@@ -1014,7 +1015,10 @@ const ExcalidrawWrapper = () => {
               actionLabel={t("overwriteConfirm.action.excalidrawPlus.button")}
               onClick={() => {
                 exportToExcalidrawPlus(
-                  excalidrawAPI.getSceneElements(),
+                  getLocallyVisibleElements(
+                    excalidrawAPI.getSceneElements(),
+                    excalidrawAPI.getAppState(),
+                  ),
                   excalidrawAPI.getAppState(),
                   excalidrawAPI.getFiles(),
                   excalidrawAPI.getName(),
@@ -1056,7 +1060,10 @@ const ExcalidrawWrapper = () => {
             if (excalidrawAPI) {
               try {
                 await onExportToBackend(
-                  excalidrawAPI.getSceneElements(),
+                  getLocallyVisibleElements(
+                    excalidrawAPI.getSceneElements(),
+                    excalidrawAPI.getAppState(),
+                  ),
                   excalidrawAPI.getAppState(),
                   excalidrawAPI.getFiles(),
                 );
@@ -1231,7 +1238,10 @@ const ExcalidrawWrapper = () => {
               perform: () => {
                 if (excalidrawAPI) {
                   exportToExcalidrawPlus(
-                    excalidrawAPI.getSceneElements(),
+                    getLocallyVisibleElements(
+                      excalidrawAPI.getSceneElements(),
+                      excalidrawAPI.getAppState(),
+                    ),
                     excalidrawAPI.getAppState(),
                     excalidrawAPI.getFiles(),
                     excalidrawAPI.getName(),

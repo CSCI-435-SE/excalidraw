@@ -14,6 +14,7 @@ exports[`exportToSvg > with default arguments 1`] = `
   "bindMode": "orbit",
   "bindingPreference": "enabled",
   "boxSelectionMode": "contain",
+  "collaboratorDirectory": null,
   "collaborators": Map {},
   "contextMenu": null,
   "croppingElementId": null,
@@ -64,6 +65,7 @@ exports[`exportToSvg > with default arguments 1`] = `
   "gridSnapLinked": true,
   "gridSnapScale": 1,
   "gridStep": 5,
+  "hiddenCollaboratorIds": Set {},
   "hoveredElementIds": {},
   "isBindingEnabled": true,
   "isCropping": false,
@@ -118,6 +120,7 @@ exports[`exportToSvg > with default arguments 1`] = `
   "toast": null,
   "userToFollow": null,
   "viewBackgroundColor": "#ffffff",
+  "viewModeBeforeSelfHide": null,
   "viewModeEnabled": false,
   "zenModeEnabled": false,
   "zoom": {

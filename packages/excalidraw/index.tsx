@@ -329,6 +329,7 @@ export {
 } from "./data/restore";
 
 export { reconcileElements } from "./data/reconcile";
+export { getLocallyVisibleElements } from "./scene/visibility";
 
 export {
   exportToCanvas,

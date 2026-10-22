@@ -21,6 +21,7 @@ import {
 } from "../typeChecks";
 import { LinearElementEditor } from "../linearElementEditor";
 import { getHoveredElementForFocusPoint, hitElementItself } from "../collision";
+import { excludeElementsByHiddenCreators } from "../ownership";
 import { moveArrowAboveBindable } from "../zindex";
 
 import type {
@@ -238,7 +239,12 @@ export const handleFocusPointDrag = (
   const hit = getHoveredElementForFocusPoint(
     point,
     arrow,
-    scene.getNonDeletedElements(),
+    // can't re-target the binding onto hidden collaborators' elements
+    excludeElementsByHiddenCreators(
+      scene.getNonDeletedElements(),
+      appState,
+      elementsMap,
+    ),
     elementsMap,
     maxBindingDistance_simple(appState.zoom),
   );

@@ -775,6 +775,28 @@
       "isSpeaking": "User is speaking"
     }
   },
+  "collaboratorVisibility": {
+    "toggle": "Toggle collaborator's drawings",
+    "showAll": "Show all collaborators' drawings",
+    "hideAll": "Hide all collaborators' drawings",
+    "ownDrawingsHidden": "Your drawings are hidden, so editing is paused (view-only) until you show them again.",
+    "showOwnDrawings": "Show my drawings",
+    "title": "Collaborator visibility",
+    "showAllShort": "Show all",
+    "hideAllShort": "Hide all",
+    "inRoom": "In the room",
+    "previouslySeen": "Previously seen",
+    "miscellaneous": "Miscellaneous",
+    "miscellaneousRow": "Untagged & unknown",
+    "miscellaneousHint": "Older drawings & people you haven't seen",
+    "you": "{{name}} (you)",
+    "unnamed": "Unnamed collaborator",
+    "ownRowHint": "Hiding yours pauses editing",
+    "leftHint": "Left the room",
+    "drawingsCount": "Drawings",
+    "showDrawingsOf": "Show {{name}}'s drawings",
+    "hideDrawingsOf": "Hide {{name}}'s drawings"
+  },
   "commandPalette": {
     "title": "Command palette",
     "shortcuts": {

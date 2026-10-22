@@ -27,6 +27,8 @@ export enum WS_SUBTYPES {
   MOUSE_LOCATION = "MOUSE_LOCATION",
   IDLE_STATUS = "IDLE_STATUS",
   USER_VISIBLE_SCENE_BOUNDS = "USER_VISIBLE_SCENE_BOUNDS",
+  /** announces a client's stable id + name on join (non-volatile) */
+  USER_IDENTITY = "USER_IDENTITY",
 }
 
 export const FIREBASE_STORAGE_PREFIXES = {
@@ -42,6 +44,12 @@ export const STORAGE_KEYS = {
   LOCAL_STORAGE_COLLAB: "excalidraw-collab",
   LOCAL_STORAGE_THEME: "excalidraw-theme",
   LOCAL_STORAGE_DEBUG: "excalidraw-debug",
+  /** pool of this browser profile's collaborator client ids */
+  LOCAL_STORAGE_CLIENT_IDS: "excalidraw-client-ids",
+  /** the client id claimed by this tab (survives reloads) */
+  SESSION_STORAGE_CLIENT_ID: "excalidraw-client-id",
+  /** collaborators seen per room ("Previously seen"), keyed by room id */
+  LOCAL_STORAGE_COLLABORATOR_DIRECTORY: "excalidraw-collaborator-directory",
   VERSION_DATA_STATE: "version-dataState",
   VERSION_FILES: "version-files",
 

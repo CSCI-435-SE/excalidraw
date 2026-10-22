@@ -100,6 +100,8 @@ export type SocketUpdateDataSource = {
       button: "down" | "up";
       selectedElementIds: AppState["selectedElementIds"];
       username: string;
+      /** optional: clients predating collaborator visibility omit it */
+      clientId?: string;
     };
   };
   USER_VISIBLE_SCENE_BOUNDS: {
@@ -115,6 +117,17 @@ export type SocketUpdateDataSource = {
     payload: {
       socketId: SocketId;
       userState: UserIdleState;
+      username: string;
+      /** optional: clients predating collaborator visibility omit it */
+      clientId?: string;
+    };
+  };
+  USER_IDENTITY: {
+    type: WS_SUBTYPES.USER_IDENTITY;
+    payload: {
+      socketId: SocketId;
+      /** stable per-tab id, matches elements' `customData.creatorId` */
+      clientId: string;
       username: string;
     };
   };
