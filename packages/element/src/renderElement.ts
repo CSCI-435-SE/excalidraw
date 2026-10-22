@@ -401,14 +401,11 @@ const drawElementOnCanvas = (
         : context.createRadialGradient(cx, cy, 0, cx, cy, r);
     gradient.addColorStop(
       (geometry.startPosition ?? 0) / 100,
-      applyDarkModeFilter(
-        geometry.startColor,
-        renderConfig.theme === THEME.DARK,
-      ),
+      geometry.startColor,
     );
     gradient.addColorStop(
       (geometry.endPosition ?? 100) / 100,
-      applyDarkModeFilter(geometry.endColor, renderConfig.theme === THEME.DARK),
+      geometry.endColor,
     );
     return gradient;
   };

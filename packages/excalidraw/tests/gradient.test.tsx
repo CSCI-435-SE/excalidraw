@@ -3,11 +3,11 @@ import rough from "roughjs/bin/rough";
 import { vi } from "vitest";
 
 import {
-  applyDarkModeFilter,
   arrayToMap,
   COLOR_PALETTE,
   KEYS,
   ROUNDNESS,
+  THEME,
 } from "@excalidraw/common";
 
 import { pointFrom } from "@excalidraw/math";
@@ -529,7 +529,7 @@ describe("gradient SVG export", () => {
     ).toEqual(["-50", "-20", "60"]);
   });
 
-  it("applies the dark mode filter to the stops", async () => {
+  it("preserves gradient stops in dark mode", async () => {
     const rectangle = API.createElement({
       type: "rectangle",
       backgroundColor: LINEAR,
@@ -537,8 +537,8 @@ describe("gradient SVG export", () => {
     const [gradient] = await exportGradientDefs([rectangle], true);
 
     expect(stopColors(gradient)).toEqual([
-      ["0", applyDarkModeFilter("#000000", true)],
-      ["1", applyDarkModeFilter("#ffffff", true)],
+      ["0", "#000000"],
+      ["1", "#ffffff"],
     ]);
   });
 
@@ -776,7 +776,7 @@ describe("gradient PNG export and library thumbnails", () => {
     expect(gradientFills).toBe(1);
   });
 
-  it("applies the dark mode filter to PNG export stops", async () => {
+  it("preserves gradient stops in dark mode PNG exports", async () => {
     const rectangle = API.createElement({
       type: "rectangle",
       backgroundColor: LINEAR,
@@ -784,8 +784,8 @@ describe("gradient PNG export and library thumbnails", () => {
     const { colorStops } = await exportPngGradientCalls(rectangle, true);
 
     expect(colorStops).toEqual([
-      [0, applyDarkModeFilter("#000000", true)],
-      [1, applyDarkModeFilter("#ffffff", true)],
+      [0, "#000000"],
+      [1, "#ffffff"],
     ]);
   });
 
@@ -1065,6 +1065,24 @@ describe("gradient through flipping by dragging a handle", () => {
 
 describe("gradient picker availability", () => {
   const gradientToggle = () => screen.queryByText("Use gradient");
+
+  it("keeps the gradient color-picker icon unchanged in dark mode", async () => {
+    const rect = API.createElement({
+      type: "rectangle",
+      backgroundColor: LINEAR,
+    });
+    API.setElements([rect]);
+    API.setSelectedElements([rect]);
+    await act(async () => {
+      h.setState({ theme: THEME.DARK });
+    });
+    togglePopover("Background");
+
+    const trigger = document.querySelector<HTMLElement>(
+      '[data-openpopup="elementBackground"]',
+    );
+    expect(trigger).toHaveClass("color-picker__button--gradient");
+  });
 
   it("adjusts the color stops with the preview handles", async () => {
     const rect = API.createElement({

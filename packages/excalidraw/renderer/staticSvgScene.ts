@@ -119,10 +119,7 @@ const addGradientDef = (
   stops.forEach(([color, position]) => {
     const stop = svgRoot.ownerDocument.createElementNS(SVG_NS, "stop");
     stop.setAttribute("offset", `${position / 100}`);
-    stop.setAttribute(
-      "stop-color",
-      applyDarkModeFilter(color, renderConfig.theme === THEME.DARK),
-    );
+    stop.setAttribute("stop-color", color);
     gradient.appendChild(stop);
   });
 

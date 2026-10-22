@@ -242,7 +242,7 @@ export const generateRoughOptions = (
         options.fillStyle = element.fillStyle;
         options.fill = isTransparent(element.backgroundColor)
           ? undefined
-          : applyDarkModeFilter(element.backgroundColor, isDarkMode);
+          : element.backgroundColor;
       }
       if (element.type === "ellipse") {
         options.curveFitting = 1;
@@ -262,7 +262,7 @@ export const generateRoughOptions = (
           options.fill =
             element.backgroundColor === "transparent"
               ? undefined
-              : applyDarkModeFilter(element.backgroundColor, isDarkMode);
+              : element.backgroundColor;
         }
       }
       return options;
@@ -396,11 +396,11 @@ const getArrowheadShapes = (
     return [];
   }
 
-  const strokeColor = applyDarkModeFilter(element.strokeColor, isDarkMode);
-  const backgroundFillColor = applyDarkModeFilter(
+  const strokeColor = element.strokeColor;
+  const backgroundFillColor = canvasBackgroundColor; /*applyDarkModeFilter(
     canvasBackgroundColor,
     isDarkMode,
-  );
+  );*/
   const cardinalityOneOrManyOffset = -0.25;
   const cardinalityZeroCircleScale = 0.8;
 
