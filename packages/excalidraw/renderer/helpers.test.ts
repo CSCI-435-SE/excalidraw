@@ -1,4 +1,4 @@
-import { COLOR_WHITE } from "@excalidraw/common";
+import { applyDarkModeFilter, COLOR_WHITE, THEME } from "@excalidraw/common";
 
 import { bootstrapCanvas } from "./helpers";
 
@@ -8,20 +8,38 @@ const setup = () => {
   canvas.height = 100;
   const context = canvas.getContext("2d")!;
   const clearRect = vi.spyOn(context, "clearRect");
-  const fillRect = vi.spyOn(context, "fillRect");
-  return { canvas, context, clearRect, fillRect };
+  let fillStyleAtFillTime: string | undefined;
+  const fillRect = vi.spyOn(context, "fillRect").mockImplementation(() => {
+    fillStyleAtFillTime = context.fillStyle as string;
+  });
+  return {
+    canvas,
+    context,
+    clearRect,
+    fillRect,
+    get fillStyleAtFillTime() {
+      return fillStyleAtFillTime;
+    },
+  };
 };
 
-const run = (viewBackgroundColor: unknown) => {
-  const { canvas, context, clearRect, fillRect } = setup();
+const run = (
+  viewBackgroundColor: unknown,
+  theme: typeof THEME.LIGHT | typeof THEME.DARK = THEME.LIGHT,
+  isExporting = false,
+) => {
+  const setupResult = setup();
+  const { canvas, context, clearRect, fillRect } = setupResult;
   bootstrapCanvas({
     canvas,
     scale: 1,
     normalizedWidth: 200,
     normalizedHeight: 100,
+    theme,
+    isExporting,
     viewBackgroundColor: viewBackgroundColor as string,
   });
-  return { context, clearRect, fillRect };
+  return { ...setupResult, context, clearRect, fillRect };
 };
 
 describe("bootstrapCanvas background painting", () => {
@@ -35,6 +53,16 @@ describe("bootstrapCanvas background painting", () => {
     const { clearRect, fillRect } = run("#fff");
     expect(clearRect).not.toHaveBeenCalled();
     expect(fillRect).toHaveBeenCalledTimes(1);
+  });
+
+  it("applies the dark-mode background transform in the editor", () => {
+    const { fillStyleAtFillTime } = run("#000000", THEME.DARK);
+    expect(fillStyleAtFillTime).toBe(applyDarkModeFilter("#000000"));
+  });
+
+  it("applies the dark-mode background transform to dark exports", () => {
+    const { fillStyleAtFillTime } = run("#000000", THEME.DARK, true);
+    expect(fillStyleAtFillTime).toBe(applyDarkModeFilter("#000000"));
   });
 
   it("clears for a hex color with alpha (#RGBA / #RRGGBBAA)", () => {

@@ -198,7 +198,7 @@ function adjustRoughness(element: ExcalidrawElement): number {
 export const generateRoughOptions = (
   element: ExcalidrawElement,
   continuousPath = false,
-  isDarkMode: boolean = false,
+  isDarkMode = false,
 ): Options => {
   const options: Options = {
     seed: element.seed,
@@ -242,7 +242,7 @@ export const generateRoughOptions = (
         options.fillStyle = element.fillStyle;
         options.fill = isTransparent(element.backgroundColor)
           ? undefined
-          : applyDarkModeFilter(element.backgroundColor, isDarkMode);
+          : element.backgroundColor;
       }
       if (element.type === "ellipse") {
         options.curveFitting = 1;
@@ -262,7 +262,7 @@ export const generateRoughOptions = (
           options.fill =
             element.backgroundColor === "transparent"
               ? undefined
-              : applyDarkModeFilter(element.backgroundColor, isDarkMode);
+              : element.backgroundColor;
         }
       }
       return options;
@@ -390,17 +390,13 @@ const getArrowheadShapes = (
   generator: RoughGenerator,
   options: Options,
   canvasBackgroundColor: string,
-  isDarkMode: boolean,
 ) => {
   if (arrowhead === null) {
     return [];
   }
 
-  const strokeColor = applyDarkModeFilter(element.strokeColor, isDarkMode);
-  const backgroundFillColor = applyDarkModeFilter(
-    canvasBackgroundColor,
-    isDarkMode,
-  );
+  const strokeColor = element.strokeColor;
+  const backgroundFillColor = canvasBackgroundColor;
   const cardinalityOneOrManyOffset = -0.25;
   const cardinalityZeroCircleScale = 0.8;
 
@@ -783,7 +779,7 @@ const _generateElementShape = (
     theme?: AppState["theme"];
   },
 ): ElementShape => {
-  const isDarkMode = theme === THEME.DARK;
+  const isDarkMode = theme === THEME.DARK && isExporting;
   switch (element.type) {
     case "rectangle":
     case "iframe":
@@ -963,7 +959,6 @@ const _generateElementShape = (
             generator,
             options,
             canvasBackgroundColor,
-            isDarkMode,
           );
           shape.push(...shapes);
         }
@@ -981,7 +976,6 @@ const _generateElementShape = (
             generator,
             options,
             canvasBackgroundColor,
-            isDarkMode,
           );
           shape.push(...shapes);
         }

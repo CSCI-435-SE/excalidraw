@@ -179,7 +179,7 @@ export const Picker = React.forwardRef(
               event.stopPropagation();
             }
           }}
-          className="color-picker-content properties-content"
+          className={`color-picker-content properties-content color-picker-type-${type}`}
           // to allow focusing by clicking but not by tabbing
           tabIndex={-1}
         >

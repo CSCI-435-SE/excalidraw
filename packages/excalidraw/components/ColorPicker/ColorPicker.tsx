@@ -252,6 +252,7 @@ const ColorPickerTrigger = ({
     <Popover.Trigger
       type="button"
       className={clsx("color-picker__button active-color properties-trigger", {
+        "color-picker__button--gradient": !!gradientColors,
         "is-transparent": !color || color === "transparent",
         "has-outline":
           !color ||
@@ -324,7 +325,7 @@ export const ColorPicker = ({
   const isCompactMode = stylesPanelMode !== "full";
 
   return (
-    <div>
+    <div className={`color-picker-type-${type}`}>
       <div
         role="dialog"
         aria-modal="true"

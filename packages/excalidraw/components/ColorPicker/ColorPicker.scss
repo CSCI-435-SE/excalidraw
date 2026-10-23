@@ -57,12 +57,15 @@
     height: var(--size);
     border: 0;
     border-radius: var(--radius);
-    filter: var(--theme-filter);
     background-color: var(--swatch-color);
     background-position: left center;
     position: relative;
     font-family: inherit;
     box-sizing: border-box;
+
+    &.color-picker__button--gradient {
+      filter: none;
+    }
 
     &:hover:not(.active):not(.color-picker__button--large) {
       transform: scale(1.075);
@@ -309,13 +312,19 @@
     box-sizing: border-box;
     border: 1px solid #ddd;
     background-color: currentColor !important;
-    filter: var(--theme-filter);
 
     &:focus {
       /* TODO: only show the border when the color is too light to see as a shadow */
       box-shadow: 0 0 4px 1px currentColor;
       border-color: var(--select-highlight-color);
     }
+  }
+
+  .color-picker-type-canvasBackground
+    .color-picker__button:not(.color-picker__button--gradient),
+  .color-picker-type-canvasBackground .color-picker-swatch,
+  .color-picker-type-canvasBackground .color-picker-label-swatch {
+    filter: var(--theme-filter);
   }
 
   .color-picker-transparent {
@@ -437,7 +446,6 @@
     background-color: var(--swatch-color) !important;
     overflow: hidden;
     position: relative;
-    filter: var(--theme-filter);
     border: 0 !important;
 
     &:after {

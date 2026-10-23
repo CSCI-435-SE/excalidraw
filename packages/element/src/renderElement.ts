@@ -346,7 +346,7 @@ const drawTextHyperlinkLine = (
   element: ExcalidrawTextElement,
   segments: readonly TextHyperlinkSegment[],
   baselineY: number,
-  theme: AppState["theme"],
+  isDarkMode: boolean,
 ) => {
   const underlineOffset = element.fontSize * 0.1;
   const underlineThickness = Math.max(1, element.fontSize * 0.06);
@@ -363,7 +363,7 @@ const drawTextHyperlinkLine = (
     context.save();
     context.fillStyle = applyDarkModeFilter(
       getTextHyperlinkColor(segment.hyperlink, element),
-      theme === THEME.DARK,
+      isDarkMode,
     );
     context.fillText(segment.text, segment.x, baselineY);
     context.fillRect(
@@ -401,14 +401,11 @@ const drawElementOnCanvas = (
         : context.createRadialGradient(cx, cy, 0, cx, cy, r);
     gradient.addColorStop(
       (geometry.startPosition ?? 0) / 100,
-      applyDarkModeFilter(
-        geometry.startColor,
-        renderConfig.theme === THEME.DARK,
-      ),
+      geometry.startColor,
     );
     gradient.addColorStop(
       (geometry.endPosition ?? 100) / 100,
-      applyDarkModeFilter(geometry.endColor, renderConfig.theme === THEME.DARK),
+      geometry.endColor,
     );
     return gradient;
   };
@@ -475,7 +472,7 @@ const drawElementOnCanvas = (
       context.lineCap = "round";
       context.strokeStyle = applyDarkModeFilter(
         element.strokeColor,
-        renderConfig.theme === THEME.DARK,
+        renderConfig.isExporting && renderConfig.theme === THEME.DARK,
       );
       context.fillStyle = context.strokeStyle;
       context.lineWidth = element.strokeWidth;
@@ -516,7 +513,7 @@ const drawElementOnCanvas = (
         if (typeof shape === "string") {
           context.fillStyle = applyDarkModeFilter(
             element.strokeColor,
-            renderConfig.theme === THEME.DARK,
+            renderConfig.isExporting && renderConfig.theme === THEME.DARK,
           );
           context.fill(new Path2D(shape));
         } else {
@@ -649,7 +646,7 @@ const drawElementOnCanvas = (
         context.font = getFontString(element);
         context.fillStyle = applyDarkModeFilter(
           element.strokeColor,
-          renderConfig.theme === THEME.DARK,
+          renderConfig.isExporting && renderConfig.theme === THEME.DARK,
         );
         context.textAlign = element.textAlign as CanvasTextAlign;
 
@@ -690,7 +687,7 @@ const drawElementOnCanvas = (
               element,
               segments,
               baselineY,
-              renderConfig.theme,
+              renderConfig.isExporting && renderConfig.theme === THEME.DARK,
             );
           } else {
             context.fillText(lines[index], horizontalOffset, baselineY);
