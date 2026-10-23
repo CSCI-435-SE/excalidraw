@@ -3,7 +3,6 @@ import {
   KEYS,
   CLASSES,
   POINTER_BUTTON,
-  THEME,
   isWritableElement,
   getFontString,
   getFontFamilyString,
