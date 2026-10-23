@@ -13,6 +13,7 @@ import type {
 } from "@excalidraw/element/types";
 
 import { Excalidraw } from "../index";
+import { AnimationController } from "../renderer/animation";
 
 import { API } from "./helpers/api";
 import { Keyboard } from "./helpers/ui";
@@ -32,10 +33,18 @@ const querySearchInput = async () => {
 
 describe("search", () => {
   beforeEach(async () => {
+    AnimationController.reset();
     await render(<Excalidraw handleKeyboardGlobally />);
     API.setAppState({
       openSidebar: null,
     });
+  });
+
+  afterEach(() => {
+    // focusing a search match starts an animated (300ms) scroll/zoom via
+    // AnimationController; stop it so its setTimeout loop doesn't tick
+    // setState after the test (or the jsdom environment) has been torn down
+    AnimationController.reset();
   });
 
   it("should toggle search on cmd+f", async () => {
