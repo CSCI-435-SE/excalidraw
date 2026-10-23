@@ -325,7 +325,7 @@ export const ColorPicker = ({
   const isCompactMode = stylesPanelMode !== "full";
 
   return (
-    <div>
+    <div className={`color-picker-type-${type}`}>
       <div
         role="dialog"
         aria-modal="true"

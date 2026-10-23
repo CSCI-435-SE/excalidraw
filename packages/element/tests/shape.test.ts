@@ -1,4 +1,4 @@
-import { THEME } from "@excalidraw/common";
+import { applyDarkModeFilter, THEME } from "@excalidraw/common";
 
 import { API } from "@excalidraw/excalidraw/tests/helpers/api";
 
@@ -21,6 +21,45 @@ const FILLABLE_GENERIC_TYPES = [
 ] as const;
 
 describe("ShapeCache.generateElementShape", () => {
+  const getShapeStroke = (
+    shape: ReturnType<typeof ShapeCache.generateElementShape>,
+  ) => {
+    const drawable = Array.isArray(shape) ? shape[0] : shape;
+    return drawable && typeof drawable !== "string"
+      ? drawable.options.stroke
+      : null;
+  };
+
+  it("preserves element stroke colors in dark mode", () => {
+    const element = API.createElement({
+      type: "rectangle",
+      strokeColor: "#ffffff",
+    }) as Exclude<ExcalidrawElement, ExcalidrawSelectionElement>;
+    const shape = ShapeCache.generateElementShape(element, {
+      isExporting: false,
+      canvasBackgroundColor: "#000000",
+      embedsValidationStatus: new Map(),
+      theme: THEME.DARK,
+    });
+
+    expect(getShapeStroke(shape)).toBe("#ffffff");
+  });
+
+  it("preserves dark-mode color transforms for dark exports", () => {
+    const element = API.createElement({
+      type: "rectangle",
+      strokeColor: "#ffffff",
+    }) as Exclude<ExcalidrawElement, ExcalidrawSelectionElement>;
+    const shape = ShapeCache.generateElementShape(element, {
+      isExporting: true,
+      canvasBackgroundColor: "#000000",
+      embedsValidationStatus: new Map(),
+      theme: THEME.DARK,
+    });
+
+    expect(getShapeStroke(shape)).toBe(applyDarkModeFilter("#ffffff"));
+  });
+
   it.each(FILLABLE_GENERIC_TYPES)(
     "generates a %s shape without throwing",
     (type) => {

@@ -198,7 +198,7 @@ function adjustRoughness(element: ExcalidrawElement): number {
 export const generateRoughOptions = (
   element: ExcalidrawElement,
   continuousPath = false,
-  isDarkMode: boolean = false,
+  isDarkMode = false,
 ): Options => {
   const options: Options = {
     seed: element.seed,
@@ -390,17 +390,13 @@ const getArrowheadShapes = (
   generator: RoughGenerator,
   options: Options,
   canvasBackgroundColor: string,
-  isDarkMode: boolean,
 ) => {
   if (arrowhead === null) {
     return [];
   }
 
   const strokeColor = element.strokeColor;
-  const backgroundFillColor = canvasBackgroundColor; /*applyDarkModeFilter(
-    canvasBackgroundColor,
-    isDarkMode,
-  );*/
+  const backgroundFillColor = canvasBackgroundColor;
   const cardinalityOneOrManyOffset = -0.25;
   const cardinalityZeroCircleScale = 0.8;
 
@@ -783,7 +779,7 @@ const _generateElementShape = (
     theme?: AppState["theme"];
   },
 ): ElementShape => {
-  const isDarkMode = theme === THEME.DARK;
+  const isDarkMode = theme === THEME.DARK && isExporting;
   switch (element.type) {
     case "rectangle":
     case "iframe":
@@ -963,7 +959,6 @@ const _generateElementShape = (
             generator,
             options,
             canvasBackgroundColor,
-            isDarkMode,
           );
           shape.push(...shapes);
         }
@@ -981,7 +976,6 @@ const _generateElementShape = (
             generator,
             options,
             canvasBackgroundColor,
-            isDarkMode,
           );
           shape.push(...shapes);
         }

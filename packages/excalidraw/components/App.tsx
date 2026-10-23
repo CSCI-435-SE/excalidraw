@@ -86,7 +86,6 @@ import {
   getDateTime,
   isShallowEqual,
   arrayToMap,
-  applyDarkModeFilter,
   AppEventBus,
   type EXPORT_IMAGE_TYPES,
   randomInteger,
@@ -2140,10 +2139,7 @@ class App extends React.Component<AppProps, AppState> {
               }
             }}
             style={{
-              background: applyDarkModeFilter(
-                this.state.viewBackgroundColor,
-                isDarkTheme,
-              ),
+              background: this.state.viewBackgroundColor,
               zIndex: 2,
               border: "none",
               display: "block",
