@@ -1241,6 +1241,60 @@ const CONSTANT_WIDTH_FREEDRAW = {
   SIZE_FACTOR: 1.4,
 } as const;
 
+const FREEDRAW_POINTER_JUMP = {
+  /**
+   * Gap between consecutive points, relative to `strokeWidth`, above which
+   * it's treated as a pointer jump (dropped frames, pen re-entering hover
+   * range, ...) rather than fast drawing. Smaller gaps are left untouched so
+   * fast strokes keep their speed-based thinning.
+   */
+  MIN_GAP_FACTOR: 16,
+  /** Spacing, relative to `strokeWidth`, of the points filled into a jump. */
+  SPACING_FACTOR: 2,
+} as const;
+
+/**
+ * Returns the element's points (with pressures, if not simulated) with
+ * pointer jumps filled in by evenly spaced points. Both stroke generators
+ * smooth per sample rather than per distance, so a single long segment would
+ * otherwise come out as flat facets and, with simulated pressure, a pinched
+ * stroke after the jump. Rendering-only; stored points are left as drawn.
+ */
+const getFreedrawInputPoints = (
+  element: ExcalidrawFreeDrawElement,
+): number[][] => {
+  const { points, pressures, simulatePressure, strokeWidth } = element;
+  const minGap = strokeWidth * FREEDRAW_POINTER_JUMP.MIN_GAP_FACTOR;
+  const spacing = strokeWidth * FREEDRAW_POINTER_JUMP.SPACING_FACTOR;
+
+  const toInputPoint = (x: number, y: number, pressure: number) =>
+    simulatePressure ? [x, y] : [x, y, pressure];
+
+  const inputPoints: number[][] = [];
+  for (let i = 0; i < points.length; i++) {
+    const [x, y] = points[i];
+    if (i > 0 && spacing > 0) {
+      const [prevX, prevY] = points[i - 1];
+      const gap = Math.hypot(x - prevX, y - prevY);
+      if (gap > minGap) {
+        const steps = Math.ceil(gap / spacing);
+        for (let step = 1; step < steps; step++) {
+          const t = step / steps;
+          inputPoints.push(
+            toInputPoint(
+              prevX + (x - prevX) * t,
+              prevY + (y - prevY) * t,
+              pressures[i - 1] + (pressures[i] - pressures[i - 1]) * t,
+            ),
+          );
+        }
+      }
+    }
+    inputPoints.push(toInputPoint(x, y, pressures[i]));
+  }
+  return inputPoints;
+};
+
 const getFreedrawStreamline = (element: ExcalidrawFreeDrawElement) =>
   element.strokeOptions?.streamline ?? DEFAULT_STROKE_STREAMLINE;
 
@@ -1252,15 +1306,12 @@ const getVariableWidthFreedrawOutline = (
   element: ExcalidrawFreeDrawElement,
 ): [number, number][] => {
   // If input points are empty (should they ever be?) return a dot
-  const inputPoints = element.simulatePressure
-    ? element.points
-    : element.points.length
-    ? element.points.map(
-        ([x, y], i) => [x, y, element.pressures[i]] as [number, number, number],
-      )
-    : [[0, 0, 0.5]];
+  const inputPoints =
+    element.simulatePressure || element.points.length
+      ? getFreedrawInputPoints(element)
+      : [[0, 0, 0.5]];
 
-  return getStroke(inputPoints as number[][], {
+  return getStroke(inputPoints, {
     simulatePressure: element.simulatePressure,
     size: element.strokeWidth * VARIABLE_WIDTH_FREEDRAW.SIZE_FACTOR,
     thinning: VARIABLE_WIDTH_FREEDRAW.THINNING,
@@ -1287,7 +1338,9 @@ const getConstantWidthFreedrawOutline = (
   element: ExcalidrawFreeDrawElement,
 ): [number, number][] => {
   const laserPointer = createLaserPointer(element);
-  element.points.map(([x, y]) => laserPointer.addPoint([x, y, 1]));
+  getFreedrawInputPoints(element).forEach(([x, y]) =>
+    laserPointer.addPoint([x, y, 1]),
+  );
 
   return laserPointer
     .getStrokeOutline()
@@ -1307,10 +1360,12 @@ const med = (A: number[], B: number[]) => {
   return [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2];
 };
 
-// Trim SVG path data so number are each two decimal points. This
-// improves SVG exports, and prevents rendering errors on points
-// with long decimals.
-const TO_FIXED_PRECISION = /(\s?[A-Z]?,?-?[0-9]*\.[0-9]{0,2})(([0-9]|e|-)*)/g;
+// Round SVG path data to two decimal points. This improves SVG exports, and
+// prevents rendering errors on points with long decimals. Rounds the numbers
+// themselves rather than trimming their string form, as floating point noise
+// such as 3.4e-16 would otherwise be trimmed to 3.4 and spike the outline.
+const formatPathPoint = ([x, y]: number[]) =>
+  `${Number(x.toFixed(2))},${Number(y.toFixed(2))}`;
 
 const getSvgPathFromStroke = (points: number[][]): string => {
   if (!points.length) {
@@ -1323,16 +1378,24 @@ const getSvgPathFromStroke = (points: number[][]): string => {
     .reduce(
       (acc, point, i, arr) => {
         if (i === max) {
-          acc.push(point, med(point, arr[0]), "L", arr[0], "Z");
+          acc.push(
+            formatPathPoint(point),
+            formatPathPoint(med(point, arr[0])),
+            "L",
+            formatPathPoint(arr[0]),
+            "Z",
+          );
         } else {
-          acc.push(point, med(point, arr[i + 1]));
+          acc.push(
+            formatPathPoint(point),
+            formatPathPoint(med(point, arr[i + 1])),
+          );
         }
         return acc;
       },
-      ["M", points[0], "Q"],
+      ["M", formatPathPoint(points[0]), "Q"],
     )
-    .join(" ")
-    .replace(TO_FIXED_PRECISION, "$1");
+    .join(" ");
 };
 
 // -----------------------------------------------------------------------------
