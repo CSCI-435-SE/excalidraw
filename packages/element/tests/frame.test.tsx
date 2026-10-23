@@ -782,6 +782,8 @@ describe("adding elements to frames", () => {
             selectedElements: getSelectedElements(h.elements, h.state),
             selectedElementsAreBeingDragged,
             frameToHighlight: frame as NonDeleted<ExcalidrawFrameLikeElement>,
+            hiddenCollaboratorIds: h.state.hiddenCollaboratorIds,
+            collaboratorDirectory: h.state.collaboratorDirectory,
           })
           .visibleElements.map((element) => element.id);
       };
@@ -846,6 +848,8 @@ describe("adding elements to frames", () => {
           selectedElements: getSelectedElements(h.elements, h.state),
           selectedElementsAreBeingDragged: true,
           frameToHighlight: frame as NonDeleted<ExcalidrawFrameLikeElement>,
+          hiddenCollaboratorIds: h.state.hiddenCollaboratorIds,
+          collaboratorDirectory: h.state.collaboratorDirectory,
         })
         .visibleElements.map((element) => element.id);
 

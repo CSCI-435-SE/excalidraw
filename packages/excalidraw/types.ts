@@ -92,6 +92,13 @@ export type Collaborator = Readonly<{
   isMuted?: boolean;
 }>;
 
+/** a collaborator seen at some point in the current room */
+export type CollaboratorDirectoryEntry = Readonly<{
+  username: string | null;
+  /** epoch ms */
+  lastSeen: number;
+}>;
+
 export type CollaboratorPointer = {
   x: number;
   y: number;
@@ -370,6 +377,15 @@ export interface AppState {
     originalPositions: Record<string, { x: number; y: number }>;
   } | null;
   /**
+   * set while working with a mask shape: `picking` is masking mode, where the
+   * user double-clicks the element the mask should clip; `editing` shows the
+   * mask's options. Never persisted, never undo-tracked.
+   */
+  maskEditor: {
+    maskId: ExcalidrawElement["id"];
+    mode: "picking" | "editing";
+  } | null;
+  /**
    * decoupled from newElement, dragging selection only creates selectionElement
    * - set on pointer down, updated during pointer move
    */
@@ -549,6 +565,19 @@ export interface AppState {
   userToFollow: UserToFollow | null;
   /** the socket ids of the users following the current user */
   followedBy: Set<SocketId>;
+  /** creator ids whose elements are hidden on this client only (never synced) */
+  hiddenCollaboratorIds: ReadonlySet<string>;
+  /**
+   * collaborators this client has seen in the current room, keyed by their
+   * client id (= elements' creator id). Supplied by the host app; `null`
+   * outside of a room.
+   */
+  collaboratorDirectory: ReadonlyMap<string, CollaboratorDirectoryEntry> | null;
+  /**
+   * while the user's own drawings are hidden the editor is locked to view
+   * mode; this holds the view mode to restore afterwards (`null` = not locked)
+   */
+  viewModeBeforeSelfHide: boolean | null;
 
   /** image cropping */
   isCropping: boolean;

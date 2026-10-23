@@ -45,6 +45,7 @@ import {
 } from "./heading";
 import { LinearElementEditor } from "./linearElementEditor";
 import { mutateElement } from "./mutateElement";
+import { excludeElementsByHiddenCreators } from "./ownership";
 import { getBoundTextElement, handleBindTextResize } from "./textElement";
 import {
   isArrowElement,
@@ -615,12 +616,21 @@ export const getBindingStrategyForDraggingBindingElementEndpoints = (
     gridSize?: NullableGridSize;
   },
 ): { start: BindingStrategy; end: BindingStrategy } => {
+  // binding chokepoint: arrows can't newly bind to elements of collaborators
+  // hidden on this client. Existing bindings are kept (`updateArrowBindings`
+  // intentionally uses the unfiltered elements)
+  const bindableElements = excludeElementsByHiddenCreators(
+    elements,
+    appState,
+    elementsMap,
+  );
+
   if (getFeatureFlag("COMPLEX_BINDINGS")) {
     return getBindingStrategyForDraggingBindingElementEndpoints_complex(
       arrow,
       draggingPoints,
       elementsMap,
-      elements,
+      bindableElements,
       appState,
       opts,
     );
@@ -632,7 +642,7 @@ export const getBindingStrategyForDraggingBindingElementEndpoints = (
     screenPointerX,
     screenPointerY,
     elementsMap,
-    elements,
+    bindableElements,
     appState,
     opts,
   );

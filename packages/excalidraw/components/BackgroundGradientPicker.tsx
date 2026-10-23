@@ -1,23 +1,72 @@
 import { useEffect, useRef, useState } from "react";
 
 import {
+  colorToHex,
+  colorToOklch,
+  getOklchCusp,
+  OKLCH_MAX_CHROMA,
+  oklchToHex,
+} from "@excalidraw/common";
+import {
   createGradientBackground,
   getGradientColors,
   type GradientType,
 } from "@excalidraw/element";
 
+import type { Oklch } from "@excalidraw/common";
+
 import { t } from "../i18n";
 
 import { ColorInput } from "./ColorPicker/ColorInput";
+import { GradientColorWheel } from "./ColorPicker/GradientColorWheel";
 import PickerHeading from "./ColorPicker/PickerHeading";
-import { Range } from "./Range";
 
 import "./BackgroundGradientPicker.scss";
+
+import type { GradientWheelStop } from "./ColorPicker/GradientColorWheel";
 
 const GRADIENT_START_COLOR = "#000000";
 const GRADIENT_END_COLOR = "#ffffff";
 const MIN_STOP_POSITION = 0;
 const MAX_STOP_POSITION = 100;
+const GRADIENT_NAV_KEYS = new Set([
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowUp",
+  "ArrowDown",
+  "Home",
+  "End",
+  "PageUp",
+  "PageDown",
+]);
+
+// The lightness slider tops out at white only for grey (zero chroma). With
+// chroma, 100% is the lightest color that still keeps that chroma: a point on
+// the sRGB gamut's upper edge, which runs from white to the hue's cusp. A curve
+// spreads out the lighter end, since low OKLCH lightness looks near-black.
+const LIGHTNESS_CURVE = 0.6;
+
+const getMaxLightness = ({ c, h }: Pick<Oklch, "c" | "h">) => {
+  const cusp = getOklchCusp(h);
+  return 1 - (1 - cusp.l) * Math.min(1, c / cusp.c);
+};
+
+const sliderToLightness = (value: number, color: Pick<Oklch, "c" | "h">) =>
+  getMaxLightness(color) * (value / 100) ** LIGHTNESS_CURVE;
+
+/** slider track showing the stop's color from black to its 100% lightness */
+const getLightnessTrack = (color: Pick<Oklch, "c" | "h">) =>
+  `linear-gradient(to right, ${[0, 25, 50, 75, 100]
+    .map((value) =>
+      oklchToHex({ ...color, l: sliderToLightness(value, color) }),
+    )
+    .join(", ")})`;
+
+const lightnessToSlider = (color: Oklch) =>
+  Math.round(
+    Math.min(1, color.l / getMaxLightness(color)) ** (1 / LIGHTNESS_CURVE) *
+      100,
+  );
 
 export const BackgroundGradientPicker = ({
   color,
@@ -51,6 +100,35 @@ export const BackgroundGradientPicker = ({
   const previousSolidColor = useRef(
     initialGradient ? "transparent" : color || "transparent",
   );
+  // last OKLCH value and lightness slider value per stop, so hue/chroma
+  // survive round-trips through hex (e.g. hue is lost when dragging lightness
+  // to 0 or chroma to the center)
+  const stopCache = useRef<
+    Partial<Record<GradientWheelStop, { oklch: Oklch; lightness: number }>>
+  >({});
+
+  const getStop = (stop: GradientWheelStop, stopColor: string) => {
+    const cached = stopCache.current[stop];
+    if (
+      cached &&
+      oklchToHex(cached.oklch) === colorToHex(stopColor)?.slice(0, 7)
+    ) {
+      return cached;
+    }
+    const oklch = colorToOklch(stopColor) ?? { l: 0, c: 0, h: 0 };
+    const next = { oklch, lightness: lightnessToSlider(oklch) };
+    stopCache.current[stop] = next;
+    return next;
+  };
+
+  const stops = {
+    a: getStop("a", startColor),
+    b: getStop("b", endColor),
+  };
+  const stopOklch: Record<GradientWheelStop, Oklch> = {
+    a: stops.a.oklch,
+    b: stops.b.oklch,
+  };
 
   const applyGradient = (
     changes: Partial<{
@@ -106,6 +184,21 @@ export const BackgroundGradientPicker = ({
     applyGradient({ endColor: value });
   };
 
+  const updateStop = (
+    stop: GradientWheelStop,
+    { c, h }: Pick<Oklch, "c" | "h">,
+    lightness: number,
+  ) => {
+    const oklch = { l: sliderToLightness(lightness, { c, h }), c, h };
+    stopCache.current[stop] = { oklch, lightness };
+    const hex = oklchToHex(oklch);
+    if (stop === "a") {
+      updateStartColor(hex);
+    } else {
+      updateEndColor(hex);
+    }
+  };
+
   const updateGradientType = (type: GradientType) => {
     setGradientType(type);
     applyGradient({ type });
@@ -142,9 +235,8 @@ export const BackgroundGradientPicker = ({
     if (!bounds || bounds.width === 0) {
       return;
     }
-    const previewPosition =
+    const position =
       ((event.clientX - bounds.left) / bounds.width) * MAX_STOP_POSITION;
-    const position = MAX_STOP_POSITION - previewPosition;
     if (stop === "start") {
       updateStartPosition(position);
     } else {
@@ -182,8 +274,7 @@ export const BackgroundGradientPicker = ({
     event: React.KeyboardEvent<HTMLButtonElement>,
     stop: "start" | "end",
   ) => {
-    const currentPosition =
-      MAX_STOP_POSITION - (stop === "start" ? startPosition : endPosition);
+    const currentPosition = stop === "start" ? startPosition : endPosition;
     const step = event.shiftKey ? 10 : 1;
     let nextPosition: number;
     switch (event.key) {
@@ -206,9 +297,9 @@ export const BackgroundGradientPicker = ({
     }
     event.preventDefault();
     if (stop === "start") {
-      updateStartPosition(MAX_STOP_POSITION - nextPosition);
+      updateStartPosition(nextPosition);
     } else {
-      updateEndPosition(MAX_STOP_POSITION - nextPosition);
+      updateEndPosition(nextPosition);
     }
   };
 
@@ -235,33 +326,126 @@ export const BackgroundGradientPicker = ({
   };
 
   return (
-    <div className="background-gradient-picker">
-      <label className="background-gradient-picker__toggle">
-        <input
-          type="checkbox"
-          checked={enabled}
-          onChange={(event) => toggleGradient(event.target.checked)}
-          onKeyDown={(event) => event.stopPropagation()}
-        />
-        <PickerHeading>{t("colorPicker.gradientEnabled")}</PickerHeading>
-      </label>
+    <div
+      className="background-gradient-picker"
+      onKeyDown={(event) => {
+        // keep slider keys away from the color picker's palette navigation,
+        // which would otherwise replace the gradient with a swatch color
+        if (GRADIENT_NAV_KEYS.has(event.key)) {
+          event.stopPropagation();
+        }
+      }}
+    >
+      <div className="background-gradient-picker__header">
+        <label className="background-gradient-picker__toggle">
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(event) => toggleGradient(event.target.checked)}
+            onKeyDown={(event) => event.stopPropagation()}
+          />
+          <PickerHeading>{t("colorPicker.gradientEnabled")}</PickerHeading>
+        </label>
+        {enabled && (
+          <span className="background-gradient-picker__chip">
+            {t("colorPicker.gradientColorSpace")}
+          </span>
+        )}
+      </div>
       {enabled && (
         <>
-          <div
-            className="background-gradient-picker__type-switch"
-            role="group"
-            aria-label={t("colorPicker.gradientType")}
-          >
-            {(["linear", "radial"] as const).map((type) => (
-              <button
-                key={type}
-                type="button"
-                aria-pressed={gradientType === type}
-                onClick={() => updateGradientType(type)}
+          <GradientColorWheel
+            colors={stopOklch}
+            onChange={(stop, oklch) =>
+              updateStop(stop, oklch, stops[stop].lightness)
+            }
+          />
+          {(
+            [
+              ["a", startColor, updateStartColor],
+              ["b", endColor, updateEndColor],
+            ] as const
+          ).map(([stop, stopColor, updateColor]) => {
+            const oklch = stopOklch[stop];
+            const label = t(
+              stop === "a"
+                ? "colorPicker.gradientColorA"
+                : "colorPicker.gradientColorB",
+            );
+            const { lightness } = stops[stop];
+            return (
+              <div
+                key={stop}
+                className="background-gradient-picker__card"
+                data-testid={`gradient-card-${stop}`}
               >
-                {t(`colorPicker.gradientType_${type}`)}
-              </button>
-            ))}
+                <div className="background-gradient-picker__card-row">
+                  <span
+                    className="background-gradient-picker__badge"
+                    aria-hidden="true"
+                  >
+                    {stop.toUpperCase()}
+                  </span>
+                  <ColorInput
+                    color={stopColor}
+                    label={label}
+                    colorPickerType="elementBackground"
+                    onChange={updateColor}
+                    manageActiveSection={false}
+                  />
+                </div>
+                <div className="background-gradient-picker__card-row">
+                  <input
+                    type="range"
+                    className="background-gradient-picker__slider"
+                    aria-label={`${label} ${t(
+                      "colorPicker.gradientLightness",
+                    )}`}
+                    data-testid={`gradient-lightness-${stop}`}
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={lightness}
+                    onChange={(event) =>
+                      updateStop(stop, oklch, +event.target.value)
+                    }
+                    style={{
+                      ["--slider-track" as string]: getLightnessTrack(oklch),
+                    }}
+                  />
+                  <span
+                    className="background-gradient-picker__readout"
+                    title={`H ${Math.round(oklch.h)}° / C ${Math.round(
+                      (Math.min(oklch.c, OKLCH_MAX_CHROMA) / OKLCH_MAX_CHROMA) *
+                        100,
+                    )}%`}
+                  >
+                    {`L ${lightness}%`}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+          <div className="background-gradient-picker__header">
+            <PickerHeading>
+              {t("colorPicker.gradientPreviewHeading")}
+            </PickerHeading>
+            <div
+              className="background-gradient-picker__type-switch"
+              role="group"
+              aria-label={t("colorPicker.gradientType")}
+            >
+              {(["linear", "radial"] as const).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  aria-pressed={gradientType === type}
+                  onClick={() => updateGradientType(type)}
+                >
+                  {t(`colorPicker.gradientType_${type}`)}
+                </button>
+              ))}
+            </div>
           </div>
           <div
             ref={previewRef}
@@ -277,15 +461,15 @@ export const BackgroundGradientPicker = ({
                 startColor,
                 endColor,
                 90,
-                MAX_STOP_POSITION - endPosition,
-                MAX_STOP_POSITION - startPosition,
+                startPosition,
+                endPosition,
               ),
             }}
           >
             {(
               [
-                ["end", MAX_STOP_POSITION - endPosition],
-                ["start", MAX_STOP_POSITION - startPosition],
+                ["start", startPosition],
+                ["end", endPosition],
               ] as const
             ).map(([stop, position]) => (
               <button
@@ -313,47 +497,35 @@ export const BackgroundGradientPicker = ({
               />
             ))}
           </div>
-          {gradientType === "linear" && (
-            <Range
-              label={
-                <span className="background-gradient-picker__angle-label">
-                  {t("colorPicker.gradientAngle")}
-                </span>
-              }
-              value={angle}
-              onChange={updateAngle}
-              min={0}
-              max={360}
-              step={1}
-              minLabel="0°"
-              hasCommonValue={false}
-              testId="gradient-angle"
-              alwaysShowValue
-              formatValue={(value) => `${value}°`}
-            />
-          )}
-          <div className="background-gradient-picker__stops">
-            <div className="background-gradient-picker__stop">
-              <span>{t("colorPicker.gradientStart")}</span>
-              <ColorInput
-                color={startColor}
-                label={t("colorPicker.gradientStart")}
-                colorPickerType="elementBackground"
-                onChange={updateStartColor}
-                manageActiveSection={false}
-              />
-            </div>
-            <div className="background-gradient-picker__stop">
-              <span>{t("colorPicker.gradientEnd")}</span>
-              <ColorInput
-                color={endColor}
-                label={t("colorPicker.gradientEnd")}
-                colorPickerType="elementBackground"
-                onChange={updateEndColor}
-                manageActiveSection={false}
-              />
-            </div>
+          <div className="background-gradient-picker__amounts">
+            <span>{`A · ${startPosition}%`}</span>
+            <span>{`B · ${endPosition}%`}</span>
           </div>
+          {gradientType === "linear" && (
+            <label className="background-gradient-picker__angle">
+              <span className="background-gradient-picker__angle-label">
+                {t("colorPicker.gradientAngle")}
+              </span>
+              <input
+                type="range"
+                className="background-gradient-picker__slider"
+                data-testid="gradient-angle"
+                min={0}
+                max={360}
+                step={1}
+                value={angle}
+                onChange={(event) => updateAngle(+event.target.value)}
+                style={{
+                  ["--slider-track" as string]: `linear-gradient(to right, var(--color-slider-track) ${
+                    (angle / 360) * 100
+                  }%, var(--button-bg) ${(angle / 360) * 100}%)`,
+                }}
+              />
+              <span className="background-gradient-picker__readout">
+                {`${angle}°`}
+              </span>
+            </label>
+          )}
         </>
       )}
     </div>

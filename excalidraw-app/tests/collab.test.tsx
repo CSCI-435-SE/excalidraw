@@ -3,7 +3,7 @@ import {
   createRedoAction,
   createUndoAction,
 } from "@excalidraw/excalidraw/actions/actionHistory";
-import { syncInvalidIndices } from "@excalidraw/element";
+import { CREATOR_ID_KEY, syncInvalidIndices } from "@excalidraw/element";
 import { API } from "@excalidraw/excalidraw/tests/helpers/api";
 import { act, render, waitFor } from "@excalidraw/excalidraw/tests/test-utils";
 import { vi } from "vitest";
@@ -12,6 +12,9 @@ import { StoreIncrement } from "@excalidraw/element";
 
 import type { DurableIncrement, EphemeralIncrement } from "@excalidraw/element";
 
+import type { SocketId } from "@excalidraw/excalidraw/types";
+
+import { STORAGE_KEYS } from "../app_constants";
 import ExcalidrawApp from "../App";
 
 const { h } = window;
@@ -247,6 +250,88 @@ describe("collaboration", () => {
         expect.objectContaining(rect1Props),
         expect.objectContaining({ ...rect2Props, isDeleted: true }),
       ]);
+    });
+  });
+
+  it("stamps the room creator's existing drawings with their client id", async () => {
+    // previous tests' startCollaboration() pushed a room link, which would
+    // make the app auto-join that room instead of letting us create one
+    window.history.replaceState({}, "", window.location.origin);
+    await render(<ExcalidrawApp />);
+
+    const mine = API.createElement({ type: "rectangle", id: "mine" });
+    // e.g. a copy of a collaborator's element pasted before starting the room
+    const pasted = newElementWith(
+      API.createElement({ type: "rectangle", id: "pasted" }),
+      { customData: { [CREATOR_ID_KEY]: "someone-else", keep: true } },
+    );
+
+    API.updateScene({
+      elements: syncInvalidIndices([mine, pasted]),
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    });
+    const versionsBefore = h.elements.map((el) => el.version);
+
+    window.collab.startCollaboration(null);
+
+    await waitFor(() => {
+      const clientId = window.collab.getClientId();
+      expect(clientId).toBeTruthy();
+      expect(h.elements.map((el) => el.customData)).toEqual([
+        { [CREATOR_ID_KEY]: clientId },
+        { [CREATOR_ID_KEY]: clientId, keep: true },
+      ]);
+    });
+
+    // versions bumped so the stamp syncs to the room
+    h.elements.forEach((el, i) => {
+      expect(el.version).toBeGreaterThan(versionsBefore[i]);
+    });
+  });
+
+  it("keeps a per-room directory of seen collaborators", async () => {
+    window.history.replaceState({}, "", window.location.origin);
+    localStorage.clear();
+    await render(<ExcalidrawApp />);
+
+    window.collab.startCollaboration(null);
+
+    // we're in our own room's directory as soon as it starts
+    await waitFor(() => {
+      const clientId = window.collab.getClientId()!;
+      expect(clientId).toBeTruthy();
+      expect(h.state.collaboratorDirectory?.has(clientId)).toBe(true);
+    });
+
+    // a peer identifies itself (USER_IDENTITY / pointer / idle all end here)
+    act(() => {
+      window.collab.updateCollaborator("peer-socket" as SocketId, {
+        id: "peer-client",
+        username: "Peer",
+      });
+    });
+
+    expect(h.state.collaboratorDirectory?.get("peer-client")).toEqual(
+      expect.objectContaining({ username: "Peer" }),
+    );
+    // persisted (survives tab close) under the room id
+    const roomId = window.collab.portal.roomId!;
+    expect(
+      JSON.parse(
+        localStorage.getItem(
+          STORAGE_KEYS.LOCAL_STORAGE_COLLABORATOR_DIRECTORY,
+        )!,
+      )[roomId].entries,
+    ).toHaveProperty("peer-client");
+
+    // leaving the room clears directory + hidden state
+    act(() => {
+      API.setAppState({ hiddenCollaboratorIds: new Set(["peer-client"]) });
+      window.collab.stopCollaboration(false);
+    });
+    await waitFor(() => {
+      expect(h.state.collaboratorDirectory).toBe(null);
+      expect(h.state.hiddenCollaboratorIds.size).toBe(0);
     });
   });
 });

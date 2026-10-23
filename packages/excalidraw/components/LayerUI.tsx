@@ -26,6 +26,7 @@ import { useAtom, useAtomValue } from "../editor-jotai";
 
 import { t } from "../i18n";
 import { getScrollToContentState } from "../scene";
+import { getLocallyVisibleElements } from "../scene/visibility";
 
 import { SelectedShapeActions, CompactShapeActions } from "./Actions";
 import { LoadingMessage } from "./LoadingMessage";
@@ -34,6 +35,7 @@ import { PasteChartDialog } from "./PasteChartDialog";
 import { Section } from "./Section";
 import Stack from "./Stack";
 import { UserList } from "./UserList";
+import { CollaboratorVisibilityMenu } from "./CollaboratorVisibility/CollaboratorVisibilityMenu";
 import { PenModeButton } from "./PenModeButton";
 import Footer from "./footer/Footer";
 import { isSidebarDockedAtom } from "./Sidebar/Sidebar";
@@ -54,6 +56,7 @@ import { GridPanel } from "./GridPanel";
 import { HelpDialog } from "./HelpDialog";
 import { ImageExportDialog } from "./ImageExportDialog";
 import { Island } from "./Island";
+import { MaskingModeBar } from "./MaskingModeBar";
 import { JSONExportDialog } from "./JSONExportDialog";
 import { LaserPointerButton } from "./LaserPointerButton";
 import { Toast } from "./Toast";
@@ -188,7 +191,8 @@ const LayerUI = ({
 
     return (
       <JSONExportDialog
-        elements={elements}
+        // exports (link, custom/Excalidraw+ UI) only contain visible elements
+        elements={getLocallyVisibleElements(elements, appState)}
         appState={appState}
         files={files}
         actionManager={actionManager}
@@ -393,6 +397,7 @@ const LayerUI = ({
                 userToFollow={appState.userToFollow?.socketId || null}
               />
             )}
+            {appState.collaborators.size > 0 && <CollaboratorVisibilityMenu />}
             {renderTopRightUI?.(
               editorInterface.formFactor === "phone",
               appState,
@@ -598,7 +603,9 @@ const LayerUI = ({
               showExitZenModeBtn={showExitZenModeBtn}
               renderWelcomeScreen={renderWelcomeScreen}
             />
-            {(appState.toast || appState.scrolledOutside) && (
+            {(appState.toast ||
+              appState.scrolledOutside ||
+              appState.maskEditor?.mode === "picking") && (
               <div className="floating-status-stack">
                 {appState.toast && (
                   <Toast
@@ -620,6 +627,9 @@ const LayerUI = ({
                   >
                     {t("buttons.scrollBackToContent")}
                   </button>
+                )}
+                {appState.maskEditor?.mode === "picking" && (
+                  <MaskingModeBar actionManager={actionManager} />
                 )}
               </div>
             )}

@@ -264,6 +264,8 @@ import {
   getPathsTargetingElement,
   getPathTargetElements,
   snapPathTargetsToStart,
+  canBeMasked,
+  isMaskElement,
 } from "@excalidraw/element";
 
 import type { GlobalPoint, LocalPoint, Radians } from "@excalidraw/math";
@@ -339,6 +341,17 @@ import {
   actionToggleArrowBinding,
   actionToggleMidpointSnapping,
   actionToggleCropEditor,
+  actionToggleCollaboratorVisibility,
+  actionZoomIn,
+  actionZoomInFine,
+  actionZoomOut,
+  actionZoomOutFine,
+  actionResetZoom,
+  actionToggleMask,
+  actionApplyMask,
+  actionCancelMasking,
+  actionEditMask,
+  actionCloseMaskEditor,
 } from "../actions";
 import { actionWrapTextInContainer } from "../actions/actionBoundText";
 import { actionPaste } from "../actions/actionClipboard";
@@ -425,6 +438,13 @@ import {
 } from "../snapping";
 import { Renderer } from "../scene/Renderer";
 import {
+  getLocallyVisibleElements,
+  getSelectionWithoutHiddenElements,
+  getSelfCollaboratorId,
+  isElementHiddenLocally,
+  isOwnDrawingsHidden,
+} from "../scene/visibility";
+import {
   type SetViewportOptions,
   SCROLL_TO_CONTENT_ANIMATION_KEY,
   setViewportToBounds,
@@ -442,6 +462,7 @@ import {
 } from "../cursor";
 import { ElementCanvasButtons } from "../components/ElementCanvasButtons";
 import { MotionPathEditToolbar } from "../components/MotionPathEditToolbar";
+import { MaskEditToolbar } from "../components/MaskEditToolbar";
 import { LaserTrails } from "../laserTrails";
 import { withBatchedUpdates, withBatchedUpdatesThrottled } from "../reactUtils";
 import { isPointHittingTextAutoResizeHandle } from "../textAutoResizeHandle";
@@ -467,6 +488,7 @@ import BraveMeasureTextError from "./BraveMeasureTextError";
 import { ContextMenu, CONTEXT_MENU_SEPARATOR } from "./ContextMenu";
 import { activeEyeDropperAtom } from "./EyeDropper";
 import FollowMode from "./FollowMode/FollowMode";
+import { OwnDrawingsHiddenBanner } from "./CollaboratorVisibility/OwnDrawingsHiddenBanner";
 import { isGridPanelOpenAtom, openGridPanel } from "./GridPanel";
 import LayerUI from "./LayerUI";
 import { ElementCanvasButton } from "./MagicButton";
@@ -1057,7 +1079,7 @@ class App extends React.Component<AppProps, AppState> {
           this.lastPointerMoveCoords.x,
           this.lastPointerMoveCoords.y,
         ),
-        this.scene.getNonDeletedElements(),
+        this.getBindableElements(),
         elementsMap,
       );
       const element = LinearElementEditor.getElement<ExcalidrawLinearElement>(
@@ -1190,7 +1212,7 @@ class App extends React.Component<AppProps, AppState> {
       const { x, y } = this.lastPointerMoveCoords;
       const hoveredElement = getHoveredElementForBinding(
         pointFrom<GlobalPoint>(x, y),
-        this.scene.getNonDeletedElements(),
+        this.getBindableElements(),
         this.scene.getNonDeletedElementsMap(),
       );
 
@@ -1670,13 +1692,15 @@ class App extends React.Component<AppProps, AppState> {
     const normalizedWidth = this.state.width;
     const normalizedHeight = this.state.height;
 
+    const elementsMap = this.scene.getNonDeletedElementsMap();
     const embeddableElements = this.scene
       .getNonDeletedElements()
       .filter(
         (el): el is Ordered<NonDeleted<ExcalidrawIframeLikeElement>> =>
-          (isEmbeddableElement(el) &&
+          ((isEmbeddableElement(el) &&
             this.embedsValidationStatus.get(el.id) === true) ||
-          isIframeElement(el),
+            isIframeElement(el)) &&
+          !isElementHiddenLocally(el, elementsMap, this.state),
       );
 
     return (
@@ -2043,7 +2067,11 @@ class App extends React.Component<AppProps, AppState> {
     }
 
     const isDarkTheme = this.state.theme === THEME.DARK;
-    const nonDeletedFramesLikes = this.scene.getNonDeletedFramesLikes();
+    const elementsMap = this.scene.getNonDeletedElementsMap();
+    // frame names are DOM nodes, so they bypass the canvas renderer's filter
+    const nonDeletedFramesLikes = this.scene
+      .getNonDeletedFramesLikes()
+      .filter((f) => !isElementHiddenLocally(f, elementsMap, this.state));
 
     const focusedSearchMatch =
       nonDeletedFramesLikes.length > 0
@@ -2231,6 +2259,8 @@ class App extends React.Component<AppProps, AppState> {
       selectedElementsAreBeingDragged:
         this.state.selectedElementsAreBeingDragged,
       frameToHighlight: this.state.frameToHighlight,
+      hiddenCollaboratorIds: this.state.hiddenCollaboratorIds,
+      collaboratorDirectory: this.state.collaboratorDirectory,
     });
     this.visibleElements = visibleElements;
     this.hasRenderableElements = renderableElementsMap.size > 0;
@@ -2466,6 +2496,20 @@ class App extends React.Component<AppProps, AppState> {
                               />
                             )}
 
+                          {this.state.maskEditor?.mode === "editing" &&
+                            allElementsMap.has(
+                              this.state.maskEditor.maskId,
+                            ) && (
+                              <MaskEditToolbar
+                                mask={
+                                  allElementsMap.get(
+                                    this.state.maskEditor.maskId,
+                                  )!
+                                }
+                                elementsMap={allElementsMap}
+                              />
+                            )}
+
                           {this.state.contextMenu && (
                             <ContextMenu
                               items={this.state.contextMenu.items}
@@ -2567,6 +2611,11 @@ class App extends React.Component<AppProps, AppState> {
                               height={this.state.height}
                               userToFollow={this.state.userToFollow}
                               onDisconnect={this.maybeUnfollowRemoteUser}
+                            />
+                          )}
+                          {isOwnDrawingsHidden(this.state) && (
+                            <OwnDrawingsHiddenBanner
+                              onShowOwnDrawings={this.showOwnDrawings}
                             />
                           )}
                           {this.renderFrameNames()}
@@ -3612,6 +3661,45 @@ class App extends React.Component<AppProps, AppState> {
       this.setState({ exportWithDarkMode: shouldExportWithDarkMode });
     }
 
+    // hidden collaborator elements must never stay selected (they could
+    // otherwise be deleted/modified for everyone), regardless of which code
+    // path selected them (select all, groups, search…)
+    if (
+      prevState.selectedElementIds !== this.state.selectedElementIds ||
+      prevState.selectedGroupIds !== this.state.selectedGroupIds ||
+      prevState.hiddenCollaboratorIds !== this.state.hiddenCollaboratorIds ||
+      // a creator can move into a hidden bucket (e.g. miscellaneous)
+      prevState.collaboratorDirectory !== this.state.collaboratorDirectory
+    ) {
+      const visibleSelection = getSelectionWithoutHiddenElements(
+        this.state,
+        this.scene.getNonDeletedElementsMap(),
+      );
+      if (visibleSelection) {
+        this.setState(visibleSelection);
+      }
+    }
+
+    // own drawings hidden → locked to view mode (anything drawn would vanish
+    // immediately). Enforced here so it holds however the hidden set changed
+    // (actions, host app, API)
+    if (isOwnDrawingsHidden(this.state)) {
+      if (this.state.viewModeBeforeSelfHide === null) {
+        this.setState({
+          viewModeBeforeSelfHide: this.state.viewModeEnabled,
+          viewModeEnabled: true,
+        });
+      } else if (!this.state.viewModeEnabled) {
+        this.setState({ viewModeEnabled: true });
+      }
+    } else if (this.state.viewModeBeforeSelfHide !== null) {
+      this.setState({
+        viewModeEnabled:
+          this.props.viewModeEnabled ?? this.state.viewModeBeforeSelfHide,
+        viewModeBeforeSelfHide: null,
+      });
+    }
+
     if (!this.state.showWelcomeScreen && !elements.length) {
       this.setState({ showWelcomeScreen: true });
     }
@@ -3752,6 +3840,22 @@ class App extends React.Component<AppProps, AppState> {
           this.actionManager.executeAction(actionFinishMotionPathEdit);
         }
       });
+    }
+
+    // the mask editor closes when its mask goes away (e.g. deleted or undone),
+    // masking mode also ends when another tool is picked, and the options
+    // close when the mask is deselected
+    const { maskEditor } = this.state;
+    if (
+      maskEditor &&
+      (!this.scene.getNonDeletedElementsMap().has(maskEditor.maskId) ||
+        (maskEditor.mode === "picking" &&
+          this.state.activeTool.type !==
+            this.state.preferredSelectionTool.type) ||
+        (maskEditor.mode === "editing" &&
+          !this.state.selectedElementIds[maskEditor.maskId]))
+    ) {
+      this.setState({ maskEditor: null });
     }
 
     if (
@@ -5157,6 +5261,45 @@ class App extends React.Component<AppProps, AppState> {
   };
 
   // Input handling
+  /**
+   * Escape leaves the mask editor. Masking mode only lets panning and zooming
+   * keys through. Returns whether the event was consumed.
+   */
+  private handleMaskEditorKeyDown = (
+    event: React.KeyboardEvent | KeyboardEvent,
+  ) => {
+    const { maskEditor } = this.state;
+    if (!maskEditor) {
+      return false;
+    }
+    if (maskEditor.mode === "editing") {
+      if (event.key === KEYS.ESCAPE) {
+        this.actionManager.executeAction(actionCloseMaskEditor);
+        return true;
+      }
+      return false;
+    }
+
+    if (event.key === KEYS.ESCAPE || actionToggleMask.keyTest?.(event)) {
+      event.preventDefault();
+      this.actionManager.executeAction(actionCancelMasking);
+      return true;
+    }
+
+    const elements = this.scene.getElementsIncludingDeleted();
+    const isZoomKey = (
+      [
+        actionZoomIn,
+        actionZoomInFine,
+        actionZoomOut,
+        actionZoomOutFine,
+        actionResetZoom,
+      ] as Action[]
+    ).some((action) => action.keyTest?.(event, this.state, elements, this));
+
+    return !isZoomKey && event.key !== KEYS.SPACE;
+  };
+
   private onKeyDown = withBatchedUpdates(
     (event: React.KeyboardEvent | KeyboardEvent) => {
       if (event.key === "Shift") {
@@ -5211,6 +5354,10 @@ class App extends React.Component<AppProps, AppState> {
       }
 
       if (!isInputLike(event.target)) {
+        if (this.handleMaskEditorKeyDown(event)) {
+          return;
+        }
+
         if (
           (event.key === KEYS.ESCAPE || event.key === KEYS.ENTER) &&
           this.state.croppingElementId
@@ -5757,7 +5904,7 @@ class App extends React.Component<AppProps, AppState> {
 
         const hoveredElement = getHoveredElementForBinding(
           pointFrom<GlobalPoint>(scenePointer.x, scenePointer.y),
-          this.scene.getNonDeletedElements(),
+          this.getBindableElements(),
           this.scene.getNonDeletedElementsMap(),
         );
 
@@ -6429,6 +6576,27 @@ class App extends React.Component<AppProps, AppState> {
     return null;
   }
 
+  /** leaves the "own drawings hidden" view-mode lock */
+  private showOwnDrawings = () => {
+    const selfId = getSelfCollaboratorId(this.state);
+    if (selfId && this.state.hiddenCollaboratorIds.has(selfId)) {
+      this.actionManager.executeAction(
+        actionToggleCollaboratorVisibility,
+        "ui",
+        selfId,
+      );
+    }
+  };
+
+  /** elements arrows may newly bind to (excludes hidden collaborators') */
+  private getBindableElements() {
+    return getLocallyVisibleElements(
+      this.scene.getNonDeletedElements(),
+      this.state,
+      this.scene.getNonDeletedElementsMap(),
+    );
+  }
+
   // NOTE: Hot path for hit testing, so avoid unnecessary computations
   private getElementsAtPosition(
     x: number,
@@ -6454,6 +6622,7 @@ class App extends React.Component<AppProps, AppState> {
                   !(isTextElement(element) && element.containerId)),
             )
     )
+      .filter((el) => !isElementHiddenLocally(el, elementsMap, this.state))
       .filter((el) => this.hitElement(x, y, el))
       .filter((element) => {
         // hitting a frame's element from outside the frame is not considered a hit
@@ -6555,7 +6724,14 @@ class App extends React.Component<AppProps, AppState> {
     let hitElement = null;
     // We need to do hit testing from front (end of the array) to back (beginning of the array)
     for (let index = elements.length - 1; index >= 0; --index) {
-      if (elements[index].isDeleted) {
+      if (
+        elements[index].isDeleted ||
+        isElementHiddenLocally(
+          elements[index],
+          this.scene.getNonDeletedElementsMap(),
+          this.state,
+        )
+      ) {
         continue;
       }
       const [x1, y1, x2, y2] = getElementAbsoluteCoords(
@@ -6856,6 +7032,81 @@ class App extends React.Component<AppProps, AppState> {
     });
   };
 
+  /** the mask whose text was last opened by double-clicking it */
+  private maskWithEditedText: ExcalidrawElement["id"] | null = null;
+
+  /**
+   * Double-clicking a mask shape edits its text as usual; the next
+   * double-click on it opens the mask options instead. Returns whether the
+   * options were opened.
+   */
+  private maybeOpenMaskEditor = (
+    event: Pick<React.MouseEvent<HTMLCanvasElement>, "clientX" | "clientY">,
+  ) => {
+    const { x, y } = viewportCoordsToSceneCoords(event, this.state);
+    const elementsMap = this.scene.getNonDeletedElementsMap();
+    let hitElement: ExcalidrawElement | null | undefined =
+      this.getElementAtPosition(x, y);
+
+    if (isTextElement(hitElement) && hitElement.containerId) {
+      hitElement = elementsMap.get(hitElement.containerId);
+    }
+
+    // a selected shape's (possibly transparent) inside counts as the shape
+    const [selectedElement] = this.scene.getSelectedElements(this.state);
+    if (
+      !hitElement &&
+      selectedElement &&
+      hitElementBoundingBox(pointFrom(x, y), selectedElement, elementsMap)
+    ) {
+      hitElement = selectedElement;
+    }
+
+    if (!hitElement || !isMaskElement(hitElement, elementsMap)) {
+      this.maskWithEditedText = null;
+      return false;
+    }
+
+    if (this.maskWithEditedText === hitElement.id) {
+      this.maskWithEditedText = null;
+      this.actionManager.executeAction(actionEditMask, "ui", hitElement.id);
+      return true;
+    }
+
+    // falls through to editing the mask's text
+    this.maskWithEditedText = hitElement.id;
+    return false;
+  };
+
+  /**
+   * Masking mode: double-clicking an element masks it, double-clicking empty
+   * canvas cancels. Elements that can't be masked are ignored.
+   */
+  private handleMaskingModeDoubleClick = (
+    event: Pick<React.MouseEvent<HTMLCanvasElement>, "clientX" | "clientY">,
+  ) => {
+    const { x, y } = viewportCoordsToSceneCoords(event, this.state);
+    const elementsMap = this.scene.getNonDeletedElementsMap();
+    let hitElement = this.getElementAtPosition(x, y);
+
+    // double-clicking a shape's label means the shape
+    if (isTextElement(hitElement) && hitElement.containerId) {
+      hitElement = elementsMap.get(hitElement.containerId) ?? hitElement;
+    }
+
+    if (!hitElement) {
+      this.actionManager.executeAction(actionCancelMasking, "ui");
+      return;
+    }
+
+    const mask = this.state.maskEditor
+      ? elementsMap.get(this.state.maskEditor.maskId)
+      : undefined;
+    if (mask && canBeMasked(hitElement, mask, elementsMap)) {
+      this.actionManager.executeAction(actionApplyMask, "ui", hitElement.id);
+    }
+  };
+
   private handleCanvasDoubleClick = (
     event: Pick<
       React.MouseEvent<HTMLCanvasElement>,
@@ -6874,6 +7125,16 @@ class App extends React.Component<AppProps, AppState> {
     ) {
       return;
     }
+
+    if (this.state.maskEditor?.mode === "picking") {
+      this.handleMaskingModeDoubleClick(event);
+      return;
+    }
+
+    if (this.maybeOpenMaskEditor(event)) {
+      return;
+    }
+
     // case: double-clicking with arrow/line tool selected would both create
     // text and enter multiElement mode
     if (this.state.multiElement) {
@@ -7284,7 +7545,9 @@ class App extends React.Component<AppProps, AppState> {
       .getNonDeletedFramesLikes()
       .filter(
         (frame) =>
-          !frame.locked && isCursorInFrame(sceneCoords, frame, elementsMap),
+          !frame.locked &&
+          !isElementHiddenLocally(frame, elementsMap, this.state) &&
+          isCursorInFrame(sceneCoords, frame, elementsMap),
       );
 
     if (!framesUnderCursor.length) {
@@ -7629,7 +7892,7 @@ class App extends React.Component<AppProps, AppState> {
         const elementsMap = this.scene.getNonDeletedElementsMap();
         const hoveredElement = getHoveredElementForBinding(
           globalPoint,
-          this.scene.getNonDeletedElements(),
+          this.getBindableElements(),
           elementsMap,
           maxBindingDistance_simple(this.state.zoom),
         );
@@ -7751,7 +8014,7 @@ class App extends React.Component<AppProps, AppState> {
         if (isSimpleArrow(multiElement)) {
           const hoveredElement = getHoveredElementForBinding(
             pointFrom<GlobalPoint>(scenePointerX, scenePointerY),
-            this.scene.getNonDeletedElements(),
+            this.getBindableElements(),
             elementsMap,
           );
 
@@ -7786,7 +8049,7 @@ class App extends React.Component<AppProps, AppState> {
       const scenePointer = pointFrom<GlobalPoint>(scenePointerX, scenePointerY);
       const hit = getHoveredElementForBinding(
         scenePointer,
-        this.scene.getNonDeletedElements(),
+        this.getBindableElements(),
         this.scene.getNonDeletedElementsMap(),
         maxBindingDistance_simple(this.state.zoom),
       );
@@ -8375,6 +8638,12 @@ class App extends React.Component<AppProps, AppState> {
     // else it will send pointer state & laser pointer events in collab when
     // panning
     if (this.handleCanvasPanUsingWheelOrSpaceDrag(event)) {
+      return;
+    }
+
+    // masking mode only allows panning and zooming, elements are picked by
+    // double-clicking (see handleCanvasDoubleClick)
+    if (this.state.maskEditor?.mode === "picking") {
       return;
     }
 
@@ -9991,7 +10260,7 @@ class App extends React.Component<AppProps, AppState> {
       const boundElement = isBindingEnabled(this.state)
         ? getHoveredElementForBinding(
             point,
-            this.scene.getNonDeletedElements(),
+            this.getBindableElements(),
             elementsMap,
           )
         : null;
@@ -10236,7 +10505,8 @@ class App extends React.Component<AppProps, AppState> {
       if (
         candidate.locked ||
         isPathElement(candidate) ||
-        isFrameLikeElement(candidate)
+        isFrameLikeElement(candidate) ||
+        isElementHiddenLocally(candidate, elementsMap, this.state)
       ) {
         continue;
       }
@@ -10754,7 +11024,7 @@ class App extends React.Component<AppProps, AppState> {
           if (isBindingElement(element)) {
             const hoveredElement = getHoveredElementForBinding(
               pointFrom<GlobalPoint>(pointerCoords.x, pointerCoords.y),
-              this.scene.getNonDeletedElements(),
+              this.getBindableElements(),
               elementsMap,
             );
 
@@ -11337,7 +11607,11 @@ class App extends React.Component<AppProps, AppState> {
       if (this.state.activeTool.type === "selection") {
         pointerDownState.boxSelection.hasOccurred = true;
 
-        const elements = this.scene.getNonDeletedElements();
+        const elements = getLocallyVisibleElements(
+          this.scene.getNonDeletedElements(),
+          this.state,
+          this.scene.getNonDeletedElementsMap(),
+        );
 
         // box-select line editor points
         if (this.state.selectedLinearElement?.isEditing) {

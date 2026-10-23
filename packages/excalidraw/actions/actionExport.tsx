@@ -17,6 +17,7 @@ import { getNameWithoutExtension, isImageFileHandle } from "../data/blob";
 import { nativeFileSystemSupported } from "../data/filesystem";
 
 import { resaveAsImageWithScene } from "../data/resave";
+import { getLocallyVisibleElements } from "../scene/visibility";
 
 import { t } from "../i18n";
 
@@ -187,13 +188,15 @@ async function handleOnExportResult(
 }
 
 function prepareDataForJSONExport(
-  elements: readonly ExcalidrawElement[],
+  allElements: readonly ExcalidrawElement[],
   appState: AppState,
   files: BinaryFiles,
   app: AppClassProperties,
 ): { abortController: AbortController; data: Promise<JSONExportData> } {
   const abortController = new AbortController();
   const signal = abortController.signal;
+  // saved files only contain what's visible on this client
+  const elements = getLocallyVisibleElements(allElements, appState);
 
   const dataPromise = new Promise<JSONExportData>(async (resolve) => {
     try {

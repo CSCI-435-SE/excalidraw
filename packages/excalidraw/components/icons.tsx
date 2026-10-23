@@ -385,6 +385,20 @@ export const LineIcon = createIcon(
   modifiedTablerIconProps,
 );
 
+// a circle clipped to a square
+export const MaskIcon = createIcon(
+  <g strokeWidth="1.25">
+    <rect x="3.333" y="3.333" width="9.167" height="9.167" rx="1.5" />
+    <path d="M12.5 7.5a4.583 4.583 0 1 1 -5 5" strokeDasharray="1.5 1.5" />
+    <path
+      d="M12.5 7.5a4.583 4.583 0 0 0 -5 5h5z"
+      fill="currentColor"
+      stroke="none"
+    />
+  </g>,
+  modifiedTablerIconProps,
+);
+
 export const PathIcon = createIcon(
   <g strokeWidth="1.5" fill="currentColor" stroke="none">
     <path

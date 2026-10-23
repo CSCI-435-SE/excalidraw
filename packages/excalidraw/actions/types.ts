@@ -130,6 +130,9 @@ export type ActionName =
   | "flipVertical"
   | "deselect"
   | "viewMode"
+  | "toggleCollaboratorVisibility"
+  | "showAllCollaborators"
+  | "hideAllCollaborators"
   | "exportWithDarkMode"
   | "toggleTheme"
   | "increaseFontSize"
@@ -159,7 +162,14 @@ export type ActionName =
   | "finishMotionPathEdit"
   | "rejectMotionPathEdit"
   | "toggleMotionPathCurve"
-  | "changeMotionPathConfig";
+  | "changeMotionPathConfig"
+  | "toggleMask"
+  | "applyMask"
+  | "cancelMasking"
+  | "editMask"
+  | "closeMaskEditor"
+  | "toggleMaskEnabled"
+  | "removeMask";
 
 export type PanelComponentProps = {
   elements: readonly ExcalidrawElement[];
