@@ -397,6 +397,8 @@ export interface AppState {
   isBindingEnabled: boolean;
   /** user box selection preference; defaults to "contain" when unset */
   boxSelectionMode: BoxSelectionMode;
+  /** user interface scale preference */
+  uiScale: number;
   /** user arrow binding preference */
   bindingPreference: "enabled" | "disabled";
   /** user preference whether arrow snap to midpoints while binding */

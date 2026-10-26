@@ -2295,6 +2295,7 @@ class App extends React.Component<AppProps, AppState> {
             ? POINTER_EVENTS.disabled
             : POINTER_EVENTS.enabled,
           ["--right-sidebar-width" as any]: `${RIGHT_SIDEBAR_WIDTH}px`,
+          ["--ui-scale" as any]: this.state.uiScale,
         }}
         ref={this.excalidrawContainerRef}
         onDrop={this.handleAppOnDrop}

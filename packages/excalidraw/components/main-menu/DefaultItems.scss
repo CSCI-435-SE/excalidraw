@@ -1,4 +1,20 @@
 .excalidraw {
+  .preferences-ui-scale {
+    .RadioGroup {
+      flex-shrink: 0;
+    }
+
+    .RadioGroup__choice {
+      border: 0;
+      cursor: pointer;
+
+      &:disabled {
+        cursor: default;
+        opacity: 0.5;
+      }
+    }
+  }
+
   .ActiveFile {
     .ActiveFile__fileName {
       display: flex;

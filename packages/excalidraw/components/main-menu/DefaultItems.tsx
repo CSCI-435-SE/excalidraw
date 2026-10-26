@@ -472,6 +472,58 @@ const PreferencesBoxSelectionModeItem = () => {
   );
 };
 
+const MIN_UI_SCALE = 0.75;
+const MAX_UI_SCALE = 1.5;
+const UI_SCALE_STEP = 0.1;
+
+const PreferencesUIScaleItem = () => {
+  const { t } = useI18n();
+  const appState = useUIAppState();
+  const setAppState = useExcalidrawSetAppState();
+
+  return (
+    <div className="dropdown-menu-item-base dropdown-menu-item-bare preferences-ui-scale">
+      <label className="dropdown-menu-item__text">{t("labels.uiScale")}</label>
+      <div className="RadioGroup preferences-ui-scale__group">
+        <button
+          type="button"
+          className="RadioGroup__choice"
+          aria-label={t("labels.decreaseUIScale")}
+          title={t("labels.decreaseUIScale")}
+          disabled={appState.uiScale <= MIN_UI_SCALE}
+          onClick={() => {
+            setAppState({
+              uiScale: Math.max(
+                MIN_UI_SCALE,
+                Math.round((appState.uiScale - UI_SCALE_STEP) * 100) / 100,
+              ),
+            });
+          }}
+        >
+          −
+        </button>
+        <button
+          type="button"
+          className="RadioGroup__choice"
+          aria-label={t("labels.increaseUIScale")}
+          title={t("labels.increaseUIScale")}
+          disabled={appState.uiScale >= MAX_UI_SCALE}
+          onClick={() => {
+            setAppState({
+              uiScale: Math.min(
+                MAX_UI_SCALE,
+                Math.round((appState.uiScale + UI_SCALE_STEP) * 100) / 100,
+              ),
+            });
+          }}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const PreferencesToggleSnapModeItem = () => {
   const { t } = useI18n();
   const actionManager = useExcalidrawActionManager();
@@ -595,6 +647,7 @@ export const Preferences = ({
         {children || (
           <>
             <PreferencesBoxSelectionModeItem />
+            <PreferencesUIScaleItem />
             <PreferencesToggleToolLockItem />
             <PreferencesToggleSnapModeItem />
             <PreferencesToggleZenModeItem />
