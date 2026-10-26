@@ -187,9 +187,10 @@ export const exportToSvg = async ({
     }),
   );
   const restoredAppState = restoreAppState(appState, null);
+  const { uiScale: _uiScale, ...restoredAppStateForExport } = restoredAppState;
 
   const exportAppState = {
-    ...restoredAppState,
+    ...restoredAppStateForExport,
     exportPadding,
   };
 

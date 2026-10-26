@@ -94,6 +94,7 @@ const checkpoint = (name: string) => {
     name: _,
     scrolledOutside,
     selectedLinearElement,
+    uiScale: _uiScale,
     ...strippedAppState
   } = h.state;
   expect(strippedAppState).toMatchSnapshot(`[${name}] appState`);
