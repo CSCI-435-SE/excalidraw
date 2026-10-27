@@ -204,6 +204,8 @@
       "breakPolygon": "Break polygon",
       "convertToPolygon": "Convert to polygon"
     },
+    "applyGrayscale": "Apply grayscale",
+    "removeGrayscale": "Remove grayscale",
     "elementLock": {
       "lock": "Lock",
       "unlock": "Unlock",

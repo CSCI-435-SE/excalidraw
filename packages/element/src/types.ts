@@ -152,6 +152,9 @@ export type ImageCrop = {
   naturalHeight: number;
 };
 
+/** visual filters applied to an image at render time (source data untouched) */
+export type ImageFilter = "grayscale";
+
 export type ExcalidrawImageElement = _ExcalidrawElementBase &
   Readonly<{
     type: "image";
@@ -162,6 +165,8 @@ export type ExcalidrawImageElement = _ExcalidrawElementBase &
     scale: [number, number];
     /** whether an element is cropped */
     crop: ImageCrop | null;
+    /** visual filter applied when rendering, `null` = original appearance */
+    filter: ImageFilter | null;
   }>;
 
 export type InitializedExcalidrawImageElement = MarkNonNullable<

@@ -150,6 +150,10 @@ export const getShapeActionPredicates = (
       !appState.croppingElementId &&
       singleSelected &&
       isImageElement(targetElements[0]),
+    imageFilter:
+      !appState.croppingElementId &&
+      singleSelected &&
+      isImageElement(targetElements[0]),
     lineEditor:
       !appState.selectedLinearElement?.isEditing &&
       singleSelected &&

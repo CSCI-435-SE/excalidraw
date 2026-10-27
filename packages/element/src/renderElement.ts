@@ -15,6 +15,7 @@ import {
   ELEMENT_READY_TO_ERASE_OPACITY,
   FRAME_STYLE,
   DARK_THEME_FILTER,
+  IMAGE_GRAYSCALE_FILTER,
   MIME_TYPES,
   THEME,
   distance,
@@ -152,6 +153,7 @@ export interface ExcalidrawElementWithCanvas {
   canvasOffsetX: number;
   canvasOffsetY: number;
   imageCrop: ExcalidrawImageElement["crop"] | null;
+  imageFilter: ExcalidrawImageElement["filter"] | null;
   containingFrameOpacity: number;
 }
 
@@ -285,6 +287,7 @@ const generateElementCanvas = (
     containingFrameOpacity:
       getContainingFrame(element, elementsMap)?.opacity || 100,
     imageCrop: isImageElement(element) ? element.crop : null,
+    imageFilter: isImageElement(element) ? element.filter : null,
   };
 };
 
@@ -559,8 +562,9 @@ const drawElementOnCanvas = (
         const shouldInvertImage =
           renderConfig.theme === THEME.DARK &&
           cacheEntry?.mimeType === MIME_TYPES.svg;
+        const shouldGrayscaleImage = element.filter === "grayscale";
 
-        if (shouldInvertImage && isSafari) {
+        if ((shouldInvertImage || shouldGrayscaleImage) && isSafari) {
           const devicePixelRatio = window.devicePixelRatio || 1;
           const tempCanvas = document.createElement("canvas");
           tempCanvas.width = element.width * devicePixelRatio;
@@ -591,9 +595,21 @@ const drawElementOnCanvas = (
             const data = imageData.data;
 
             for (let i = 0; i < data.length; i += 4) {
-              data[i] = 255 - data[i];
-              data[i + 1] = 255 - data[i + 1];
-              data[i + 2] = 255 - data[i + 2];
+              if (shouldGrayscaleImage) {
+                // same luminance weights as CSS `grayscale(100%)`
+                const luminance =
+                  0.2126 * data[i] +
+                  0.7152 * data[i + 1] +
+                  0.0722 * data[i + 2];
+                data[i] = luminance;
+                data[i + 1] = luminance;
+                data[i + 2] = luminance;
+              }
+              if (shouldInvertImage) {
+                data[i] = 255 - data[i];
+                data[i + 1] = 255 - data[i + 1];
+                data[i + 2] = 255 - data[i + 2];
+              }
             }
 
             tempContext.putImageData(imageData, 0, 0);
@@ -610,8 +626,13 @@ const drawElementOnCanvas = (
             );
           }
         } else {
-          if (shouldInvertImage) {
-            context.filter = DARK_THEME_FILTER;
+          const filters = [
+            shouldGrayscaleImage && IMAGE_GRAYSCALE_FILTER,
+            shouldInvertImage && DARK_THEME_FILTER,
+          ].filter(Boolean);
+
+          if (filters.length) {
+            context.filter = filters.join(" ");
           }
 
           context.drawImage(
@@ -726,6 +747,7 @@ const generateElementWithCanvas = (
     prevElementWithCanvas.zoomValue !== zoom.value &&
     !appState?.shouldCacheIgnoreZoom;
   const imageCrop = isImageElement(element) ? element.crop : null;
+  const imageFilter = isImageElement(element) ? element.filter : null;
 
   const containingFrameOpacity =
     getContainingFrame(element, elementsMap)?.opacity || 100;
@@ -735,6 +757,7 @@ const generateElementWithCanvas = (
     shouldRegenerateBecauseZoom ||
     prevElementWithCanvas.theme !== appState.theme ||
     prevElementWithCanvas.imageCrop !== imageCrop ||
+    prevElementWithCanvas.imageFilter !== imageFilter ||
     prevElementWithCanvas.containingFrameOpacity !== containingFrameOpacity
   ) {
     const elementWithCanvas = generateElementCanvas(

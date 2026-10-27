@@ -155,6 +155,7 @@ export type ActionName =
   | "copyElementLink"
   | "linkToElement"
   | "cropEditor"
+  | "toggleImageGrayscale"
   | "wrapSelectionInFrame"
   | "toggleShapeSwitch"
   | "togglePolygon"

@@ -193,6 +193,8 @@ export const THEME = {
 
 export const DARK_THEME_FILTER = "invert(93%) hue-rotate(180deg)";
 
+export const IMAGE_GRAYSCALE_FILTER = "grayscale(100%)";
+
 export const FRAME_STYLE = {
   strokeColor: "#bbb" as ExcalidrawElement["strokeColor"],
   strokeWidth: 2 as ExcalidrawElement["strokeWidth"],
