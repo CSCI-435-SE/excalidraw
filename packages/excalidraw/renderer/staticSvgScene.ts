@@ -4,6 +4,7 @@ import {
   SVG_NS,
   THEME,
   DARK_THEME_FILTER,
+  IMAGE_GRAYSCALE_FILTER,
   getFontFamilyString,
   isRTL,
   isTestEnv,
@@ -667,11 +668,17 @@ const renderElementToSvg = (
 
         const g = svgRoot.ownerDocument.createElementNS(SVG_NS, "g");
 
-        if (
+        // applied per element (not on the shared symbol) so images reusing
+        // the same file can be filtered independently
+        const filters = [
+          element.filter === "grayscale" && IMAGE_GRAYSCALE_FILTER,
           renderConfig.theme === THEME.DARK &&
-          fileData.mimeType === MIME_TYPES.svg
-        ) {
-          g.setAttribute("filter", DARK_THEME_FILTER);
+            fileData.mimeType === MIME_TYPES.svg &&
+            DARK_THEME_FILTER,
+        ].filter(Boolean);
+
+        if (filters.length) {
+          g.setAttribute("filter", filters.join(" "));
         }
 
         if (element.crop) {

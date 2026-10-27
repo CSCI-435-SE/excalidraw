@@ -223,6 +223,7 @@ export class API {
     fileId?: T extends "image" ? string : never;
     scale?: T extends "image" ? ExcalidrawImageElement["scale"] : never;
     status?: T extends "image" ? ExcalidrawImageElement["status"] : never;
+    filter?: T extends "image" ? ExcalidrawImageElement["filter"] : never;
     startBinding?: T extends "arrow"
       ? ExcalidrawArrowElement["startBinding"] | ExcalidrawElbowArrowElement["startBinding"]
       : never;
@@ -381,6 +382,7 @@ export class API {
           fileId: (rest.fileId as string as FileId) ?? null,
           status: rest.status || "saved",
           scale: rest.scale || [1, 1],
+          filter: rest.filter ?? null,
         });
         break;
       case "frame":
