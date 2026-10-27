@@ -15,6 +15,7 @@
     height: 100%;
     pointer-events: none;
     z-index: var(--zIndex-layerUI);
+    zoom: var(--ui-scale, 1);
 
     &__top-right {
       display: flex;
@@ -39,6 +40,12 @@
         z-index: 100;
         display: flex;
       }
+    }
+
+    .default-sidebar,
+    .App-top-bar,
+    .App-bottom-bar {
+      zoom: var(--ui-scale, 1);
     }
 
     .zen-mode-transition {
