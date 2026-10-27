@@ -26,3 +26,4 @@ jobs:
           build_script: build:esm
           skip_step: install
           directory: packages/excalidraw
+          package_manager: yarn
