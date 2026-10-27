@@ -428,6 +428,26 @@ export const duplicateElements = (
     }
   }
 
+  // a duplicated element follows its masks into the duplicate when they were
+  // duplicated alongside it. Otherwise, duplicated in place it stays clipped
+  // by the original masks, while pasted elsewhere it drops them.
+  for (const duplicateElement of duplicatedElements) {
+    if (!duplicateElement.maskIds?.length) {
+      continue;
+    }
+    const maskIds: string[] = [];
+    for (const maskId of duplicateElement.maskIds) {
+      const newMaskId =
+        origIdToDuplicateId.get(maskId) ??
+        (opts.type === "in-place" ? maskId : null);
+      if (newMaskId) {
+        maskIds.push(newMaskId);
+      }
+    }
+    (duplicateElement as Mutable<typeof duplicateElement>).maskIds =
+      maskIds.length ? maskIds : null;
+  }
+
   if (opts.overrides) {
     for (const duplicateElement of duplicatedElements) {
       const origElement = duplicateIdToOrigElement.get(duplicateElement.id);

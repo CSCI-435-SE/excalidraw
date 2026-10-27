@@ -79,8 +79,8 @@ type _ExcalidrawElementBase = Readonly<{
   link: string | null;
   locked: boolean;
   customData?: Record<string, any>;
-  /** id of the mask shape this element is clipped to */
-  maskId?: string | null;
+  /** ids of the mask shapes this element is clipped to (clips intersect) */
+  maskIds?: readonly string[] | null;
   /** on a mask shape: whether it currently clips its masked element
       (undefined is treated as enabled) */
   maskEnabled?: boolean;

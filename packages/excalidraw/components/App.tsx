@@ -7059,7 +7059,13 @@ class App extends React.Component<AppProps, AppState> {
       hitElement = selectedElement;
     }
 
-    if (!hitElement || !isMaskElement(hitElement, elementsMap)) {
+    // a double-click on a mask in a selected group enters that group (see
+    // handleCanvasDoubleClick), so it doesn't count as editing the mask's text
+    const entersGroup =
+      !!hitElement &&
+      !!getSelectedGroupIdForElement(hitElement, this.state.selectedGroupIds);
+
+    if (!hitElement || !isMaskElement(hitElement, elementsMap) || entersGroup) {
       this.maskWithEditedText = null;
       return false;
     }

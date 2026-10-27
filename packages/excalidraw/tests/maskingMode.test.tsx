@@ -23,7 +23,7 @@ const { h } = window;
 
 const mouse = new Pointer("mouse");
 
-const MASKING_HINT = "Double-click an element to mask it";
+const MASKING_HINT = "Double-click elements to mask them";
 
 const pressMaskShortcut = () => {
   fireEvent.keyDown(document, {
@@ -88,9 +88,34 @@ describe("picking the element to mask", () => {
 
     mouse.doubleClickAt(250, 50);
 
-    expect(API.getElement(target).maskId).toBe(mask.id);
-    expect(h.state.maskEditor).toBe(null);
+    expect(API.getElement(target).maskIds).toEqual([mask.id]);
+    expect(h.state.maskEditor).toEqual({ maskId: mask.id, mode: "picking" });
     expect(h.state.selectedElementIds).toEqual({ [mask.id]: true });
+  });
+
+  it("keeps picking until double-clicking empty canvas", () => {
+    const { mask, target } = startMasking();
+    const other = API.createElement({
+      type: "rectangle",
+      x: 400,
+      y: 0,
+      width: 100,
+      height: 100,
+      backgroundColor: "#b2f2bb",
+      fillStyle: "solid",
+    });
+    API.updateScene({
+      elements: [...h.elements, other],
+      captureUpdate: CaptureUpdateAction.NEVER,
+    });
+
+    mouse.doubleClickAt(250, 50);
+    mouse.doubleClickAt(450, 50);
+    mouse.doubleClickAt(800, 800);
+
+    expect(API.getElement(target).maskIds).toEqual([mask.id]);
+    expect(API.getElement(other).maskIds).toEqual([mask.id]);
+    expect(h.state.maskEditor).toBe(null);
   });
 
   it("doesn't open a text editor on the picked element", () => {
@@ -107,7 +132,7 @@ describe("picking the element to mask", () => {
     mouse.doubleClickAt(600, 600);
 
     expect(h.state.maskEditor).toBe(null);
-    expect(API.getElement(target).maskId).toBeUndefined();
+    expect(API.getElement(target).maskIds).toBeUndefined();
     expect(h.state.editingTextElement).toBe(null);
   });
 
@@ -117,7 +142,7 @@ describe("picking the element to mask", () => {
     mouse.doubleClickAt(50, 50);
 
     expect(h.state.maskEditor).toEqual({ maskId: mask.id, mode: "picking" });
-    expect(API.getElement(mask).maskId).toBeUndefined();
+    expect(API.getElement(mask).maskIds).toBeUndefined();
   });
 
   it("ignores elements that can't be masked", () => {
@@ -137,7 +162,7 @@ describe("picking the element to mask", () => {
     mouse.doubleClickAt(450, 50);
 
     expect(h.state.maskEditor?.mode).toBe("picking");
-    expect(API.getElement(image).maskId).toBeUndefined();
+    expect(API.getElement(image).maskIds).toBeUndefined();
   });
 });
 
@@ -228,6 +253,6 @@ describe("masking mode bar", () => {
     fireEvent.click(screen.getByTestId("masking-mode-cancel"));
 
     expect(h.state.maskEditor).toBe(null);
-    expect(API.getElement(target).maskId).toBeUndefined();
+    expect(API.getElement(target).maskIds).toBeUndefined();
   });
 });

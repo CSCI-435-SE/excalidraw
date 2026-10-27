@@ -5,8 +5,9 @@ import { arrayToMap } from "@excalidraw/common";
 import {
   canBeMasked,
   canBecomeMask,
-  getActiveMaskElement,
-  getMaskElement,
+  getActiveMaskElements,
+  getMaskedElements,
+  getMaskElements,
   getMaskSvgPathData,
   isMaskElement,
 } from "@excalidraw/element";
@@ -21,18 +22,22 @@ import type {
 } from "@excalidraw/element/types";
 
 import { getDefaultAppState } from "../appState";
+import { restoreElements } from "../data/restore";
 import { exportToCanvas, exportToSvg } from "../scene/export";
 
 import { API } from "./helpers/api";
 
 const createMasked = (
-  mask: ExcalidrawElement,
+  masks: ExcalidrawElement | ExcalidrawElement[],
   type: "rectangle" | "freedraw" | "text" = "rectangle",
 ) =>
   ({
     ...API.createElement({ type, x: 50, y: 50, width: 100, height: 100 }),
-    maskId: mask.id,
+    maskIds: (Array.isArray(masks) ? masks : [masks]).map((mask) => mask.id),
   } as NonDeletedExcalidrawElement);
+
+const ids = (elements: readonly ExcalidrawElement[]) =>
+  elements.map((element) => element.id);
 
 describe("mask lookup", () => {
   it("finds the mask of a masked element", () => {
@@ -40,10 +45,28 @@ describe("mask lookup", () => {
     const masked = createMasked(mask);
     const elementsMap = arrayToMap([mask, masked]);
 
-    expect(getMaskElement(masked, elementsMap)?.id).toBe(mask.id);
-    expect(getActiveMaskElement(masked, elementsMap)?.id).toBe(mask.id);
+    expect(ids(getMaskElements(masked, elementsMap))).toEqual([mask.id]);
+    expect(ids(getActiveMaskElements(masked, elementsMap))).toEqual([mask.id]);
     expect(isMaskElement(mask, elementsMap)).toBe(true);
     expect(isMaskElement(masked, elementsMap)).toBe(false);
+  });
+
+  it("finds every element of a mask, and every mask of an element", () => {
+    const maskA = API.createElement({ type: "ellipse" });
+    const maskB = API.createElement({ type: "rectangle" });
+    const shared = createMasked([maskA, maskB]);
+    const onlyA = createMasked(maskA);
+    const elementsMap = arrayToMap([maskA, maskB, shared, onlyA]);
+
+    expect(ids(getMaskElements(shared, elementsMap))).toEqual([
+      maskA.id,
+      maskB.id,
+    ]);
+    expect(ids(getMaskedElements(maskA, elementsMap))).toEqual([
+      shared.id,
+      onlyA.id,
+    ]);
+    expect(ids(getMaskedElements(maskB, elementsMap))).toEqual([shared.id]);
   });
 
   it("ignores a disabled mask when rendering, but keeps the relationship", () => {
@@ -51,26 +74,56 @@ describe("mask lookup", () => {
       ...API.createElement({ type: "diamond" }),
       maskEnabled: false,
     };
-    const masked = createMasked(mask);
-    const elementsMap = arrayToMap([mask, masked]);
+    const other = API.createElement({ type: "ellipse" });
+    const masked = createMasked([mask, other]);
+    const elementsMap = arrayToMap([mask, other, masked]);
 
-    expect(getMaskElement(masked, elementsMap)?.id).toBe(mask.id);
-    expect(getActiveMaskElement(masked, elementsMap)).toBe(null);
+    expect(ids(getMaskElements(masked, elementsMap))).toEqual([
+      mask.id,
+      other.id,
+    ]);
+    expect(ids(getActiveMaskElements(masked, elementsMap))).toEqual([other.id]);
   });
 
   it("ignores a deleted or missing mask", () => {
     const mask = API.createElement({ type: "rectangle", isDeleted: true });
     const masked = createMasked(mask);
 
-    expect(getMaskElement(masked, arrayToMap([mask, masked]))).toBe(null);
-    expect(getMaskElement(masked, arrayToMap([masked]))).toBe(null);
+    expect(getMaskElements(masked, arrayToMap([mask, masked]))).toEqual([]);
+    expect(getMaskElements(masked, arrayToMap([masked]))).toEqual([]);
   });
 
   it("only treats basic shapes as masks", () => {
     const line = API.createElement({ type: "line" });
     const masked = createMasked(line);
 
-    expect(getMaskElement(masked, arrayToMap([line, masked]))).toBe(null);
+    expect(getMaskElements(masked, arrayToMap([line, masked]))).toEqual([]);
+  });
+});
+
+describe("mask persistence", () => {
+  it("migrates the legacy single maskId", () => {
+    const mask = API.createElement({ type: "ellipse" });
+    const legacy = {
+      ...API.createElement({ type: "rectangle" }),
+      maskId: mask.id,
+    } as unknown as ExcalidrawElement;
+
+    const [, restored] = restoreElements([mask, legacy], null);
+
+    expect(restored.maskIds).toEqual([mask.id]);
+    expect("maskId" in restored).toBe(false);
+  });
+
+  it("keeps several masks, without duplicates", () => {
+    const masked = {
+      ...API.createElement({ type: "rectangle" }),
+      maskIds: ["a", "b", "a"],
+    };
+
+    const [restored] = restoreElements([masked], null);
+
+    expect(restored.maskIds).toEqual(["a", "b"]);
   });
 });
 
@@ -91,12 +144,12 @@ describe("mask eligibility", () => {
     }
   });
 
-  it("doesn't let masks or masked elements become masks", () => {
+  it("lets masks take more elements, but doesn't let masked elements become masks", () => {
     const mask = API.createElement({ type: "rectangle" });
     const masked = createMasked(mask);
     const elementsMap = arrayToMap([mask, masked]);
 
-    expect(canBecomeMask(mask, elementsMap)).toBe(false);
+    expect(canBecomeMask(mask, elementsMap)).toBe(true);
     expect(canBecomeMask(masked, elementsMap)).toBe(false);
   });
 
@@ -129,7 +182,7 @@ describe("mask eligibility", () => {
     }
   });
 
-  it("doesn't let the mask itself, other masks or masked elements be masked", () => {
+  it("doesn't let the mask itself or other masks be masked", () => {
     const mask = API.createElement({ type: "rectangle" });
     const otherMask = API.createElement({ type: "ellipse" });
     const otherMasked = createMasked(otherMask);
@@ -137,7 +190,16 @@ describe("mask eligibility", () => {
 
     expect(canBeMasked(mask, mask, elementsMap)).toBe(false);
     expect(canBeMasked(otherMask, mask, elementsMap)).toBe(false);
-    expect(canBeMasked(otherMasked, mask, elementsMap)).toBe(false);
+  });
+
+  it("lets an element be masked by several masks, once each", () => {
+    const mask = API.createElement({ type: "rectangle" });
+    const otherMask = API.createElement({ type: "ellipse" });
+    const masked = createMasked(otherMask);
+    const elementsMap = arrayToMap([mask, otherMask, masked]);
+
+    expect(canBeMasked(masked, mask, elementsMap)).toBe(true);
+    expect(canBeMasked(masked, otherMask, elementsMap)).toBe(false);
   });
 
   it("doesn't let locked elements or bound text be masked", () => {
@@ -246,6 +308,15 @@ describe("mask PNG export", () => {
 
     expect(await exportClipCalls([mask, createMasked(mask), other])).toBe(1);
   });
+
+  it("clips an element with several masks to each of them", async () => {
+    const maskA = API.createElement({ type: "ellipse" });
+    const maskB = API.createElement({ type: "rectangle" });
+
+    expect(
+      await exportClipCalls([maskA, maskB, createMasked([maskA, maskB])]),
+    ).toBe(2);
+  });
 });
 
 describe("mask SVG export", () => {
@@ -265,15 +336,14 @@ describe("mask SVG export", () => {
     });
     const masked = createMasked(mask);
     const svg = await exportSvg([mask, masked]);
+    const clipPathId = `mask-clipPath-${masked.id}-${mask.id}`;
 
-    const clipPath = svg.querySelector(`#mask-clipPath-${masked.id}`);
+    const clipPath = svg.querySelector(`#${clipPathId}`);
     expect(clipPath?.querySelector("path")?.getAttribute("d")).toBe(
       "M51 0L100 50L0 50Z",
     );
 
-    const group = svg.querySelector(
-      `g[clip-path="url(#mask-clipPath-${masked.id})"]`,
-    );
+    const group = svg.querySelector(`g[clip-path="url(#${clipPathId})"]`);
     expect(group?.querySelector(`[data-id="${masked.id}"]`)).not.toBe(null);
     // the mask itself is rendered normally, outside the clipped group
     expect(group?.querySelector(`[data-id="${mask.id}"]`)).toBe(null);
@@ -291,7 +361,7 @@ describe("mask SVG export", () => {
     const svg = await exportSvg([mask, masked]);
 
     const transform = svg
-      .querySelector(`#mask-clipPath-${masked.id} path`)
+      .querySelector(`#mask-clipPath-${masked.id}-${mask.id} path`)
       ?.getAttribute("transform");
     expect(transform).toContain("rotate(90)");
   });
@@ -304,6 +374,21 @@ describe("mask SVG export", () => {
     const masked = createMasked(mask);
     const svg = await exportSvg([mask, masked]);
 
-    expect(svg.querySelector(`#mask-clipPath-${masked.id}`)).toBe(null);
+    expect(svg.querySelector(`[id^="mask-clipPath-${masked.id}"]`)).toBe(null);
+  });
+
+  it("nests one clipped group per mask, intersecting them", async () => {
+    const maskA = API.createElement({ type: "ellipse" });
+    const maskB = API.createElement({ type: "rectangle" });
+    const masked = createMasked([maskA, maskB]);
+    const svg = await exportSvg([maskA, maskB, masked]);
+
+    const outer = svg.querySelector(
+      `g[clip-path="url(#mask-clipPath-${masked.id}-${maskA.id})"]`,
+    );
+    const inner = outer?.querySelector(
+      `g[clip-path="url(#mask-clipPath-${masked.id}-${maskB.id})"]`,
+    );
+    expect(inner?.querySelector(`[data-id="${masked.id}"]`)).not.toBe(null);
   });
 });

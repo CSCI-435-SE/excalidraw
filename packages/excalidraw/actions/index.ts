@@ -120,6 +120,7 @@ export {
   actionCloseMaskEditor,
   actionToggleMaskEnabled,
   actionRemoveMask,
+  actionAddToMask,
 } from "./actionMask";
 
 export { actionToggleSearchMenu } from "./actionToggleSearchMenu";

@@ -198,7 +198,8 @@
       "edit": "Mask options",
       "enabled": "Clipping",
       "remove": "Remove mask",
-      "picking": "Double-click an element to mask it"
+      "add": "Add elements",
+      "picking": "Double-click elements to mask them"
     },
     "polygon": {
       "breakPolygon": "Break polygon",

@@ -4,7 +4,7 @@ import { CODES, KEYS } from "@excalidraw/common";
 
 import { CaptureUpdateAction } from "@excalidraw/element";
 
-import { actionApplyMask } from "../actions";
+import { actionApplyMask, actionCancelMasking } from "../actions";
 import { Excalidraw } from "../index";
 
 import { API } from "./helpers/api";
@@ -66,7 +66,8 @@ const setupMask = () => {
   act(() => {
     h.app.actionManager.executeAction(actionApplyMask, "api", target.id);
   });
-  expect(API.getElement(target).maskId).toBe(mask.id);
+  API.executeAction(actionCancelMasking);
+  expect(API.getElement(target).maskIds).toEqual([mask.id]);
   return { mask, target };
 };
 
@@ -107,6 +108,28 @@ describe("opening the mask options", () => {
     expect(h.state.maskEditor).toEqual({ maskId: mask.id, mode: "editing" });
     expect(getToolbar()).not.toBe(null);
     expect(getTextarea()).toBe(null);
+  });
+
+  it("enters a grouped mask's group first, then edits as usual", () => {
+    const { mask, target } = setupMask();
+    API.setSelectedElements([mask, target]);
+    Keyboard.withModifierKeys({ ctrl: true }, () => {
+      Keyboard.keyPress(KEYS.G);
+    });
+    const groupId = API.getElement(mask).groupIds[0];
+    mouse.reset();
+    mouse.clickAt(20, 50);
+    expect(h.state.selectedGroupIds).toEqual({ [groupId]: true });
+
+    mouse.doubleClickAt(20, 50);
+    expect(h.state.editingGroupId).toBe(groupId);
+    expect(getTextarea()).toBe(null);
+
+    openOptions();
+
+    expect(h.state.maskEditor).toEqual({ maskId: mask.id, mode: "editing" });
+    expect(h.state.editingGroupId).toBe(groupId);
+    expect(API.getElement(target).maskIds).toEqual([mask.id]);
   });
 
   it("keeps double-click inside the text box for selecting words", () => {
@@ -156,7 +179,7 @@ describe("mask options", () => {
 
     toggle();
     expect(API.getElement(mask).maskEnabled).toBe(false);
-    expect(API.getElement(target).maskId).toBe(mask.id);
+    expect(API.getElement(target).maskIds).toEqual([mask.id]);
 
     toggle();
     expect(API.getElement(mask).maskEnabled).toBe(true);
@@ -168,7 +191,7 @@ describe("mask options", () => {
 
     fireEvent.click(screen.getByTestId("mask-remove"));
 
-    expect(API.getElement(target).maskId).toBe(null);
+    expect(API.getElement(target).maskIds).toBe(null);
     expect(h.state.maskEditor).toBe(null);
     expect(getToolbar()).toBe(null);
   });

@@ -1,8 +1,9 @@
 import {
   canBeMasked,
   canBecomeMask,
-  getMaskedElement,
-  getMaskElement,
+  getMaskIds,
+  isMaskedBy,
+  isMaskedElement,
   isMaskElement,
   isMaskEnabled,
   newElementWith,
@@ -43,11 +44,21 @@ export const getMaskActionType = (
       return "start";
     }
   }
-  if (selectedElements.every((el) => getMaskElement(el, elementsMap))) {
+  if (selectedElements.every((el) => isMaskedElement(el, elementsMap))) {
     return "release";
   }
   return null;
 };
+
+/**
+ * the mask's innermost group, so that selecting the mask on its own inside a
+ * group edits that group rather than leaving the selection inconsistent
+ */
+const getMaskSelectionState = (mask: ExcalidrawElement) => ({
+  selectedElementIds: { [mask.id]: true as const },
+  selectedGroupIds: {},
+  editingGroupId: mask.groupIds[0] ?? null,
+});
 
 /** the mask the open mask editor belongs to, if it still exists */
 export const getEditedMask = (
@@ -61,14 +72,29 @@ export const getEditedMask = (
   return mask && !mask.isDeleted ? mask : null;
 };
 
-/** clears the elements' masks so they render unmasked again */
-const unmaskElements = (
+/**
+ * Unlinks the elements accepted by `shouldUnmask` from the mask `maskId`,
+ * or from all their masks if no `maskId` is given.
+ */
+const removeMaskLinks = (
   elements: readonly ExcalidrawElement[],
-  ids: ReadonlySet<string>,
+  shouldUnmask: (element: ExcalidrawElement) => boolean,
+  maskId?: ExcalidrawElement["id"],
 ) =>
-  elements.map((el) =>
-    ids.has(el.id) && el.maskId ? newElementWith(el, { maskId: null }) : el,
-  );
+  elements.map((el) => {
+    const maskIds = getMaskIds(el);
+    if (!maskIds.length || !shouldUnmask(el)) {
+      return el;
+    }
+    if (maskId === undefined) {
+      return newElementWith(el, { maskIds: null });
+    }
+    if (!maskIds.includes(maskId)) {
+      return el;
+    }
+    const remaining = maskIds.filter((id) => id !== maskId);
+    return newElementWith(el, { maskIds: remaining.length ? remaining : null });
+  });
 
 const exitedAppState = (appState: Readonly<AppState>): AppState => ({
   ...appState,
@@ -110,25 +136,21 @@ export const actionToggleMask = register({
           captureUpdate: CaptureUpdateAction.EVENTUALLY,
         };
       case "remove": {
-        const masked = getMaskedElement(selectedElements[0], elementsMap);
+        const mask = selectedElements[0];
         return {
-          elements: unmaskElements(
-            elements,
-            new Set(masked ? [masked.id] : []),
-          ),
+          elements: removeMaskLinks(elements, () => true, mask.id),
           appState: exitedAppState(appState),
           captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         };
       }
-      case "release":
+      case "release": {
+        const ids = new Set(selectedElements.map((el) => el.id));
         return {
-          elements: unmaskElements(
-            elements,
-            new Set(selectedElements.map((el) => el.id)),
-          ),
+          elements: removeMaskLinks(elements, (el) => ids.has(el.id)),
           appState,
           captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         };
+      }
       default:
         return false;
     }
@@ -141,7 +163,10 @@ export const actionToggleMask = register({
     event.code === CODES.G,
 });
 
-/** masking mode: clips the element with id `value` to the mask being picked */
+/**
+ * masking mode: clips the element with id `value` to the mask being picked.
+ * Masking mode stays on so several elements can be picked in a row.
+ */
 export const actionApplyMask = register<ExcalidrawElement["id"]>({
   name: "applyMask",
   label: "labels.mask.toggle",
@@ -159,20 +184,42 @@ export const actionApplyMask = register<ExcalidrawElement["id"]>({
     ) {
       return false;
     }
+    // only the first pick turns clipping on, later picks keep the mask's state
+    const isFirstPick = !isMaskElement(mask, elementsMap);
     return {
       elements: elements.map((el) =>
         el.id === target.id
-          ? newElementWith(el, { maskId: mask.id })
-          : el.id === mask.id
+          ? newElementWith(el, { maskIds: [...getMaskIds(el), mask.id] })
+          : el.id === mask.id && isFirstPick
           ? newElementWith(el, { maskEnabled: true })
           : el,
       ),
       appState: {
-        ...exitedAppState(appState),
-        selectedElementIds: { [mask.id]: true },
-        selectedGroupIds: {},
+        ...appState,
+        ...getMaskSelectionState(mask),
       },
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    };
+  },
+});
+
+/** mask options: picks more elements for the edited mask */
+export const actionAddToMask = register({
+  name: "addToMask",
+  label: "labels.mask.add",
+  trackEvent: false,
+  predicate: (elements, appState) => appState.maskEditor?.mode === "editing",
+  perform: (elements, appState) => {
+    const mask = getEditedMask(elements, appState);
+    if (!mask) {
+      return false;
+    }
+    return {
+      appState: {
+        ...appState,
+        maskEditor: { maskId: mask.id, mode: "picking" },
+      },
+      captureUpdate: CaptureUpdateAction.EVENTUALLY,
     };
   },
 });
@@ -214,9 +261,7 @@ export const actionEditMask = register<ExcalidrawElement["id"] | null>({
     return {
       appState: {
         ...appState,
-        selectedElementIds: { [mask.id]: true },
-        selectedGroupIds: {},
-        editingGroupId: null,
+        ...getMaskSelectionState(mask),
         maskEditor: { maskId: mask.id, mode: "editing" },
       },
       captureUpdate: CaptureUpdateAction.EVENTUALLY,
@@ -258,7 +303,10 @@ export const actionToggleMaskEnabled = register({
   },
 });
 
-/** removes the edited mask, restoring its element's unmasked appearance */
+/**
+ * removes the edited mask from all its elements; their other masks still
+ * clip them
+ */
 export const actionRemoveMask = register({
   name: "removeMask",
   label: "labels.mask.remove",
@@ -269,14 +317,12 @@ export const actionRemoveMask = register({
     if (!mask) {
       return false;
     }
-    const ids = new Set<string>();
-    for (const el of elements) {
-      if (el.maskId === mask.id) {
-        ids.add(el.id);
-      }
-    }
     return {
-      elements: unmaskElements(elements, ids),
+      elements: removeMaskLinks(
+        elements,
+        (el) => isMaskedBy(el, mask.id),
+        mask.id,
+      ),
       appState: exitedAppState(appState),
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
     };

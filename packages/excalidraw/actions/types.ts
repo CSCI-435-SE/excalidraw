@@ -170,7 +170,8 @@ export type ActionName =
   | "editMask"
   | "closeMaskEditor"
   | "toggleMaskEnabled"
-  | "removeMask";
+  | "removeMask"
+  | "addToMask";
 
 export type PanelComponentProps = {
   elements: readonly ExcalidrawElement[];

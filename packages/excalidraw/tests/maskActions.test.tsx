@@ -10,7 +10,9 @@ import type {
 } from "@excalidraw/element/types";
 
 import {
+  actionAddToMask,
   actionApplyMask,
+  actionCancelMasking,
   actionEditMask,
   actionRemoveMask,
   actionToggleMaskEnabled,
@@ -41,7 +43,7 @@ const applyMask = (element: ExcalidrawElement) => {
 
 /** the element's content, i.e. everything but its mask fields and versioning */
 const content = (element: ExcalidrawElement) => {
-  const { maskId, maskEnabled, version, versionNonce, updated, ...rest } =
+  const { maskIds, maskEnabled, version, versionNonce, updated, ...rest } =
     API.getElement(element);
   return rest;
 };
@@ -70,14 +72,15 @@ const setup = () => {
   return { mask, target };
 };
 
-/** masks `target` with `mask` the way the user does */
+/** masks `targets` with `mask` the way the user does, then leaves masking mode */
 const createMask = (
   mask: NonDeletedExcalidrawElement,
-  target: ExcalidrawElement,
+  ...targets: ExcalidrawElement[]
 ) => {
   API.setSelectedElements([mask]);
   pressMaskShortcut();
-  applyMask(target);
+  targets.forEach(applyMask);
+  API.executeAction(actionCancelMasking);
 };
 
 beforeEach(async () => {
@@ -147,15 +150,28 @@ describe("mask shortcut", () => {
 });
 
 describe("applying a mask", () => {
-  it("clips the picked element and selects the mask", () => {
+  it("clips the picked element, selects the mask and keeps picking", () => {
     const { mask, target } = setup();
+    API.setSelectedElements([mask]);
+    pressMaskShortcut();
 
-    createMask(mask, target);
+    applyMask(target);
 
-    expect(API.getElement(target).maskId).toBe(mask.id);
+    expect(API.getElement(target).maskIds).toEqual([mask.id]);
     expect(API.getElement(mask).maskEnabled).toBe(true);
-    expect(h.state.maskEditor).toBe(null);
+    expect(h.state.maskEditor).toEqual({ maskId: mask.id, mode: "picking" });
     expect(h.state.selectedElementIds).toEqual({ [mask.id]: true });
+  });
+
+  it("clips several picked elements with one mask", () => {
+    const { mask, target } = setup();
+    const other = API.createElement({ type: "diamond" });
+    API.setElements([...h.elements, other]);
+
+    createMask(mask, target, other);
+
+    expect(API.getElement(target).maskIds).toEqual([mask.id]);
+    expect(API.getElement(other).maskIds).toEqual([mask.id]);
   });
 
   it("doesn't change the masked element's content", () => {
@@ -176,21 +192,30 @@ describe("applying a mask", () => {
 
     applyMask(image);
 
-    expect(API.getElement(image).maskId).toBeUndefined();
+    expect(API.getElement(image).maskIds).toBeUndefined();
     expect(h.state.maskEditor?.mode).toBe("picking");
   });
 
-  it("refuses an element that is already masked", () => {
+  it("masks an already masked element with a second mask", () => {
     const { mask, target } = setup();
     createMask(mask, target);
     const otherMask = API.createElement({ type: "diamond" });
     API.setElements([...h.elements, otherMask]);
-    API.setSelectedElements([otherMask]);
+
+    createMask(otherMask, target);
+
+    expect(API.getElement(target).maskIds).toEqual([mask.id, otherMask.id]);
+  });
+
+  it("doesn't mask an element twice with the same mask", () => {
+    const { mask, target } = setup();
+    API.setSelectedElements([mask]);
     pressMaskShortcut();
 
     applyMask(target);
+    applyMask(target);
 
-    expect(API.getElement(target).maskId).toBe(mask.id);
+    expect(API.getElement(target).maskIds).toEqual([mask.id]);
   });
 
   it("is undoable", () => {
@@ -198,10 +223,10 @@ describe("applying a mask", () => {
     createMask(mask, target);
 
     Keyboard.undo();
-    expect(API.getElement(target).maskId).toBeFalsy();
+    expect(API.getElement(target).maskIds).toBeFalsy();
 
     Keyboard.redo();
-    expect(API.getElement(target).maskId).toBe(mask.id);
+    expect(API.getElement(target).maskIds).toEqual([mask.id]);
   });
 });
 
@@ -216,21 +241,39 @@ describe("removing and releasing masks", () => {
     ]);
     pressMaskShortcut();
 
-    expect(API.getElement(target).maskId).toBe(null);
+    expect(API.getElement(target).maskIds).toBe(null);
     expect(h.state.maskEditor).toBe(null);
     expect([content(mask), content(target)]).toEqual(before);
   });
 
-  it("releases masked elements when only they are selected", () => {
+  it("removing one mask keeps the element's other masks", () => {
     const { mask, target } = setup();
+    const otherMask = API.createElement({ type: "diamond" });
+    API.setElements([...h.elements, otherMask]);
     createMask(mask, target);
+    createMask(otherMask, target);
+
+    API.setSelectedElements([
+      API.getElement(mask) as NonDeletedExcalidrawElement,
+    ]);
+    pressMaskShortcut();
+
+    expect(API.getElement(target).maskIds).toEqual([otherMask.id]);
+  });
+
+  it("releases masked elements from all their masks when only they are selected", () => {
+    const { mask, target } = setup();
+    const otherMask = API.createElement({ type: "diamond" });
+    API.setElements([...h.elements, otherMask]);
+    createMask(mask, target);
+    createMask(otherMask, target);
 
     API.setSelectedElements([
       API.getElement(target) as NonDeletedExcalidrawElement,
     ]);
     pressMaskShortcut();
 
-    expect(API.getElement(target).maskId).toBe(null);
+    expect(API.getElement(target).maskIds).toBe(null);
   });
 
   it("can undo removing a mask", () => {
@@ -243,7 +286,7 @@ describe("removing and releasing masks", () => {
 
     Keyboard.undo();
 
-    expect(API.getElement(target).maskId).toBe(mask.id);
+    expect(API.getElement(target).maskIds).toEqual([mask.id]);
   });
 });
 
@@ -272,7 +315,7 @@ describe("mask options", () => {
 
     API.executeAction(actionToggleMaskEnabled);
     expect(API.getElement(mask).maskEnabled).toBe(false);
-    expect(API.getElement(target).maskId).toBe(mask.id);
+    expect(API.getElement(target).maskIds).toEqual([mask.id]);
 
     API.executeAction(actionToggleMaskEnabled);
     expect(API.getElement(mask).maskEnabled).toBe(true);
@@ -298,7 +341,22 @@ describe("mask options", () => {
 
     API.executeAction(actionRemoveMask);
 
-    expect(API.getElement(target).maskId).toBe(null);
+    expect(API.getElement(target).maskIds).toBe(null);
     expect(h.state.maskEditor).toBe(null);
+  });
+
+  it("picks more elements for the mask", () => {
+    const { mask, target } = setup();
+    const other = API.createElement({ type: "diamond" });
+    API.setElements([...h.elements, other]);
+    createMask(mask, target);
+    openOptions(mask);
+
+    API.executeAction(actionAddToMask);
+    expect(h.state.maskEditor).toEqual({ maskId: mask.id, mode: "picking" });
+    applyMask(other);
+
+    expect(API.getElement(other).maskIds).toEqual([mask.id]);
+    expect(API.getElement(target).maskIds).toEqual([mask.id]);
   });
 });
