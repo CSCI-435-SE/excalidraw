@@ -6,44 +6,45 @@
 
 _**User (2026-10-27 22:27:46Z)**_
 
-Help plan out this issue implementation : 
+Help plan out this issue implementation :
 
 <pasted_content id="e2db">
+
 ## Summary
+
 Integrate masks with Excalidraw's existing grouping functionality so masks and the elements they affect can be grouped and transformed together. Groups should preserve mask relationships, including cases where multiple masks share the same elements or where a mask and its masked elements are part of a larger group.
 
 ## User Scenario
+
 A user has a mask with several elements being masked by it. The user groups the mask and its associated elements so they can move, resize, or otherwise transform them together.
 
-A user may also have multiple masks that share some of the same elements. When these masks are grouped, the shared elements should remain associated with all of the masks that affect them. Masks can also be included in a larger group containing other elements, while still preserving their masking relationships.
-**Reason:** Requires adapting Excalidraw's grouping behavior to preserve mask-to-element relationships, including groups containing multiple masks and masks that share elements.
-
+A user may also have multiple masks that share some of the same elements. When these masks are grouped, the shared elements should remain associated with all of the masks that affect them. Masks can also be included in a larger group containing other elements, while still preserving their masking relationships. **Reason:** Requires adapting Excalidraw's grouping behavior to preserve mask-to-element relationships, including groups containing multiple masks and masks that share elements.
 
 ## Acceptance Criteria
 
-* [ ] **Masks can be grouped with their masked elements** using Excalidraw's existing grouping functionality.
-* [ ] **Multiple masks can exist in the same group** without losing their individual relationships with their masked elements.
-* [ ] **Elements shared by multiple masks remain associated with all applicable masks** when the masks are grouped or transformed.
-* [ ] **A mask can be included in a larger group** containing elements that are not masked without breaking its masking relationships.
-* [ ] **Grouping and transforming masks does not unintentionally change which elements they mask.**
+- [ ] **Masks can be grouped with their masked elements** using Excalidraw's existing grouping functionality.
+- [ ] **Multiple masks can exist in the same group** without losing their individual relationships with their masked elements.
+- [ ] **Elements shared by multiple masks remain associated with all applicable masks** when the masks are grouped or transformed.
+- [ ] **A mask can be included in a larger group** containing elements that are not masked without breaking its masking relationships.
+- [ ] **Grouping and transforming masks does not unintentionally change which elements they mask.**
 
 ## Out of Scope
 
-* Creating the initial masking system.
-* Creating new mask shapes or stamps.
-* Implementing basic mask creation or mask-to-element relationships.
-* Changing Excalidraw's general grouping behavior for non-mask elements.
+- Creating the initial masking system.
+- Creating new mask shapes or stamps.
+- Implementing basic mask creation or mask-to-element relationships.
+- Changing Excalidraw's general grouping behavior for non-mask elements.
 
 ## Head Issue
-Issue (#11): Implement the ability of Shape Masking with the pre-built stamps.
-</pasted_content id="e2db">
 
+Issue (#11): Implement the ability of Shape Masking with the pre-built stamps. </pasted_content id="e2db">
 
 ---
 
 _**Agent (claude-opus-5-5 2026-10-27 22:28:00Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages` pattern `mask`
 
@@ -78,11 +79,13 @@ packages\excalidraw\components\Toolbar.tsx:9
 
 Found 727 total occurrences across 27 files.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:27:59Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show recent commits and mask branches
 
@@ -108,18 +111,20 @@ aaab0871 Implement UI scaling
 * feat/issue-74-mask-group
   remotes/origin/feat/basic-shape-masking
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:28:02Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/element/src/mask.ts`
 
 ```text
 1	import { getCornerRadius } from "./utils";
 2	import { getDiamondPoints, getTrianglePoints } from "./bounds";
-3	
+3
 4	import type {
 5	  ElementsMap,
 6	  ExcalidrawDiamondElement,
@@ -129,20 +134,20 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:02Z)**_
 10	  ExcalidrawTriangleElement,
 11	  NonDeletedExcalidrawElement,
 12	} from "./types";
-13	
+13
 14	export type ExcalidrawMaskElement =
 15	  | ExcalidrawRectangleElement
 16	  | ExcalidrawDiamondElement
 17	  | ExcalidrawEllipseElement
 18	  | ExcalidrawTriangleElement;
-19	
+19
 20	const MASK_TYPES = new Set<ExcalidrawElement["type"]>([
 21	  "rectangle",
 22	  "diamond",
 23	  "ellipse",
 24	  "triangle",
 25	]);
-26	
+26
 27	// images are left to #72, embeds can't be clipped by the canvas at all
 28	const MASKABLE_TYPES = new Set<ExcalidrawElement["type"]>([
 29	  "rectangle",
@@ -154,13 +159,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:02Z)**_
 35	  "freedraw",
 36	  "text",
 37	]);
-38	
+38
 39	/** whether the element's type can act as a mask */
 40	export const isMaskType = (
 41	  element: ExcalidrawElement | null | undefined,
 42	): element is ExcalidrawMaskElement =>
 43	  !!element && MASK_TYPES.has(element.type);
-44	
+44
 45	/** the mask shape clipping `element`, if it (still) exists */
 46	export const getMaskElement = (
 47	  element: ExcalidrawElement,
@@ -172,7 +177,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:02Z)**_
 53	  const mask = elementsMap.get(element.maskId);
 54	  return mask && !mask.isDeleted && isMaskType(mask) ? mask : null;
 55	};
-56	
+56
 57	/** the element clipped by `mask`, if any */
 58	export const getMaskedElement = (
 59	  mask: ExcalidrawElement,
@@ -185,15 +190,15 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:02Z)**_
 66	  }
 67	  return null;
 68	};
-69	
+69
 70	export const isMaskElement = (
 71	  element: ExcalidrawElement,
 72	  elementsMap: ElementsMap,
 73	) => isMaskType(element) && !!getMaskedElement(element, elementsMap);
-74	
+74
 75	export const isMaskEnabled = (mask: ExcalidrawElement) =>
 76	  mask.maskEnabled !== false;
-77	
+77
 78	/** the enabled mask that should clip `element` when rendering */
 79	export const getActiveMaskElement = (
 80	  element: ExcalidrawElement,
@@ -202,7 +207,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:02Z)**_
 83	  const mask = getMaskElement(element, elementsMap);
 84	  return mask && isMaskEnabled(mask) ? mask : null;
 85	};
-86	
+86
 87	/** whether `element` can become a mask's parent shape */
 88	export const canBecomeMask = (
 89	  element: ExcalidrawElement,
@@ -212,7 +217,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:02Z)**_
 93	  !element.locked &&
 94	  !getMaskElement(element, elementsMap) &&
 95	  !isMaskElement(element, elementsMap);
-96	
+96
 97	/** whether `element` can be clipped by `mask` */
 98	export const canBeMasked = (
 99	  element: ExcalidrawElement,
@@ -227,12 +232,12 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:02Z)**_
 108	  !(element.type === "text" && element.containerId) &&
 109	  !getMaskElement(element, elementsMap) &&
 110	  !isMaskElement(element, elementsMap);
-111	
+111
 112	type MaskOutline =
 113	  | { type: "rect"; width: number; height: number; radius: number }
 114	  | { type: "ellipse"; width: number; height: number }
 115	  | { type: "polygon"; points: [number, number][] };
-116	
+116
 117	/** the mask's outline in its local (unrotated, top-left origin) coordinates */
 118	export const getMaskOutline = (mask: ExcalidrawMaskElement): MaskOutline => {
 119	  const { width, height } = mask;
@@ -271,7 +276,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:02Z)**_
 152	    }
 153	  }
 154	};
-155	
+155
 156	/**
 157	 * Clips the context to the mask's outline. The context is expected to be in
 158	 * scene coordinates offset by (`offsetX`, `offsetY`), e.g. the scroll.
@@ -284,11 +289,11 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:02Z)**_
 165	) => {
 166	  const cx = mask.x + mask.width / 2 + offsetX;
 167	  const cy = mask.y + mask.height / 2 + offsetY;
-168	
+168
 169	  context.translate(cx, cy);
 170	  context.rotate(mask.angle);
 171	  context.translate(-mask.width / 2, -mask.height / 2);
-172	
+172
 173	  context.beginPath();
 174	  const outline = getMaskOutline(mask);
 175	  if (outline.type === "rect") {
@@ -314,12 +319,12 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:02Z)**_
 195	    context.closePath();
 196	  }
 197	  context.clip();
-198	
+198
 199	  context.translate(mask.width / 2, mask.height / 2);
 200	  context.rotate(-mask.angle);
 201	  context.translate(-cx, -cy);
 202	};
-203	
+203
 204	/** SVG path data of the mask's outline, in its local coordinates */
 205	export const getMaskSvgPathData = (mask: ExcalidrawMaskElement) => {
 206	  const outline = getMaskOutline(mask);
@@ -347,7 +352,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:02Z)**_
 228	    .map(([x, y], index) => `${index ? "L" : "M"}${x} ${y}`)
 229	    .join("")}Z`;
 230	};
-231	
+231
 232	/** SVG transform placing the mask's local outline into scene coordinates */
 233	export const getMaskSvgTransform = (
 234	  mask: ExcalidrawMaskElement,
@@ -363,11 +368,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:02Z)**_
 244	};
 245
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:28:03Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/element/src/types.ts` pattern `mask`
 
@@ -386,11 +393,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:03Z)**_
 89-export type ExcalidrawSelectionElement = _ExcalidrawElementBase & {
 90-  type: "selection";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:28:04Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/actions/actionGroup.tsx` pattern `mask`
 
@@ -413,11 +422,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:04Z)**_
 208-      type="button"
 209-      icon={<GroupIcon theme={appState.theme} />}
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:28:07Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/actions/actionMask.tsx`
 
@@ -433,18 +444,18 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:07Z)**_
 9	  CaptureUpdateAction,
 10	} from "@excalidraw/element";
 11	import { arrayToMap, CODES, KEYS } from "@excalidraw/common";
-12	
+12
 13	import type { ElementsMap, ExcalidrawElement } from "@excalidraw/element/types";
-14	
+14
 15	import { DEFAULT_CATEGORIES } from "../components/CommandPalette/CommandPalette";
 16	import { MaskIcon } from "../components/icons";
-17	
+17
 18	import { register } from "./register";
-19	
+19
 20	import type { AppClassProperties, AppState } from "../types";
-21	
+21
 22	type MaskActionType = "start" | "remove" | "release";
-23	
+23
 24	/**
 25	 * What the mask shortcut/button does for the current selection:
 26	 * - `start`: a single shape that can become a mask → enter masking mode
@@ -472,7 +483,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:07Z)**_
 48	  }
 49	  return null;
 50	};
-51	
+51
 52	/** the mask the open mask editor belongs to, if it still exists */
 53	export const getEditedMask = (
 54	  elements: readonly ExcalidrawElement[],
@@ -484,7 +495,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:07Z)**_
 60	  const mask = elements.find((el) => el.id === appState.maskEditor!.maskId);
 61	  return mask && !mask.isDeleted ? mask : null;
 62	};
-63	
+63
 64	/** clears the elements' masks so they render unmasked again */
 65	const unmaskElements = (
 66	  elements: readonly ExcalidrawElement[],
@@ -493,12 +504,12 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:07Z)**_
 69	  elements.map((el) =>
 70	    ids.has(el.id) && el.maskId ? newElementWith(el, { maskId: null }) : el,
 71	  );
-72	
+72
 73	const exitedAppState = (appState: Readonly<AppState>): AppState => ({
 74	  ...appState,
 75	  maskEditor: null,
 76	});
-77	
+77
 78	export const actionToggleMask = register({
 79	  name: "toggleMask",
 80	  label: "labels.mask.toggle",
@@ -520,10 +531,10 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:07Z)**_
 96	        captureUpdate: CaptureUpdateAction.EVENTUALLY,
 97	      };
 98	    }
-99	
+99
 100	    const elementsMap = app.scene.getNonDeletedElementsMap();
 101	    const selectedElements = app.scene.getSelectedElements(appState);
-102	
+102
 103	    switch (getMaskActionType(selectedElements, elementsMap)) {
 104	      case "start":
 105	        return {
@@ -564,7 +575,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:07Z)**_
 140	    // `event.key` is a special character with Alt held on some layouts
 141	    event.code === CODES.G,
 142	});
-143	
+143
 144	/** masking mode: clips the element with id `value` to the mask being picked */
 145	export const actionApplyMask = register<ExcalidrawElement["id"]>({
 146	  name: "applyMask",
@@ -600,7 +611,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:07Z)**_
 176	    };
 177	  },
 178	});
-179	
+179
 180	export const actionCancelMasking = register({
 181	  name: "cancelMasking",
 182	  label: "buttons.cancel",
@@ -611,7 +622,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:07Z)**_
 187	    captureUpdate: CaptureUpdateAction.EVENTUALLY,
 188	  }),
 189	});
-190	
+190
 191	/**
 192	 * Opens the options of the mask with id `value` (double-clicking a mask
 193	 * shape), or of the selected mask, and selects it.
@@ -647,7 +658,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:07Z)**_
 223	    };
 224	  },
 225	});
-226	
+226
 227	export const actionCloseMaskEditor = register({
 228	  name: "closeMaskEditor",
 229	  label: "buttons.close",
@@ -658,7 +669,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:07Z)**_
 234	    captureUpdate: CaptureUpdateAction.EVENTUALLY,
 235	  }),
 236	});
-237	
+237
 238	/** turns the edited mask's clipping on or off, keeping the masked element */
 239	export const actionToggleMaskEnabled = register({
 240	  name: "toggleMaskEnabled",
@@ -681,7 +692,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:07Z)**_
 257	    };
 258	  },
 259	});
-260	
+260
 261	/** removes the edited mask, restoring its element's unmasked appearance */
 262	export const actionRemoveMask = register({
 263	  name: "removeMask",
@@ -708,11 +719,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:07Z)**_
 284	});
 285
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:28:08Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/components/App.tsx` pattern `mask`
 
@@ -775,11 +788,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:08Z)**_
 8641:    // masking mode only allows panning and zooming, elements are picked by
 8643:    if (this.state.maskEditor?.mode === "picking") {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:28:21Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages` pattern `maskId|getMaskElement|getMaskedElement|isMaskElement`
 
@@ -822,11 +837,13 @@ packages\excalidraw\components\App.tsx:7062:    if (!hitElement || !isMaskElemen
 packages\excalidraw\components\App.tsx:7100:      ? elementsMap.get(this.state.maskEditor.maskId)
 packages\excalidraw\types.ts:385:    maskId: ExcalidrawElement["id"];
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:28:17Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check branch relationships and mask test names
 
@@ -866,11 +883,13 @@ merged
 283:  it("follows the mask's rotation", async () => {
 299:  it("doesn't clip when the mask is disabled", async () => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:28:30Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 List mask-related GitHub issues and view #70
 
@@ -898,23 +917,24 @@ association:	collaborator
 edited:	false
 status:	none
 --
-Code review and Tester @AntWill-08 
+Code review and Tester @AntWill-08
 
 No AI Used
 --
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:28:33Z)**_
 
-<think><details><summary>Thought Process</summary>
-Masking currently works as a strict 1:1 model, which doesn't support the "shared elements" concept from the issue. I'll check issues #73/#74 for scope before drafting the plan.
+<think><details><summary>Thought Process</summary> Masking currently works as a strict 1:1 model, which doesn't support the "shared elements" concept from the issue. I'll check issues #73/#74 for scope before drafting the plan.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:28:37Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 View issues 74, 73, 72 details
 
@@ -935,14 +955,14 @@ author:	AntWill-08
 labels:	enhancement
 comments:	1
 assignees:	AntWill-08
-projects:	
+projects:
 milestone:	Sprint 2
 issue-type:	Feature
 parent:	CSCI-435-SE/excalidraw#11
-sub-issues:	
-sub-issues-completed:	
-blocked-by:	
-blocking:	
+sub-issues:
+sub-issues-completed:
+blocked-by:
+blocking:
 number:	73
 --
 # Issue Description
@@ -961,8 +981,8 @@ A user creates a mask using one of the pre-built stamps and places content insid
 # Issue Classification
 
 ## Scope
-**Generic:** Medium  
-**Specific:** Greater Medium (8 points)  
+**Generic:** Medium
+**Specific:** Greater Medium (8 points)
 **Reason:** Requires adding masking-specific transformation behavior while preserving the existing element transformation system and mask/content relationship.
 
 ---
@@ -974,8 +994,8 @@ A user creates a mask using one of the pre-built stamps and places content insid
 * [ ] **Mask behavior can be configured** to determine whether the area inside or outside of the mask is visible.
 * [ ] **Changing the mask behavior updates the visible content** without requiring the mask or its contents to be recreated.
 * [ ] **Parent-Child Tags** visible when moving mask or adding elements to mask
-* [ ] **Mask all or none** option that allows the user to immediately connect or sever all elements on the canvas to a mask. 
-* [ ] **Element can be tied to multiple mask** which allows a element to be connected to 3 mask. If 
+* [ ] **Mask all or none** option that allows the user to immediately connect or sever all elements on the canvas to a mask.
+* [ ] **Element can be tied to multiple mask** which allows a element to be connected to 3 mask. If
 * [ ] **Mask behavior remains consistent after multiple transformations**, including combinations of moving, resizing, rotating, and changing the masking mode.
 
 ## Open Question
@@ -985,15 +1005,15 @@ state:	OPEN
 author:	AntWill-08
 labels:	enhancement
 comments:	0
-assignees:	
-projects:	
+assignees:
+projects:
 milestone:	Sprint 2
 issue-type:	Feature
 parent:	CSCI-435-SE/excalidraw#11
-sub-issues:	
-sub-issues-completed:	
-blocked-by:	
-blocking:	
+sub-issues:
+sub-issues-completed:
+blocked-by:
+blocking:
 number:	72
 --
 # Issue Description
@@ -1020,11 +1040,13 @@ Allow images and multiple elements to be placed inside a mask while keeping the 
 
 # Expectations
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:28:42Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 View full body of issue 74
 
@@ -1049,8 +1071,8 @@ A user may also have multiple masks that share some of the same elements. When t
 # Issue Classification
 
 ## Scope
-**Generic:** Medium  
-**Specific:** Greater Medium (8 points)  
+**Generic:** Medium
+**Specific:** Greater Medium (8 points)
 **Reason:** Requires adapting Excalidraw's grouping behavior to preserve mask-to-element relationships, including groups containing multiple masks and masks that share elements.
 
 ---
@@ -1086,11 +1108,13 @@ Issue (#11): Implement the ability of Shape Masking with the pre-built stamps.
 AntWill-08
 Sprint 2
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:28:47Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/renderer/maskClip.ts`
 
@@ -1104,24 +1128,24 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:47Z)**_
 7	  getMaskSvgTransform,
 8	  renderElement,
 9	} from "@excalidraw/element";
-10	
+10
 11	import type {
 12	  ElementsMap,
 13	  NonDeletedExcalidrawElement,
 14	  NonDeletedSceneElementsMap,
 15	} from "@excalidraw/element/types";
-16	
+16
 17	import type { RoughCanvas } from "roughjs/bin/canvas";
-18	
+18
 19	import type {
 20	  RenderableElementsMap,
 21	  StaticCanvasRenderConfig,
 22	} from "../scene/types";
 23	import type { StaticCanvasAppState } from "../types";
-24	
+24
 25	/** opacity of the masked-out content previewed while the mask is selected */
 26	export const MASK_PREVIEW_OPACITY = 0.2;
-27	
+27
 28	/**
 29	 * Clips the context to the element's mask, if it has an enabled one.
 30	 * While the mask is selected, the masked-out parts are first drawn faintly
@@ -1140,7 +1164,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:47Z)**_
 43	  if (!mask) {
 44	    return;
 45	  }
-46	
+46
 47	  if (!renderConfig.isExporting && appState.selectedElementIds[mask.id]) {
 48	    const boundTextElement = getBoundTextElement(element, elementsMap);
 49	    for (const el of boundTextElement
@@ -1158,10 +1182,10 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:47Z)**_
 61	      );
 62	    }
 63	  }
-64	
+64
 65	  clipToMask(context, mask, appState.scrollX, appState.scrollY);
 66	};
-67	
+67
 68	/**
 69	 * If the element has an enabled mask, appends a `<g>` clipped to the mask's
 70	 * outline to `svgRoot` and returns it, so the element can be rendered into it.
@@ -1177,7 +1201,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:47Z)**_
 80	  if (!mask) {
 81	    return null;
 82	  }
-83	
+83
 84	  const doc = svgRoot.ownerDocument;
 85	  const clipPath = doc.createElementNS(SVG_NS, "clipPath");
 86	  clipPath.id = `mask-clipPath-${element.id}`;
@@ -1187,7 +1211,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:47Z)**_
 90	  path.setAttribute("transform", getMaskSvgTransform(mask, offsetX, offsetY));
 91	  clipPath.appendChild(path);
 92	  (svgRoot.querySelector("defs") || svgRoot).appendChild(clipPath);
-93	
+93
 94	  const g = doc.createElementNS(SVG_NS, "g");
 95	  g.setAttribute("clip-path", `url(#${clipPath.id})`);
 96	  svgRoot.appendChild(g);
@@ -1195,11 +1219,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:47Z)**_
 98	};
 99
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:28:48Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/renderer/staticScene.ts` pattern `mask`
 
@@ -1246,21 +1272,23 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:48Z)**_
 390-            context,
 391-            renderConfig,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:28:49Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/actions/actionGroup.tsx`
 
 ```text
 1	import { getNonDeletedElements } from "@excalidraw/element";
-2	
+2
 3	import { newElementWith } from "@excalidraw/element";
-4	
+4
 5	import { isBoundToContainer } from "@excalidraw/element";
-6	
+6
 7	import {
 8	  frameAndChildrenSelectedTogether,
 9	  getElementsInResizingFrame,
@@ -1270,9 +1298,9 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:49Z)**_
 13	  removeElementsFromFrame,
 14	  replaceAllElementsInFrame,
 15	} from "@excalidraw/element";
-16	
+16
 17	import { KEYS, randomId, arrayToMap } from "@excalidraw/common";
-18	
+18
 19	import {
 20	  getSelectedGroupIds,
 21	  selectGroup,
@@ -1282,30 +1310,30 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:49Z)**_
 25	  removeFromSelectedGroups,
 26	  isElementInGroup,
 27	} from "@excalidraw/element";
-28	
+28
 29	import { syncMovedIndices } from "@excalidraw/element";
-30	
+30
 31	import { CaptureUpdateAction } from "@excalidraw/element";
-32	
+32
 33	import type {
 34	  ExcalidrawElement,
 35	  ExcalidrawTextElement,
 36	  OrderedExcalidrawElement,
 37	} from "@excalidraw/element/types";
-38	
+38
 39	import { IconButton } from "../components/IconButton";
 40	import { UngroupIcon, GroupIcon } from "../components/icons";
-41	
+41
 42	import { t } from "../i18n";
-43	
+43
 44	import { isSomeElementSelected } from "../scene";
-45	
+45
 46	import { getShortcutKey } from "../shortcut";
-47	
+47
 48	import { register } from "./register";
-49	
+49
 50	import type { AppClassProperties, UIAppState } from "../types";
-51	
+51
 52	const allElementsInSameGroup = (elements: readonly ExcalidrawElement[]) => {
 53	  if (elements.length >= 2) {
 54	    const groupIds = elements[0].groupIds;
@@ -1322,7 +1350,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:49Z)**_
 65	  }
 66	  return false;
 67	};
-68	
+68
 69	const enableActionGroup = (
 70	  elements: readonly ExcalidrawElement[],
 71	  appState: UIAppState,
@@ -1332,14 +1360,14 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:49Z)**_
 75	    selectedElementIds: appState.selectedElementIds,
 76	    includeBoundTextElement: true,
 77	  });
-78	
+78
 79	  return (
 80	    selectedElements.length >= 2 &&
 81	    !allElementsInSameGroup(selectedElements) &&
 82	    !frameAndChildrenSelectedTogether(selectedElements)
 83	  );
 84	};
-85	
+85
 86	export const actionGroup = register({
 87	  name: "group",
 88	  label: "labels.group",
@@ -1385,9 +1413,9 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:49Z)**_
 128	        };
 129	      }
 130	    }
-131	
+131
 132	    let nextElements = [...elements];
-133	
+133
 134	    // this includes the case where we are grouping elements inside a frame
 135	    // and elements outside that frame
 136	    const groupingElementsFromDifferentFrames =
@@ -1396,7 +1424,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:49Z)**_
 139	    // and are going to be grouped from the frame (mouthful, I know)
 140	    if (groupingElementsFromDifferentFrames) {
 141	      const frameElementsMap = groupByFrameLikes(selectedElements);
-142	
+142
 143	      frameElementsMap.forEach((elementsInFrame, frameId) => {
 144	        removeElementsFromFrame(
 145	          elementsInFrame,
@@ -1404,10 +1432,10 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:49Z)**_
 147	        );
 148	      });
 149	    }
-150	
+150
 151	    const newGroupId = randomId();
 152	    const selectElementIds = arrayToMap(selectedElements);
-153	
+153
 154	    nextElements = nextElements.map((element) => {
 155	      if (!selectElementIds.get(element.id)) {
 156	        return element;
@@ -1437,7 +1465,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:49Z)**_
 180	      [...elementsBeforeGroup, ...elementsInGroup, ...elementsAfterGroup],
 181	      arrayToMap(elementsInGroup),
 182	    );
-183	
+183
 184	    return {
 185	      appState: {
 186	        ...appState,
@@ -1456,11 +1484,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:28:49Z)**_
 199	  keyTest: (event) =>
 200	    !event.shiftKey &&
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:29:03Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/element/src/duplicate.ts` pattern `frameId|containerId|groupIdMapForOperation|boundElements`
 
@@ -1479,11 +1509,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:29:03Z)**_
 335:        return el.frameId === frameId || el.id === frameId;
 354:          ("containerId" in el && el.containerId === element.id)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:29:04Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/components/App.tsx` pattern `maybeOpenMaskEditor|handleMaskingModeDoubleClick|editingGroupId|selectGroupsFromGivenElements`
 
@@ -1521,11 +1553,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:29:04Z)**_
 13161:          ? prevState.editingGroupId
 13516:                  editingGroupId: this.state.editingGroupId,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:29:06Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/App.tsx`
 
@@ -1541,11 +1575,11 @@ _**Agent (claude-opus-5-5 2026-10-27 22:29:06Z)**_
 7044	    const elementsMap = this.scene.getNonDeletedElementsMap();
 7045	    let hitElement: ExcalidrawElement | null | undefined =
 7046	      this.getElementAtPosition(x, y);
-7047	
+7047
 7048	    if (isTextElement(hitElement) && hitElement.containerId) {
 7049	      hitElement = elementsMap.get(hitElement.containerId);
 7050	    }
-7051	
+7051
 7052	    // a selected shape's (possibly transparent) inside counts as the shape
 7053	    const [selectedElement] = this.scene.getSelectedElements(this.state);
 7054	    if (
@@ -1555,23 +1589,23 @@ _**Agent (claude-opus-5-5 2026-10-27 22:29:06Z)**_
 7058	    ) {
 7059	      hitElement = selectedElement;
 7060	    }
-7061	
+7061
 7062	    if (!hitElement || !isMaskElement(hitElement, elementsMap)) {
 7063	      this.maskWithEditedText = null;
 7064	      return false;
 7065	    }
-7066	
+7066
 7067	    if (this.maskWithEditedText === hitElement.id) {
 7068	      this.maskWithEditedText = null;
 7069	      this.actionManager.executeAction(actionEditMask, "ui", hitElement.id);
 7070	      return true;
 7071	    }
-7072	
+7072
 7073	    // falls through to editing the mask's text
 7074	    this.maskWithEditedText = hitElement.id;
 7075	    return false;
 7076	  };
-7077	
+7077
 7078	  /**
 7079	   * Masking mode: double-clicking an element masks it, double-clicking empty
 7080	   * canvas cancels. Elements that can't be masked are ignored.
@@ -1582,17 +1616,17 @@ _**Agent (claude-opus-5-5 2026-10-27 22:29:06Z)**_
 7085	    const { x, y } = viewportCoordsToSceneCoords(event, this.state);
 7086	    const elementsMap = this.scene.getNonDeletedElementsMap();
 7087	    let hitElement = this.getElementAtPosition(x, y);
-7088	
+7088
 7089	    // double-clicking a shape's label means the shape
 7090	    if (isTextElement(hitElement) && hitElement.containerId) {
 7091	      hitElement = elementsMap.get(hitElement.containerId) ?? hitElement;
 7092	    }
-7093	
+7093
 7094	    if (!hitElement) {
 7095	      this.actionManager.executeAction(actionCancelMasking, "ui");
 7096	      return;
 7097	    }
-7098	
+7098
 7099	    const mask = this.state.maskEditor
 7100	      ? elementsMap.get(this.state.maskEditor.maskId)
 7101	      : undefined;
@@ -1600,7 +1634,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:29:06Z)**_
 7103	      this.actionManager.executeAction(actionApplyMask, "ui", hitElement.id);
 7104	    }
 7105	  };
-7106	
+7106
 7107	  private handleCanvasDoubleClick = (
 7108	    event: Pick<
 7109	      React.MouseEvent<HTMLCanvasElement>,
@@ -1619,16 +1653,16 @@ _**Agent (claude-opus-5-5 2026-10-27 22:29:06Z)**_
 7122	    ) {
 7123	      return;
 7124	    }
-7125	
+7125
 7126	    if (this.state.maskEditor?.mode === "picking") {
 7127	      this.handleMaskingModeDoubleClick(event);
 7128	      return;
 7129	    }
-7130	
+7130
 7131	    if (this.maybeOpenMaskEditor(event)) {
 7132	      return;
 7133	    }
-7134	
+7134
 7135	    // case: double-clicking with arrow/line tool selected would both create
 7136	    // text and enter multiElement mode
 7137	    if (this.state.multiElement) {
@@ -1638,18 +1672,21 @@ _**Agent (claude-opus-5-5 2026-10-27 22:29:06Z)**_
 7141	    if (this.state.activeTool.type !== this.state.preferredSelectionTool.type) {
 7142	      return;
 7143	    }
-7144	
+7144
 7145	    const selectedElements = this.scene.getSelectedElements(this.state);
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:33:31Z)**_
 
 <tool-use data-tool-type="generic" data-tool-name="AskUserQuestion"><details>
+
 <summary>Tool use: **AskUserQuestion**</summary>
 **The current mask model is strictly 1:1. Each element has a single `maskId`, and a mask can clip only one element (canBecomeMask/canBeMasked block reuse). So 'several elements per mask' and 'elements shared by multiple masks' can't exist yet. Issue #72 (multiple elements) and #73 (element tied to multiple masks) already own those features. How should #74 handle this?**
 
 Options:
+
 - **Build on 1:1, stay forward-compatible (Recommended)** - Make grouping and transforms correct for today's model. Put all mask lookups behind helpers in mask.ts so #72/#73 can widen them later. Add tests for multiple 1:1 masks in a single group and for nested groups. Don't do the 'shared elements' criterion until #72/#73 land.
 - **Implement many-to-many here** - Change maskId into maskIds: string[], let one mask clip several elements, and update rendering (intersect clips), SVG export, restore, and the actions. This takes over most of #72/#73 and makes #74 much larger.
 - **Wait for #72/#73 first** - Don't start #74 until those issues have merged a multi-mask model. Then plan against that model.
@@ -1657,16 +1694,18 @@ Options:
 **Issue #74's title is 'Add Mask Groups, Copy/Paste, and Persistence', but the criteria you pasted only cover grouping. Right now, duplicating or pasting a grouped mask with its masked element leaves the copy's maskId pointing at the ORIGINAL mask. Should this plan fix that?**
 
 Options:
+
 - **Yes, remap maskId on duplicate/paste (Recommended)** - If the mask is copied along with the element, point the copy at the new mask. If only the masked element is copied, keep the original mask. This is needed for 'grouping and transforming doesn't change which elements they mask' to hold under Ctrl+D or Alt-drag of a group.
 - **No, grouping only** - Leave copy/paste and persistence for a later issue.
 
-
 **Answer:** Implement many-to-many here, Yes, remap maskId on duplicate/paste (Recommended)
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:33:35Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/data/restore.ts`
 
@@ -1682,10 +1721,10 @@ _**Agent (claude-opus-5-5 2026-10-27 22:33:35Z)**_
 448	      color: link.color === "inherit" ? "inherit" : "link",
 449	    });
 450	  }
-451	
+451
 452	  return restored;
 453	};
-454	
+454
 455	const restoreElementWithProperties = <
 456	  T extends Required<
 457	    Omit<ExcalidrawElement, "customData" | "maskId" | "maskEnabled">
@@ -1722,11 +1761,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:33:35Z)**_
 488	    strokeWidth: element.strokeWidth || DEFAULT_ELEMENT_PROPS.strokeWidth,
 489	    strokeStyle: element.strokeStyle ?? DEFAULT_ELEMENT_PROPS.strokeStyle,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:33:36Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/renderer/staticSvgScene.ts` pattern `mask`
 
@@ -1831,11 +1872,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:33:36Z)**_
 891-              element,
 892-              elementsMap,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:33:37Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/element/src/duplicate.ts`
 
@@ -1857,18 +1900,18 @@ _**Agent (claude-opus-5-5 2026-10-27 22:33:37Z)**_
 69	  randomizeSeed?: boolean,
 70	): Readonly<TElement> => {
 71	  const copy = deepCopyElement(element);
-72	
+72
 73	  if (isTestEnv()) {
 74	    __test__defineOrigId(copy, element.id);
 75	  }
-76	
+76
 77	  copy.id = randomId();
 78	  copy.updated = getUpdatedTimestamp();
 79	  if (randomizeSeed) {
 80	    copy.seed = randomInteger();
 81	    bumpVersion(copy);
 82	  }
-83	
+83
 84	  copy.groupIds = getNewGroupIdsForDuplication(
 85	    copy.groupIds,
 86	    editingGroupId,
@@ -1881,7 +1924,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:33:37Z)**_
 93	  );
 94	  return copy;
 95	};
-96	
+96
 97	export const duplicateElements = (
 98	  opts: {
 99	    elements: readonly ExcalidrawElement[];
@@ -1901,11 +1944,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:33:37Z)**_
 113	         *
 114	         * Use this when programmaticaly duplicating elements, without direct
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:33:41Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/element/src/duplicate.ts` pattern `fixBindingsAfterDuplication|bindElementsToFramesAfterDuplication|origIdToDuplicateId\b`
 
@@ -1921,11 +1966,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:33:41Z)**_
 440:            origIdToDuplicateId,
 451:    origIdToDuplicateId,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:33:42Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/types.ts` pattern `maskEditor`
 
@@ -1942,32 +1989,34 @@ _**Agent (claude-opus-5-5 2026-10-27 22:33:42Z)**_
 388-  /**
 389-   * decoupled from newElement, dragging selection only creates selectionElement
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:33:45Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/element/src/duplicate.ts`
 
 ```text
 395	    );
 396	  }
-397	
+397
 398	  // ---------------------------------------------------------------------------
-399	
+399
 400	  fixDuplicatedBindingsAfterDuplication(
 401	    duplicatedElements,
 402	    origIdToDuplicateId,
 403	    duplicateElementsMap as NonDeletedSceneElementsMap,
 404	  );
-405	
+405
 406	  bindElementsToFramesAfterDuplication(
 407	    elementsWithDuplicates,
 408	    origElements,
 409	    origIdToDuplicateId,
 410	  );
-411	
+411
 412	  // a duplicated path follows its target into the duplicate when the target
 413	  // was duplicated alongside it, so the original path/target pair is left
 414	  // untouched. A path duplicated without its target is left with no target
@@ -1986,7 +2035,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:33:45Z)**_
 427	        groupIdMap.get(mutablePath.targetGroupId) ?? null;
 428	    }
 429	  }
-430	
+430
 431	  if (opts.overrides) {
 432	    for (const duplicateElement of duplicatedElements) {
 433	      const origElement = duplicateIdToOrigElement.get(duplicateElement.id);
@@ -2002,7 +2051,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:33:45Z)**_
 443	      }
 444	    }
 445	  }
-446	
+446
 447	  return {
 448	    duplicatedElements,
 449	    duplicateElementsMap,
@@ -2010,7 +2059,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:33:45Z)**_
 451	    origIdToDuplicateId,
 452	  };
 453	};
-454	
+454
 455	// Simplified deep clone for the purpose of cloning ExcalidrawElement.
 456	//
 457	// Only clones plain objects and arrays. Doesn't clone Date, RegExp, Map, Set,
@@ -2022,11 +2071,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:33:45Z)**_
 463	// passing ExcalidrawElement as the top-level argument).
 464	const _deepCopyElement = (val: any, depth: number = 0) => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:33:46Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/tests/maskActions.test.tsx` pattern `it\(|describe\(`
 
@@ -2054,18 +2105,22 @@ _**Agent (claude-opus-5-5 2026-10-27 22:33:46Z)**_
 283:  it("can undo turning clipping off", () => {
 294:  it("removes the mask and closes", () => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:34:41Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```markdown
 # Plan: #74 Mask Groups (+ many-to-many masks, duplicate/paste remap)
 
 ## Context
+
 Basic masking (#70) is merged on `master`, and `feat/issue-74-mask-group` has no commits of its own yet. The current model is strictly 1:1:
+
 - `ExcalidrawElement.maskId?: string | null` is the single mask clipping an element (`packages/element/src/types.ts:83`).
 - `getMaskedElement` returns only one element. `canBecomeMask` and `canBeMasked` (`packages/element/src/mask.ts`) stop a mask from clipping more than one element and stop an element from having more than one mask.
 
@@ -2076,6 +2131,7 @@ Grouping already only touches `groupIds`, and clips are computed live from each 
 **Clip semantics (decision):** an element with several enabled masks is clipped to the **intersection** of them. That's what applying successive clips gives you in canvas, and nested `clip-path` groups in SVG. Disabled masks are skipped.
 
 ## 1. Data model — `packages/element/src/types.ts`, `mask.ts`
+
 - Replace `maskId?: string | null` with `maskIds?: readonly ExcalidrawElement["id"][] | null`. `maskEnabled` stays as it is.
 - Rewrite the helpers in `mask.ts`, keeping the same style:
   - `getMaskIds(el)` → `readonly string[]` (undefined/null becomes `[]`)
@@ -2086,18 +2142,21 @@ Grouping already only touches `groupIds`, and clips are computed live from each 
   - `isMaskedBy(el, maskId)`
 - Eligibility:
   - `canBecomeMask`: mask type, not locked, not itself masked (no chaining or cycles). **Drop** the `!isMaskElement` check so an existing mask can take more elements.
-  - `canBeMasked(el, mask)`: drop the "already has a mask" check. Instead reject when the element is already masked by *this* mask, when the element is itself a mask, or when the mask is masked. Keep the type, locked, bound-text, and deleted checks.
+  - `canBeMasked(el, mask)`: drop the "already has a mask" check. Instead reject when the element is already masked by _this_ mask, when the element is itself a mask, or when the mask is masked. Keep the type, locked, bound-text, and deleted checks.
 
 ## 2. Persistence — `packages/excalidraw/data/restore.ts:455`
+
 - Swap `maskId` for `maskIds` in the `restoreElementWithProperties` generic.
 - Restore `maskIds` as a deduped array of strings. **Migrate legacy `maskId`** into `[maskId]` so scenes saved by #70 still load.
 - Search the tests for `maskId:` fixtures and snapshot fields and update them.
 
 ## 3. Rendering — `packages/excalidraw/renderer/maskClip.ts`
+
 - `applyMaskClip`: draw the faint preview if **any** of the element's masks is selected. Then call `clipToMask` once per active mask; successive clips intersect.
 - `createSvgMaskGroup`: nest one `<g clip-path>` per active mask, with ids `mask-clipPath-${element.id}-${mask.id}`, and return the innermost `<g>`. The call site in `staticSvgScene.ts:890` stays the same.
 
 ## 4. Actions & UI — `packages/excalidraw/actions/actionMask.tsx`, `components/MaskEditToolbar.tsx`, `App.tsx`
+
 - Change `unmaskElements(elements, ids)` to `removeMaskLinks(elements, predicate, maskId?)`. With a `maskId`, it drops only that id; without one, it clears all of them.
   - `remove` / `actionRemoveMask`: drop `mask.id` from every element.
   - `release`: clear all masks on the selected elements.
@@ -2107,19 +2166,24 @@ Grouping already only touches `groupIds`, and clips are computed live from each 
 - `handleMaskingModeDoubleClick` (`App.tsx:7082`) needs no logic change because it already goes through `canBeMasked`.
 
 ## 5. Grouping integration
+
 `actionGroup` / `actionUngroup` need no changes because they only edit `groupIds`. Fixes:
+
 - `actionEditMask` and `actionApplyMask` currently set `editingGroupId: null, selectedGroupIds: {}` and then select the mask alone. For a mask inside a group, set `editingGroupId` to the mask's innermost group (`mask.groupIds[0] ?? null`) so selection stays consistent with group-editing mode.
 - Double-clicking a grouped mask (`maybeOpenMaskEditor`, `App.tsx:7040`): check that the first double-click enters the group and the second opens the mask options. Adjust if the group-enter path swallows the second click.
 - No changes are needed for move, resize, or rotate of a group. The masks' x/y/w/h/angle change and the clip follows them. Tests in step 7 lock this in.
 
 ## 6. Duplicate / paste remap — `packages/element/src/duplicate.ts:~412`
+
 Next to the existing `targetElementId` remap loop, remap each duplicated element's `maskIds`:
+
 - If the mask was duplicated too, map the id through `origIdToDuplicateId`.
 - If it wasn't, keep the original id, so a copied element stays clipped by the original mask.
 
 This covers Ctrl+D, Alt-drag, copy/paste, and library insert, since all of them go through `duplicateElements`. Confirm the paste path in `App.tsx` uses it.
 
 ## 7. Tests
+
 - New `packages/excalidraw/tests/maskGroup.test.tsx`, one test per acceptance criterion:
   1. Group a mask with 2 masked elements, then move/resize/rotate the group. `maskIds` is unchanged and the masks' geometry follows.
   2. Two masks with separate elements in one group: each relationship stays intact.
@@ -2132,6 +2196,7 @@ This covers Ctrl+D, Alt-drag, copy/paste, and library insert, since all of them 
 - Add an `export.test.ts` case covering mask fields.
 
 ## Verification
+
 - `yarn test:typecheck`
 - `yarn test:update`, then review any snapshot changes involving masks.
 - `yarn fix`
@@ -2142,17 +2207,18 @@ This covers Ctrl+D, Alt-drag, copy/paste, and library insert, since all of them 
   - Ungroup, then undo/redo.
   - Save and reload a `.excalidraw` file.
   - Load a scene saved with the old `maskId` format.
-
 ```
 
 ```text
 File created successfully at: C:\Users\tonyw\.claude\plans\help-plan-out-this-quiet-cherny.md (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:34:44Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="ToolSearch"><details>
+
 <summary>Tool use: **ToolSearch**</summary>
 
 **Input:**
@@ -2165,6 +2231,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:34:44Z)**_
 ```
 
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:34:46Z)**_
@@ -2174,6 +2241,7 @@ The plan is written; submitting it for your approval now.
 _**Agent (claude-opus-5-5 2026-10-27 22:37:05Z)**_
 
 <tool-use data-tool-type="generic" data-tool-name="ExitPlanMode"><details>
+
 <summary>Tool use: **ExitPlanMode**</summary>
 
 ```text
@@ -2264,6 +2332,7 @@ This covers Ctrl+D, Alt-drag, copy/paste, and library insert, since all of them 
   - Save and reload a `.excalidraw` file.
   - Load a scene saved with the old `maskId` format.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:37:07Z)**_
@@ -2273,11 +2342,13 @@ Plan approved, so I'm starting on the code. First up is the data model (`maskIds
 _**Agent (claude-opus-5-5 2026-10-27 22:37:47Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\element\src\types.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:37:48Z)**_
@@ -2287,11 +2358,13 @@ Now the helpers in `mask.ts`:
 _**Agent (claude-opus-5-5 2026-10-27 22:38:30Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\element\src\mask.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:38:32Z)**_
@@ -2301,6 +2374,7 @@ Next, `restore.ts`. Checking how `maskId` is restored right now:
 _**Agent (claude-opus-5-5 2026-10-27 22:38:34Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/data/restore.ts` pattern `mask`
 
@@ -2319,11 +2393,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:38:34Z)**_
 464-    /** @deprecated */
 465-    strokeSharpness?: StrokeRoundness;
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:38:35Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/data/restore.ts`
 
@@ -2361,12 +2437,12 @@ _**Agent (claude-opus-5-5 2026-10-27 22:38:35Z)**_
 519	    link: element.link ? normalizeLink(element.link) : null,
 520	    locked: element.locked ?? false,
 521	  };
-522	
+522
 523	  if ("customData" in element || "customData" in extra) {
 524	    base.customData =
 525	      "customData" in extra ? extra.customData : element.customData;
 526	  }
-527	
+527
 528	  const ret = {
 529	    // spread the original element properties to not lose unknown ones
 530	    // for forward-compatibility
@@ -2376,14 +2452,14 @@ _**Agent (claude-opus-5-5 2026-10-27 22:38:35Z)**_
 534	    ...getNormalizedDimensions(base),
 535	    ...extra,
 536	  } as unknown as T;
-537	
+537
 538	  // strip legacy props (migrated in previous steps)
 539	  delete ret.strokeSharpness;
 540	  delete ret.boundElementIds;
-541	
+541
 542	  return ret;
 543	};
-544	
+544
 545	export const restoreElement = (
 546	  /** element to be restored */
 547	  element: Exclude<ExcalidrawElement, ExcalidrawSelectionElement>,
@@ -2396,9 +2472,10 @@ _**Agent (claude-opus-5-5 2026-10-27 22:38:35Z)**_
 554	  },
 555	): typeof element | null => {
 556	  element = { ...element };
-557	
+557
 558	  switch (element.type) {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:38:37Z)**_
@@ -2408,31 +2485,37 @@ The old code passed `maskId` through the spread untouched. I'll add a normalizat
 _**Agent (claude-opus-5-5 2026-10-27 22:38:44Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\data\restore.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:38:47Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\data\restore.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:38:49Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\data\restore.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:38:50Z)**_
@@ -2442,31 +2525,37 @@ Now the renderer: clip to every active mask (intersection), and nest the SVG gro
 _**Agent (claude-opus-5-5 2026-10-27 22:38:58Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\renderer\maskClip.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:39:07Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\renderer\maskClip.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:39:14Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\renderer\maskClip.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:39:15Z)**_
@@ -2476,6 +2565,7 @@ Checking the SVG call site to make sure a nested group still works there:
 _**Agent (claude-opus-5-5 2026-10-27 22:39:16Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/renderer/staticSvgScene.ts`
 
@@ -2492,7 +2582,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:39:16Z)**_
 884	          // will be rendered with the container
 885	          return;
 886	        }
-887	
+887
 888	        try {
 889	          const root =
 890	            createSvgMaskGroup(
@@ -2502,7 +2592,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:39:16Z)**_
 894	              renderConfig.offsetX,
 895	              renderConfig.offsetY,
 896	            ) ?? svgRoot;
-897	
+897
 898	          renderElementToSvg(
 899	            element,
 900	            elementsMap,
@@ -2513,7 +2603,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:39:16Z)**_
 905	            element.y + renderConfig.offsetY,
 906	            renderConfig,
 907	          );
-908	
+908
 909	          const boundTextElement = getBoundTextElement(element, elementsMap);
 910	          if (boundTextElement?.isDeleted === false) {
 911	            renderElementToSvg(
@@ -2521,6 +2611,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:39:16Z)**_
 913	              elementsMap,
 914	              rsvg,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:39:17Z)**_
@@ -2530,41 +2621,49 @@ That's fine. Next is `actionMask.tsx`, the core action changes:
 _**Agent (claude-opus-5-5 2026-10-27 22:39:22Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\actionMask.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:39:31Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\actionMask.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:39:38Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\actionMask.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:39:39Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\actionMask.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:39:40Z)**_
@@ -2574,51 +2673,61 @@ Closing that `release` case, then updating apply, edit, and remove:
 _**Agent (claude-opus-5-5 2026-10-27 22:39:45Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\actionMask.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:39:50Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\actionMask.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:39:54Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\actionMask.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:40:00Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\actionMask.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:40:02Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\actionMask.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:40:05Z)**_
@@ -2628,23 +2737,26 @@ Now I'll register `addToMask`: add its action name, export it, and add a locale 
 _**Agent (claude-opus-5-5 2026-10-27 22:40:07Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw` pattern `MaskEditor|toggleMaskEnabled|"enabled"`
 
 ```text
 No matches found
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:40:08Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/App.tsx`
 
 ```text
 3840	    }
-3841	
+3841
 3842	    // the mask editor closes when its mask goes away (e.g. deleted or undone),
 3843	    // masking mode also ends when another tool is picked, and the options
 3844	    // close when the mask is deselected
@@ -2662,36 +2774,38 @@ _**Agent (claude-opus-5-5 2026-10-27 22:40:08Z)**_
 3856	    }
 3857
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:40:08Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/MaskEditToolbar.tsx`
 
 ```text
 1	import React from "react";
-2	
+2
 3	import { sceneCoordsToViewportCoords } from "@excalidraw/common";
 4	import { getElementAbsoluteCoords, isMaskEnabled } from "@excalidraw/element";
-5	
+5
 6	import type {
 7	  ElementsMap,
 8	  NonDeletedExcalidrawElement,
 9	} from "@excalidraw/element/types";
-10	
+10
 11	import { actionRemoveMask, actionToggleMaskEnabled } from "../actions";
 12	import { t } from "../i18n";
-13	
+13
 14	import { useExcalidrawActionManager, useExcalidrawAppState } from "./App";
 15	import { Switch } from "./Switch";
-16	
+16
 17	import "./MaskEditToolbar.scss";
-18	
+18
 19	/** clears the mask's top-right resize handle */
 20	const HANDLE_CLEARANCE = 24;
-21	
+21
 22	/**
 23	 * Mask options, shown next to a mask shape after double-clicking it (see
 24	 * actionMask.tsx). Positioned and hidden like MotionPathEditToolbar.
@@ -2705,7 +2819,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:40:08Z)**_
 32	}) => {
 33	  const appState = useExcalidrawAppState();
 34	  const actionManager = useExcalidrawActionManager();
-35	
+35
 36	  if (
 37	    appState.contextMenu ||
 38	    appState.newElement ||
@@ -2717,13 +2831,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:40:08Z)**_
 44	  ) {
 45	    return null;
 46	  }
-47	
+47
 48	  const [, y1, x2] = getElementAbsoluteCoords(mask, elementsMap);
 49	  const { x: viewportX, y: viewportY } = sceneCoordsToViewportCoords(
 50	    { sceneX: x2, sceneY: y1 },
 51	    appState,
 52	  );
-53	
+53
 54	  return (
 55	    <div
 56	      className="mask-edit-toolbar"
@@ -2754,11 +2868,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:40:08Z)**_
 81	};
 82
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:40:11Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw` pattern `removeMask|actionRemoveMask|"remove": "Remove mask|"mask": \{`
 
@@ -2848,56 +2964,67 @@ packages\excalidraw\components\MaskEditToolbar.tsx-79-    </div>
 packages\excalidraw\components\MaskEditToolbar.tsx-80-  );
 packages\excalidraw\components\MaskEditToolbar.tsx-81-};
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:40:40Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\types.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:40:43Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\actions\index.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:40:45Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\locales\en.json has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:40:53Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\components\MaskEditToolbar.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:41:02Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\components\MaskEditToolbar.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:41:04Z)**_
@@ -2907,11 +3034,13 @@ Now the duplicate/paste remap in `duplicate.ts`:
 _**Agent (claude-opus-5-5 2026-10-27 22:41:20Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\element\src\duplicate.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:41:21Z)**_
@@ -2921,6 +3050,7 @@ Checking that paste and library insert actually go through `duplicateElements`:
 _**Agent (claude-opus-5-5 2026-10-27 22:41:23Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw` pattern `duplicateElements\(|private addElementsFromPasteOrLibrary`
 
@@ -2932,11 +3062,13 @@ packages\excalidraw\components\App.tsx:11356:            } = duplicateElements({
 packages\excalidraw\components\App.tsx:13339:            elements: duplicateElements({
 packages\excalidraw\components\LibraryMenuItems.tsx:198:          elements: duplicateElements({
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:41:25Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/App.tsx`
 
@@ -2952,17 +3084,17 @@ _**Agent (claude-opus-5-5 2026-10-27 22:41:25Z)**_
 4278	        : opts.position === "cursor"
 4279	        ? this.lastViewportPosition.y
 4280	        : this.state.height / 2 + this.state.offsetTop;
-4281	
+4281
 4282	    const { x, y } = viewportCoordsToSceneCoords(
 4283	      { clientX, clientY },
 4284	      this.state,
 4285	    );
-4286	
+4286
 4287	    const dx = x - elementsCenterX;
 4288	    const dy = y - elementsCenterY;
-4289	
+4289
 4290	    const [gridX, gridY] = getGridPoint(dx, dy, this.getEffectiveGridSize());
-4291	
+4291
 4292	    const { duplicatedElements } = duplicateElements({
 4293	      type: "everything",
 4294	      elements: elements.map((element) => {
@@ -2974,21 +3106,22 @@ _**Agent (claude-opus-5-5 2026-10-27 22:41:25Z)**_
 4300	      randomizeSeed: !opts.retainSeed,
 4301	      preserveFrameChildrenOrder: opts.preserveFrameChildrenOrder,
 4302	    });
-4303	
+4303
 4304	    const prevElements = this.scene.getElementsIncludingDeleted();
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:41:30Z)**_
 
-<think><details><summary>Thought Process</summary>
-I'll check the duplicate modes so paste can drop mask links to uncopied masks (which would otherwise clip pasted elements invisible), while keeping Ctrl+D's links intact.
+<think><details><summary>Thought Process</summary> I'll check the duplicate modes so paste can drop mask links to uncopied masks (which would otherwise clip pasted elements invisible), while keeping Ctrl+D's links intact.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:41:31Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/element/src/duplicate.ts`
 
@@ -3028,7 +3161,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:41:31Z)**_
 140	  ),
 141	) => {
 142	  let { elements } = opts;
-143	
+143
 144	  const appState =
 145	    "appState" in opts
 146	      ? opts.appState
@@ -3036,7 +3169,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:41:31Z)**_
 148	          editingGroupId: null,
 149	          selectedGroupIds: {},
 150	        } as const);
-151	
+151
 152	  // Ids of elements that have already been processed so we don't push them
 153	  // into the array twice if we end up backtracking when retrieving
 154	  // discontiguous group of elements (can happen due to a bug, or in edge
@@ -3054,6 +3187,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:41:31Z)**_
 166	  const origIdToDuplicateId = new Map<
 167	    ExcalidrawElement["id"],
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:41:33Z)**_
@@ -3063,11 +3197,13 @@ Rule: `in-place` (Ctrl+D, Alt-drag) keeps links to masks that weren't copied; `e
 _**Agent (claude-opus-5-5 2026-10-27 22:41:40Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\element\src\duplicate.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:41:42Z)**_
@@ -3077,6 +3213,7 @@ Now typecheck to find every remaining `maskId` / old-helper reference:
 _**Agent (claude-opus-5-5 2026-10-27 22:42:36Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run TypeScript type check
 
@@ -3124,11 +3261,13 @@ packages/excalidraw/tests/maskToolbar.test.tsx(79,35): error TS2551: Property 'm
 packages/excalidraw/tests/maskToolbar.test.tsx(83,35): error TS2551: Property 'maskId' does not exist on type 'NonDeleted<ExcalidrawGenericElement>'. Did you mean 'maskIds'?
   Property 'maskId' does not exist on type 'Readonly<{ id: string; x: number; y: number; strokeColor: string; backgroundColor: string; fillStyle: FillStyle; strokeWidth: number; strokeStyle: StrokeStyle; roundness: { ...; } | null; ... 18 more ...; maskEnabled?: boolean | undefined; }> & { ...; } & { ...; }'.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:44:06Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 List non-test type errors and error counts per file
 
@@ -3141,6 +3280,7 @@ List non-test type errors and error counts per file
       2 packages/excalidraw/tests/maskToolbar.test.tsx
       5 packages/excalidraw/tests/maskingMode.test.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:44:08Z)**_
@@ -3150,14 +3290,15 @@ Source code typechecks; only the tests still use `maskId`. Reading them to updat
 _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/tests/mask.test.tsx`
 
 ```text
 1	import { vi } from "vitest";
-2	
+2
 3	import { arrayToMap } from "@excalidraw/common";
-4	
+4
 5	import {
 6	  canBeMasked,
 7	  canBecomeMask,
@@ -3166,21 +3307,21 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 10	  getMaskSvgPathData,
 11	  isMaskElement,
 12	} from "@excalidraw/element";
-13	
+13
 14	import type { Radians } from "@excalidraw/math";
-15	
+15
 16	import type { ExcalidrawMaskElement } from "@excalidraw/element";
-17	
+17
 18	import type {
 19	  ExcalidrawElement,
 20	  NonDeletedExcalidrawElement,
 21	} from "@excalidraw/element/types";
-22	
+22
 23	import { getDefaultAppState } from "../appState";
 24	import { exportToCanvas, exportToSvg } from "../scene/export";
-25	
+25
 26	import { API } from "./helpers/api";
-27	
+27
 28	const createMasked = (
 29	  mask: ExcalidrawElement,
 30	  type: "rectangle" | "freedraw" | "text" = "rectangle",
@@ -3189,19 +3330,19 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 33	    ...API.createElement({ type, x: 50, y: 50, width: 100, height: 100 }),
 34	    maskId: mask.id,
 35	  } as NonDeletedExcalidrawElement);
-36	
+36
 37	describe("mask lookup", () => {
 38	  it("finds the mask of a masked element", () => {
 39	    const mask = API.createElement({ type: "ellipse" });
 40	    const masked = createMasked(mask);
 41	    const elementsMap = arrayToMap([mask, masked]);
-42	
+42
 43	    expect(getMaskElement(masked, elementsMap)?.id).toBe(mask.id);
 44	    expect(getActiveMaskElement(masked, elementsMap)?.id).toBe(mask.id);
 45	    expect(isMaskElement(mask, elementsMap)).toBe(true);
 46	    expect(isMaskElement(masked, elementsMap)).toBe(false);
 47	  });
-48	
+48
 49	  it("ignores a disabled mask when rendering, but keeps the relationship", () => {
 50	    const mask = {
 51	      ...API.createElement({ type: "diamond" }),
@@ -3209,27 +3350,27 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 53	    };
 54	    const masked = createMasked(mask);
 55	    const elementsMap = arrayToMap([mask, masked]);
-56	
+56
 57	    expect(getMaskElement(masked, elementsMap)?.id).toBe(mask.id);
 58	    expect(getActiveMaskElement(masked, elementsMap)).toBe(null);
 59	  });
-60	
+60
 61	  it("ignores a deleted or missing mask", () => {
 62	    const mask = API.createElement({ type: "rectangle", isDeleted: true });
 63	    const masked = createMasked(mask);
-64	
+64
 65	    expect(getMaskElement(masked, arrayToMap([mask, masked]))).toBe(null);
 66	    expect(getMaskElement(masked, arrayToMap([masked]))).toBe(null);
 67	  });
-68	
+68
 69	  it("only treats basic shapes as masks", () => {
 70	    const line = API.createElement({ type: "line" });
 71	    const masked = createMasked(line);
-72	
+72
 73	    expect(getMaskElement(masked, arrayToMap([line, masked]))).toBe(null);
 74	  });
 75	});
-76	
+76
 77	describe("mask eligibility", () => {
 78	  it("lets basic shapes become masks", () => {
 79	    for (const type of [
@@ -3246,16 +3387,16 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 90	      expect(canBecomeMask(element, arrayToMap([element]))).toBe(false);
 91	    }
 92	  });
-93	
+93
 94	  it("doesn't let masks or masked elements become masks", () => {
 95	    const mask = API.createElement({ type: "rectangle" });
 96	    const masked = createMasked(mask);
 97	    const elementsMap = arrayToMap([mask, masked]);
-98	
+98
 99	    expect(canBecomeMask(mask, elementsMap)).toBe(false);
 100	    expect(canBecomeMask(masked, elementsMap)).toBe(false);
 101	  });
-102	
+102
 103	  it("lets shapes, lines, arrows, freedraw and text be masked", () => {
 104	    const mask = API.createElement({ type: "rectangle" });
 105	    for (const type of [
@@ -3274,7 +3415,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 118	      );
 119	    }
 120	  });
-121	
+121
 122	  it("doesn't let images, frames or embeds be masked", () => {
 123	    const mask = API.createElement({ type: "rectangle" });
 124	    for (const type of ["image", "frame", "embeddable"] as const) {
@@ -3284,18 +3425,18 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 128	      );
 129	    }
 130	  });
-131	
+131
 132	  it("doesn't let the mask itself, other masks or masked elements be masked", () => {
 133	    const mask = API.createElement({ type: "rectangle" });
 134	    const otherMask = API.createElement({ type: "ellipse" });
 135	    const otherMasked = createMasked(otherMask);
 136	    const elementsMap = arrayToMap([mask, otherMask, otherMasked]);
-137	
+137
 138	    expect(canBeMasked(mask, mask, elementsMap)).toBe(false);
 139	    expect(canBeMasked(otherMask, mask, elementsMap)).toBe(false);
 140	    expect(canBeMasked(otherMasked, mask, elementsMap)).toBe(false);
 141	  });
-142	
+142
 143	  it("doesn't let locked elements or bound text be masked", () => {
 144	    const mask = API.createElement({ type: "rectangle" });
 145	    const locked = API.createElement({ type: "ellipse", locked: true });
@@ -3304,15 +3445,15 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 148	      containerId: "container",
 149	    });
 150	    const elementsMap = arrayToMap([mask, locked, boundText]);
-151	
+151
 152	    expect(canBeMasked(locked, mask, elementsMap)).toBe(false);
 153	    expect(canBeMasked(boundText, mask, elementsMap)).toBe(false);
 154	  });
 155	});
-156	
+156
 157	const outline = (element: ExcalidrawElement) =>
 158	  getMaskSvgPathData(element as ExcalidrawMaskElement);
-159	
+159
 160	describe("mask outline", () => {
 161	  it("traces each basic shape", () => {
 162	    expect(
@@ -3335,7 +3476,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 179	      outline(API.createElement({ type: "ellipse", width: 100, height: 50 })),
 180	    ).toBe("M0 25A50 25 0 1 0 100 25A50 25 0 1 0 0 25Z");
 181	  });
-182	
+182
 183	  it("rounds a rounded rectangle's corners", () => {
 184	    const path = outline(
 185	      API.createElement({
@@ -3348,13 +3489,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 192	    expect(path).toContain("A");
 193	  });
 194	});
-195	
+195
 196	describe("mask PNG export", () => {
 197	  const exportClipCalls = async (elements: NonDeletedExcalidrawElement[]) => {
 198	    const canvas = document.createElement("canvas");
 199	    const context = canvas.getContext("2d")!;
 200	    const clip = vi.spyOn(context, "clip");
-201	
+201
 202	    await exportToCanvas(
 203	      elements,
 204	      {
@@ -3376,7 +3517,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 220	    );
 221	    return clip.mock.calls.length;
 222	  };
-223	
+223
 224	  it("clips a masked element to its mask", async () => {
 225	    const mask = API.createElement({
 226	      type: "ellipse",
@@ -3387,23 +3528,23 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 231	      expect(await exportClipCalls([mask, createMasked(mask, type)])).toBe(1);
 232	    }
 233	  });
-234	
+234
 235	  it("doesn't clip when the mask is disabled or gone", async () => {
 236	    const mask = API.createElement({ type: "ellipse" });
 237	    const disabled = { ...mask, maskEnabled: false };
-238	
+238
 239	    expect(await exportClipCalls([disabled, createMasked(disabled)])).toBe(0);
 240	    expect(await exportClipCalls([createMasked(mask)])).toBe(0);
 241	  });
-242	
+242
 243	  it("doesn't clip unmasked elements", async () => {
 244	    const mask = API.createElement({ type: "ellipse" });
 245	    const other = API.createElement({ type: "rectangle" });
-246	
+246
 247	    expect(await exportClipCalls([mask, createMasked(mask), other])).toBe(1);
 248	  });
 249	});
-250	
+250
 251	describe("mask SVG export", () => {
 252	  const exportSvg = (elements: NonDeletedExcalidrawElement[]) =>
 253	    exportToSvg(
@@ -3412,7 +3553,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 256	      null,
 257	      { skipInliningFonts: true },
 258	    );
-259	
+259
 260	  it("wraps a masked element in a group clipped to its mask", async () => {
 261	    const mask = API.createElement({
 262	      type: "triangle",
@@ -3421,12 +3562,12 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 265	    });
 266	    const masked = createMasked(mask);
 267	    const svg = await exportSvg([mask, masked]);
-268	
+268
 269	    const clipPath = svg.querySelector(`#mask-clipPath-${masked.id}`);
 270	    expect(clipPath?.querySelector("path")?.getAttribute("d")).toBe(
 271	      "M51 0L100 50L0 50Z",
 272	    );
-273	
+273
 274	    const group = svg.querySelector(
 275	      `g[clip-path="url(#mask-clipPath-${masked.id})"]`,
 276	    );
@@ -3435,7 +3576,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 279	    expect(group?.querySelector(`[data-id="${mask.id}"]`)).toBe(null);
 280	    expect(svg.querySelector(`[data-id="${mask.id}"]`)).not.toBe(null);
 281	  });
-282	
+282
 283	  it("follows the mask's rotation", async () => {
 284	    const mask = API.createElement({
 285	      type: "rectangle",
@@ -3445,13 +3586,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 289	    });
 290	    const masked = createMasked(mask);
 291	    const svg = await exportSvg([mask, masked]);
-292	
+292
 293	    const transform = svg
 294	      .querySelector(`#mask-clipPath-${masked.id} path`)
 295	      ?.getAttribute("transform");
 296	    expect(transform).toContain("rotate(90)");
 297	  });
-298	
+298
 299	  it("doesn't clip when the mask is disabled", async () => {
 300	    const mask = {
 301	      ...API.createElement({ type: "ellipse" }),
@@ -3459,32 +3600,34 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 303	    };
 304	    const masked = createMasked(mask);
 305	    const svg = await exportSvg([mask, masked]);
-306	
+306
 307	    expect(svg.querySelector(`#mask-clipPath-${masked.id}`)).toBe(null);
 308	  });
 309	});
 310
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/tests/maskActions.test.tsx`
 
 ```text
 1	import React from "react";
-2	
+2
 3	import { CODES, KEYS } from "@excalidraw/common";
-4	
+4
 5	import { CaptureUpdateAction } from "@excalidraw/element";
-6	
+6
 7	import type {
 8	  ExcalidrawElement,
 9	  NonDeletedExcalidrawElement,
 10	} from "@excalidraw/element/types";
-11	
+11
 12	import {
 13	  actionApplyMask,
 14	  actionEditMask,
@@ -3492,13 +3635,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 16	  actionToggleMaskEnabled,
 17	} from "../actions";
 18	import { Excalidraw } from "../index";
-19	
+19
 20	import { API } from "./helpers/api";
 21	import { Keyboard } from "./helpers/ui";
 22	import { act, fireEvent, render, unmountComponent } from "./test-utils";
-23	
+23
 24	const { h } = window;
-25	
+25
 26	/** Ctrl+Alt+G; `key` is what the layout produces, e.g. "©" for Option+G */
 27	const pressMaskShortcut = (key: string = KEYS.G) => {
 28	  fireEvent.keyDown(document, {
@@ -3508,20 +3651,20 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 32	    altKey: true,
 33	  });
 34	};
-35	
+35
 36	const applyMask = (element: ExcalidrawElement) => {
 37	  act(() => {
 38	    h.app.actionManager.executeAction(actionApplyMask, "api", element.id);
 39	  });
 40	};
-41	
+41
 42	/** the element's content, i.e. everything but its mask fields and versioning */
 43	const content = (element: ExcalidrawElement) => {
 44	  const { maskId, maskEnabled, version, versionNonce, updated, ...rest } =
 45	    API.getElement(element);
 46	  return rest;
 47	};
-48	
+48
 49	const setup = () => {
 50	  const mask = API.createElement({
 51	    type: "ellipse",
@@ -3545,7 +3688,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 69	  });
 70	  return { mask, target };
 71	};
-72	
+72
 73	/** masks `target` with `mask` the way the user does */
 74	const createMask = (
 75	  mask: NonDeletedExcalidrawElement,
@@ -3555,107 +3698,107 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 79	  pressMaskShortcut();
 80	  applyMask(target);
 81	};
-82	
+82
 83	beforeEach(async () => {
 84	  unmountComponent();
 85	  await render(<Excalidraw autoFocus={true} handleKeyboardGlobally={true} />);
 86	});
-87	
+87
 88	describe("mask shortcut", () => {
 89	  it("enters masking mode for a single basic shape", () => {
 90	    const { mask } = setup();
 91	    API.setSelectedElements([mask]);
-92	
+92
 93	    pressMaskShortcut();
-94	
+94
 95	    expect(h.state.maskEditor).toEqual({ maskId: mask.id, mode: "picking" });
 96	  });
-97	
+97
 98	  it("works when Alt changes the typed character (macOS)", () => {
 99	    const { mask } = setup();
 100	    API.setSelectedElements([mask]);
-101	
+101
 102	    pressMaskShortcut("©");
-103	
+103
 104	    expect(h.state.maskEditor?.maskId).toBe(mask.id);
 105	  });
-106	
+106
 107	  it("cancels masking mode when pressed again", () => {
 108	    const { mask } = setup();
 109	    API.setSelectedElements([mask]);
-110	
+110
 111	    pressMaskShortcut();
 112	    pressMaskShortcut();
-113	
+113
 114	    expect(h.state.maskEditor).toBe(null);
 115	  });
-116	
+116
 117	  it("does nothing for shapes that can't be masks", () => {
 118	    const line = API.createElement({ type: "line" });
 119	    API.setElements([line]);
 120	    API.setSelectedElements([line]);
-121	
+121
 122	    pressMaskShortcut();
-123	
+123
 124	    expect(h.state.maskEditor).toBe(null);
 125	  });
-126	
+126
 127	  it("does nothing for several unmasked elements, and doesn't group them", () => {
 128	    const { mask, target } = setup();
 129	    API.setSelectedElements([mask, target]);
-130	
+130
 131	    pressMaskShortcut();
-132	
+132
 133	    expect(h.state.maskEditor).toBe(null);
 134	    expect(API.getElement(mask).groupIds).toEqual([]);
 135	  });
-136	
+136
 137	  it("leaves Ctrl+G grouping working", () => {
 138	    const { mask, target } = setup();
 139	    API.setSelectedElements([mask, target]);
-140	
+140
 141	    Keyboard.withModifierKeys({ ctrl: true }, () => {
 142	      Keyboard.keyPress(KEYS.G);
 143	    });
-144	
+144
 145	    expect(API.getElement(mask).groupIds).toHaveLength(1);
 146	  });
 147	});
-148	
+148
 149	describe("applying a mask", () => {
 150	  it("clips the picked element and selects the mask", () => {
 151	    const { mask, target } = setup();
-152	
+152
 153	    createMask(mask, target);
-154	
+154
 155	    expect(API.getElement(target).maskId).toBe(mask.id);
 156	    expect(API.getElement(mask).maskEnabled).toBe(true);
 157	    expect(h.state.maskEditor).toBe(null);
 158	    expect(h.state.selectedElementIds).toEqual({ [mask.id]: true });
 159	  });
-160	
+160
 161	  it("doesn't change the masked element's content", () => {
 162	    const { mask, target } = setup();
 163	    const before = [content(mask), content(target)];
-164	
+164
 165	    createMask(mask, target);
-166	
+166
 167	    expect([content(mask), content(target)]).toEqual(before);
 168	  });
-169	
+169
 170	  it("refuses elements that can't be masked", () => {
 171	    const { mask } = setup();
 172	    const image = API.createElement({ type: "image" });
 173	    API.setElements([...h.elements, image]);
 174	    API.setSelectedElements([mask]);
 175	    pressMaskShortcut();
-176	
+176
 177	    applyMask(image);
-178	
+178
 179	    expect(API.getElement(image).maskId).toBeUndefined();
 180	    expect(h.state.maskEditor?.mode).toBe("picking");
 181	  });
-182	
+182
 183	  it("refuses an element that is already masked", () => {
 184	    const { mask, target } = setup();
 185	    createMask(mask, target);
@@ -3663,52 +3806,52 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 187	    API.setElements([...h.elements, otherMask]);
 188	    API.setSelectedElements([otherMask]);
 189	    pressMaskShortcut();
-190	
+190
 191	    applyMask(target);
-192	
+192
 193	    expect(API.getElement(target).maskId).toBe(mask.id);
 194	  });
-195	
+195
 196	  it("is undoable", () => {
 197	    const { mask, target } = setup();
 198	    createMask(mask, target);
-199	
+199
 200	    Keyboard.undo();
 201	    expect(API.getElement(target).maskId).toBeFalsy();
-202	
+202
 203	    Keyboard.redo();
 204	    expect(API.getElement(target).maskId).toBe(mask.id);
 205	  });
 206	});
-207	
+207
 208	describe("removing and releasing masks", () => {
 209	  it("removes the mask when the shortcut is pressed on it", () => {
 210	    const { mask, target } = setup();
 211	    createMask(mask, target);
 212	    const before = [content(mask), content(target)];
-213	
+213
 214	    API.setSelectedElements([
 215	      API.getElement(mask) as NonDeletedExcalidrawElement,
 216	    ]);
 217	    pressMaskShortcut();
-218	
+218
 219	    expect(API.getElement(target).maskId).toBe(null);
 220	    expect(h.state.maskEditor).toBe(null);
 221	    expect([content(mask), content(target)]).toEqual(before);
 222	  });
-223	
+223
 224	  it("releases masked elements when only they are selected", () => {
 225	    const { mask, target } = setup();
 226	    createMask(mask, target);
-227	
+227
 228	    API.setSelectedElements([
 229	      API.getElement(target) as NonDeletedExcalidrawElement,
 230	    ]);
 231	    pressMaskShortcut();
-232	
+232
 233	    expect(API.getElement(target).maskId).toBe(null);
 234	  });
-235	
+235
 236	  it("can undo removing a mask", () => {
 237	    const { mask, target } = setup();
 238	    createMask(mask, target);
@@ -3716,13 +3859,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 240	      API.getElement(mask) as NonDeletedExcalidrawElement,
 241	    ]);
 242	    pressMaskShortcut();
-243	
+243
 244	    Keyboard.undo();
-245	
+245
 246	    expect(API.getElement(target).maskId).toBe(mask.id);
 247	  });
 248	});
-249	
+249
 250	describe("mask options", () => {
 251	  const openOptions = (mask: ExcalidrawElement) => {
 252	    API.setSelectedElements([
@@ -3730,56 +3873,57 @@ _**Agent (claude-opus-5-5 2026-10-27 22:44:09Z)**_
 254	    ]);
 255	    API.executeAction(actionEditMask);
 256	  };
-257	
+257
 258	  it("opens for a mask", () => {
 259	    const { mask, target } = setup();
 260	    createMask(mask, target);
-261	
+261
 262	    openOptions(mask);
-263	
+263
 264	    expect(h.state.maskEditor).toEqual({ maskId: mask.id, mode: "editing" });
 265	  });
-266	
+266
 267	  it("turns clipping off and on without losing the masked element", () => {
 268	    const { mask, target } = setup();
 269	    createMask(mask, target);
 270	    const before = [content(mask), content(target)];
 271	    openOptions(mask);
-272	
+272
 273	    API.executeAction(actionToggleMaskEnabled);
 274	    expect(API.getElement(mask).maskEnabled).toBe(false);
 275	    expect(API.getElement(target).maskId).toBe(mask.id);
-276	
+276
 277	    API.executeAction(actionToggleMaskEnabled);
 278	    expect(API.getElement(mask).maskEnabled).toBe(true);
-279	
+279
 280	    expect([content(mask), content(target)]).toEqual(before);
 281	  });
-282	
+282
 283	  it("can undo turning clipping off", () => {
 284	    const { mask, target } = setup();
 285	    createMask(mask, target);
 286	    openOptions(mask);
 287	    API.executeAction(actionToggleMaskEnabled);
-288	
+288
 289	    Keyboard.undo();
-290	
+290
 291	    expect(API.getElement(mask).maskEnabled).toBe(true);
 292	  });
-293	
+293
 294	  it("removes the mask and closes", () => {
 295	    const { mask, target } = setup();
 296	    createMask(mask, target);
 297	    openOptions(mask);
-298	
+298
 299	    API.executeAction(actionRemoveMask);
-300	
+300
 301	    expect(API.getElement(target).maskId).toBe(null);
 302	    expect(h.state.maskEditor).toBe(null);
 303	  });
 304	});
 305
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:44:11Z)**_
@@ -3789,41 +3933,49 @@ Updating `mask.test.tsx` for the new helpers, the new eligibility rules, multi-m
 _**Agent (claude-opus-5-5 2026-10-27 22:45:00Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\mask.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:45:03Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\mask.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:45:05Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\mask.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:45:05Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\mask.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:45:06Z)**_
@@ -3833,31 +3985,37 @@ Now the export sections: new clip-path ids, plus intersection tests.
 _**Agent (claude-opus-5-5 2026-10-27 22:45:10Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\mask.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:45:14Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\mask.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:45:19Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\mask.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:45:23Z)**_
@@ -3867,91 +4025,109 @@ In `maskActions.test.tsx`, `createMask` must now leave picking mode itself, sinc
 _**Agent (claude-opus-5-5 2026-10-27 22:45:32Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskActions.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:45:33Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskActions.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:45:35Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskActions.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:45:36Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskActions.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:45:41Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskActions.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:45:46Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskActions.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:45:47Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskActions.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:45:48Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskActions.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:45:57Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskActions.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:46:00Z)**_
@@ -3961,6 +4137,7 @@ Now the remaining three test files:
 _**Agent (claude-opus-5-5 2026-10-27 22:46:01Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/tests` pattern `maskId\b|toBe\(null\)|maskEditor\)\.toBe`
 
@@ -4192,31 +4369,32 @@ packages\excalidraw\tests\maskEditor.test.tsx-190-    API.setSelectedElements([]
 packages\excalidraw\tests\maskEditor.test.tsx-191-
 packages\excalidraw\tests\maskEditor.test.tsx:192:    expect(h.state.maskEditor).toBe(null);
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:46:06Z)**_
 
-<think><details><summary>Thought Process</summary>
-Picking staying on affects two tests: `setupMask` must exit picking before double-clicking the mask, and `maskToolbar.test`'s second click would now just cancel picking. I'll fix both.
+<think><details><summary>Thought Process</summary> Picking staying on affects two tests: `setupMask` must exit picking before double-clicking the mask, and `maskToolbar.test`'s second click would now just cancel picking. I'll fix both.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:46:06Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/tests/maskEditor.test.tsx`
 
 ```text
 1	import React from "react";
-2	
+2
 3	import { CODES, KEYS } from "@excalidraw/common";
-4	
+4
 5	import { CaptureUpdateAction } from "@excalidraw/element";
-6	
+6
 7	import { actionApplyMask } from "../actions";
 8	import { Excalidraw } from "../index";
-9	
+9
 10	import { API } from "./helpers/api";
 11	import { Keyboard, Pointer } from "./helpers/ui";
 12	import {
@@ -4227,41 +4405,43 @@ _**Agent (claude-opus-5-5 2026-10-27 22:46:06Z)**_
 17	  screen,
 18	  unmountComponent,
 19	} from "./test-utils";
-20	
+20
 21	const { h } = window;
-22	
+22
 23	const mouse = new Pointer("mouse");
-24	
+24
 25	const getTextarea = () =>
 26	  document.querySelector<HTMLTextAreaElement>(
 27	    ".excalidraw-textEditorContainer > textarea",
 28	  );
-29	
+29
 30	const getToolbar = () => screen.queryByTestId("mask-edit-toolbar");
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:46:07Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/tests/maskToolbar.test.tsx`
 
 ```text
 1	import React from "react";
-2	
+2
 3	import { queryByTestId } from "@testing-library/react";
-4	
+4
 5	import { CaptureUpdateAction } from "@excalidraw/element";
-6	
+6
 7	import { actionApplyMask } from "../actions";
 8	import { Excalidraw } from "../index";
-9	
+9
 10	import { API } from "./helpers/api";
 11	import { act, fireEvent, render, unmountComponent } from "./test-utils";
-12	
+12
 13	const { h } = window;
-14	
+14
 15	const openExtraToolsMenu = () => {
 16	  fireEvent.click(
 17	    document.querySelector<HTMLElement>(".App-toolbar__extra-tools-trigger")!,
@@ -4270,35 +4450,41 @@ _**Agent (claude-opus-5-5 2026-10-27 22:46:07Z)**_
 20	    ".App-toolbar__extra-tools-dropdown",
 21	  )!;
 22	};
-23	
+23
 24	const getMaskItem = () =>
 25	  queryByTestId(openExtraToolsMenu(), "toolbar-mask") as HTMLButtonElement;
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:46:13Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskEditor.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:46:15Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskEditor.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:46:36Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Replace maskId assertions with maskIds in three test files
 
@@ -4307,6 +4493,7 @@ Replace maskId assertions with maskIds in three test files
 ```text
 [This command modified 2 files you've previously read: packages\excalidraw\tests\maskEditor.test.tsx, packages\excalidraw\tests\maskToolbar.test.tsx. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:46:38Z)**_
@@ -4316,6 +4503,7 @@ Now fixing the maskToolbar flow (exit picking before clicking again) and the mas
 _**Agent (claude-opus-5-5 2026-10-27 22:46:39Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/tests/maskToolbar.test.tsx`
 
@@ -4328,33 +4516,35 @@ _**Agent (claude-opus-5-5 2026-10-27 22:46:39Z)**_
 77	      h.app.actionManager.executeAction(actionApplyMask, "api", target.id);
 78	    });
 79	    expect(API.getElement(target).maskIds).toEqual([mask.id]);
-80	
+80
 81	    fireEvent.click(getMaskItem());
-82	
+82
 83	    expect(API.getElement(target).maskIds).toBe(null);
 84	  });
 85	});
 86
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:46:40Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/tests/maskingMode.test.tsx`
 
 ```text
 1	import React from "react";
-2	
+2
 3	import { CODES, KEYS } from "@excalidraw/common";
-4	
+4
 5	import { CaptureUpdateAction } from "@excalidraw/element";
-6	
+6
 7	import type { NonDeletedExcalidrawElement } from "@excalidraw/element/types";
-8	
+8
 9	import { Excalidraw } from "../index";
-10	
+10
 11	import { API } from "./helpers/api";
 12	import { Keyboard, Pointer } from "./helpers/ui";
 13	import {
@@ -4365,13 +4555,13 @@ _**Agent (claude-opus-5-5 2026-10-27 22:46:40Z)**_
 18	  screen,
 19	  unmountComponent,
 20	} from "./test-utils";
-21	
+21
 22	const { h } = window;
-23	
+23
 24	const mouse = new Pointer("mouse");
-25	
+25
 26	const MASKING_HINT = "Double-click an element to mask it";
-27	
+27
 28	const pressMaskShortcut = () => {
 29	  fireEvent.keyDown(document, {
 30	    key: KEYS.G,
@@ -4380,7 +4570,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:46:40Z)**_
 33	    altKey: true,
 34	  });
 35	};
-36	
+36
 37	/**
 38	 * mask: filled ellipse at (0, 0)–(100, 100)
 39	 * target: filled rectangle at (200, 0)–(300, 100)
@@ -4410,7 +4600,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:46:40Z)**_
 63	  });
 64	  return { mask, target };
 65	};
-66	
+66
 67	/** sets up the scene and enters masking mode with the ellipse as the mask */
 68	const startMasking = () => {
 69	  const elements = setup();
@@ -4419,7 +4609,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:46:40Z)**_
 72	  expect(h.state.maskEditor?.mode).toBe("picking");
 73	  return elements;
 74	};
-75	
+75
 76	beforeEach(async () => {
 77	  unmountComponent();
 78	  mouse.reset();
@@ -4428,49 +4618,56 @@ _**Agent (claude-opus-5-5 2026-10-27 22:46:40Z)**_
 81	    elementFromPoint: () => GlobalTestState.canvas,
 82	  });
 83	});
-84	
+84
 85	describe("picking the element to mask", () => {
 86	  it("masks the double-clicked element", () => {
 87	    const { mask, target } = startMasking();
-88	
+88
 89	    mouse.doubleClickAt(250, 50);
-90	
+90
 91	    expect(API.getElement(target).maskIds).toEqual([mask.id]);
 92	    expect(h.state.maskEditor).toBe(null);
 93	    expect(h.state.selectedElementIds).toEqual({ [mask.id]: true });
 94	  });
 95
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:46:47Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskToolbar.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:46:59Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskingMode.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:47:03Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskingMode.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:47:08Z)**_
@@ -4480,6 +4677,7 @@ Now the new `maskGroup.test.tsx`. Checking which UI helpers exist for resize and
 _**Agent (claude-opus-5-5 2026-10-27 22:47:10Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/tests/helpers/ui.ts` pattern `static (resize|rotate|clickOnTestId|group|duplicate)\b|^  (resize|rotate)\(`
 
@@ -4534,6 +4732,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:47:10Z)**_
 662-    });
 663-  }
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:47:17Z)**_
@@ -4543,6 +4742,7 @@ Writing the group integration tests, one per acceptance criterion:
 _**Agent (claude-opus-5-5 2026-10-27 22:47:48Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -4822,12 +5022,12 @@ describe("duplicating grouped masks", () => {
     expect(maskIdsOf(onlyA)).toEqual([maskA.id]);
   });
 });
-
 ```
 
 ```text
 File created successfully at: C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskGroup.test.tsx (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:47:50Z)**_
@@ -4837,6 +5037,7 @@ I left some scratch code in the duplicate test. Checking how the test-only origi
 _**Agent (claude-opus-5-5 2026-10-27 22:47:52Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages` pattern `__test__defineOrigId = |ORIG_ID`
 
@@ -4864,11 +5065,13 @@ packages\excalidraw\actions\actionDuplicateSelection.test.tsx:67:          [ORIG
 
 [Showing results with pagination = limit: 20]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:47:54Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/tests` pattern `export const getCloneByOrigId`
 
@@ -4885,6 +5088,7 @@ packages\excalidraw\tests\test-utils.ts-295-    return clonedElement;
 packages\excalidraw\tests\test-utils.ts-296-  }
 packages\excalidraw\tests\test-utils.ts-297-  if (returnNullIfNotExists !== true) {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:47:55Z)**_
@@ -4894,21 +5098,25 @@ Replacing the duplicate section with a clean version, and adding a paste-mode te
 _**Agent (claude-opus-5-5 2026-10-27 22:48:11Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskGroup.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:48:12Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskGroup.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:48:16Z)**_
@@ -4918,21 +5126,25 @@ Adding a test that opening a grouped mask's options keeps group-editing state co
 _**Agent (claude-opus-5-5 2026-10-27 22:48:22Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskGroup.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:48:25Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskGroup.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:48:27Z)**_
@@ -4942,6 +5154,7 @@ Checking that `API.executeAction` passes a value through:
 _**Agent (claude-opus-5-5 2026-10-27 22:48:28Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/tests/helpers/api.ts` pattern `static executeAction`
 
@@ -4953,6 +5166,7 @@ _**Agent (claude-opus-5-5 2026-10-27 22:48:28Z)**_
 580-  };
 581-}
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:48:29Z)**_
@@ -4962,6 +5176,7 @@ It doesn't. I'll use a local helper that calls the action manager with a value, 
 _**Agent (claude-opus-5-5 2026-10-27 22:48:35Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Swap value-passing action calls to a local helper
 
@@ -4976,11 +5191,13 @@ Swap value-passing action calls to a local helper
 308:    API.executeAction(actionDuplicateSelection);
 [This command modified 1 file you've previously read: maskGroup.test.tsx. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:48:37Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/tests/maskGroup.test.tsx`
 
@@ -4990,10 +5207,10 @@ _**Agent (claude-opus-5-5 2026-10-27 22:48:37Z)**_
 97	    Keyboard.keyPress(KEYS.G);
 98	  });
 99	};
-100	
+100
 101	const maskIdsOf = (element: ExcalidrawElement) =>
 102	  API.getElement(element).maskIds;
-103	
+103
 104	/** each element's masks, by element id */
 105	const maskLinks = () =>
 106	  Object.fromEntries(
@@ -5001,41 +5218,48 @@ _**Agent (claude-opus-5-5 2026-10-27 22:48:37Z)**_
 108	      .filter((el) => !el.isDeleted)
 109	      .map((el) => [el.id, el.maskIds ?? null]),
 110	  );
-111	
+111
 112	beforeEach(async () => {
 113	  unmountComponent();
 114	  mouse.reset();
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:48:44Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskGroup.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:48:47Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskGroup.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:48:49Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskGroup.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:48:50Z)**_
@@ -5045,6 +5269,7 @@ Running the typecheck, then the mask tests:
 _**Agent (claude-opus-5-5 2026-10-27 22:49:29Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run TypeScript type check and show errors
 
@@ -5053,21 +5278,25 @@ Run TypeScript type check and show errors
 ```text
 packages/excalidraw/tests/maskGroup.test.tsx(226,7): error TS2345: Argument of type 'readonly ExcalidrawElement[]' is not assignable to parameter of type 'readonly NonDeletedExcalidrawElement[]'.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:49:41Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskGroup.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:57:24Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Typecheck, then run the mask and element tests
 
@@ -5076,17 +5305,18 @@ Typecheck, then run the mask and element tests
 ```text
    × Test Linear Elements > **Test bound text element > **should resize and position the bound text and bounding box correctly when 3 pointer arrow element resized 348ms**
    × Test Linear Elements > **Test bound text element > **should wrap the bound text when arrow bound container moves 775ms**
-Received: 
+Received:
 ⎯⎯⎯⎯⎯⎯⎯** Failed Tests 2 **⎯⎯⎯⎯⎯⎯⎯
 ** FAIL ** .tmp-ai-logs-wt/packages/element/tests/linearElementEditor.test.tsx > **Test Linear Elements > **Test bound text element > **should resize and position the bound text and bounding box correctly when 3 pointer arrow element resized
 - Expected
 + Received
 ** FAIL ** .tmp-ai-logs-wt/packages/element/tests/linearElementEditor.test.tsx > **Test Linear Elements > **Test bound text element > **should wrap the bound text when arrow bound container moves
 **AssertionError**: expected "handleBindTextResize" to be called with arguments: [ { id: 'id0', …(26) }, …(4) ]
-Received: 
+Received:
  Test Files ** **1 failed** | ****64 passed** (65)
       Tests ** **2 failed** | ****1286 passed** | **70 skipped | **2 todo (1360)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 22:57:27Z)**_
@@ -5096,6 +5326,7 @@ Typecheck is clean. The only two failures come from `.tmp-ai-logs-wt/`, an untra
 _**Agent (claude-opus-5-5 2026-10-27 23:00:55Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run only the mask, export, and duplicate tests
 
@@ -5105,6 +5336,7 @@ Run only the mask, export, and duplicate tests
  Test Files ** **8 passed** (8)
       Tests ** **128 passed** (128)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:01:00Z)**_
@@ -5114,6 +5346,7 @@ All 128 pass, including the new `maskGroup` suite. Plan step 5 also asks me to c
 _**Agent (claude-opus-5-5 2026-10-27 23:01:02Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show maskEditor test setup and openOptions helper
 
@@ -5182,11 +5415,13 @@ beforeEach(async () => {
     elementFromPoint: () => GlobalTestState.canvas,
   });
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:03:58Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run a temporary probe test for double-clicking a grouped mask
 
@@ -5237,39 +5472,44 @@ dbl2 {"me":{"maskId":"id1","mode":"editing"},"eg":"id5","sel":1,"sg":{},"ta":fal
 dbl3 {"me":null,"eg":null,"sel":0,"sg":{},"ta":true}
       Tests ** **1 passed** (1)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:04:06Z)**_
 
-<think><details><summary>Thought Process</summary>
-Found the bug: on grouped masks, entering the group gets mistakenly counted as the text-edit double-click, causing the next click to jump straight to options. I'll fix this by excluding group-entry double-clicks from that count.
+<think><details><summary>Thought Process</summary> Found the bug: on grouped masks, entering the group gets mistakenly counted as the text-edit double-click, causing the next click to jump straight to options. I'll fix this by excluding group-entry double-clicks from that count.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:04:06Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `./packages/excalidraw/components/App.tsx` pattern `^  isElementInGroup,|  isElementInGroup,$`
 
 ```text
 214:  isElementInGroup,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:04:19Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\components\App.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:04:39Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Re-run the double-click probe after the fix
 
@@ -5283,31 +5523,32 @@ exitText2 {"me":null,"eg":null,"sel":1,"sg":{},"ta":false}
 dbl3 {"me":null,"eg":null,"sel":0,"sg":{},"ta":true}
       Tests ** **1 passed** (1)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:04:44Z)**_
 
-<think><details><summary>Thought Process</summary>
-That fix actually made it worse—exiting the editor clears `editingGroupId`, so the next double-click is misread as a group entry and options never open. I need to narrow the condition, so I'm reviewing the actual group-entry rule now.
+<think><details><summary>Thought Process</summary> That fix actually made it worse—exiting the editor clears `editingGroupId`, so the next double-click is misread as a group entry and options never open. I need to narrow the condition, so I'm reviewing the actual group-entry rule now.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:04:45Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/components/App.tsx`
 
 ```text
 7285	    const selectedGroupIds = getSelectedGroupIds(this.state);
-7286	
+7286
 7287	    if (selectedGroupIds.length > 0) {
 7288	      const hitElement = this.getElementAtPosition(sceneX, sceneY);
-7289	
+7289
 7290	      const selectedGroupId =
 7291	        hitElement &&
 7292	        getSelectedGroupIdForElement(hitElement, this.state.selectedGroupIds);
-7293	
+7293
 7294	      if (selectedGroupId) {
 7295	        this.store.scheduleCapture();
 7296	        this.setState((prevState) => ({
@@ -5325,11 +5566,12 @@ _**Agent (claude-opus-5-5 2026-10-27 23:04:45Z)**_
 7308	        return;
 7309	      }
 7310	    }
-7311	
+7311
 7312	    resetCursor(this.interactiveCanvas);
 7313	    if (!event[KEYS.CTRL_OR_CMD] && !this.state.viewModeEnabled) {
 7314	      const hitElement = this.getElementAtPosition(sceneX, sceneY);
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:04:46Z)**_
@@ -5339,16 +5581,19 @@ The exact rule is `getSelectedGroupIdForElement(hitElement, selectedGroupIds)`. 
 _**Agent (claude-opus-5-5 2026-10-27 23:05:09Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\components\App.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:05:33Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Re-run the double-click probe after the refined fix
 
@@ -5362,18 +5607,19 @@ exitText2 {"me":null,"eg":null,"sel":1,"sg":{},"ta":false}
 dbl3 {"me":{"maskId":"id1","mode":"editing"},"eg":"id5","sel":1,"sg":{},"ta":false}
       Tests ** **1 passed** (1)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:05:36Z)**_
 
-<think><details><summary>Thought Process</summary>
-I'll convert the probe into a proper test in `maskEditor.test.tsx` and remove the probe code, since grouped masks behave like ungrouped ones but require entering the group first.
+<think><details><summary>Thought Process</summary> I'll convert the probe into a proper test in `maskEditor.test.tsx` and remove the probe code, since grouped masks behave like ungrouped ones but require entering the group first.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:06:13Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Delete probe test and locate options describe block
 
@@ -5385,11 +5631,13 @@ Delete probe test and locate options describe block
 95-    setupMask();
 96-
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:06:15Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./packages/excalidraw/tests/maskEditor.test.tsx`
 
@@ -5397,34 +5645,37 @@ _**Agent (claude-opus-5-5 2026-10-27 23:06:15Z)**_
 93	describe("opening the mask options", () => {
 94	  it("edits the mask's text on the first double-click", () => {
 95	    setupMask();
-96	
+96
 97	    mouse.doubleClickAt(20, 50);
-98	
+98
 99	    expect(getTextarea()).not.toBe(null);
 100	    expect(h.state.maskEditor).toBe(null);
 101	  });
-102	
+102
 103	  it("opens the options on the next double-click", () => {
 104	    const { mask } = setupMask();
-105	
+105
 106	    openOptions();
-107	
+107
 108	    expect(h.state.maskEditor).toEqual({ maskId: mask.id, mode: "editing" });
 109	    expect(getToolbar()).not.toBe(null);
 110	    expect(getTextarea()).toBe(null);
 111	  });
 112
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:06:22Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\tonyw\projects\draw_main_proj\excalidraw\packages\excalidraw\tests\maskEditor.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:06:23Z)**_
@@ -5434,6 +5685,7 @@ Now the full verification: typecheck, `yarn fix`, then the whole test suite (exc
 _**Agent (claude-opus-5-5 2026-10-27 23:08:57Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Typecheck and auto-fix formatting/lint
 
@@ -5457,6 +5709,7 @@ info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this comm
 error Command failed with exit code 2.
 info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:08:59Z)**_
@@ -5466,6 +5719,7 @@ _**Agent (claude-opus-5-5 2026-10-27 23:08:59Z)**_
 _**Agent (claude-opus-5-5 2026-10-27 23:10:07Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Format and lint only the changed files
 
@@ -5513,6 +5767,7 @@ npm notice
 ?? packages/excalidraw/tests/maskGroup.test.tsx
 [This command modified 3 files you've previously read: packages\excalidraw\renderer\maskClip.ts, packages\excalidraw\tests\mask.test.tsx, packages\excalidraw\tests\maskGroup.test.tsx. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:10:08Z)**_
@@ -5522,6 +5777,7 @@ Formatting is applied and ESLint reported nothing. Now the full test suite:
 _**Agent (claude-opus-5-5 2026-10-27 23:19:29Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run the full test suite excluding the stray worktree
 
@@ -5531,6 +5787,7 @@ Run the full test suite excluding the stray worktree
  Test Files ** **139 passed** (139)
       Tests ** **2107 passed** | **47 skipped | **1 todo (2155)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-10-27 23:19:40Z)**_
@@ -5538,6 +5795,7 @@ _**Agent (claude-opus-5-5 2026-10-27 23:19:40Z)**_
 I implemented the plan for #74: masks are now many-to-many and work with grouping, duplicate, and paste. The full test suite passes (139 files, 2107 tests, no snapshot changes) and the typecheck is clean. I haven't committed anything, and I haven't tried it by hand in the running app with `yarn start`.
 
 **What changed**
+
 - **Data model:** each element now stores a list of masks (`maskIds`) instead of a single `maskId`. A mask can clip several elements, and an element can have several masks. Masks can't themselves be masked, so there are no chains.
 - **Old saves:** scenes saved with the old `maskId` field are converted to the new list on load, and duplicate ids are removed.
 - **Rendering:** an element with several active masks shows only the area inside all of them (their intersection). That's the canvas and the PNG export, and in SVG export each mask becomes a nested clipped `<g>`.
@@ -5555,6 +5813,7 @@ I implemented the plan for #74: masks are now many-to-many and work with groupin
 **Tests:** a new `packages/excalidraw/tests/maskGroup.test.tsx` covers each acceptance criterion: grouping, several masks in one group, shared elements, nested groups, ungrouping, move/resize/rotate, undo/redo, SVG clip placement, and duplicate/paste. The existing mask test files are updated for the new behaviour.
 
 **Things to know**
+
 - `yarn fix` fails on this machine because of a conflict between the ESLint config in the `excalidraw-room/` folder and the repo's own, so I ran Prettier and ESLint on the changed files directly.
 - A plain `vitest` run also picks up the untracked `.tmp-ai-logs-wt/` folder, which has 2 failing tests of its own. I excluded it.
 - The masking-mode hint now reads "Double-click elements to mask them".
