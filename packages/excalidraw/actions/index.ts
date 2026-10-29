@@ -121,6 +121,9 @@ export {
   actionToggleMaskEnabled,
   actionRemoveMask,
   actionAddToMask,
+  actionToggleMaskMode,
+  actionMaskAll,
+  actionMaskNone,
 } from "./actionMask";
 
 export { actionToggleSearchMenu } from "./actionToggleSearchMenu";

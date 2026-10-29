@@ -171,7 +171,10 @@ export type ActionName =
   | "closeMaskEditor"
   | "toggleMaskEnabled"
   | "removeMask"
-  | "addToMask";
+  | "addToMask"
+  | "toggleMaskMode"
+  | "maskAll"
+  | "maskNone";
 
 export type PanelComponentProps = {
   elements: readonly ExcalidrawElement[];

@@ -237,6 +237,7 @@ export type InteractiveCanvasAppState = Readonly<
     selectedGroupIds: AppState["selectedGroupIds"];
     selectedLinearElement: AppState["selectedLinearElement"];
     motionPathEditor: AppState["motionPathEditor"];
+    maskEditor: AppState["maskEditor"];
     multiElement: AppState["multiElement"];
     newElement: AppState["newElement"];
     isBindingEnabled: AppState["isBindingEnabled"];

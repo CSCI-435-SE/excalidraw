@@ -84,7 +84,12 @@ type _ExcalidrawElementBase = Readonly<{
   /** on a mask shape: whether it currently clips its masked element
       (undefined is treated as enabled) */
   maskEnabled?: boolean;
+  /** on a mask shape: whether its masked elements show inside or outside
+      its outline (undefined is treated as inside) */
+  maskMode?: MaskMode;
 }>;
+
+export type MaskMode = "inside" | "outside";
 
 export type ExcalidrawSelectionElement = _ExcalidrawElementBase & {
   type: "selection";

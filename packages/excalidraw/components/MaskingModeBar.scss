@@ -13,7 +13,7 @@
   }
 
   // same look as the Excalidraw+ button (`.plus-banner` in excalidraw-app)
-  .masking-mode-bar__cancel {
+  .masking-mode-bar__button {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -40,7 +40,7 @@
     }
   }
 
-  &.theme--dark .masking-mode-bar__cancel:hover {
+  &.theme--dark .masking-mode-bar__button:hover {
     color: black;
   }
 }
