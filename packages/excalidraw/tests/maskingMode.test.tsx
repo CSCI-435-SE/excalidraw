@@ -147,22 +147,29 @@ describe("picking the element to mask", () => {
 
   it("ignores elements that can't be masked", () => {
     startMasking();
-    const image = API.createElement({
-      type: "image",
+    // another mask (masks never chain)
+    const otherMask = API.createElement({
+      type: "ellipse",
       x: 400,
       y: 0,
       width: 100,
       height: 100,
+      backgroundColor: "#b2f2bb",
+      fillStyle: "solid",
     });
+    const otherMasked = {
+      ...API.createElement({ type: "rectangle", x: 600, y: 0 }),
+      maskIds: [otherMask.id],
+    };
     API.updateScene({
-      elements: [...h.elements, image],
+      elements: [...h.elements, otherMask, otherMasked],
       captureUpdate: CaptureUpdateAction.NEVER,
     });
 
     mouse.doubleClickAt(450, 50);
 
     expect(h.state.maskEditor?.mode).toBe("picking");
-    expect(API.getElement(image).maskIds).toBeUndefined();
+    expect(API.getElement(otherMask).maskIds).toBeUndefined();
   });
 });
 

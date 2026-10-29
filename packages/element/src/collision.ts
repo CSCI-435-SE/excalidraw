@@ -862,6 +862,22 @@ export const isPointInElement = (
   return intersections.length % 2 === 1;
 };
 
+/**
+ * whether `point` is on the visible part of `element`, i.e. inside all its
+ * enabled `masks` (their clips intersect), so masked-out parts can't be
+ * clicked
+ */
+export const isPointInElementMasks = (
+  point: GlobalPoint,
+  masks: readonly ExcalidrawElement[],
+  elementsMap: ElementsMap,
+) =>
+  masks.every(
+    (mask) =>
+      isPointInElement(point, mask, elementsMap) ||
+      isPointOnElementOutline(point, mask, elementsMap),
+  );
+
 export const isBindableElementInsideOtherBindable = (
   innerElement: ExcalidrawBindableElement,
   outerElement: ExcalidrawBindableElement,

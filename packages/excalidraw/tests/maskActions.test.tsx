@@ -185,14 +185,14 @@ describe("applying a mask", () => {
 
   it("refuses elements that can't be masked", () => {
     const { mask } = setup();
-    const image = API.createElement({ type: "image" });
-    API.setElements([...h.elements, image]);
+    const frame = API.createElement({ type: "frame" });
+    API.setElements([...h.elements, frame]);
     API.setSelectedElements([mask]);
     pressMaskShortcut();
 
-    applyMask(image);
+    applyMask(frame);
 
-    expect(API.getElement(image).maskIds).toBeUndefined();
+    expect(API.getElement(frame).maskIds).toBeUndefined();
     expect(h.state.maskEditor?.mode).toBe("picking");
   });
 

@@ -24,7 +24,7 @@ const MASK_TYPES = new Set<ExcalidrawElement["type"]>([
   "triangle",
 ]);
 
-// images are left to #72, embeds can't be clipped by the canvas at all
+// embeds can't be clipped by the canvas at all
 const MASKABLE_TYPES = new Set<ExcalidrawElement["type"]>([
   "rectangle",
   "diamond",
@@ -34,6 +34,7 @@ const MASKABLE_TYPES = new Set<ExcalidrawElement["type"]>([
   "arrow",
   "freedraw",
   "text",
+  "image",
 ]);
 
 /** whether the element's type can act as a mask */
@@ -109,6 +110,18 @@ export const getActiveMaskElements = (
   element: ExcalidrawElement,
   elementsMap: ElementsMap,
 ) => getMaskElements(element, elementsMap).filter(isMaskEnabled);
+
+/**
+ * whether the masked-out parts of `element` are previewed (drawn faintly, and
+ * clickable): while one of its `masks` or the element itself is selected
+ */
+export const isMaskPreviewShown = (
+  element: ExcalidrawElement,
+  masks: readonly ExcalidrawElement[],
+  selectedElementIds: Readonly<Record<string, true>>,
+) =>
+  !!selectedElementIds[element.id] ||
+  masks.some((mask) => selectedElementIds[mask.id]);
 
 /**
  * whether `element` can become (or keep taking elements as) a mask. Masked
