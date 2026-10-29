@@ -1,7 +1,7 @@
 import { SVG_NS } from "@excalidraw/common";
 import {
   clipToMask,
-  getActiveMaskElement,
+  getActiveMaskElements,
   getBoundTextElement,
   getMaskSvgPathData,
   getMaskSvgTransform,
@@ -26,9 +26,9 @@ import type { StaticCanvasAppState } from "../types";
 export const MASK_PREVIEW_OPACITY = 0.2;
 
 /**
- * Clips the context to the element's mask, if it has an enabled one.
- * While the mask is selected, the masked-out parts are first drawn faintly
- * so the user can see what the mask is hiding.
+ * Clips the context to the element's enabled masks (their intersection).
+ * While one of the masks is selected, the masked-out parts are first drawn
+ * faintly so the user can see what the masks are hiding.
  */
 export const applyMaskClip = (
   element: NonDeletedExcalidrawElement,
@@ -39,12 +39,15 @@ export const applyMaskClip = (
   renderConfig: StaticCanvasRenderConfig,
   appState: StaticCanvasAppState,
 ) => {
-  const mask = getActiveMaskElement(element, allElementsMap);
-  if (!mask) {
+  const masks = getActiveMaskElements(element, allElementsMap);
+  if (!masks.length) {
     return;
   }
 
-  if (!renderConfig.isExporting && appState.selectedElementIds[mask.id]) {
+  if (
+    !renderConfig.isExporting &&
+    masks.some((mask) => appState.selectedElementIds[mask.id])
+  ) {
     const boundTextElement = getBoundTextElement(element, elementsMap);
     for (const el of boundTextElement
       ? [element, boundTextElement]
@@ -62,12 +65,16 @@ export const applyMaskClip = (
     }
   }
 
-  clipToMask(context, mask, appState.scrollX, appState.scrollY);
+  // successive clips intersect
+  for (const mask of masks) {
+    clipToMask(context, mask, appState.scrollX, appState.scrollY);
+  }
 };
 
 /**
- * If the element has an enabled mask, appends a `<g>` clipped to the mask's
- * outline to `svgRoot` and returns it, so the element can be rendered into it.
+ * If the element has enabled masks, appends one `<g>` per mask, each nested
+ * in the previous and clipped to that mask's outline, to `svgRoot` and
+ * returns the innermost, so the element can be rendered into it.
  */
 export const createSvgMaskGroup = (
   element: NonDeletedExcalidrawElement,
@@ -76,23 +83,28 @@ export const createSvgMaskGroup = (
   offsetX: number,
   offsetY: number,
 ) => {
-  const mask = getActiveMaskElement(element, elementsMap);
-  if (!mask) {
+  const masks = getActiveMaskElements(element, elementsMap);
+  if (!masks.length) {
     return null;
   }
 
   const doc = svgRoot.ownerDocument;
-  const clipPath = doc.createElementNS(SVG_NS, "clipPath");
-  clipPath.id = `mask-clipPath-${element.id}`;
-  clipPath.setAttribute("clipPathUnits", "userSpaceOnUse");
-  const path = doc.createElementNS(SVG_NS, "path");
-  path.setAttribute("d", getMaskSvgPathData(mask));
-  path.setAttribute("transform", getMaskSvgTransform(mask, offsetX, offsetY));
-  clipPath.appendChild(path);
-  (svgRoot.querySelector("defs") || svgRoot).appendChild(clipPath);
+  const defs = svgRoot.querySelector("defs") || svgRoot;
+  let parent: SVGElement = svgRoot;
+  for (const mask of masks) {
+    const clipPath = doc.createElementNS(SVG_NS, "clipPath");
+    clipPath.id = `mask-clipPath-${element.id}-${mask.id}`;
+    clipPath.setAttribute("clipPathUnits", "userSpaceOnUse");
+    const path = doc.createElementNS(SVG_NS, "path");
+    path.setAttribute("d", getMaskSvgPathData(mask));
+    path.setAttribute("transform", getMaskSvgTransform(mask, offsetX, offsetY));
+    clipPath.appendChild(path);
+    defs.appendChild(clipPath);
 
-  const g = doc.createElementNS(SVG_NS, "g");
-  g.setAttribute("clip-path", `url(#${clipPath.id})`);
-  svgRoot.appendChild(g);
-  return g;
+    const g = doc.createElementNS(SVG_NS, "g");
+    g.setAttribute("clip-path", `url(#${clipPath.id})`);
+    parent.appendChild(g);
+    parent = g;
+  }
+  return parent;
 };

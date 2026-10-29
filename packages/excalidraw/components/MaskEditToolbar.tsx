@@ -8,7 +8,11 @@ import type {
   NonDeletedExcalidrawElement,
 } from "@excalidraw/element/types";
 
-import { actionRemoveMask, actionToggleMaskEnabled } from "../actions";
+import {
+  actionAddToMask,
+  actionRemoveMask,
+  actionToggleMaskEnabled,
+} from "../actions";
 import { t } from "../i18n";
 
 import { useExcalidrawActionManager, useExcalidrawAppState } from "./App";
@@ -68,6 +72,14 @@ export const MaskEditToolbar = ({
           onChange={() => actionManager.executeAction(actionToggleMaskEnabled)}
         />
       </label>
+      <button
+        type="button"
+        className="mask-edit-toolbar__button"
+        data-testid="mask-add"
+        onClick={() => actionManager.executeAction(actionAddToMask)}
+      >
+        {t("labels.mask.add")}
+      </button>
       <button
         type="button"
         className="mask-edit-toolbar__button"

@@ -454,11 +454,13 @@ const restoreTextHyperlinks = (
 
 const restoreElementWithProperties = <
   T extends Required<
-    Omit<ExcalidrawElement, "customData" | "maskId" | "maskEnabled">
+    Omit<ExcalidrawElement, "customData" | "maskIds" | "maskEnabled">
   > & {
     customData?: ExcalidrawElement["customData"];
-    maskId?: ExcalidrawElement["maskId"];
+    maskIds?: ExcalidrawElement["maskIds"];
     maskEnabled?: ExcalidrawElement["maskEnabled"];
+    /** @deprecated single mask, before elements could have several */
+    maskId?: string | null;
     /** @deprecated */
     boundElementIds?: readonly ExcalidrawElement["id"][];
     /** @deprecated */
@@ -525,6 +527,8 @@ const restoreElementWithProperties = <
       "customData" in extra ? extra.customData : element.customData;
   }
 
+  const maskIds = restoreMaskIds(element.maskIds, element.maskId);
+
   const ret = {
     // spread the original element properties to not lose unknown ones
     // for forward-compatibility
@@ -538,8 +542,34 @@ const restoreElementWithProperties = <
   // strip legacy props (migrated in previous steps)
   delete ret.strokeSharpness;
   delete ret.boundElementIds;
+  delete ret.maskId;
+
+  if (maskIds) {
+    ret.maskIds = maskIds;
+  } else {
+    delete ret.maskIds;
+  }
 
   return ret;
+};
+
+/** dedupes mask ids, migrating the legacy single `maskId` */
+const restoreMaskIds = (
+  maskIds: unknown,
+  legacyMaskId: unknown,
+): string[] | null => {
+  const ids = new Set<string>();
+  if (Array.isArray(maskIds)) {
+    for (const id of maskIds) {
+      if (typeof id === "string" && id) {
+        ids.add(id);
+      }
+    }
+  }
+  if (typeof legacyMaskId === "string" && legacyMaskId) {
+    ids.add(legacyMaskId);
+  }
+  return ids.size ? Array.from(ids) : null;
 };
 
 export const restoreElement = (

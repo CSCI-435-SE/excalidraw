@@ -76,10 +76,13 @@ describe("Mask item in More tools", () => {
     act(() => {
       h.app.actionManager.executeAction(actionApplyMask, "api", target.id);
     });
-    expect(API.getElement(target).maskId).toBe(mask.id);
+    expect(API.getElement(target).maskIds).toEqual([mask.id]);
 
+    // the first click leaves masking mode, the next one removes the mask
+    fireEvent.click(getMaskItem());
+    expect(h.state.maskEditor).toBe(null);
     fireEvent.click(getMaskItem());
 
-    expect(API.getElement(target).maskId).toBe(null);
+    expect(API.getElement(target).maskIds).toBe(null);
   });
 });

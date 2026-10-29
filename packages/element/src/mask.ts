@@ -42,57 +42,85 @@ export const isMaskType = (
 ): element is ExcalidrawMaskElement =>
   !!element && MASK_TYPES.has(element.type);
 
-/** the mask shape clipping `element`, if it (still) exists */
-export const getMaskElement = (
+/** ids of the masks linked to `element`, including missing/deleted ones */
+export const getMaskIds = (element: ExcalidrawElement): readonly string[] =>
+  element.maskIds ?? [];
+
+export const isMaskedBy = (
+  element: ExcalidrawElement,
+  maskId: ExcalidrawElement["id"],
+) => getMaskIds(element).includes(maskId);
+
+/** the mask shapes clipping `element` that (still) exist */
+export const getMaskElements = (
   element: ExcalidrawElement,
   elementsMap: ElementsMap,
-): ExcalidrawMaskElement | null => {
-  if (!element.maskId) {
-    return null;
-  }
-  const mask = elementsMap.get(element.maskId);
-  return mask && !mask.isDeleted && isMaskType(mask) ? mask : null;
-};
-
-/** the element clipped by `mask`, if any */
-export const getMaskedElement = (
-  mask: ExcalidrawElement,
-  elementsMap: ElementsMap,
-): NonDeletedExcalidrawElement | null => {
-  for (const element of elementsMap.values()) {
-    if (element.maskId === mask.id && !element.isDeleted) {
-      return element as NonDeletedExcalidrawElement;
+): ExcalidrawMaskElement[] => {
+  const masks: ExcalidrawMaskElement[] = [];
+  for (const maskId of getMaskIds(element)) {
+    const mask = elementsMap.get(maskId);
+    if (mask && !mask.isDeleted && isMaskType(mask)) {
+      masks.push(mask);
     }
   }
-  return null;
+  return masks;
 };
+
+/** the elements clipped by `mask` */
+export const getMaskedElements = (
+  mask: ExcalidrawElement,
+  elementsMap: ElementsMap,
+): NonDeletedExcalidrawElement[] => {
+  const masked: NonDeletedExcalidrawElement[] = [];
+  for (const element of elementsMap.values()) {
+    if (!element.isDeleted && isMaskedBy(element, mask.id)) {
+      masked.push(element as NonDeletedExcalidrawElement);
+    }
+  }
+  return masked;
+};
+
+/** whether `element` is clipped by at least one existing mask */
+export const isMaskedElement = (
+  element: ExcalidrawElement,
+  elementsMap: ElementsMap,
+) => getMaskElements(element, elementsMap).length > 0;
 
 export const isMaskElement = (
   element: ExcalidrawElement,
   elementsMap: ElementsMap,
-) => isMaskType(element) && !!getMaskedElement(element, elementsMap);
+) => {
+  if (!isMaskType(element)) {
+    return false;
+  }
+  for (const el of elementsMap.values()) {
+    if (!el.isDeleted && isMaskedBy(el, element.id)) {
+      return true;
+    }
+  }
+  return false;
+};
 
 export const isMaskEnabled = (mask: ExcalidrawElement) =>
   mask.maskEnabled !== false;
 
-/** the enabled mask that should clip `element` when rendering */
-export const getActiveMaskElement = (
+/** the enabled masks that should clip `element` when rendering */
+export const getActiveMaskElements = (
   element: ExcalidrawElement,
   elementsMap: ElementsMap,
-) => {
-  const mask = getMaskElement(element, elementsMap);
-  return mask && isMaskEnabled(mask) ? mask : null;
-};
+) => getMaskElements(element, elementsMap).filter(isMaskEnabled);
 
-/** whether `element` can become a mask's parent shape */
+/**
+ * whether `element` can become (or keep taking elements as) a mask. Masked
+ * elements can't be masks, so masks never chain.
+ */
 export const canBecomeMask = (
   element: ExcalidrawElement,
   elementsMap: ElementsMap,
 ) =>
   isMaskType(element) &&
   !element.locked &&
-  !getMaskElement(element, elementsMap) &&
-  !isMaskElement(element, elementsMap);
+  !isMaskedElement(element, elementsMap);
 
 /** whether `element` can be clipped by `mask` */
 export const canBeMasked = (
@@ -106,8 +134,10 @@ export const canBeMasked = (
   MASKABLE_TYPES.has(element.type) &&
   // bound text is clipped together with its container
   !(element.type === "text" && element.containerId) &&
-  !getMaskElement(element, elementsMap) &&
-  !isMaskElement(element, elementsMap);
+  !isMaskedBy(element, mask.id) &&
+  // masks never chain
+  !isMaskElement(element, elementsMap) &&
+  !isMaskedElement(mask, elementsMap);
 
 type MaskOutline =
   | { type: "rect"; width: number; height: number; radius: number }
