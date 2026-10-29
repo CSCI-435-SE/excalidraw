@@ -13,6 +13,8 @@ import {
   THEME,
 } from "@excalidraw/common";
 
+import { generateFractionalIndexBetween } from "@excalidraw/element";
+
 import { actionChangeGridColor, actionChangeGridScale } from "../actions";
 import { getShortcutFromShortcutName } from "../actions/shortcuts";
 import { isGridPanelOpenAtom } from "../components/GridPanel";
@@ -616,14 +618,35 @@ describe("grid panel", () => {
     });
 
     describe("layer", () => {
-      it("should switch between behind and above elements", () => {
+      it("should layer the grid relative to drawing content without creating an element", () => {
+        const elements = [
+          API.createElement({ type: "rectangle", x: 0 }),
+          API.createElement({ type: "rectangle", x: 100 }),
+          API.createElement({ type: "rectangle", x: 200 }),
+        ];
+        API.setElements(elements);
+
         expect(h.state.gridLayer).toBe("below");
 
-        UI.clickOnTestId("grid-layer-above");
-        expect(h.state.gridLayer).toBe("above");
+        UI.clickOnTestId("grid-layer-forward");
+        expect(elements[0].index! < h.state.gridLayer).toBe(true);
+        expect(h.state.gridLayer < elements[1].index!).toBe(true);
 
-        UI.clickOnTestId("grid-layer-below");
-        expect(h.state.gridLayer).toBe("below");
+        UI.clickOnTestId("grid-layer-forward");
+        expect(elements[1].index! < h.state.gridLayer).toBe(true);
+        expect(h.state.gridLayer < elements[2].index!).toBe(true);
+
+        UI.clickOnTestId("grid-layer-backward");
+        expect(elements[0].index! < h.state.gridLayer).toBe(true);
+        expect(h.state.gridLayer < elements[1].index!).toBe(true);
+
+        UI.clickOnTestId("grid-layer-front");
+        expect(elements[2].index! < h.state.gridLayer).toBe(true);
+
+        UI.clickOnTestId("grid-layer-back");
+        expect(h.state.gridLayer < elements[0].index!).toBe(true);
+        expect(h.elements).toHaveLength(elements.length);
+        expect(h.state.selectedElementIds).toEqual({});
       });
     });
   });
@@ -742,6 +765,46 @@ describe("grid panel", () => {
 
       expect(getOrder(renderWith({ gridLayer: "above" }))).toBe("above");
       expect(getOrder(renderWith({ gridLayer: "below" }))).toBe("below");
+    });
+
+    it("should draw the grid between elements at its saved layer", () => {
+      const lowerElement = API.createElement({
+        type: "rectangle",
+        width: 60,
+        height: 60,
+        backgroundColor: "#e03131",
+        fillStyle: "solid",
+      });
+      const upperElement = API.createElement({
+        type: "rectangle",
+        x: 100,
+        width: 60,
+        height: 60,
+        backgroundColor: "#2f9e44",
+        fillStyle: "solid",
+      });
+      API.setElements([lowerElement, upperElement]);
+
+      const events = renderWith({
+        gridModeEnabled: true,
+        gridColor: "#4263eb",
+        gridLayer: generateFractionalIndexBetween(
+          lowerElement.index!,
+          upperElement.index!,
+        ),
+      });
+      const gridStyleIndex = events.findIndex(
+        (event) =>
+          event.type === "strokeStyle" &&
+          event.props.value === normalizeColor("#4263eb"),
+      );
+      const elementDrawIndices = events.flatMap((event, index) =>
+        event.type === "drawImage" ? [index] : [],
+      );
+
+      expect(elementDrawIndices).toHaveLength(2);
+      expect(elementDrawIndices[0]).toBeLessThan(gridStyleIndex);
+      expect(gridStyleIndex).toBeLessThan(elementDrawIndices[1]);
     });
 
     it("should not draw the grid while it is off", () => {

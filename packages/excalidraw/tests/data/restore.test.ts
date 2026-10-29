@@ -15,7 +15,10 @@ import {
   MAX_STROKE_WIDTH,
 } from "@excalidraw/common";
 
-import { newElementWith } from "@excalidraw/element";
+import {
+  generateFractionalIndexBetween,
+  newElementWith,
+} from "@excalidraw/element";
 import * as sizeHelpers from "@excalidraw/element";
 
 import type { LocalPoint } from "@excalidraw/math";
@@ -824,6 +827,13 @@ describe("restoreAppState", () => {
       gridOpacity: DEFAULT_GRID_OPACITY,
       gridLayer: "below",
     });
+  });
+
+  it("should preserve a custom grid layer index", () => {
+    const gridLayer = generateFractionalIndexBetween(null, null);
+    expect(restore.restoreAppState({ gridLayer }, null).gridLayer).toBe(
+      gridLayer,
+    );
   });
 
   it("should clamp and round out-of-range grid appearance settings", () => {
