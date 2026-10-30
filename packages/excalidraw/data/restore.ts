@@ -468,11 +468,15 @@ const restoreTextHyperlinks = (
 
 const restoreElementWithProperties = <
   T extends Required<
-    Omit<ExcalidrawElement, "customData" | "maskIds" | "maskEnabled">
+    Omit<
+      ExcalidrawElement,
+      "customData" | "maskIds" | "maskEnabled" | "maskMode"
+    >
   > & {
     customData?: ExcalidrawElement["customData"];
     maskIds?: ExcalidrawElement["maskIds"];
     maskEnabled?: ExcalidrawElement["maskEnabled"];
+    maskMode?: ExcalidrawElement["maskMode"];
     /** @deprecated single mask, before elements could have several */
     maskId?: string | null;
     /** @deprecated */
@@ -562,6 +566,10 @@ const restoreElementWithProperties = <
     ret.maskIds = maskIds;
   } else {
     delete ret.maskIds;
+  }
+
+  if (ret.maskMode !== "inside" && ret.maskMode !== "outside") {
+    delete ret.maskMode;
   }
 
   return ret;

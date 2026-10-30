@@ -2,6 +2,7 @@ import {
   canBeMasked,
   canBecomeMask,
   getMaskIds,
+  getMaskMode,
   isMaskedBy,
   isMaskedElement,
   isMaskElement,
@@ -296,6 +297,99 @@ export const actionToggleMaskEnabled = register({
         el.id === mask.id
           ? newElementWith(el, { maskEnabled: !isMaskEnabled(mask) })
           : el,
+      ),
+      appState,
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    };
+  },
+});
+
+/**
+ * switches whether the edited mask shows its elements inside or outside its
+ * outline, without touching the elements
+ */
+export const actionToggleMaskMode = register({
+  name: "toggleMaskMode",
+  label: "labels.mask.showOutside",
+  trackEvent: false,
+  predicate: (elements, appState) => !!getEditedMask(elements, appState),
+  perform: (elements, appState) => {
+    const mask = getEditedMask(elements, appState);
+    if (!mask) {
+      return false;
+    }
+    const maskMode = getMaskMode(mask) === "inside" ? "outside" : "inside";
+    return {
+      elements: elements.map((el) =>
+        el.id === mask.id ? newElementWith(el, { maskMode }) : el,
+      ),
+      appState,
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    };
+  },
+});
+
+/**
+ * Mask all: clips every element on the canvas that can be masked to the
+ * edited mask. Masking mode or the options stay open.
+ */
+export const actionMaskAll = register({
+  name: "maskAll",
+  label: "labels.mask.all",
+  trackEvent: false,
+  predicate: (elements, appState) => !!getEditedMask(elements, appState),
+  perform: (elements, appState) => {
+    const mask = getEditedMask(elements, appState);
+    if (!mask) {
+      return false;
+    }
+    const elementsMap = arrayToMap(elements);
+    const targets = new Set(
+      elements
+        .filter((el) => canBeMasked(el, mask, elementsMap))
+        .map((el) => el.id),
+    );
+    if (!targets.size) {
+      return false;
+    }
+    // like picking, only the first element turns clipping on
+    const isFirstPick = !isMaskElement(mask, elementsMap);
+    return {
+      elements: elements.map((el) =>
+        targets.has(el.id)
+          ? newElementWith(el, { maskIds: [...getMaskIds(el), mask.id] })
+          : el.id === mask.id && isFirstPick
+          ? newElementWith(el, { maskEnabled: true })
+          : el,
+      ),
+      appState: {
+        ...appState,
+        ...getMaskSelectionState(mask),
+      },
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    };
+  },
+});
+
+/**
+ * Mask none: unlinks every element from the edited mask, like removing it,
+ * but keeps masking mode or the options open to pick again
+ */
+export const actionMaskNone = register({
+  name: "maskNone",
+  label: "labels.mask.none",
+  trackEvent: false,
+  predicate: (elements, appState) => !!getEditedMask(elements, appState),
+  perform: (elements, appState) => {
+    const mask = getEditedMask(elements, appState);
+    if (!mask) {
+      return false;
+    }
+    return {
+      elements: removeMaskLinks(
+        elements,
+        (el) => isMaskedBy(el, mask.id),
+        mask.id,
       ),
       appState,
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,

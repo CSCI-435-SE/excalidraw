@@ -1,0 +1,44 @@
+// same look as `.mask-edit-toolbar__button`, joined into one control
+.excalidraw {
+  .mask-mode-toggle {
+    display: flex;
+  }
+
+  .mask-mode-toggle__button {
+    height: 1.75rem;
+    padding: 0 0.625rem;
+
+    font-family: inherit;
+    font-size: 0.75rem;
+    color: var(--text-primary-color);
+    white-space: nowrap;
+
+    background: transparent;
+    border: 1px solid var(--default-border-color);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--button-hover-bg);
+    }
+
+    &:first-child {
+      border-start-end-radius: 0;
+      border-end-end-radius: 0;
+    }
+
+    &:last-child {
+      margin-inline-start: -1px;
+      border-start-start-radius: 0;
+      border-end-start-radius: 0;
+    }
+  }
+
+  .mask-mode-toggle__button--active {
+    color: var(--color-primary);
+    background: var(--color-primary-light);
+    border-color: var(--color-primary);
+    // keeps the active border on top of its neighbour's
+    position: relative;
+  }
+}

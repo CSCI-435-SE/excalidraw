@@ -200,7 +200,14 @@
       "enabled": "Clipping",
       "remove": "Remove mask",
       "add": "Add elements",
-      "picking": "Double-click elements to mask them"
+      "picking": "Double-click elements to mask them",
+      "all": "Mask all",
+      "none": "Mask none",
+      "showInside": "Show inside",
+      "showOutside": "Show outside",
+      "tagMask": "Mask {{mask}}",
+      "tagMaskOutside": "Mask {{mask}} (outside)",
+      "tagChild": "Mask {{mask}} Child {{child}}"
     },
     "polygon": {
       "breakPolygon": "Break polygon",

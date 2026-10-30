@@ -58,6 +58,8 @@ import { getBoundTextElement } from "./textElement";
 
 import { LinearElementEditor } from "./linearElementEditor";
 
+import { getMaskMode } from "./mask";
+
 import { distanceToElement } from "./distance";
 
 import { getBindingGap } from "./binding";
@@ -863,20 +865,21 @@ export const isPointInElement = (
 };
 
 /**
- * whether `point` is on the visible part of `element`, i.e. inside all its
- * enabled `masks` (their clips intersect), so masked-out parts can't be
- * clicked
+ * whether `point` is on the visible part of `element`, i.e. within all its
+ * enabled `masks` (inside an inside-mode mask, outside an outside-mode one;
+ * their clips intersect), so masked-out parts can't be clicked
  */
 export const isPointInElementMasks = (
   point: GlobalPoint,
   masks: readonly ExcalidrawElement[],
   elementsMap: ElementsMap,
 ) =>
-  masks.every(
-    (mask) =>
+  masks.every((mask) => {
+    const isInside =
       isPointInElement(point, mask, elementsMap) ||
-      isPointOnElementOutline(point, mask, elementsMap),
-  );
+      isPointOnElementOutline(point, mask, elementsMap);
+    return getMaskMode(mask) === "outside" ? !isInside : isInside;
+  });
 
 export const isBindableElementInsideOtherBindable = (
   innerElement: ExcalidrawBindableElement,

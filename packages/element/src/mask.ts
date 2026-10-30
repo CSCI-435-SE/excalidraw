@@ -1,5 +1,9 @@
 import { getCornerRadius } from "./utils";
-import { getDiamondPoints, getTrianglePoints } from "./bounds";
+import {
+  getDiamondPoints,
+  getElementBounds,
+  getTrianglePoints,
+} from "./bounds";
 
 import type {
   ElementsMap,
@@ -8,6 +12,7 @@ import type {
   ExcalidrawEllipseElement,
   ExcalidrawRectangleElement,
   ExcalidrawTriangleElement,
+  MaskMode,
   NonDeletedExcalidrawElement,
 } from "./types";
 
@@ -105,6 +110,31 @@ export const isMaskElement = (
 export const isMaskEnabled = (mask: ExcalidrawElement) =>
   mask.maskEnabled !== false;
 
+/** whether the mask's elements show inside or outside its outline */
+export const getMaskMode = (mask: ExcalidrawElement): MaskMode =>
+  mask.maskMode ?? "inside";
+
+/** extra room around the masked element, e.g. for strokes and bound text */
+const OUTER_EXTENT_PADDING = 50;
+
+/**
+ * How far the outer edge of an outside-mode clip must extend past the mask's
+ * outline (in the mask's local coordinates) to cover all of `element`,
+ * whatever the mask's rotation.
+ */
+export const getMaskOuterExtent = (
+  mask: ExcalidrawMaskElement,
+  element: ExcalidrawElement,
+  elementsMap: ElementsMap,
+) => {
+  const [x1, y1, x2, y2] = getElementBounds(element, elementsMap);
+  const cx = mask.x + mask.width / 2;
+  const cy = mask.y + mask.height / 2;
+  const dx = Math.max(Math.abs(x1 - cx), Math.abs(x2 - cx));
+  const dy = Math.max(Math.abs(y1 - cy), Math.abs(y2 - cy));
+  return Math.hypot(dx, dy) + OUTER_EXTENT_PADDING;
+};
+
 /** the enabled masks that should clip `element` when rendering */
 export const getActiveMaskElements = (
   element: ExcalidrawElement,
@@ -197,23 +227,36 @@ export const getMaskOutline = (mask: ExcalidrawMaskElement): MaskOutline => {
 };
 
 /**
- * Clips the context to the mask's outline. The context is expected to be in
- * scene coordinates offset by (`offsetX`, `offsetY`), e.g. the scroll.
+ * Clips the context to the mask's outline, or, for an outside-mode mask, to
+ * everything within `outerExtent` of the outline except the outline. The
+ * context is expected to be in scene coordinates offset by
+ * (`offsetX`, `offsetY`), e.g. the scroll.
  */
 export const clipToMask = (
   context: CanvasRenderingContext2D,
   mask: ExcalidrawMaskElement,
   offsetX: number,
   offsetY: number,
+  outerExtent: number = 0,
 ) => {
   const cx = mask.x + mask.width / 2 + offsetX;
   const cy = mask.y + mask.height / 2 + offsetY;
+  const isOutside = getMaskMode(mask) === "outside";
 
   context.translate(cx, cy);
   context.rotate(mask.angle);
   context.translate(-mask.width / 2, -mask.height / 2);
 
   context.beginPath();
+  if (isOutside) {
+    // with the even-odd rule, the outline cuts a hole into this rect
+    context.rect(
+      -outerExtent,
+      -outerExtent,
+      mask.width + outerExtent * 2,
+      mask.height + outerExtent * 2,
+    );
+  }
   const outline = getMaskOutline(mask);
   if (outline.type === "rect") {
     if (outline.radius && context.roundRect) {
@@ -237,7 +280,7 @@ export const clipToMask = (
     );
     context.closePath();
   }
-  context.clip();
+  context.clip(isOutside ? "evenodd" : "nonzero");
 
   context.translate(mask.width / 2, mask.height / 2);
   context.rotate(-mask.angle);
@@ -245,7 +288,7 @@ export const clipToMask = (
 };
 
 /** SVG path data of the mask's outline, in its local coordinates */
-export const getMaskSvgPathData = (mask: ExcalidrawMaskElement) => {
+const getMaskOutlineSvgPathData = (mask: ExcalidrawMaskElement) => {
   const outline = getMaskOutline(mask);
   if (outline.type === "rect") {
     const { width: w, height: h } = outline;
@@ -270,6 +313,24 @@ export const getMaskSvgPathData = (mask: ExcalidrawMaskElement) => {
   return `${outline.points
     .map(([x, y], index) => `${index ? "L" : "M"}${x} ${y}`)
     .join("")}Z`;
+};
+
+/**
+ * SVG path data to clip the mask's elements with, in its local coordinates.
+ * For an outside-mode mask, the outline is preceded by a rect `outerExtent`
+ * past it, to be clipped with `clip-rule="evenodd"`.
+ */
+export const getMaskSvgPathData = (
+  mask: ExcalidrawMaskElement,
+  outerExtent: number = 0,
+) => {
+  if (getMaskMode(mask) === "outside") {
+    const e = outerExtent;
+    return `M${-e} ${-e}H${mask.width + e}V${
+      mask.height + e
+    }H${-e}Z${getMaskOutlineSvgPathData(mask)}`;
+  }
+  return getMaskOutlineSvgPathData(mask);
 };
 
 /** SVG transform placing the mask's local outline into scene coordinates */

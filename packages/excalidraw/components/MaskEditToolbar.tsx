@@ -10,12 +10,15 @@ import type {
 
 import {
   actionAddToMask,
+  actionMaskAll,
+  actionMaskNone,
   actionRemoveMask,
   actionToggleMaskEnabled,
 } from "../actions";
 import { t } from "../i18n";
 
 import { useExcalidrawActionManager, useExcalidrawAppState } from "./App";
+import { MaskModeToggle } from "./MaskModeToggle";
 import { Switch } from "./Switch";
 
 import "./MaskEditToolbar.scss";
@@ -72,6 +75,23 @@ export const MaskEditToolbar = ({
           onChange={() => actionManager.executeAction(actionToggleMaskEnabled)}
         />
       </label>
+      <MaskModeToggle mask={mask} />
+      <button
+        type="button"
+        className="mask-edit-toolbar__button"
+        data-testid="mask-all"
+        onClick={() => actionManager.executeAction(actionMaskAll)}
+      >
+        {t("labels.mask.all")}
+      </button>
+      <button
+        type="button"
+        className="mask-edit-toolbar__button"
+        data-testid="mask-none"
+        onClick={() => actionManager.executeAction(actionMaskNone)}
+      >
+        {t("labels.mask.none")}
+      </button>
       <button
         type="button"
         className="mask-edit-toolbar__button"

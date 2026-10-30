@@ -52,7 +52,11 @@ import {
 
 import { renderSelectionElement } from "@excalidraw/element";
 
-import { getCommonBounds, getElementAbsoluteCoords } from "@excalidraw/element";
+import {
+  getCommonBounds,
+  getElementAbsoluteCoords,
+  getElementBounds,
+} from "@excalidraw/element";
 import {
   getGlobalFixedPointForBindableElement,
   isFocusPointVisible,
@@ -100,6 +104,7 @@ import {
   getNormalizedCanvasDimensions,
   strokeRectWithRotation_simple,
 } from "./helpers";
+import { getMaskTagLabel, getMaskTags } from "./maskClip";
 
 import type {
   AppState,
@@ -1124,6 +1129,61 @@ const renderFrameHighlight = (
   context.restore();
 };
 
+const MASK_TAG_FONT_SIZE = 11;
+const MASK_TAG_PADDING_X = 6;
+const MASK_TAG_HEIGHT = 18;
+const MASK_TAG_GAP = 4;
+
+/**
+ * parent/child tags (see getMaskTags): pills above the top-left corner of
+ * each mask (filled) and each of its elements (outlined), stacked upwards
+ * when an element has several masks
+ */
+const renderMaskTags = (
+  context: CanvasRenderingContext2D,
+  appState: InteractiveCanvasAppState,
+  elementsMap: ElementsMap,
+  color: string,
+) => {
+  const tags = getMaskTags(appState, elementsMap);
+  if (!tags.length) {
+    return;
+  }
+
+  const zoom = appState.zoom.value;
+  const height = MASK_TAG_HEIGHT / zoom;
+  const paddingX = MASK_TAG_PADDING_X / zoom;
+  const gap = MASK_TAG_GAP / zoom;
+
+  context.save();
+  context.translate(appState.scrollX, appState.scrollY);
+  context.font = `${MASK_TAG_FONT_SIZE / zoom}px sans-serif`;
+  context.textBaseline = "middle";
+  context.lineWidth = 1 / zoom;
+
+  const stackHeights = new Map<string, number>();
+  for (const tag of tags) {
+    const [x1, y1] = getElementBounds(tag.element, elementsMap);
+    const label = getMaskTagLabel(tag);
+    const width = context.measureText(label).width + paddingX * 2;
+    const stacked = stackHeights.get(tag.element.id) ?? 0;
+    stackHeights.set(tag.element.id, stacked + 1);
+    const y = y1 - (height + gap) * (stacked + 1);
+
+    const isMask = tag.kind === "mask";
+    context.fillStyle = isMask
+      ? color
+      : appState.theme === THEME.DARK
+      ? "#121212"
+      : "#ffffff";
+    roundRect(context, x1, y, width, height, height / 2, color);
+    context.fillStyle = isMask ? "#ffffff" : color;
+    context.fillText(label, x1 + paddingX, y + height / 2);
+  }
+
+  context.restore();
+};
+
 const renderElementsBoxHighlight = (
   context: CanvasRenderingContext2D,
   appState: InteractiveCanvasAppState,
@@ -2130,6 +2190,15 @@ const _renderInteractiveScene = ({
   });
 
   renderSnaps(context, appState);
+
+  if (!appState.viewModeEnabled) {
+    renderMaskTags(
+      context,
+      appState,
+      allElementsMap,
+      renderConfig.selectionColor,
+    );
+  }
 
   context.restore();
 

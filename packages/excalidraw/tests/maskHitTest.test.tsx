@@ -114,6 +114,31 @@ describe("clicking a masked element", () => {
     // inside the first mask only
     expect(elementAt(30, 30)).not.toBe(target.id);
   });
+
+  it("inverts the hit area for an outside-mode mask", () => {
+    const mask = { ...createMask(0, 0), maskMode: "outside" as const };
+    const target = {
+      ...API.createElement({
+        type: "rectangle",
+        x: 50,
+        y: 50,
+        width: 100,
+        height: 100,
+        backgroundColor: "#ffc9c9",
+        fillStyle: "solid",
+      }),
+      maskIds: [mask.id],
+    };
+    API.updateScene({
+      elements: [mask, target],
+      captureUpdate: CaptureUpdateAction.NEVER,
+    });
+
+    // outside the mask, so visible
+    expect(elementAt(140, 140)).toBe(target.id);
+    // inside the mask, so hidden
+    expect(elementAt(75, 75)).not.toBe(target.id);
+  });
 });
 
 describe("clicking the previewed hidden parts", () => {
