@@ -5,6 +5,7 @@ import {
   getBoundTextElement,
   getMaskSvgPathData,
   getMaskSvgTransform,
+  isMaskPreviewShown,
   renderElement,
 } from "@excalidraw/element";
 
@@ -27,8 +28,8 @@ export const MASK_PREVIEW_OPACITY = 0.2;
 
 /**
  * Clips the context to the element's enabled masks (their intersection).
- * While one of the masks is selected, the masked-out parts are first drawn
- * faintly so the user can see what the masks are hiding.
+ * While one of the masks or the element is selected, the masked-out parts are
+ * first drawn faintly so the user can see what the masks are hiding.
  */
 export const applyMaskClip = (
   element: NonDeletedExcalidrawElement,
@@ -46,7 +47,7 @@ export const applyMaskClip = (
 
   if (
     !renderConfig.isExporting &&
-    masks.some((mask) => appState.selectedElementIds[mask.id])
+    isMaskPreviewShown(element, masks, appState.selectedElementIds)
   ) {
     const boundTextElement = getBoundTextElement(element, elementsMap);
     for (const el of boundTextElement

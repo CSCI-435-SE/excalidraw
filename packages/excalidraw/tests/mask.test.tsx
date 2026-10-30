@@ -153,7 +153,7 @@ describe("mask eligibility", () => {
     expect(canBecomeMask(masked, elementsMap)).toBe(false);
   });
 
-  it("lets shapes, lines, arrows, freedraw and text be masked", () => {
+  it("lets shapes, lines, arrows, freedraw, text and images be masked", () => {
     const mask = API.createElement({ type: "rectangle" });
     for (const type of [
       "rectangle",
@@ -164,6 +164,7 @@ describe("mask eligibility", () => {
       "arrow",
       "freedraw",
       "text",
+      "image",
     ] as const) {
       const element = API.createElement({ type });
       expect(canBeMasked(element, mask, arrayToMap([mask, element]))).toBe(
@@ -172,9 +173,9 @@ describe("mask eligibility", () => {
     }
   });
 
-  it("doesn't let images, frames or embeds be masked", () => {
+  it("doesn't let frames or embeds be masked", () => {
     const mask = API.createElement({ type: "rectangle" });
-    for (const type of ["image", "frame", "embeddable"] as const) {
+    for (const type of ["frame", "embeddable"] as const) {
       const element = API.createElement({ type });
       expect(canBeMasked(element, mask, arrayToMap([mask, element]))).toBe(
         false,
