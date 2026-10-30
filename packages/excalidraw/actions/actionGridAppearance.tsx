@@ -1,4 +1,5 @@
 import {
+  findLastIndex,
   COLOR_PALETTE,
   DEFAULT_ELEMENT_STROKE_COLOR_PALETTE,
   DEFAULT_GRID_COLOR,
@@ -7,14 +8,22 @@ import {
   MIN_GRID_SCALE,
 } from "@excalidraw/common";
 
-import { CaptureUpdateAction } from "@excalidraw/element";
+import {
+  CaptureUpdateAction,
+  generateFractionalIndexBetween,
+} from "@excalidraw/element";
 
 import type { ColorTuple } from "@excalidraw/common";
+import type { ExcalidrawElement } from "@excalidraw/element/types";
 
 import { ColorPicker } from "../components/ColorPicker/ColorPicker";
-import { RadioSelection } from "../components/RadioSelection";
 import { Range } from "../components/Range";
-import { BringToFrontIcon, SendToBackIcon } from "../components/icons";
+import {
+  BringForwardIcon,
+  BringToFrontIcon,
+  SendBackwardIcon,
+  SendToBackIcon,
+} from "../components/icons";
 import { t } from "../i18n";
 import { getNormalizedGridOpacity, getNormalizedGridScale } from "../scene";
 
@@ -22,6 +31,74 @@ import { register } from "./register";
 
 import type { RangeNotch } from "../components/Range";
 import type { AppState } from "../types";
+
+type GridLayerAction =
+  | "above"
+  | "below"
+  | "forward"
+  | "backward"
+  | "front"
+  | "back";
+
+const getOrderedElementIndices = (elements: readonly ExcalidrawElement[]) =>
+  elements
+    .filter((element) => !element.isDeleted && element.index !== null)
+    .map((element) => element.index!)
+    .sort();
+
+const moveGridLayer = (
+  elements: readonly ExcalidrawElement[],
+  gridLayer: AppState["gridLayer"],
+  action: GridLayerAction,
+): AppState["gridLayer"] => {
+  if (action === "above" || action === "below") {
+    return action;
+  }
+
+  const indices = getOrderedElementIndices(elements);
+  if (!indices.length) {
+    return action === "front" || action === "forward" ? "above" : "below";
+  }
+
+  if (action === "front") {
+    return generateFractionalIndexBetween(indices[indices.length - 1], null);
+  }
+  if (action === "back") {
+    return generateFractionalIndexBetween(null, indices[0]);
+  }
+
+  if (action === "forward") {
+    if (gridLayer === "above") {
+      return gridLayer;
+    }
+    const nextIndex =
+      gridLayer === "below"
+        ? 0
+        : indices.findIndex((index) => index > gridLayer);
+    if (nextIndex === -1) {
+      return gridLayer;
+    }
+    return generateFractionalIndexBetween(
+      indices[nextIndex],
+      indices[nextIndex + 1] ?? null,
+    );
+  }
+
+  if (gridLayer === "below") {
+    return gridLayer;
+  }
+  const previousIndex =
+    gridLayer === "above"
+      ? indices.length - 1
+      : findLastIndex(indices, (index) => index < gridLayer);
+  if (previousIndex === -1) {
+    return gridLayer;
+  }
+  return generateFractionalIndexBetween(
+    indices[previousIndex - 1] ?? null,
+    indices[previousIndex],
+  );
+};
 
 const GRID_COLOR_PICKS = [
   DEFAULT_GRID_COLOR,
@@ -225,42 +302,69 @@ export const actionChangeGridOpacity = register<AppState["gridOpacity"]>({
   ),
 });
 
-export const actionChangeGridLayer = register<AppState["gridLayer"]>({
+export const actionChangeGridLayer = register<GridLayerAction>({
   name: "changeGridLayer",
   label: "labels.gridLayer",
   trackEvent: false,
   perform: (elements, appState, value) => {
+    if (!value) {
+      return {
+        appState,
+        captureUpdate: CaptureUpdateAction.EVENTUALLY,
+      };
+    }
     return {
       appState: {
         ...appState,
-        gridLayer: value === "above" ? "above" : "below",
+        gridLayer: moveGridLayer(elements, appState.gridLayer, value),
       },
       captureUpdate: CaptureUpdateAction.EVENTUALLY,
     };
   },
-  PanelComponent: ({ appState, updateData }) => (
+  PanelComponent: ({ updateData }) => (
     <fieldset>
       <legend>{t("labels.gridLayer")}</legend>
       <div className="buttonList">
-        <RadioSelection<AppState["gridLayer"]>
+        <button
           type="button"
-          options={[
-            {
-              value: "below",
-              text: t("labels.gridLayerBelow"),
-              icon: SendToBackIcon,
-              testId: "grid-layer-below",
-            },
-            {
-              value: "above",
-              text: t("labels.gridLayerAbove"),
-              icon: BringToFrontIcon,
-              testId: "grid-layer-above",
-            },
-          ]}
-          value={appState.gridLayer}
-          onClick={(value) => updateData(value)}
-        />
+          className="zIndexButton"
+          data-testid="grid-layer-forward"
+          title={t("labels.bringForward")}
+          aria-label={t("labels.bringForward")}
+          onClick={() => updateData("forward")}
+        >
+          {BringForwardIcon}
+        </button>
+        <button
+          type="button"
+          className="zIndexButton"
+          data-testid="grid-layer-backward"
+          title={t("labels.sendBackward")}
+          aria-label={t("labels.sendBackward")}
+          onClick={() => updateData("backward")}
+        >
+          {SendBackwardIcon}
+        </button>
+        <button
+          type="button"
+          className="zIndexButton"
+          data-testid="grid-layer-front"
+          title={t("labels.bringToFront")}
+          aria-label={t("labels.bringToFront")}
+          onClick={() => updateData("front")}
+        >
+          {BringToFrontIcon}
+        </button>
+        <button
+          type="button"
+          className="zIndexButton"
+          data-testid="grid-layer-back"
+          title={t("labels.sendToBack")}
+          aria-label={t("labels.sendToBack")}
+          onClick={() => updateData("back")}
+        >
+          {SendToBackIcon}
+        </button>
       </div>
     </fieldset>
   ),

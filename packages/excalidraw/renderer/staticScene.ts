@@ -301,8 +301,14 @@ const _renderStaticScene = ({
     );
 
   // Grid
-  if (renderGrid && appState.gridLayer !== "above") {
+  const gridLayerIndex =
+    appState.gridLayer === "above" || appState.gridLayer === "below"
+      ? null
+      : appState.gridLayer;
+  let hasRenderedGrid = false;
+  if (renderGrid && appState.gridLayer === "below") {
     renderGridLayer();
+    hasRenderedGrid = true;
   }
 
   const groupsToBeAddedToFrame = new Set<string>();
@@ -331,6 +337,16 @@ const _renderStaticScene = ({
   visibleElements
     .filter((el) => !isIframeLikeElement(el))
     .forEach((element) => {
+      if (
+        renderGrid &&
+        !hasRenderedGrid &&
+        gridLayerIndex &&
+        element.index &&
+        gridLayerIndex < element.index
+      ) {
+        renderGridLayer();
+        hasRenderedGrid = true;
+      }
       try {
         const frameId = element.frameId || appState.frameToHighlight?.id;
 
@@ -436,6 +452,16 @@ const _renderStaticScene = ({
   visibleElements
     .filter((el) => isIframeLikeElement(el))
     .forEach((element) => {
+      if (
+        renderGrid &&
+        !hasRenderedGrid &&
+        gridLayerIndex &&
+        element.index &&
+        gridLayerIndex < element.index
+      ) {
+        renderGridLayer();
+        hasRenderedGrid = true;
+      }
       try {
         const render = () => {
           renderElement(
@@ -525,9 +551,8 @@ const _renderStaticScene = ({
     }
   });
 
-  // grid drawn over the elements, still on the static canvas so it never
-  // receives pointer events
-  if (renderGrid && appState.gridLayer === "above") {
+  // The grid stays on the static canvas, so it never receives pointer events.
+  if (renderGrid && !hasRenderedGrid) {
     renderGridLayer();
   }
 };

@@ -35,6 +35,7 @@ import type {
   ExcalidrawTextElement,
   StrokeVariability,
   ExcalidrawPathElement,
+  FractionalIndex,
 } from "@excalidraw/element/types";
 
 import type {
@@ -530,8 +531,8 @@ export interface AppState {
   gridColor: string;
   /** 0-100 */
   gridOpacity: number;
-  /** whether the grid is rendered below or above the elements */
-  gridLayer: "below" | "above";
+  /** the grid's stacking position among elements, or a legacy edge position */
+  gridLayer: FractionalIndex | "below" | "above";
   /** whether the grid is rendered on the canvas */
   gridModeEnabled: boolean;
   /** whether elements snap to the grid (independent of grid visibility) */

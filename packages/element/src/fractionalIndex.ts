@@ -2,6 +2,7 @@ import { arrayToMap } from "@excalidraw/common";
 
 import {
   validateOrderKey,
+  generateKeyBetween,
   generateNKeysBetween,
 } from "@excalidraw/fractional-indexing";
 
@@ -151,6 +152,11 @@ export const orderByFractionalIndex = (
     return 1;
   });
 };
+
+export const generateFractionalIndexBetween = (
+  lower: FractionalIndex | null | undefined,
+  upper: FractionalIndex | null | undefined,
+): FractionalIndex => generateKeyBetween(lower, upper) as FractionalIndex;
 
 /**
  * Synchronizes invalid fractional indices of moved elements with the array order by mutating passed elements.
@@ -377,11 +383,11 @@ const getInvalidIndicesGroups = (elements: readonly ExcalidrawElement[]) => {
   return indicesGroups;
 };
 
-const isValidFractionalIndex = (
-  index: ExcalidrawElement["index"] | undefined,
+export const isValidFractionalIndex = (
+  index: string | null | undefined,
   predecessor: ExcalidrawElement["index"] | undefined,
   successor: ExcalidrawElement["index"] | undefined,
-) => {
+): index is FractionalIndex => {
   if (!index) {
     return false;
   }

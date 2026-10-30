@@ -58,6 +58,7 @@ import {
   isLineElement,
   isTextElement,
   isUsingAdaptiveRadius,
+  isValidFractionalIndex,
 } from "@excalidraw/element";
 
 import { syncInvalidIndices } from "@excalidraw/element";
@@ -116,6 +117,19 @@ type RestoredAppState = Omit<
 >;
 
 const MAX_LINEAR_PX = 75_000;
+
+const restoreGridLayer = (value: unknown): AppState["gridLayer"] => {
+  if (value === "above" || value === "below") {
+    return value;
+  }
+  if (
+    typeof value === "string" &&
+    isValidFractionalIndex(value, undefined, undefined)
+  ) {
+    return value;
+  }
+  return "below";
+};
 
 // Last resort fix for extremely large linear elements (lines / arrows), which
 // would otherwise freeze the editor while rendering — e.g. a dotted or dashed
@@ -1314,7 +1328,7 @@ export const restoreAppState = (
         ? nextAppState.gridOpacity
         : DEFAULT_GRID_OPACITY,
     ),
-    gridLayer: nextAppState.gridLayer === "above" ? "above" : "below",
+    gridLayer: restoreGridLayer(nextAppState.gridLayer),
     editingFrame: null,
   };
 };
