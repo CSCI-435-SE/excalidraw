@@ -264,7 +264,10 @@ import {
   getPathTargetElements,
   snapPathTargetsToStart,
   canBeMasked,
+  getActiveMaskElements,
   isMaskElement,
+  isMaskPreviewShown,
+  isPointInElementMasks,
 } from "@excalidraw/element";
 
 import type { GlobalPoint, LocalPoint, Radians } from "@excalidraw/math";
@@ -6636,6 +6639,16 @@ class App extends React.Component<AppProps, AppState> {
               elementsMap,
             )
           : true;
+      })
+      // likewise, hitting a masked element outside its masks is not a hit,
+      // unless its masked-out parts are previewed
+      .filter((element) => {
+        const masks = getActiveMaskElements(element, elementsMap);
+        return (
+          !masks.length ||
+          isMaskPreviewShown(element, masks, this.state.selectedElementIds) ||
+          isPointInElementMasks(pointFrom(x, y), masks, elementsMap)
+        );
       })
       .filter((el) => {
         // The parameter elements comes ordered from lower z-index to higher.

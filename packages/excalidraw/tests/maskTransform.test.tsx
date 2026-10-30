@@ -283,13 +283,21 @@ describe("mask all / mask none", () => {
     const { mask, target, other } = setup();
     const locked = API.createElement({ type: "rectangle", locked: true });
     const image = API.createElement({ type: "image" });
+    const embeddable = API.createElement({ type: "embeddable" });
     const otherMask = API.createElement({ type: "diamond" });
     const otherMasked = {
       ...API.createElement({ type: "rectangle" }),
       maskIds: [otherMask.id],
     };
     API.updateScene({
-      elements: [...h.elements, locked, image, otherMask, otherMasked],
+      elements: [
+        ...h.elements,
+        locked,
+        image,
+        embeddable,
+        otherMask,
+        otherMasked,
+      ],
       captureUpdate: CaptureUpdateAction.NEVER,
     });
     openOptions(mask);
@@ -298,12 +306,13 @@ describe("mask all / mask none", () => {
 
     expect(API.getElement(target).maskIds).toEqual([mask.id]);
     expect(API.getElement(other).maskIds).toEqual([mask.id]);
+    expect(API.getElement(image).maskIds).toEqual([mask.id]);
     expect(API.getElement(otherMasked).maskIds).toEqual([
       otherMask.id,
       mask.id,
     ]);
     expect(API.getElement(locked).maskIds).toBeUndefined();
-    expect(API.getElement(image).maskIds).toBeUndefined();
+    expect(API.getElement(embeddable).maskIds).toBeUndefined();
     // other masks never become masked
     expect(API.getElement(otherMask).maskIds).toBeUndefined();
     expect(h.state.maskEditor?.mode).toBe("editing");
