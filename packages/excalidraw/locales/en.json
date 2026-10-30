@@ -146,6 +146,7 @@
     "showStroke": "Show stroke color picker",
     "showBackground": "Show background color picker",
     "showFonts": "Show font picker",
+    "insertCharacter": "Insert special character",
     "toggleTheme": "Toggle light/dark theme",
     "theme": "Theme",
     "personalLib": "Personal Library",
@@ -782,6 +783,13 @@
     "sceneFonts": "In this scene",
     "availableFonts": "Available fonts",
     "empty": "No fonts found"
+  },
+  "unicodePicker": {
+    "search": "Code point, e.g. U+2603",
+    "block": "Unicode block",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "empty": "No characters found"
   },
   "userList": {
     "empty": "No users found",

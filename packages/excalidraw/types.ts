@@ -481,6 +481,7 @@ export interface AppState {
     | "elementStroke"
     | "gridColor"
     | "fontFamily"
+    | "unicodePicker"
     | "compactTextProperties"
     | "compactStrokeStyles"
     | "compactOtherProperties"

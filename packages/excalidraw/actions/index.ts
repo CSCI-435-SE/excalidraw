@@ -23,6 +23,8 @@ export {
   actionChangeArrowProperties,
 } from "./actionProperties";
 
+export { actionInsertCharacter } from "./actionInsertCharacter";
+
 export {
   actionChangeViewBackgroundColor,
   actionClearCanvas,
