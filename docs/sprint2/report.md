@@ -16,7 +16,7 @@ The team planned to complete 12 issues during Sprint 2 (two medium and one small
 
 The team delivered several features across language accessibility, display bugfixes, grid layering, shape masking, gradient color picker, and client-to-client QOL features. Work mainly covered front-end tool usage, but client-to-client features were implemented and back-end was understood thoroughly with discussion on future client-to-client work. Additional work included AI usage documentation, midpoint, and diagrams.
 
-All assigned issues have been completed. Two issues were closed and replaced with newer issues due to previous implementation as stated above, and one issue was split into two subissues as integration was more complex than originally expected. Workflow was significantly more efficient in this sprint, likely due to better timings with exams, and midpoints implementation. AI usage of students has gotten more efficient and effective, and team members are seen communicating better with both agents and peers with higher consistency. 
+All assigned issues have been completed. Two issues were closed and replaced with newer issues due to previous implementation as stated above, and one issue was split into two subissues as integration was more complex than originally expected. Workflow was significantly more efficient in this sprint, likely due to better timings with exams, and midpoints implementation. AI usage of students has gotten more efficient and effective, and team members are seen communicating better with both agents and peers with higher consistency.
 
 \# Sprint Backlog Summary
 
@@ -29,8 +29,8 @@ All assigned issues have been completed. Two issues were closed and replaced wit
 \| \[\#114 — Implement Gradient Color Picker\](https\://github.com/CSCI-435-SE/excalidraw/issues/114) \| AntWill-08 \| 8 \| Medium \| Merged \|  
 \| \[\#80 — Implement Per-User Visibility & Interactivity Controls\](https\://github.com/CSCI-435-SE/excalidraw/issues/80) \| CashenCroft \| 8 \| Medium \| Merged \|  
 \| \[\#74 — Add Mask Groups, Copy/Paste, and Persistence\](https\://github.com/CSCI-435-SE/excalidraw/issues/74) \| AntWill-08 \| 8 \| Medium \| Merged \|  
-\| \[\#73 — Enhance Mask Transformations and Selection\](https\://github.com/CSCI-435-SE/excalidraw/issues/73) \| AntWill-08 \| 8 \| Medium \|  Merged \|  
-\| \[\#72 — Support Masked Content\](https\://github.com/CSCI-435-SE/excalidraw/issues/72) \| tuna-fisher \|  8 \| Medium \| Merged\|  
+\| \[\#73 — Enhance Mask Transformations and Selection\](https\://github.com/CSCI-435-SE/excalidraw/issues/73) \| AntWill-08 \| 8 \| Medium \| Merged \|  
+\| \[\#72 — Support Masked Content\](https\://github.com/CSCI-435-SE/excalidraw/issues/72) \| tuna-fisher \| 8 \| Medium \| Merged\|  
 \| \[\#70 — Implement Basic Shape Masking\](https\://github.com/CSCI-435-SE/excalidraw/issues/70) \| tuna-fisher \| 8 \| Medium \| Merged \|  
 \| \[\#60 — Implement Image Filter System\](https\://github.com/CSCI-435-SE/excalidraw/issues/60) \| CashenCroft \| 5 \| Medium \| Merged \|  
 \| \[\#59 — Add Grid Layer and Interaction Behavior\](https\://github.com/CSCI-435-SE/excalidraw/issues/59) \| tristianraab \| 5 \| Medium \| Open \|  
@@ -57,10 +57,10 @@ The design decisions along with their alternatives, rationals, and consequences 
 \| \[\#72 — Support Masked Content\](https\://github.com/CSCI-435-SE/excalidraw/issues/72) \| AntWill-08/tuna-fisher\| \[PR \#142\](https\://github.com/CSCI-435-SE/excalidraw/pull/142) — Author: Alex (@tuna-fisher); Reviewer: Thomas (@NotaThomas); Merged \| Images can now be masked, the same way as shapes, arrows, freedraw and text and hidden parts of a masked element can no longer be clicked, hovered or dragged. \|  
 \| \[\#73 — Enhance Mask Transformations and Selection \]([https\://github.com/CSCI-435-SE/excalidraw/issues/73](https://github.com/CSCI-435-SE/excalidraw/issues/73)) \| AntWill-08 \| \[PR \#141\]([https\://github.com/CSCI-435-SE/excalidraw/pull/141](https://github.com/CSCI-435-SE/excalidraw/pull/141)) — Author: Anthony (@AntWill-08); Reviewer: Thomas (@NotaThomas ); Merged \| A user creates a mask using one of the pre-built stamps and places content inside it. The user can then modify the mask's masking behavior, such as choosing whether the area inside or outside the mask is visible. \|  
 \| \[\#74 — Add Mask Groups, Copy/Paste, and Persistence\](https\://github.com/CSCI-435-SE/excalidraw/issues/74) \| AntWill-08 \| \[PR \#135\](https\://github.com/CSCI-435-SE/excalidraw/pull/135) — Author: Anthony (@AntWill-08 ); Reviewer: Tristan (@tristanraab ); Merged \| Adapting Excalidraw's grouping behavior to preserve mask-to-element relationships, including groups containing multiple masks and masks that share elements.\|  
-\| \[\#80 — Implement Per-User Visibility & Interactivity Controls\](https\://github.com/CSCI-435-SE/excalidraw/issues/80) \| AntWill-08/CashenCroft \| \[PR \#116\](https\://github.com/CSCI-435-SE/excalidraw/pull/116) — Author: Cashen (@CashenCroft  ); Reviewer: Anthony (@AntWill-08 ); Merged \| Allow users to independently control which collaborators' drawings are visible and interactive on their own client.\|  
+\| \[\#80 — Implement Per-User Visibility & Interactivity Controls\](https\://github.com/CSCI-435-SE/excalidraw/issues/80) \| AntWill-08/CashenCroft \| \[PR \#116\](https\://github.com/CSCI-435-SE/excalidraw/pull/116) — Author: Cashen (@CashenCroft ); Reviewer: Anthony (@AntWill-08 ); Merged \| Allow users to independently control which collaborators' drawings are visible and interactive on their own client.\|  
 \| \[\#114 — Implement Gradient Color Picker\](https\://github.com/CSCI-435-SE/excalidraw/issues/114) \| AntWill-08 \| \[PR \#117\](https\://github.com/CSCI-435-SE/excalidraw/pull/117) — Author: Anthony (@AntWill-08); Reviewer: Alex (@tuna-fisher); Merged \| Add a new method for choosing colors in the gradient other than just letting user color pick from colors already on the canvas. The new method for choosing colors for the gradient tool is a color wheel with darkness sliders.\|  
 \| \[\#115 — Dark mode also inverts element colors\](https\://github.com/CSCI-435-SE/excalidraw/issues/115) \| AntWill-08/tristanraab \| \[PR \#118\](https\://github.com/CSCI-435-SE/excalidraw/pull/118) — Author: Tristan (@tristanraab ); Reviewer: Anthony (@AntWill-08); Merged \| Excalidraw's dark mode seems to invert black and white across the entire application, including element fills, instead of just the background. For example, it changes light pinks to dark red when it is turned on.\|  
-\| \[\#138 — Add support for more alphabets \]([https\://github.com/CSCI-435-SE/excalidraw/issues/138](https://github.com/CSCI-435-SE/excalidraw/issues/138)) \| NotaThomas \| \[PR \#145\]([https\://github.com/CSCI-435-SE/excalidraw/pull/145](https://github.com/CSCI-435-SE/excalidraw/pull/145)) — Author: Thomas (@NotaThomas); Reviewer: Anthony (@AntWill-08 ); Merged \|  Adding support for selecting all Unicode characters regardless of keyboard you are using, which doesn't currently exist. \|  
+\| \[\#138 — Add support for more alphabets \]([https\://github.com/CSCI-435-SE/excalidraw/issues/138](https://github.com/CSCI-435-SE/excalidraw/issues/138)) \| NotaThomas \| \[PR \#145\]([https\://github.com/CSCI-435-SE/excalidraw/pull/145](https://github.com/CSCI-435-SE/excalidraw/pull/145)) — Author: Thomas (@NotaThomas); Reviewer: Anthony (@AntWill-08 ); Merged \| Adding support for selecting all Unicode characters regardless of keyboard you are using, which doesn't currently exist. \|  
 \| \[\#17 — Prevent web embeds from always appearing on top\](https\://github.com/CSCI-435-SE/excalidraw/issues/17) \| NotaThomas\| Closed; invalid due to the implementation of another issue \| Web embeds always stack on top of other elements regardless of the stacking order. The app should allow users to render web embeds under other elements. \|  
 \| \[\#58 — Implement Grid Snapping\](https\://github.com/CSCI-435-SE/excalidraw/issues/58) \| AntWill-08\| Closed; Completed due to parts being covered in other subissues \| Add optional snapping of elements to the grid. Which users can enable or disable grid snapping independently from grid visibility. Snapping should use the configured grid scale and work alongside Excalidraw's existing movement and alignment behavior. \|
 
@@ -70,15 +70,15 @@ Our team used automated tests alongside individual implementation and review of 
 
 Testing included:
 
-* Unit and component tests for new functionality.  
-* Regression testing for existing editor behavior.  
-* Export tests for gradient and SVG behavior.  
-* Validation of configuration, persistence, and compatibility where applicable.  
-* CI checks for typechecking, linting, formatting, and automated tests.  
-* Individual checks to manually test functionality  
-* Individual review of code by a peer to check for errors missed by author & ai.
+- Unit and component tests for new functionality.
+- Regression testing for existing editor behavior.
+- Export tests for gradient and SVG behavior.
+- Validation of configuration, persistence, and compatibility where applicable.
+- CI checks for typechecking, linting, formatting, and automated tests.
+- Individual checks to manually test functionality
+- Individual review of code by a peer to check for errors missed by author & ai.
 
-Bucket size being the only CI check has been removed due to incompatibility with yarn monorepo. 
+Bucket size being the only CI check has been removed due to incompatibility with yarn monorepo.
 
 \# Midpoint report
 
@@ -96,12 +96,12 @@ Tristan:Issue \#7
 \# AI tool usage
 
 Alex: (@tuna-fisher) \[AI Logs Folder:\]([https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/tuna-fisher](https://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint1/tuna-fisher))  
-\*\*Used Claude Code\*\*   
+\*\*Used Claude Code\*\*  
 \*\*Sessions Logged:\*\* 2  
 \*\*Patterns:\*  
 Used claude code for the same reasons in all sprints.
 
-Anthony Williams (@AntWill-08)   
+Anthony Williams (@AntWill-08)  
 \[AI Logs Folder:\]([https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/AntWill-08](https://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/AntWill-08))  
 \*\*Used Claude Code for…\*\*  
 Testing, Implementation, Debugging, rarely pushing issues  
@@ -116,12 +116,12 @@ Claude Code sessions documenting implementation, design decisions, debugging, co
 \*\*Patterns:\*\*  
 I used an iterative implementation-and-review workflow, focusing on architectural consistency and data integrity. For Issue \#80, I separated local collaborator visibility and interactivity preferences from shared scene data. For Issue \#60, I integrated grayscale filtering into the existing image-editing workflow without modifying the original image data. Compared with Sprint 1, I used agentic AI more efficiently, documented design decisions more explicitly, and traced changes across components and rendering logic to validate correctness and reduce regressions. I focused more on visual understanding to understand flow and the chain effects visually through the Claude Code terminal. I also completed issue \#80 in \~6 large steps with stop with manual non-UI based injection testing into the webpage to test stamping and variables before implementing invasive UI controls.
 
-Thomas: (@NotaThomas) \[AI Logs Folder:\]([https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/NotaThomas](https://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint1/NotaThomas) )   
+Thomas: (@NotaThomas) \[AI Logs Folder:\]([https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/NotaThomas](https://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint1/NotaThomas) )  
 \*\*Tools used\*\*: Claude code for scoping, implementation, testing  
 \*\*Sessions Logged\*\*: 3  
-\*\*Patterns\*\*: I manually looked through the code for where I though I would need to make changes in order to solve my issues (\#6 and \#138). I then had the AI describe how it would go about implementing the change that I desired. When the AI’s description of the change matched what I believed needed to be done based on my own look through, I would allow the AI to implement the changes. I then had the AI assist me in making test cases, and I would also manually check that the feature worked as intended. All pushes and reviews were done manually. I used AI similarly to how I did in sprints 0 and 1\. 
+\*\*Patterns\*\*: I manually looked through the code for where I though I would need to make changes in order to solve my issues (\#6 and \#138). I then had the AI describe how it would go about implementing the change that I desired. When the AI’s description of the change matched what I believed needed to be done based on my own look through, I would allow the AI to implement the changes. I then had the AI assist me in making test cases, and I would also manually check that the feature worked as intended. All pushes and reviews were done manually. I used AI similarly to how I did in sprints 0 and 1\.
 
-Tristan: (@tristanraab) \[AI Logs Folder:\]([https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/tristanraab](https://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint1/tristanraab) )   
+Tristan: (@tristanraab) \[AI Logs Folder:\]([https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/tristanraab](https://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint1/tristanraab) )  
 Tools used: Copilot  
 Sessions Logged: 2  
 Patterns: I used AI to implement my two medium issues (\#7) (\#59), while I personally did my small issue (\#115) without AI. It took around the same time to do the medium issues as the small issue, but the small issue was less annoying to implement because with AI, a lot of the time I would have to go back and fix the code it wrote. I also used AI to help create my two UML diagrams, which really helped as I am not super familiar with formatting UML diagrams. Then, when it created the diagrams, I could go back and manually edit it to make small fixes when they were necessary.
