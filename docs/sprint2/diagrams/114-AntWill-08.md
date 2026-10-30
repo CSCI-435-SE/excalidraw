@@ -1,4 +1,14 @@
-# Issue #114: UML diagrams
+# Issue #114 -- Implement Gradient Color Picker
+
+## Class Diagram
+
+![Class diagram](114-AntWill-08-class.png)
+
+## Sequence Diagram
+
+![Sequence diagram](114-AntWill-08-sequence.png)
+
+## Q&A
 
 ## Class diagram
 
