@@ -187,6 +187,7 @@ export const SelectedShapeActions = ({
       {predicates.text && (
         <>
           <fieldset>{renderAction("changeFontFamily")}</fieldset>
+          {renderAction("insertCharacter")}
           {renderAction("changeFontSize")}
           {predicates.textAlign && renderAction("changeTextAlign")}
         </>
@@ -685,6 +686,11 @@ export const CompactShapeActions = ({
           <div className="compact-action-item">
             {renderAction("changeFontFamily")}
           </div>
+          {appState.editingTextElement && (
+            <div className="compact-action-item">
+              {renderAction("insertCharacter")}
+            </div>
+          )}
           <CombinedTextProperties
             appState={appState}
             renderAction={renderAction}
@@ -828,6 +834,11 @@ export const MobileShapeActions = ({
             <div className="compact-action-item">
               {renderAction("changeFontFamily")}
             </div>
+            {appState.editingTextElement && (
+              <div className="compact-action-item">
+                {renderAction("insertCharacter")}
+              </div>
+            )}
             <CombinedTextProperties
               appState={appState}
               renderAction={renderAction}

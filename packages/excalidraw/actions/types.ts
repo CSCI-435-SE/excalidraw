@@ -109,6 +109,7 @@ export type ActionName =
   | "zoomToFitSelection"
   | "zoomToFitSelectionInViewport"
   | "changeFontFamily"
+  | "insertCharacter"
   | "changeTextAlign"
   | "changeVerticalAlign"
   | "toggleFullScreen"
