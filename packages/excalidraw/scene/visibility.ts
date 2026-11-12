@@ -4,6 +4,7 @@ import {
   excludeElementsByHiddenCreators,
   getElementVisibilityBucket,
   getElementsInGroup,
+  isCollaboratorInteractive,
   isElementByHiddenCreator,
 } from "@excalidraw/element";
 
@@ -176,6 +177,10 @@ export type CollaboratorVisibilityRow = {
   username: string | null;
   isCurrentUser: boolean;
   isHidden: boolean;
+  /** shown as locked: non-interactive (always true while hidden) */
+  isLocked: boolean;
+  /** the lock can't be changed: hidden, or your own row */
+  isLockDisabled: boolean;
   /** non-deleted elements in this bucket (bound text counts with its shape) */
   drawingsCount: number;
   avatarUrl?: string;
@@ -198,9 +203,11 @@ export const getCollaboratorVisibilityRows = (
   appState: Pick<
     AppState,
     "collaborators" | "collaboratorDirectory" | "hiddenCollaboratorIds"
-  >,
+  > &
+    Partial<Pick<AppState, "lockedCollaboratorIds">>,
 ): CollaboratorVisibilityRows => {
   const elementsMap = arrayToMap(elements);
+  const selfId = getSelfCollaboratorId(appState);
   const counts = new Map<string, number>();
   for (const element of elements) {
     if (
@@ -227,6 +234,8 @@ export const getCollaboratorVisibilityRows = (
     username,
     isCurrentUser: false,
     isHidden: appState.hiddenCollaboratorIds.has(id),
+    isLocked: !isCollaboratorInteractive(id, appState, selfId),
+    isLockDisabled: id === selfId || appState.hiddenCollaboratorIds.has(id),
     drawingsCount: counts.get(id) ?? 0,
     ...extra,
   });

@@ -89,6 +89,81 @@ export const isElementByHiddenCreator = (
   );
 };
 
+/** structurally satisfied by the editor's AppState */
+export type CreatorInteractivity = CreatorVisibility & {
+  /**
+   * creator ids locked on this client (visible but non-interactive).
+   * `UNKNOWN_CREATOR_ID` locks the miscellaneous bucket.
+   */
+  lockedCollaboratorIds?: ReadonlySet<string>;
+};
+
+/**
+ * The interactivity rule (#81): whether this client may interact with a
+ * visibility bucket's elements.
+ *
+ * - hidden → never interactive (no interactivity without visibility)
+ * - your own bucket → can't be locked
+ * - otherwise → interactive unless locked
+ */
+export const isCollaboratorInteractive = (
+  bucketId: string,
+  { hiddenCollaboratorIds, lockedCollaboratorIds }: CreatorInteractivity,
+  selfId: string | null,
+): boolean => {
+  if (hiddenCollaboratorIds?.has(bucketId)) {
+    return false;
+  }
+  if (bucketId === selfId) {
+    return true;
+  }
+  return !lockedCollaboratorIds?.has(bucketId);
+};
+
+/** returns the lock list with `ids` added, never including yourself */
+export const addLockedCollaborators = (
+  lockedCollaboratorIds: ReadonlySet<string> | undefined,
+  ids: Iterable<string>,
+  selfId: string | null,
+): Set<string> => {
+  const next = new Set(lockedCollaboratorIds);
+  for (const id of ids) {
+    if (id !== selfId) {
+      next.add(id);
+    }
+  }
+  return next;
+};
+
+/**
+ * Returns the lock list with `bucketId` toggled. Ignored for hidden buckets
+ * (their lock can't change while hidden) and for yourself.
+ */
+export const toggleLockedCollaborator = (
+  state: CreatorInteractivity,
+  bucketId: string,
+  selfId: string | null,
+): Set<string> => {
+  const next = new Set(state.lockedCollaboratorIds);
+  if (bucketId === selfId || state.hiddenCollaboratorIds?.has(bucketId)) {
+    return next;
+  }
+  if (!next.delete(bucketId)) {
+    next.add(bucketId);
+  }
+  return next;
+};
+
+/**
+ * Returns the lock list after "unlock all": every visible bucket is
+ * unlocked, hidden ones stay locked (so they're still locked once shown).
+ */
+export const unlockVisibleCollaborators = (
+  { hiddenCollaboratorIds }: CreatorInteractivity,
+  selfId: string | null,
+): Set<string> =>
+  addLockedCollaborators(undefined, hiddenCollaboratorIds ?? [], selfId);
+
 /**
  * Filters out elements whose visibility bucket is hidden. Returns the input
  * array as-is when nothing is hidden.

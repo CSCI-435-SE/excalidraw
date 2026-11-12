@@ -74,6 +74,7 @@ exports[`exportToSvg > with default arguments 1`] = `
   "isResizing": false,
   "isRotating": false,
   "lastPointerDownWith": "mouse",
+  "lockedCollaboratorIds": Set {},
   "lockedMultiSelections": {},
   "maskEditor": null,
   "motionPathEditor": null,

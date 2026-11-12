@@ -830,6 +830,11 @@
     "showDrawingsOf": "Show {{name}}'s drawings",
     "hideDrawingsOf": "Hide {{name}}'s drawings"
   },
+  "collaboratorLock": {
+    "toggle": "Toggle collaborator's lock",
+    "lockAll": "Lock all collaborators' drawings",
+    "unlockAll": "Unlock all collaborators' drawings"
+  },
   "commandPalette": {
     "title": "Command palette",
     "shortcuts": {
