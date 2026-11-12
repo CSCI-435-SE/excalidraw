@@ -138,4 +138,7 @@ export {
   actionToggleCollaboratorVisibility,
   actionShowAllCollaborators,
   actionHideAllCollaborators,
+  actionToggleCollaboratorLock,
+  actionLockAllCollaborators,
+  actionUnlockAllCollaborators,
 } from "./actionCollaboratorVisibility";

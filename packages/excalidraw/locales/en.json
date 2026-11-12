@@ -830,6 +830,17 @@
     "showDrawingsOf": "Show {{name}}'s drawings",
     "hideDrawingsOf": "Hide {{name}}'s drawings"
   },
+  "collaboratorLock": {
+    "toggle": "Toggle collaborator's lock",
+    "lockAll": "Lock all collaborators' drawings",
+    "unlockAll": "Unlock all collaborators' drawings",
+    "lockAllShort": "Lock all",
+    "unlockAllShort": "Unlock all",
+    "lockDrawingsOf": "Lock {{name}}'s drawings (keep them visible, but not editable)",
+    "unlockDrawingsOf": "Unlock {{name}}'s drawings",
+    "hiddenAlwaysLocked": "{{name}}'s drawings are hidden, so they stay locked",
+    "ownCantLock": "Your own drawings can't be locked"
+  },
   "commandPalette": {
     "title": "Command palette",
     "shortcuts": {

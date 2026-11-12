@@ -573,6 +573,11 @@ export interface AppState {
   /** creator ids whose elements are hidden on this client only (never synced) */
   hiddenCollaboratorIds: ReadonlySet<string>;
   /**
+   * creator ids whose elements are visible but non-interactive on this
+   * client only (never synced). Hidden creators are always non-interactive.
+   */
+  lockedCollaboratorIds: ReadonlySet<string>;
+  /**
    * collaborators this client has seen in the current room, keyed by their
    * client id (= elements' creator id). Supplied by the host app; `null`
    * outside of a room.
