@@ -444,6 +444,7 @@ import {
   getSelectionWithoutHiddenElements,
   getSelfCollaboratorId,
   isElementHiddenLocally,
+  isElementInteractiveLocally,
   isOwnDrawingsHidden,
 } from "../scene/visibility";
 import {
@@ -3661,13 +3662,14 @@ class App extends React.Component<AppProps, AppState> {
       this.setState({ exportWithDarkMode: shouldExportWithDarkMode });
     }
 
-    // hidden collaborator elements must never stay selected (they could
-    // otherwise be deleted/modified for everyone), regardless of which code
-    // path selected them (select all, groups, search…)
+    // hidden or locked collaborator elements must never stay selected (they
+    // could otherwise be deleted/modified for everyone), regardless of which
+    // code path selected them (select all, groups, search…)
     if (
       prevState.selectedElementIds !== this.state.selectedElementIds ||
       prevState.selectedGroupIds !== this.state.selectedGroupIds ||
       prevState.hiddenCollaboratorIds !== this.state.hiddenCollaboratorIds ||
+      prevState.lockedCollaboratorIds !== this.state.lockedCollaboratorIds ||
       // a creator can move into a hidden bucket (e.g. miscellaneous)
       prevState.collaboratorDirectory !== this.state.collaboratorDirectory
     ) {
@@ -6622,7 +6624,9 @@ class App extends React.Component<AppProps, AppState> {
                   !(isTextElement(element) && element.containerId)),
             )
     )
-      .filter((el) => !isElementHiddenLocally(el, elementsMap, this.state))
+      // hidden or locked collaborators' elements can't be hit (#81: a locked
+      // element behaves like empty canvas, so what's underneath gets hit)
+      .filter((el) => isElementInteractiveLocally(el, elementsMap, this.state))
       .filter((el) => this.hitElement(x, y, el))
       .filter((element) => {
         // hitting a frame's element from outside the frame is not considered a hit
@@ -6736,7 +6740,7 @@ class App extends React.Component<AppProps, AppState> {
     for (let index = elements.length - 1; index >= 0; --index) {
       if (
         elements[index].isDeleted ||
-        isElementHiddenLocally(
+        !isElementInteractiveLocally(
           elements[index],
           this.scene.getNonDeletedElementsMap(),
           this.state,
@@ -10522,7 +10526,7 @@ class App extends React.Component<AppProps, AppState> {
         candidate.locked ||
         isPathElement(candidate) ||
         isFrameLikeElement(candidate) ||
-        isElementHiddenLocally(candidate, elementsMap, this.state)
+        !isElementInteractiveLocally(candidate, elementsMap, this.state)
       ) {
         continue;
       }

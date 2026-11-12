@@ -34,7 +34,7 @@ import type { GlobalPoint, LineSegment } from "@excalidraw/math/types";
 import type { ElementsMap, ExcalidrawElement } from "@excalidraw/element/types";
 
 import { AnimatedTrail } from "../animatedTrail";
-import { isElementHiddenLocally } from "../scene/visibility";
+import { isElementInteractiveLocally } from "../scene/visibility";
 
 import type App from "../components/App";
 
@@ -99,8 +99,12 @@ export class EraserTrail extends AnimatedTrail {
       eraserPath[eraserPath.length - 2],
     );
 
+    // visible elements of locked collaborators (#81) can't be erased either
+    const sceneElementsMap = this.app.scene.getNonDeletedElementsMap();
     const candidateElements = this.app.visibleElements.filter(
-      (el) => !el.locked,
+      (el) =>
+        !el.locked &&
+        isElementInteractiveLocally(el, sceneElementsMap, this.app.state),
     );
 
     const candidateElementsMap = arrayToMap(candidateElements);
@@ -162,9 +166,10 @@ export class EraserTrail extends AnimatedTrail {
             );
 
             for (const elementInGroup of elementsInGroup) {
-              // groups can mix collaborators — never erase hidden members
+              // groups can mix collaborators — never erase hidden or locked
+              // members
               if (
-                isElementHiddenLocally(
+                !isElementInteractiveLocally(
                   elementInGroup,
                   elementsMap,
                   this.app.state,

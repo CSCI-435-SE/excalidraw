@@ -8,8 +8,9 @@ import type {
 import type { Mutable } from "@excalidraw/common/utility-types";
 
 import {
-  excludeElementsByHiddenCreators,
-  isElementByHiddenCreator,
+  excludeNonInteractiveElements,
+  getSelfCreatorId,
+  isElementInteractive,
 } from "./ownership";
 
 import { getBoundTextElement } from "./textElement";
@@ -173,7 +174,8 @@ export const selectGroupsForSelectedElements = (function () {
     appState: Pick<AppState, "selectedElementIds" | "editingGroupId">,
     elements: readonly NonDeletedExcalidrawElement[],
     prevAppState: InteractiveCanvasAppState &
-      Pick<AppState, "hiddenCollaboratorIds" | "collaboratorDirectory">,
+      Pick<AppState, "hiddenCollaboratorIds" | "collaboratorDirectory"> &
+      Partial<Pick<AppState, "lockedCollaboratorIds" | "collaborators">>,
     /**
      * supply null in cases where you don't have access to App instance and
      * you don't care about optimizing selectElements retrieval
@@ -185,22 +187,26 @@ export const selectGroupsForSelectedElements = (function () {
       "selectedGroupIds" | "editingGroupId" | "selectedElementIds"
     >
   > => {
-    // selection chokepoint: elements of collaborators hidden on this client
-    // can never be selected, neither directly nor through their group
-    // (optional chaining: exported API, host apps may pass partial states)
-    if (prevAppState.hiddenCollaboratorIds?.size) {
+    // selection chokepoint: elements of collaborators hidden or locked on
+    // this client can never be selected, neither directly nor through their
+    // group (optional chaining: exported API, host apps may pass partial states)
+    if (
+      prevAppState.hiddenCollaboratorIds?.size ||
+      prevAppState.lockedCollaboratorIds?.size
+    ) {
       const elementsMap = arrayToMap(elements);
-      elements = excludeElementsByHiddenCreators(
+      elements = excludeNonInteractiveElements(
         elements,
         prevAppState,
         elementsMap,
       );
+      const selfId = getSelfCreatorId(prevAppState);
       const selectedElementIds: Record<string, true> = {};
       for (const id of Object.keys(appState.selectedElementIds)) {
         const element = elementsMap.get(id);
         if (
           !element ||
-          !isElementByHiddenCreator(element, elementsMap, prevAppState)
+          isElementInteractive(element, elementsMap, prevAppState, selfId)
         ) {
           selectedElementIds[id] = true;
         }

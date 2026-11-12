@@ -1,15 +1,19 @@
 /**
- * Issue #81 — per-collaborator lock (visible but non-interactive).
+ * Issue #81 â€” per-collaborator lock (visible but non-interactive).
  *
  * State-logic tests for Criteria A, B, C, G, H and the unknown /
  * miscellaneous bucket. Every expected value below is derived from the
  * acceptance criteria in #81, not from running the implementation.
  */
+import { KEYS } from "@excalidraw/common";
 import { CREATOR_ID_KEY, UNKNOWN_CREATOR_ID } from "@excalidraw/element";
 import { newElementWith } from "@excalidraw/element";
 import { assert } from "vitest";
 
-import type { ExcalidrawElement } from "@excalidraw/element/types";
+import type {
+  ExcalidrawArrowElement,
+  ExcalidrawElement,
+} from "@excalidraw/element/types";
 
 import {
   clearAppStateForDatabase,
@@ -21,6 +25,7 @@ import { Excalidraw } from "../index";
 import { getCollaboratorVisibilityRows } from "../scene/visibility";
 
 import { API } from "./helpers/api";
+import { Keyboard, Pointer, UI } from "./helpers/ui";
 import { act, render, unmountComponent } from "./test-utils";
 
 import type { ActionName } from "../actions/types";
@@ -109,7 +114,7 @@ beforeEach(async () => {
   });
 });
 
-describe("collaborator lock — Criteria A (per-collaborator toggle)", () => {
+describe("collaborator lock â€” Criteria A (per-collaborator toggle)", () => {
   it("AC-A: nobody is locked by default", () => {
     expect(lockedIds()).toEqual([]);
     for (const id of ["me", "alice", "carol", UNKNOWN_CREATOR_ID]) {
@@ -146,7 +151,7 @@ describe("collaborator lock — Criteria A (per-collaborator toggle)", () => {
   });
 });
 
-describe("collaborator lock — unknown / miscellaneous bucket", () => {
+describe("collaborator lock â€” unknown / miscellaneous bucket", () => {
   it("AC-A (misc): the miscellaneous bucket can be locked and unlocked like any collaborator", () => {
     execute("toggleCollaboratorLock", UNKNOWN_CREATOR_ID);
     expect(lockedIds()).toEqual([UNKNOWN_CREATOR_ID]);
@@ -172,7 +177,7 @@ describe("collaborator lock — unknown / miscellaneous bucket", () => {
   });
 });
 
-describe("collaborator lock — Criteria B (bulk controls)", () => {
+describe("collaborator lock â€” Criteria B (bulk controls)", () => {
   it("AC-B: Lock all locks every listed collaborator (except me, see AC-H)", () => {
     execute("lockAllCollaborators");
     expect(lockedIds()).toEqual(OTHERS);
@@ -201,9 +206,9 @@ describe("collaborator lock — Criteria B (bulk controls)", () => {
 
     execute("unlockAllCollaborators");
 
-    // alice was visible → unlocked
+    // alice was visible â†’ unlocked
     expect(getRow("alice").isLocked).toBe(false);
-    // carol is hidden → still shown locked (no interactivity without visibility)
+    // carol is hidden â†’ still shown locked (no interactivity without visibility)
     expect(getRow("carol").isLocked).toBe(true);
     expect(getRow("carol").isLockDisabled).toBe(true);
   });
@@ -218,7 +223,7 @@ describe("collaborator lock — Criteria B (bulk controls)", () => {
   });
 });
 
-describe("collaborator lock — Criteria C (no interactivity without visibility)", () => {
+describe("collaborator lock â€” Criteria C (no interactivity without visibility)", () => {
   it("AC-C: a hidden collaborator's lock toggle shows locked and is disabled", () => {
     execute("toggleCollaboratorVisibility", "alice");
     expect(getRow("alice").isLocked).toBe(true);
@@ -257,7 +262,7 @@ describe("collaborator lock — Criteria C (no interactivity without visibility)
     expect(getRow("alice").isLocked).toBe(false);
   });
 
-  it("AC-C: after Hide all → Show all, everyone stays locked until I unlock them (except me, see AC-H)", () => {
+  it("AC-C: after Hide all â†’ Show all, everyone stays locked until I unlock them (except me, see AC-H)", () => {
     execute("hideAllCollaborators");
     execute("showAllCollaborators");
 
@@ -274,7 +279,7 @@ describe("collaborator lock — Criteria C (no interactivity without visibility)
   });
 });
 
-describe("collaborator lock — Criteria G (local and non-persistent)", () => {
+describe("collaborator lock â€” Criteria G (local and non-persistent)", () => {
   it("AC-G: lock settings are not saved to local storage", () => {
     execute("toggleCollaboratorLock", "alice");
     expect(clearAppStateForLocalStorage(h.state)).not.toHaveProperty(
@@ -308,7 +313,7 @@ describe("collaborator lock — Criteria G (local and non-persistent)", () => {
   });
 });
 
-describe("collaborator lock — Criteria H (my own drawings)", () => {
+describe("collaborator lock â€” Criteria H (my own drawings)", () => {
   it("AC-H: I can't lock myself", () => {
     execute("toggleCollaboratorLock", "me");
     expect(lockedIds()).toEqual([]);
@@ -326,7 +331,7 @@ describe("collaborator lock — Criteria H (my own drawings)", () => {
     expect(getRow("me").isLocked).toBe(false);
   });
 
-  it("AC-H: Hide all → Show all never puts me in the lock list", () => {
+  it("AC-H: Hide all â†’ Show all never puts me in the lock list", () => {
     execute("hideAllCollaborators");
     execute("showAllCollaborators");
     expect(lockedIds()).not.toContain("me");
@@ -338,5 +343,445 @@ describe("collaborator lock — Criteria H (my own drawings)", () => {
       API.setAppState({ lockedCollaboratorIds: new Set(["me"]) });
     });
     expect(getRow("me").isLocked).toBe(false);
+  });
+});
+
+// -----------------------------------------------------------------------------
+// Enforcement (Criteria D, E, F, plus H at the interaction level)
+// -----------------------------------------------------------------------------
+
+describe("collaborator lock â€” enforcement", () => {
+  const mouse = new Pointer("mouse");
+
+  // solid fill so clicking the interior counts as a hit
+  const createSolidRect = (
+    id: string,
+    x: number,
+    extra: { groupIds?: string[]; y?: number } = {},
+  ) =>
+    API.createElement({
+      type: "rectangle",
+      id,
+      x,
+      y: extra.y ?? 0,
+      width: 100,
+      height: 100,
+      backgroundColor: "red",
+      fillStyle: "solid",
+      groupIds: extra.groupIds ?? [],
+    });
+
+  const getElement = (id: string) => h.elements.find((el) => el.id === id)!;
+
+  const getNonDeleted = (id: string) =>
+    h.app.scene.getNonDeletedElementsMap().get(id)!;
+
+  const getSelectedIds = () =>
+    API.getSelectedElements()
+      .map((el) => el.id)
+      .sort();
+
+  /** position, size, rotation and deletion â€” what E says can't change */
+  const getGeometry = (id: string) => {
+    const { x, y, width, height, angle, isDeleted } = getElement(id);
+    return { x, y, width, height, angle, isDeleted };
+  };
+
+  const getVersions = () =>
+    h.elements.map(({ id, version, versionNonce }) => ({
+      id,
+      version,
+      versionNonce,
+    }));
+
+  const lockAlice = () => execute("toggleCollaboratorLock", "alice");
+
+  // me-rect: x 0â€“100 (mine) Â· alice-rect: x 200â€“300 (alice, the one locked)
+  beforeEach(() => {
+    API.setElements([
+      stamp(createSolidRect("me-rect", 0), "me"),
+      stamp(createSolidRect("alice-rect", 200), "alice"),
+    ]);
+  });
+
+  afterEach(() => {
+    mouse.reset();
+  });
+
+  describe("Criteria D (selection)", () => {
+    it("(control) clicking an unlocked collaborator's element selects it", () => {
+      mouse.clickAt(250, 50);
+      expect(getSelectedIds()).toEqual(["alice-rect"]);
+    });
+
+    it("AC-D: clicking a locked element selects nothing (like empty canvas)", () => {
+      lockAlice();
+      mouse.clickAt(250, 50);
+      expect(getSelectedIds()).toEqual([]);
+    });
+
+    it("AC-D: clicking a locked element selects the unlocked element underneath it", () => {
+      // carol's rect sits under alice's (earlier in z-order), same position
+      API.setElements([
+        stamp(createSolidRect("carol-under", 200), "carol"),
+        stamp(createSolidRect("alice-rect", 200), "alice"),
+      ]);
+      lockAlice();
+
+      mouse.clickAt(250, 50);
+      expect(getSelectedIds()).toEqual(["carol-under"]);
+    });
+
+    // same gesture as #116's box-select (moves past the drag threshold)
+    const boxSelectBoth = () => {
+      mouse.downAt(-50, -50);
+      mouse.move(-1000, -1000);
+      mouse.moveTo(350, 150);
+      mouse.up();
+    };
+
+    it("(control) a marquee over both selects both", () => {
+      boxSelectBoth();
+      expect(getSelectedIds()).toEqual(["alice-rect", "me-rect"]);
+    });
+
+    it("AC-D: a marquee over locked and unlocked elements selects only the unlocked ones", () => {
+      lockAlice();
+      boxSelectBoth();
+      expect(getSelectedIds()).toEqual(["me-rect"]);
+    });
+
+    it("AC-D: Select All (Ctrl/Cmd+A) skips locked elements", () => {
+      lockAlice();
+      Keyboard.withModifierKeys({ ctrl: true }, () => {
+        Keyboard.keyPress(KEYS.A);
+      });
+      expect(getSelectedIds()).toEqual(["me-rect"]);
+    });
+
+    it("AC-D: locking a collaborator deselects their selected elements", () => {
+      API.setSelectedElements([...h.app.scene.getNonDeletedElements()]);
+      expect(getSelectedIds()).toEqual(["alice-rect", "me-rect"]);
+
+      lockAlice();
+      expect(getSelectedIds()).toEqual(["me-rect"]);
+    });
+
+    it("AC-D: a locked element can't be selected even when the selection is set directly", () => {
+      lockAlice();
+      API.setSelectedElements([getNonDeleted("alice-rect")]);
+      expect(getSelectedIds()).toEqual([]);
+    });
+
+    it("AC-D: selecting my member of a mixed group never selects the locked member", () => {
+      API.setElements([
+        stamp(createSolidRect("me-rect", 0, { groupIds: ["g"] }), "me"),
+        stamp(createSolidRect("alice-rect", 200, { groupIds: ["g"] }), "alice"),
+      ]);
+      lockAlice();
+
+      mouse.clickAt(50, 50);
+      expect(getSelectedIds()).toEqual(["me-rect"]);
+      expect(h.state.selectedGroupIds).not.toHaveProperty("g");
+    });
+  });
+
+  describe("Criteria E (changes)", () => {
+    it("AC-E: dragging a locked element doesn't move it", () => {
+      lockAlice();
+      const before = getGeometry("alice-rect");
+
+      mouse.downAt(250, 50);
+      mouse.moveTo(300, 100);
+      mouse.moveTo(350, 150);
+      mouse.upAt(350, 150);
+
+      expect(getGeometry("alice-rect")).toEqual(before);
+    });
+
+    it("(control) dragging an unlocked element moves it", () => {
+      const before = getGeometry("alice-rect");
+
+      mouse.downAt(250, 50);
+      mouse.moveTo(300, 100);
+      mouse.moveTo(350, 150);
+      mouse.upAt(350, 150);
+
+      expect(getGeometry("alice-rect").x).not.toBe(before.x);
+    });
+
+    it("AC-E: arrow keys after Select All move my elements but not locked ones", () => {
+      lockAlice();
+      const aliceBefore = getGeometry("alice-rect");
+      const meBefore = getGeometry("me-rect");
+
+      Keyboard.withModifierKeys({ ctrl: true }, () => {
+        Keyboard.keyPress(KEYS.A);
+      });
+      Keyboard.keyPress(KEYS.ARROW_RIGHT);
+
+      expect(getGeometry("alice-rect")).toEqual(aliceBefore);
+      expect(getGeometry("me-rect").x).toBeGreaterThan(meBefore.x);
+    });
+
+    it("(control) resizing an unlocked element changes its size", () => {
+      UI.resize(getElement("alice-rect"), "se", [50, 50]);
+      expect(getGeometry("alice-rect").width).not.toBe(100);
+    });
+
+    it("AC-E: a locked element can't be resized", () => {
+      lockAlice();
+      const before = getGeometry("alice-rect");
+
+      UI.resize(getElement("alice-rect"), "se", [50, 50]);
+
+      expect(getGeometry("alice-rect")).toEqual(before);
+    });
+
+    it("(control) rotating an unlocked element changes its angle", () => {
+      UI.rotate(getElement("alice-rect"), [100, 100]);
+      expect(getGeometry("alice-rect").angle).not.toBe(0);
+    });
+
+    it("AC-E: a locked element can't be rotated", () => {
+      lockAlice();
+      const before = getGeometry("alice-rect");
+
+      UI.rotate(getElement("alice-rect"), [100, 100]);
+
+      expect(getGeometry("alice-rect")).toEqual(before);
+    });
+
+    it("AC-E: Select All + Delete deletes my elements but not locked ones", () => {
+      lockAlice();
+      Keyboard.withModifierKeys({ ctrl: true }, () => {
+        Keyboard.keyPress(KEYS.A);
+      });
+      Keyboard.keyPress(KEYS.DELETE);
+
+      expect(getElement("me-rect").isDeleted).toBe(true);
+      expect(getElement("alice-rect").isDeleted).toBe(false);
+    });
+
+    it("AC-E: Delete can't remove a locked element selected directly", () => {
+      lockAlice();
+      API.setSelectedElements([getNonDeleted("alice-rect")]);
+      Keyboard.keyPress(KEYS.DELETE);
+
+      expect(getElement("alice-rect").isDeleted).toBe(false);
+    });
+
+    // Same gesture as #116's eraser tests: from just outside into a shape at
+    // x 0â€“100. The eraser only considers on-screen elements and the jsdom
+    // viewport is 0Ã—0, so the shape being erased must sit at the origin.
+    const eraseThroughOrigin = () => {
+      UI.clickTool("eraser");
+      mouse.downAt(-20, 50);
+      mouse.moveTo(20, 50);
+      mouse.moveTo(60, 50);
+      mouse.upAt(60, 50);
+    };
+
+    const aliceAtOrigin = () =>
+      API.setElements([stamp(createSolidRect("alice-rect", 0), "alice")]);
+
+    it("(control) the eraser erases an unlocked collaborator's element", () => {
+      aliceAtOrigin();
+      eraseThroughOrigin();
+      expect(getElement("alice-rect").isDeleted).toBe(true);
+    });
+
+    it("AC-E: the eraser can't erase a locked element", () => {
+      aliceAtOrigin();
+      lockAlice();
+      eraseThroughOrigin();
+      expect(getElement("alice-rect").isDeleted).toBe(false);
+    });
+
+    it("AC-E: with a collaborator locked, the eraser still erases my elements", () => {
+      lockAlice();
+      eraseThroughOrigin();
+      expect(getElement("me-rect").isDeleted).toBe(true);
+    });
+
+    describe("mixed-collaborator group", () => {
+      beforeEach(() => {
+        API.setElements([
+          stamp(createSolidRect("me-rect", 0, { groupIds: ["g"] }), "me"),
+          stamp(
+            createSolidRect("alice-rect", 200, { groupIds: ["g"] }),
+            "alice",
+          ),
+        ]);
+      });
+
+      it("(control) erasing my member erases the whole group", () => {
+        eraseThroughOrigin();
+        expect(getElement("me-rect").isDeleted).toBe(true);
+        expect(getElement("alice-rect").isDeleted).toBe(true);
+      });
+
+      it("AC-E: erasing my member never erases the locked member", () => {
+        lockAlice();
+        eraseThroughOrigin();
+        expect(getElement("me-rect").isDeleted).toBe(true);
+        expect(getElement("alice-rect").isDeleted).toBe(false);
+      });
+    });
+
+    describe("text editing by double-click", () => {
+      const aliceText = () =>
+        stamp(
+          API.createElement({
+            type: "text",
+            id: "alice-text",
+            text: "hello",
+            x: 400,
+            y: 0,
+          }),
+          "alice",
+        );
+
+      it("(control) double-clicking an unlocked text element edits it", () => {
+        API.setElements([aliceText()]);
+        mouse.doubleClickOn(getElement("alice-text"));
+        expect(h.state.editingTextElement?.id).toBe("alice-text");
+      });
+
+      it("AC-E: double-clicking a locked text element doesn't edit it", () => {
+        API.setElements([aliceText()]);
+        lockAlice();
+
+        mouse.doubleClickOn(getElement("alice-text"));
+
+        expect(h.state.editingTextElement?.id).not.toBe("alice-text");
+      });
+
+      it("(control) double-clicking an unlocked shape adds a label to it", () => {
+        mouse.doubleClickAt(250, 50);
+        expect(h.state.editingTextElement?.containerId).toBe("alice-rect");
+      });
+
+      it("AC-E: double-clicking a locked shape doesn't add a label to it", () => {
+        lockAlice();
+        const before = getElement("alice-rect").boundElements;
+
+        mouse.doubleClickAt(250, 50);
+
+        expect(h.state.editingTextElement?.containerId ?? null).toBe(null);
+        expect(getElement("alice-rect").boundElements).toEqual(before);
+      });
+    });
+
+    describe("arrow binding (amended AC-E: still allowed, by visibility)", () => {
+      const getArrow = () =>
+        h.elements.find(
+          (el): el is ExcalidrawArrowElement =>
+            el.type === "arrow" && !el.isDeleted,
+        )!;
+
+      const drawArrowFromMeToAlice = () => {
+        UI.clickTool("arrow");
+        mouse.downAt(50, 50);
+        mouse.moveTo(150, 50);
+        mouse.moveTo(250, 50);
+        mouse.upAt(250, 50);
+      };
+
+      it("AC-E (amended): a new arrow can still bind to a locked element", () => {
+        lockAlice();
+        drawArrowFromMeToAlice();
+        expect(getArrow().endBinding?.elementId).toBe("alice-rect");
+      });
+
+      it("AC-E (amended): binding to a locked element doesn't move, resize, or rotate it", () => {
+        lockAlice();
+        const before = getGeometry("alice-rect");
+
+        drawArrowFromMeToAlice();
+
+        expect(getGeometry("alice-rect")).toEqual(before);
+      });
+
+      it("AC-C: a new arrow can't bind to a hidden (and so non-interactive) element", () => {
+        execute("toggleCollaboratorVisibility", "alice");
+        drawArrowFromMeToAlice();
+        expect(getArrow().endBinding).toBeNull();
+      });
+    });
+  });
+
+  describe("Criteria C (enforcement)", () => {
+    it("AC-C: a hidden collaborator is non-interactive even if they're not in the lock list", () => {
+      act(() => {
+        API.setAppState({
+          hiddenCollaboratorIds: new Set(["alice"]),
+          lockedCollaboratorIds: new Set(),
+        });
+      });
+      Keyboard.withModifierKeys({ ctrl: true }, () => {
+        Keyboard.keyPress(KEYS.A);
+      });
+      expect(getSelectedIds()).toEqual(["me-rect"]);
+    });
+
+    it("AC-C: shown again after hiding, a collaborator's elements still can't be selected", () => {
+      execute("toggleCollaboratorVisibility", "alice");
+      execute("toggleCollaboratorVisibility", "alice");
+
+      mouse.clickAt(250, 50);
+      expect(getSelectedIds()).toEqual([]);
+    });
+  });
+
+  describe("Criteria H (enforcement)", () => {
+    it("AC-H: my own elements stay selectable even if my id is put on the lock list", () => {
+      act(() => {
+        API.setAppState({ lockedCollaboratorIds: new Set(["me"]) });
+      });
+      mouse.clickAt(50, 50);
+      expect(getSelectedIds()).toEqual(["me-rect"]);
+    });
+
+    it("AC-H: Lock all leaves my own elements interactive", () => {
+      execute("lockAllCollaborators");
+      Keyboard.withModifierKeys({ ctrl: true }, () => {
+        Keyboard.keyPress(KEYS.A);
+      });
+      expect(getSelectedIds()).toEqual(["me-rect"]);
+    });
+  });
+
+  describe("Criteria F (shared-state integrity, editor side)", () => {
+    it("AC-F: locking and unlocking change no element versions", () => {
+      const before = getVersions();
+
+      lockAlice();
+      execute("lockAllCollaborators");
+      execute("unlockAllCollaborators");
+      execute("toggleCollaboratorLock", UNKNOWN_CREATOR_ID);
+
+      expect(getVersions()).toEqual(before);
+    });
+
+    it("AC-F: locking deselects without changing any element", () => {
+      API.setSelectedElements([getNonDeleted("alice-rect")]);
+      const before = getVersions();
+
+      lockAlice();
+
+      expect(getSelectedIds()).toEqual([]);
+      expect(getVersions()).toEqual(before);
+    });
+
+    it("AC-F: lock actions add no undo history entries", () => {
+      const undoStackSize = API.getUndoStack().length;
+
+      lockAlice();
+      execute("lockAllCollaborators");
+      execute("unlockAllCollaborators");
+
+      expect(API.getUndoStack().length).toBe(undoStackSize);
+    });
   });
 });

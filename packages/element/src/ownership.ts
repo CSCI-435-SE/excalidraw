@@ -164,6 +164,76 @@ export const unlockVisibleCollaborators = (
 ): Set<string> =>
   addLockedCollaborators(undefined, hiddenCollaboratorIds ?? [], selfId);
 
+/** structurally satisfied by the editor's AppState */
+export type CreatorSelf = {
+  collaborators?: ReadonlyMap<
+    unknown,
+    Readonly<{ id?: string; isCurrentUser?: boolean }>
+  >;
+};
+
+/** this client's creator id (the current user's collaborator entry), if any */
+export const getSelfCreatorId = ({
+  collaborators,
+}: CreatorSelf): string | null => {
+  for (const collaborator of collaborators?.values() ?? []) {
+    if (collaborator.isCurrentUser && collaborator.id) {
+      return collaborator.id;
+    }
+  }
+  return null;
+};
+
+/**
+ * Whether this client may interact with the element (select, move, resize,
+ * rotate, delete, erase, text-edit). Applies `isCollaboratorInteractive` to
+ * the element's visibility bucket, so hidden elements are never interactive.
+ *
+ * @param selfId defaults to the current user's id from `state.collaborators`;
+ * pass it when checking many elements.
+ */
+export const isElementInteractive = (
+  element: ExcalidrawElement,
+  elementsMap: ElementsMap,
+  state: CreatorInteractivity & CreatorSelf,
+  selfId: string | null = getSelfCreatorId(state),
+): boolean =>
+  isCollaboratorInteractive(
+    getElementVisibilityBucket(
+      element,
+      elementsMap,
+      state.collaboratorDirectory,
+    ),
+    state,
+    selfId,
+  );
+
+/**
+ * Filters out elements this client may not interact with (hidden or locked
+ * collaborators'). Returns the input array as-is when nobody is hidden or
+ * locked.
+ *
+ * @param elementsMap used to resolve bound text containers. Defaults to a map
+ * of `elements`, so pass the full scene map when `elements` is a subset.
+ */
+export const excludeNonInteractiveElements = <T extends ExcalidrawElement>(
+  elements: readonly T[],
+  state: CreatorInteractivity & CreatorSelf,
+  elementsMap?: ElementsMap,
+): readonly T[] => {
+  if (
+    !state.hiddenCollaboratorIds?.size &&
+    !state.lockedCollaboratorIds?.size
+  ) {
+    return elements;
+  }
+  const map = elementsMap ?? arrayToMap(elements);
+  const selfId = getSelfCreatorId(state);
+  return elements.filter((element) =>
+    isElementInteractive(element, map, state, selfId),
+  );
+};
+
 /**
  * Filters out elements whose visibility bucket is hidden. Returns the input
  * array as-is when nothing is hidden.

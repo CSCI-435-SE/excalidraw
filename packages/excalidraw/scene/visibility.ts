@@ -4,8 +4,10 @@ import {
   excludeElementsByHiddenCreators,
   getElementVisibilityBucket,
   getElementsInGroup,
+  getSelfCreatorId,
   isCollaboratorInteractive,
   isElementByHiddenCreator,
+  isElementInteractive,
 } from "@excalidraw/element";
 
 import type { ElementsMap, ExcalidrawElement } from "@excalidraw/element/types";
@@ -30,6 +32,19 @@ export const isElementHiddenLocally = (
   appState: LocalVisibilityState,
 ): boolean => isElementByHiddenCreator(element, elementsMap, appState);
 
+export type LocalInteractivityState = LocalVisibilityState &
+  Partial<Pick<AppState, "lockedCollaboratorIds" | "collaborators">>;
+
+/**
+ * Whether this client may interact with the element (#81): not hidden and
+ * not locked by the collaborator controls. See `isCollaboratorInteractive`.
+ */
+export const isElementInteractiveLocally = (
+  element: ExcalidrawElement,
+  elementsMap: ElementsMap,
+  appState: LocalInteractivityState,
+): boolean => isElementInteractive(element, elementsMap, appState);
+
 /**
  * Returns only the elements visible on this client (e.g. for export).
  * Returns the input array as-is when nothing is hidden.
@@ -45,14 +60,15 @@ export const getLocallyVisibleElements = <T extends ExcalidrawElement>(
   excludeElementsByHiddenCreators(elements, appState, elementsMap);
 
 /**
- * Selection safety net: hidden elements must never stay selected, otherwise
- * actions (delete, ungroup, move…) would modify them for every collaborator.
+ * Selection safety net: hidden or locked (non-interactive) elements must
+ * never stay selected, otherwise actions (delete, ungroup, move…) would
+ * modify them for every collaborator.
  *
  * Returns the selection-related appState to apply, or `null` if the
- * selection contains no hidden elements.
+ * selection contains no non-interactive elements.
  */
 export const getSelectionWithoutHiddenElements = (
-  appState: LocalVisibilityState &
+  appState: LocalInteractivityState &
     Pick<
       AppState,
       "selectedElementIds" | "selectedGroupIds" | "selectedLinearElement"
@@ -62,13 +78,20 @@ export const getSelectionWithoutHiddenElements = (
   AppState,
   "selectedElementIds" | "selectedGroupIds" | "selectedLinearElement"
 > | null => {
-  if (!appState.hiddenCollaboratorIds.size) {
+  if (
+    !appState.hiddenCollaboratorIds.size &&
+    !appState.lockedCollaboratorIds?.size
+  ) {
     return null;
   }
 
+  const selfId = getSelfCreatorId(appState);
+  // (named `isHidden` since #116; covers locked elements too since #81)
   const isHidden = (id: string) => {
     const element = elementsMap.get(id);
-    return !!element && isElementHiddenLocally(element, elementsMap, appState);
+    return (
+      !!element && !isElementInteractive(element, elementsMap, appState, selfId)
+    );
   };
 
   const hiddenSelectedIds = Object.keys(appState.selectedElementIds).filter(
@@ -113,16 +136,9 @@ export const getSelectionWithoutHiddenElements = (
 };
 
 /** this client's creator id (set by the host app on the current user's entry) */
-export const getSelfCollaboratorId = ({
-  collaborators,
-}: Pick<AppState, "collaborators">): string | null => {
-  for (const collaborator of collaborators.values()) {
-    if (collaborator.isCurrentUser && collaborator.id) {
-      return collaborator.id;
-    }
-  }
-  return null;
-};
+export const getSelfCollaboratorId = (
+  appState: Pick<AppState, "collaborators">,
+): string | null => getSelfCreatorId(appState);
 
 /**
  * Whether the user hid their own drawings. Anything they'd draw would be
