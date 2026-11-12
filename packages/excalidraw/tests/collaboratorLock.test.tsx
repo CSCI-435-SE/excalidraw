@@ -26,7 +26,15 @@ import { getCollaboratorVisibilityRows } from "../scene/visibility";
 
 import { API } from "./helpers/api";
 import { Keyboard, Pointer, UI } from "./helpers/ui";
-import { act, render, unmountComponent } from "./test-utils";
+import {
+  act,
+  fireEvent,
+  mockBoundingClientRect,
+  render,
+  restoreOriginalGetBoundingClientRect,
+  unmountComponent,
+  waitFor,
+} from "./test-utils";
 
 import type { ActionName } from "../actions/types";
 import type { AppState } from "../types";
@@ -782,6 +790,163 @@ describe("collaborator lock â€” enforcement", () => {
       execute("unlockAllCollaborators");
 
       expect(API.getUndoStack().length).toBe(undoStackSize);
+    });
+  });
+});
+
+// -----------------------------------------------------------------------------
+// UI (Criteria A, B, C, H in the collaborator dropdown, desktop and phone)
+// -----------------------------------------------------------------------------
+
+describe("collaborator lock — dropdown UI", () => {
+  const openMenu = (scope: ParentNode = document) => {
+    fireEvent.click(
+      scope.querySelector<HTMLElement>(
+        "[data-testid='collaborator-visibility-trigger']",
+      )!,
+    );
+  };
+
+  const queryVisibilityToggle = (id: string) =>
+    document.querySelector<HTMLButtonElement>(
+      `[data-testid='collaborator-visibility-row-${id}']`,
+    );
+
+  const queryLockToggle = (id: string) =>
+    document.querySelector<HTMLButtonElement>(
+      `[data-testid='collaborator-lock-row-${id}']`,
+    );
+
+  const getButton = (label: string) =>
+    [...document.querySelectorAll<HTMLButtonElement>("button")].find(
+      (button) => button.textContent === label,
+    )!;
+
+  const isPressed = (button: HTMLElement | null) =>
+    button?.getAttribute("aria-pressed") === "true";
+
+  describe("desktop", () => {
+    beforeEach(() => {
+      openMenu();
+    });
+
+    it("AC-A: every listed collaborator, including miscellaneous, has a lock toggle next to their visibility toggle", () => {
+      for (const id of ["me", "alice", "carol", UNKNOWN_CREATOR_ID]) {
+        const lockToggle = queryLockToggle(id);
+        expect(lockToggle).not.toBe(null);
+        // same row: the lock toggle sits beside the visibility toggle
+        expect(lockToggle!.parentElement).toBe(
+          queryVisibilityToggle(id)!.parentElement,
+        );
+      }
+    });
+
+    it("AC-A: clicking a lock toggle locks the collaborator, clicking again unlocks them", () => {
+      fireEvent.click(queryLockToggle("alice")!);
+      expect(lockedIds()).toEqual(["alice"]);
+      expect(isPressed(queryLockToggle("alice"))).toBe(true);
+
+      fireEvent.click(queryLockToggle("alice")!);
+      expect(lockedIds()).toEqual([]);
+      expect(isPressed(queryLockToggle("alice"))).toBe(false);
+    });
+
+    it("AC-A: locking from the dropdown keeps the collaborator visible", () => {
+      fireEvent.click(queryLockToggle("alice")!);
+      expect(isPressed(queryVisibilityToggle("alice"))).toBe(true);
+      expect(hiddenIds()).toEqual([]);
+    });
+
+    it("AC-A (misc): the miscellaneous row's lock toggle locks the miscellaneous bucket", () => {
+      fireEvent.click(queryLockToggle(UNKNOWN_CREATOR_ID)!);
+      expect(lockedIds()).toEqual([UNKNOWN_CREATOR_ID]);
+      expect(isPressed(queryLockToggle(UNKNOWN_CREATOR_ID))).toBe(true);
+    });
+
+    it("AC-B: Lock all locks every listed collaborator (except me)", () => {
+      fireEvent.click(getButton("Lock all"));
+      expect(lockedIds()).toEqual(OTHERS);
+      for (const id of OTHERS) {
+        expect(isPressed(queryLockToggle(id))).toBe(true);
+      }
+    });
+
+    it("AC-B: Unlock all unlocks every visible collaborator", () => {
+      fireEvent.click(getButton("Lock all"));
+      fireEvent.click(getButton("Unlock all"));
+      expect(lockedIds()).toEqual([]);
+    });
+
+    it("AC-B: Unlock all is disabled while no visible collaborator is locked", () => {
+      expect(getButton("Unlock all").disabled).toBe(true);
+
+      fireEvent.click(queryLockToggle("alice")!);
+      expect(getButton("Unlock all").disabled).toBe(false);
+    });
+
+    it("AC-B: Unlock all leaves a hidden collaborator locked", () => {
+      fireEvent.click(queryLockToggle("alice")!);
+      fireEvent.click(queryVisibilityToggle("carol")!);
+
+      fireEvent.click(getButton("Unlock all"));
+
+      expect(isPressed(queryLockToggle("alice"))).toBe(false);
+      expect(isPressed(queryLockToggle("carol"))).toBe(true);
+      expect(queryLockToggle("carol")!.disabled).toBe(true);
+    });
+
+    it("AC-C: hiding a collaborator shows their lock toggle as locked and disables it", () => {
+      fireEvent.click(queryVisibilityToggle("alice")!);
+
+      expect(isPressed(queryLockToggle("alice"))).toBe(true);
+      expect(queryLockToggle("alice")!.disabled).toBe(true);
+    });
+
+    it("AC-C: shown again, they stay locked until I unlock them from the toggle", () => {
+      fireEvent.click(queryVisibilityToggle("alice")!);
+      fireEvent.click(queryVisibilityToggle("alice")!);
+
+      expect(isPressed(queryLockToggle("alice"))).toBe(true);
+      expect(queryLockToggle("alice")!.disabled).toBe(false);
+
+      fireEvent.click(queryLockToggle("alice")!);
+      expect(isPressed(queryLockToggle("alice"))).toBe(false);
+    });
+
+    it("AC-H: my own lock toggle is disabled and shows unlocked", () => {
+      expect(queryLockToggle("me")!.disabled).toBe(true);
+      expect(isPressed(queryLockToggle("me"))).toBe(false);
+    });
+  });
+
+  describe("phone layout", () => {
+    beforeAll(() => {
+      mockBoundingClientRect({ height: 400, width: 800 });
+    });
+
+    afterAll(() => {
+      restoreOriginalGetBoundingClientRect();
+    });
+
+    it("AC-A + AC-B: the lock toggles and Lock all / Unlock all are in the main menu's collaborator section", async () => {
+      act(() => {
+        h.app.refreshEditorInterface();
+      });
+      expect(h.app.editorInterface.formFactor).toBe("phone");
+
+      fireEvent.click(document.querySelector(".main-menu-trigger")!);
+      const row = await waitFor(() => {
+        const element = document.querySelector(".UserList-Wrapper__row");
+        expect(element).not.toBe(null);
+        return element!;
+      });
+      openMenu(row);
+
+      expect(getButton("Lock all")).toBeDefined();
+      expect(getButton("Unlock all")).toBeDefined();
+
+      fireEvent.click(queryLockToggle("alice")!);
+      expect(lockedIds()).toEqual(["alice"]);
     });
   });
 });
