@@ -4,12 +4,14 @@
 
 ## 1. What have you implemented so far, and what remains?
 
-I have implemented issue #81, a carryover of #80 that adds a per-collaborator lock (visible-only mode) on top of the visibility controls from #116. Locked collaborators' drawings stay visible but cannot be selected, moved, resized, rotated, deleted, erased, or text-edited on my client, and nothing is synced to other users. The state logic, enforcement at the selection and eraser chokepoints, and the dropdown UI are done, with 134 tests and a Test Evidence table covering every acceptance criterion; PR #154 is open and CI passes. What remains is the code review and merge, my remaining Sprint 3 issue(s), and the mutation testing deliverable (D6) on the files changed by #154.
+I have implemented a compartmentalized functionality to visibility and intractability, so that the user can choose to keep a peers drawing visible, but not directly modifiable. This allows users to work together without messing up collaborators work. Added functional UI to flush the feature out.
+
+I have yet to implement the layering functionality, nor have I implemented the default behavior settings for users to manage joining members.
 
 ## 2. What is one thing you learned about testing in your project?
 
-I learned that a test asserting that something did not happen can pass for the wrong reason. Many of my tests check that a locked element is not selected or moved, but those would also pass if the click or drag never reached the canvas at all. Adding a "control" test for each case, where the same action is done on an unlocked element and does work, proves the test setup is real. I also learned to take expected values from the acceptance criteria instead of the code's output, and that CI can fail from flaky upstream tests (an animation outliving `flowchart.test.tsx`) even when every test passes.
+Styling an advanced prompt which extra failsafe checks in can help prevent AI from going rogue and implementing past your expectations. This heavily limits intent debt, and allows for easier conversational coverage of issues in a properly structured "planning" phase.
 
 ## 3. What is one risk to finishing your work by Nov 19, and what will you do about it?
 
-The biggest risk is mutation testing. Getting StrykerJS running on a large monorepo like Excalidraw can take real setup time, and if the right tests are not selected, mutants can be reported as surviving when they are actually covered. To reduce this, I will set up Stryker this week on the files changed by #154, starting with `packages/element/src/ownership.ts`, which is pure logic and quick to mutate. I will ask teammates whether anyone already has a working configuration, and contact the TA early with my errors and AI log if I get blocked.
+I risk conflicting with future and previous implementation of client-to-client communication while I implement new features. If issues have conflicting ideas on how visibility and filter will work (i.e., one sub-issue believes disabled peers shouldn't be able to see the user that disabled them, this breaks previous implementation logic and tests.) I will focus on understanding and properly prompting AI so that there is a clear and distinct path going forward with implementation of my sub-issues.
