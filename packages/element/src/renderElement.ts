@@ -15,7 +15,6 @@ import {
   ELEMENT_READY_TO_ERASE_OPACITY,
   FRAME_STYLE,
   DARK_THEME_FILTER,
-  IMAGE_GRAYSCALE_FILTER,
   MIME_TYPES,
   THEME,
   distance,
@@ -45,6 +44,7 @@ import type {
 
 import { getElementAbsoluteCoords, getElementBounds } from "./bounds";
 import { getUncroppedImageElement } from "./cropElement";
+import { applyImageFiltersToPixels, getImageFilterCSS } from "./imageFilters";
 import { LinearElementEditor } from "./linearElementEditor";
 import {
   getBoundTextElement,
@@ -153,9 +153,13 @@ export interface ExcalidrawElementWithCanvas {
   canvasOffsetX: number;
   canvasOffsetY: number;
   imageCrop: ExcalidrawImageElement["crop"] | null;
-  imageFilter: ExcalidrawImageElement["filter"] | null;
+  /** serialized CSS filters of the image, so any adjustment busts the cache */
+  imageFilter: string | null;
   containingFrameOpacity: number;
 }
+
+const getImageFilterCacheKey = (element: ExcalidrawElement) =>
+  isImageElement(element) ? getImageFilterCSS(element).join(" ") : null;
 
 const cappedElementCanvasSize = (
   element: NonDeletedExcalidrawElement,
@@ -287,7 +291,7 @@ const generateElementCanvas = (
     containingFrameOpacity:
       getContainingFrame(element, elementsMap)?.opacity || 100,
     imageCrop: isImageElement(element) ? element.crop : null,
-    imageFilter: isImageElement(element) ? element.filter : null,
+    imageFilter: getImageFilterCacheKey(element),
   };
 };
 
@@ -562,9 +566,9 @@ const drawElementOnCanvas = (
         const shouldInvertImage =
           renderConfig.theme === THEME.DARK &&
           cacheEntry?.mimeType === MIME_TYPES.svg;
-        const shouldGrayscaleImage = element.filter === "grayscale";
+        const imageFilters = getImageFilterCSS(element);
 
-        if ((shouldInvertImage || shouldGrayscaleImage) && isSafari) {
+        if ((shouldInvertImage || imageFilters.length) && isSafari) {
           const devicePixelRatio = window.devicePixelRatio || 1;
           const tempCanvas = document.createElement("canvas");
           tempCanvas.width = element.width * devicePixelRatio;
@@ -594,18 +598,10 @@ const drawElementOnCanvas = (
 
             const data = imageData.data;
 
-            for (let i = 0; i < data.length; i += 4) {
-              if (shouldGrayscaleImage) {
-                // same luminance weights as CSS `grayscale(100%)`
-                const luminance =
-                  0.2126 * data[i] +
-                  0.7152 * data[i + 1] +
-                  0.0722 * data[i + 2];
-                data[i] = luminance;
-                data[i + 1] = luminance;
-                data[i + 2] = luminance;
-              }
-              if (shouldInvertImage) {
+            applyImageFiltersToPixels(data, element);
+
+            if (shouldInvertImage) {
+              for (let i = 0; i < data.length; i += 4) {
                 data[i] = 255 - data[i];
                 data[i + 1] = 255 - data[i + 1];
                 data[i + 2] = 255 - data[i + 2];
@@ -627,7 +623,7 @@ const drawElementOnCanvas = (
           }
         } else {
           const filters = [
-            shouldGrayscaleImage && IMAGE_GRAYSCALE_FILTER,
+            ...imageFilters,
             shouldInvertImage && DARK_THEME_FILTER,
           ].filter(Boolean);
 
@@ -747,7 +743,7 @@ const generateElementWithCanvas = (
     prevElementWithCanvas.zoomValue !== zoom.value &&
     !appState?.shouldCacheIgnoreZoom;
   const imageCrop = isImageElement(element) ? element.crop : null;
-  const imageFilter = isImageElement(element) ? element.filter : null;
+  const imageFilter = getImageFilterCacheKey(element);
 
   const containingFrameOpacity =
     getContainingFrame(element, elementsMap)?.opacity || 100;

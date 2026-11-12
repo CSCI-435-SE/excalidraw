@@ -198,6 +198,17 @@ export const SelectedShapeActions = ({
 
       {renderAction("changeOpacity")}
 
+      {predicates.imageFilter && (
+        <fieldset>
+          <legend>{t("labels.imageFilters.title")}</legend>
+          {renderAction("changeImageFilters")}
+          <div className="buttonList">
+            {renderAction("copyImageFilters")}
+            {renderAction("pasteImageFilters")}
+          </div>
+        </fieldset>
+      )}
+
       <LayersFieldset renderAction={renderAction} />
 
       {predicates.align && (
@@ -216,7 +227,6 @@ export const SelectedShapeActions = ({
             {renderAction("ungroup")}
             {predicates.link && renderAction("hyperlink")}
             {predicates.cropEditor && renderAction("cropEditor")}
-            {predicates.imageFilter && renderAction("toggleImageGrayscale")}
             {predicates.lineEditor && renderAction("toggleLinearEditor")}
           </div>
         </fieldset>
@@ -575,8 +585,12 @@ const CombinedExtraActions = ({
                   {renderAction("ungroup")}
                   {predicates.linkSingleOnly && renderAction("hyperlink")}
                   {predicates.cropEditor && renderAction("cropEditor")}
-                  {predicates.imageFilter &&
-                    renderAction("toggleImageGrayscale")}
+                  {predicates.imageFilter && (
+                    <>
+                      {renderAction("copyImageFilters")}
+                      {renderAction("pasteImageFilters")}
+                    </>
+                  )}
                   {showDuplicate && renderAction("duplicateSelection")}
                   {showDelete && renderAction("deleteSelectedElements")}
                 </div>

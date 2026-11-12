@@ -4,7 +4,6 @@ import {
   SVG_NS,
   THEME,
   DARK_THEME_FILTER,
-  IMAGE_GRAYSCALE_FILTER,
   getFontFamilyString,
   isRTL,
   isTestEnv,
@@ -15,6 +14,7 @@ import {
 import { normalizeLink, toValidURL } from "@excalidraw/common";
 import { hashString } from "@excalidraw/element";
 import { getUncroppedWidthAndHeight } from "@excalidraw/element";
+import { getImageFilterCSS } from "@excalidraw/element";
 import {
   createPlaceholderEmbeddableLabel,
   getEmbedLink,
@@ -671,7 +671,7 @@ const renderElementToSvg = (
         // applied per element (not on the shared symbol) so images reusing
         // the same file can be filtered independently
         const filters = [
-          element.filter === "grayscale" && IMAGE_GRAYSCALE_FILTER,
+          ...getImageFilterCSS(element),
           renderConfig.theme === THEME.DARK &&
             fileData.mimeType === MIME_TYPES.svg &&
             DARK_THEME_FILTER,

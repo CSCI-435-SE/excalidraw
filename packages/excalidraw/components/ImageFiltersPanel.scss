@@ -1,0 +1,60 @@
+.excalidraw {
+  .image-filters-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .image-filters-panel__filter {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--default-border-color);
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+  }
+
+  .image-filters-panel__header {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    .image-filters-panel__select,
+    .image-filters-panel__title {
+      flex: 1;
+    }
+  }
+
+  .image-filters-panel__title {
+    font-size: 0.75rem;
+    color: var(--text-primary-color);
+  }
+
+  .image-filters-panel__select {
+    height: 1.75rem;
+    font-family: inherit;
+    font-size: 0.75rem;
+    color: var(--text-primary-color);
+    background: var(--island-bg-color);
+    border: 1px solid var(--default-border-color);
+    border-radius: var(--border-radius-md);
+  }
+
+  .image-filters-panel__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .image-filters-panel__swatch {
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    border: 1px solid var(--default-border-color);
+  }
+}
