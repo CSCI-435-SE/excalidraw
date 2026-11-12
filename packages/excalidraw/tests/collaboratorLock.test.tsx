@@ -1,5 +1,5 @@
 /**
- * Issue #81 â€” per-collaborator lock (visible but non-interactive).
+ * Issue #81 — per-collaborator lock (visible but non-interactive).
  *
  * State-logic tests for Criteria A, B, C, G, H and the unknown /
  * miscellaneous bucket. Every expected value below is derived from the
@@ -126,7 +126,7 @@ beforeEach(async () => {
   });
 });
 
-describe("collaborator lock â€” Criteria A (per-collaborator toggle)", () => {
+describe("collaborator lock — Criteria A (per-collaborator toggle)", () => {
   it("AC-A: nobody is locked by default", () => {
     expect(lockedIds()).toEqual([]);
     for (const id of ["me", "alice", "carol", UNKNOWN_CREATOR_ID]) {
@@ -163,7 +163,7 @@ describe("collaborator lock â€” Criteria A (per-collaborator toggle)", () =
   });
 });
 
-describe("collaborator lock â€” unknown / miscellaneous bucket", () => {
+describe("collaborator lock — unknown / miscellaneous bucket", () => {
   it("AC-A (misc): the miscellaneous bucket can be locked and unlocked like any collaborator", () => {
     execute("toggleCollaboratorLock", UNKNOWN_CREATOR_ID);
     expect(lockedIds()).toEqual([UNKNOWN_CREATOR_ID]);
@@ -189,7 +189,7 @@ describe("collaborator lock â€” unknown / miscellaneous bucket", () => {
   });
 });
 
-describe("collaborator lock â€” Criteria B (bulk controls)", () => {
+describe("collaborator lock — Criteria B (bulk controls)", () => {
   it("AC-B: Lock all locks every listed collaborator (except me, see AC-H)", () => {
     execute("lockAllCollaborators");
     expect(lockedIds()).toEqual(OTHERS);
@@ -218,9 +218,9 @@ describe("collaborator lock â€” Criteria B (bulk controls)", () => {
 
     execute("unlockAllCollaborators");
 
-    // alice was visible â†’ unlocked
+    // alice was visible → unlocked
     expect(getRow("alice").isLocked).toBe(false);
-    // carol is hidden â†’ still shown locked (no interactivity without visibility)
+    // carol is hidden → still shown locked (no interactivity without visibility)
     expect(getRow("carol").isLocked).toBe(true);
     expect(getRow("carol").isLockDisabled).toBe(true);
   });
@@ -235,7 +235,7 @@ describe("collaborator lock â€” Criteria B (bulk controls)", () => {
   });
 });
 
-describe("collaborator lock â€” Criteria C (no interactivity without visibility)", () => {
+describe("collaborator lock — Criteria C (no interactivity without visibility)", () => {
   it("AC-C: a hidden collaborator's lock toggle shows locked and is disabled", () => {
     execute("toggleCollaboratorVisibility", "alice");
     expect(getRow("alice").isLocked).toBe(true);
@@ -274,7 +274,7 @@ describe("collaborator lock â€” Criteria C (no interactivity without visibi
     expect(getRow("alice").isLocked).toBe(false);
   });
 
-  it("AC-C: after Hide all â†’ Show all, everyone stays locked until I unlock them (except me, see AC-H)", () => {
+  it("AC-C: after Hide all → Show all, everyone stays locked until I unlock them (except me, see AC-H)", () => {
     execute("hideAllCollaborators");
     execute("showAllCollaborators");
 
@@ -291,7 +291,7 @@ describe("collaborator lock â€” Criteria C (no interactivity without visibi
   });
 });
 
-describe("collaborator lock â€” Criteria G (local and non-persistent)", () => {
+describe("collaborator lock — Criteria G (local and non-persistent)", () => {
   it("AC-G: lock settings are not saved to local storage", () => {
     execute("toggleCollaboratorLock", "alice");
     expect(clearAppStateForLocalStorage(h.state)).not.toHaveProperty(
@@ -325,7 +325,7 @@ describe("collaborator lock â€” Criteria G (local and non-persistent)", () 
   });
 });
 
-describe("collaborator lock â€” Criteria H (my own drawings)", () => {
+describe("collaborator lock — Criteria H (my own drawings)", () => {
   it("AC-H: I can't lock myself", () => {
     execute("toggleCollaboratorLock", "me");
     expect(lockedIds()).toEqual([]);
@@ -343,7 +343,7 @@ describe("collaborator lock â€” Criteria H (my own drawings)", () => {
     expect(getRow("me").isLocked).toBe(false);
   });
 
-  it("AC-H: Hide all â†’ Show all never puts me in the lock list", () => {
+  it("AC-H: Hide all → Show all never puts me in the lock list", () => {
     execute("hideAllCollaborators");
     execute("showAllCollaborators");
     expect(lockedIds()).not.toContain("me");
@@ -445,7 +445,7 @@ describe("collaborator lock — bulk button availability (getBulkLockAvailabilit
 // Enforcement (Criteria D, E, F, plus H at the interaction level)
 // -----------------------------------------------------------------------------
 
-describe("collaborator lock â€” enforcement", () => {
+describe("collaborator lock — enforcement", () => {
   const mouse = new Pointer("mouse");
 
   // solid fill so clicking the interior counts as a hit
@@ -476,7 +476,7 @@ describe("collaborator lock â€” enforcement", () => {
       .map((el) => el.id)
       .sort();
 
-  /** position, size, rotation and deletion â€” what E says can't change */
+  /** position, size, rotation and deletion — what E says can't change */
   const getGeometry = (id: string) => {
     const { x, y, width, height, angle, isDeleted } = getElement(id);
     return { x, y, width, height, angle, isDeleted };
@@ -491,7 +491,7 @@ describe("collaborator lock â€” enforcement", () => {
 
   const lockAlice = () => execute("toggleCollaboratorLock", "alice");
 
-  // me-rect: x 0â€“100 (mine) Â· alice-rect: x 200â€“300 (alice, the one locked)
+  // me-rect: x 0–100 (mine) · alice-rect: x 200–300 (alice, the one locked)
   beforeEach(() => {
     API.setElements([
       stamp(createSolidRect("me-rect", 0), "me"),
@@ -667,8 +667,8 @@ describe("collaborator lock â€” enforcement", () => {
     });
 
     // Same gesture as #116's eraser tests: from just outside into a shape at
-    // x 0â€“100. The eraser only considers on-screen elements and the jsdom
-    // viewport is 0Ã—0, so the shape being erased must sit at the origin.
+    // x 0–100. The eraser only considers on-screen elements and the jsdom
+    // viewport is 0×0, so the shape being erased must sit at the origin.
     const eraseThroughOrigin = () => {
       UI.clickTool("eraser");
       mouse.downAt(-20, 50);
