@@ -22,7 +22,10 @@ import {
 } from "../appState";
 import { restoreAppState } from "../data/restore";
 import { Excalidraw } from "../index";
-import { getCollaboratorVisibilityRows } from "../scene/visibility";
+import {
+  getBulkLockAvailability,
+  getCollaboratorVisibilityRows,
+} from "../scene/visibility";
 
 import { API } from "./helpers/api";
 import { Keyboard, Pointer, UI } from "./helpers/ui";
@@ -37,6 +40,7 @@ import {
 } from "./test-utils";
 
 import type { ActionName } from "../actions/types";
+import type { CollaboratorVisibilityRow } from "../scene/visibility";
 import type { AppState } from "../types";
 
 unmountComponent();
@@ -351,6 +355,89 @@ describe("collaborator lock â€” Criteria H (my own drawings)", () => {
       API.setAppState({ lockedCollaboratorIds: new Set(["me"]) });
     });
     expect(getRow("me").isLocked).toBe(false);
+  });
+});
+
+describe("collaborator lock — bulk button availability (getBulkLockAvailability)", () => {
+  const row = (
+    id: string,
+    flags: { isLocked?: boolean; isLockDisabled?: boolean } = {},
+  ): CollaboratorVisibilityRow => ({
+    id,
+    username: id,
+    isCurrentUser: false,
+    isHidden: false,
+    isLocked: false,
+    isLockDisabled: false,
+    drawingsCount: 0,
+    ...flags,
+  });
+
+  const availability = (
+    others: CollaboratorVisibilityRow[],
+    misc = row(UNKNOWN_CREATOR_ID),
+  ) =>
+    getBulkLockAvailability({
+      // my own row: never lockable
+      inRoom: [row("me", { isLockDisabled: true }), ...others],
+      previouslySeen: [],
+      miscellaneous: misc,
+    });
+
+  it("AC-B: with a visible, unlocked collaborator only Lock all applies", () => {
+    expect(availability([row("alice")])).toEqual({
+      canLockAll: true,
+      canUnlockAll: false,
+    });
+  });
+
+  it("AC-B: with every visible collaborator locked only Unlock all applies", () => {
+    expect(
+      availability(
+        [row("alice", { isLocked: true })],
+        row(UNKNOWN_CREATOR_ID, { isLocked: true }),
+      ),
+    ).toEqual({ canLockAll: false, canUnlockAll: true });
+  });
+
+  it("AC-B: with visible locked and unlocked collaborators both apply", () => {
+    expect(availability([row("alice", { isLocked: true })])).toEqual({
+      canLockAll: true,
+      canUnlockAll: true,
+    });
+  });
+
+  it("AC-C: hidden collaborators (locked, can't change) count for neither", () => {
+    const hidden = { isLocked: true, isLockDisabled: true };
+    expect(
+      availability([row("alice", hidden)], row(UNKNOWN_CREATOR_ID, hidden)),
+    ).toEqual({ canLockAll: false, canUnlockAll: false });
+  });
+
+  it("AC-H: my own row counts for neither", () => {
+    expect(
+      getBulkLockAvailability({
+        inRoom: [row("me", { isLockDisabled: true })],
+        previouslySeen: [],
+        miscellaneous: row(UNKNOWN_CREATOR_ID, {
+          isLocked: true,
+          isLockDisabled: true,
+        }),
+      }),
+    ).toEqual({ canLockAll: false, canUnlockAll: false });
+  });
+
+  it("AC-B: previously seen collaborators count too", () => {
+    expect(
+      getBulkLockAvailability({
+        inRoom: [row("me", { isLockDisabled: true })],
+        previouslySeen: [row("carol")],
+        miscellaneous: row(UNKNOWN_CREATOR_ID, {
+          isLocked: true,
+          isLockDisabled: true,
+        }),
+      }).canLockAll,
+    ).toBe(true);
   });
 });
 
@@ -882,6 +969,43 @@ describe("collaborator lock — dropdown UI", () => {
 
       fireEvent.click(queryLockToggle("alice")!);
       expect(getButton("Unlock all").disabled).toBe(false);
+    });
+
+    it("(control) Lock all is enabled while a visible collaborator is unlocked", () => {
+      expect(getButton("Lock all").disabled).toBe(false);
+    });
+
+    it("AC-B: Lock all is disabled once every visible collaborator is locked", () => {
+      fireEvent.click(getButton("Lock all"));
+      expect(getButton("Lock all").disabled).toBe(true);
+
+      fireEvent.click(queryLockToggle("alice")!);
+      expect(getButton("Lock all").disabled).toBe(false);
+    });
+
+    it("AC-B + AC-C: after Hide all, neither Lock all nor Unlock all can be used", () => {
+      fireEvent.click(getButton("Hide all"));
+
+      expect(getButton("Lock all").disabled).toBe(true);
+      expect(getButton("Unlock all").disabled).toBe(true);
+    });
+
+    it("AC-B + AC-C: after Hide all → Show all, only Unlock all can be used", () => {
+      fireEvent.click(getButton("Hide all"));
+      fireEvent.click(getButton("Show all"));
+
+      expect(getButton("Lock all").disabled).toBe(true);
+      expect(getButton("Unlock all").disabled).toBe(false);
+    });
+
+    it("AC-B + AC-C: Lock all stays enabled while one collaborator is hidden and another is visible and unlocked", () => {
+      fireEvent.click(queryVisibilityToggle("carol")!);
+      expect(getButton("Lock all").disabled).toBe(false);
+    });
+
+    it("AC-B + AC-C: Unlock all is disabled when the only locked collaborators are hidden", () => {
+      fireEvent.click(queryVisibilityToggle("carol")!);
+      expect(getButton("Unlock all").disabled).toBe(true);
     });
 
     it("AC-B: Unlock all leaves a hidden collaborator locked", () => {

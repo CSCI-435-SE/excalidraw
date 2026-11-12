@@ -209,6 +209,29 @@ export type CollaboratorVisibilityRows = {
 };
 
 /**
+ * Whether "Lock all" / "Unlock all" would change anything (#81). Only rows
+ * whose lock can change count: hidden collaborators (always locked) and
+ * your own row (never locked) are skipped, so after "Hide all" neither
+ * button applies.
+ */
+export const getBulkLockAvailability = ({
+  inRoom,
+  previouslySeen,
+  miscellaneous,
+}: CollaboratorVisibilityRows): {
+  canLockAll: boolean;
+  canUnlockAll: boolean;
+} => {
+  const changeable = [...inRoom, ...previouslySeen, miscellaneous].filter(
+    (row) => !row.isLockDisabled,
+  );
+  return {
+    canLockAll: changeable.some((row) => !row.isLocked),
+    canUnlockAll: changeable.some((row) => row.isLocked),
+  };
+};
+
+/**
  * Rows for the collaborator visibility menu:
  * - in the room: live collaborators (you first)
  * - previously seen: directory entries no longer live (most recent first)

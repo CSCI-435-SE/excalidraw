@@ -13,7 +13,10 @@ import {
 import { getClientColor } from "../../clients";
 import { useUIAppState } from "../../context/ui-appState";
 import { t } from "../../i18n";
-import { getCollaboratorVisibilityRows } from "../../scene/visibility";
+import {
+  getBulkLockAvailability,
+  getCollaboratorVisibilityRows,
+} from "../../scene/visibility";
 import { useExcalidrawActionManager, useExcalidrawElements } from "../App";
 import { Avatar } from "../Avatar";
 import {
@@ -178,10 +181,8 @@ const MenuContent = () => {
   const toggleLock = (id: string) =>
     actionManager.executeAction(actionToggleCollaboratorLock, "ui", id);
 
-  // Unlock all only affects visible collaborators (hidden ones stay locked)
-  const hasUnlockable = [...appState.lockedCollaboratorIds].some(
-    (id) => !appState.hiddenCollaboratorIds.has(id),
-  );
+  // bulk lock buttons only apply to visible collaborators (not yourself)
+  const { canLockAll, canUnlockAll } = getBulkLockAvailability(rows);
 
   return (
     <div className="CollaboratorVisibilityMenu__content">
@@ -218,6 +219,7 @@ const MenuContent = () => {
           onClick={() =>
             actionManager.executeAction(actionLockAllCollaborators, "ui")
           }
+          disabled={!canLockAll}
         >
           {LockedIcon}
           {t("collaboratorLock.lockAllShort")}
@@ -228,7 +230,7 @@ const MenuContent = () => {
           onClick={() =>
             actionManager.executeAction(actionUnlockAllCollaborators, "ui")
           }
-          disabled={!hasUnlockable}
+          disabled={!canUnlockAll}
         >
           {UnlockedIcon}
           {t("collaboratorLock.unlockAllShort")}
