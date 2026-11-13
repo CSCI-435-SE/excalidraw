@@ -19,12 +19,13 @@ I'll start by reading the issue.
 _**Agent (claude-opus-5-5 2026-11-13 00:41:30Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Show issue 140 with comments
 
 ```text
 Exit code 1
-gh : The term 'gh' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the 
+gh : The term 'gh' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the
 spelling of the name, or if a path was included, verify that the path is correct and try again.
 At line:1 char:302
 + ... y { $PSStyle.OutputRendering = 'PlainText' } catch {} } }; gh issue v ...
@@ -32,11 +33,13 @@ At line:1 char:302
     + CategoryInfo          : ObjectNotFound: (gh:String) [], CommandNotFoundException
     + FullyQualifiedErrorId : CommandNotFoundException
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:41:35Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Locate gh CLI and show remotes
 
@@ -47,11 +50,13 @@ which: no gh in (/c/Users/ab200/bin:/mingw64/bin:/usr/local/bin:/usr/bin:/bin:/m
 origin	https://github.com/CSCI-435-SE/excalidraw.git (fetch)
 origin	https://github.com/CSCI-435-SE/excalidraw.git (push)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:41:42Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Fetch issue 140 and its comments from GitHub API
 
@@ -190,11 +195,13 @@ Fetch issue 140 and its comments from GitHub API
 
 ]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:41:45Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Print issue 140 body
 
@@ -212,9 +219,9 @@ Excalidraw currently offers a limited selection of fonts for text elements. Givi
 **As a** user, **I want** more font options for text elements **so that** I can customize the appearance of my text and better support the languages I use.
 
 **As a ** user, **I want** more font options for text elements **so that** I can customize the appearance of both my text and my graphics better, and support all of the languages that I or my collaborators use.
- 
+
 ## User Scenario
-A user creates or selects a text element in Excalidraw. They open the text selection menu, and access the new add text button, and upload a WOFF2 file containing their preferred script. The newly uploaded font is now available in the font the selection menu, and it is applied to the text element, allowing the user to customize its appearance and, if/when supported by the font, display characters from different alphabets/writing systems. 
+A user creates or selects a text element in Excalidraw. They open the text selection menu, and access the new add text button, and upload a WOFF2 file containing their preferred script. The newly uploaded font is now available in the font the selection menu, and it is applied to the text element, allowing the user to customize its appearance and, if/when supported by the font, display characters from different alphabets/writing systems.
 
 ---
 
@@ -222,11 +229,11 @@ A user creates or selects a text element in Excalidraw. They open the text selec
 
 ## Scope
 
-**Generic:** Medium  
+**Generic:** Medium
 **Specific:** Medium (suggested: 5 points)
 
-**Reason:** 
-Requires reading in suitable fonts with appropriate licensing from WOFF2 (or WOFF files maybe) and integrating them into Excalidraw's existing text-rendering and font-selection workflows, while also verifying that existing text behavior remains functional under multiple scenarios. 
+**Reason:**
+Requires reading in suitable fonts with appropriate licensing from WOFF2 (or WOFF files maybe) and integrating them into Excalidraw's existing text-rendering and font-selection workflows, while also verifying that existing text behavior remains functional under multiple scenarios.
 
 ---
 
@@ -237,7 +244,7 @@ Requires reading in suitable fonts with appropriate licensing from WOFF2 (or WOF
 - [ ]  **Criteria B: Font Selection Expansion.** Users are able to access the newly added fonts through a simple scroll on a 'fonts' dialogue
 - [ ] **Criteria C: Font Rendering.** Newly added fonts render correctly  in both the editor and in exported drawings
 - [ ] **Criteria D: Licensing.** Systems, or warnings in place to ensure that users only add/work with correctly licensed fonts, and don't distribute content  using unlicensed fonts
-- [ ] **Criteria E: Additional Characters** Characters from additional writing systems render correctly. 
+- [ ] **Criteria E: Additional Characters** Characters from additional writing systems render correctly.
 
 ## Open Questions
 -Should there be a mechanism for removing additionally added fonts?
@@ -259,6 +266,7 @@ Requires reading in suitable fonts with appropriate licensing from WOFF2 (or WOF
 
 Issue (#40): Add More Fonts
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:41:47Z)**_
@@ -268,6 +276,7 @@ Now let me look at how fonts are wired in the codebase.
 _**Agent (claude-opus-5-5 2026-11-13 00:41:50Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect font constants, fonts dir, picker, element type
 
@@ -351,11 +360,13 @@ fonts.css
 index.ts
 260:    fontFamily: FontFamilyValues;
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:41:54Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect Fonts registry, font type, export embedding
 
@@ -424,11 +435,13 @@ packages/common/src/constants.ts:216:export const DEFAULT_FONT_FAMILY: FontFamil
 36:  files: BinaryFiles,
 38:  const nextFiles: BinaryFiles = {};
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:41:57Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check restore, font string helpers, picker list
 
@@ -462,6 +475,7 @@ Check restore, font string helpers, picker list
 156:      () => allFonts.filter((font) => sceneFamilies.has(font.value)), // always show all the fonts in the scene, even those that were deprecated
 165:            (showDeprecatedFonts || !font.deprecated), // skip deprecated fonts
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:42:21Z)**_
@@ -491,6 +505,7 @@ Issue #140 is "Add More Font Options": users upload their own WOFF2/WOFF font, p
 ## Open questions for you
 
 The issue leaves these open:
+
 - **Removing fonts:** should step 9 be in scope?
 - **File types:** should we also accept TTF/OTF? This costs almost nothing, since `FontFace` loads them all.
 - **Collaboration:** should custom fonts sync to other people in a live session? I'd keep that out of scope and only save fonts in the scene file. Live sync would mean changes to the collab and Firebase file storage.
@@ -504,7 +519,7 @@ _**User (2026-11-13 00:53:29Z)**_
 
 1. yeah I don't think that's insane to add.
 2. ttf/otf are much larger/uncompressed
-3. out of scope 
+3. out of scope
 4. i feel like a checkbox/warning would be enough
 
 ---
@@ -516,6 +531,7 @@ Got it. Removing fonts is in scope, only WOFF/WOFF2 are accepted, collaboration 
 _**Agent (claude-opus-5-5 2026-11-13 00:53:37Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```markdown
@@ -529,6 +545,7 @@ metadata:
 Issue #140 "Add More Font Options" (Sprint 3): users upload their own fonts, pick them in FontPicker, render in editor + export.
 
 User decisions (2026-11-12):
+
 - Removing custom fonts: IN scope (step 9).
 - File types: WOFF/WOFF2 only — no TTF/OTF (too large/uncompressed).
 - Collaboration sync of custom fonts: OUT of scope; fonts persist in scene JSON only.
@@ -537,17 +554,18 @@ User decisions (2026-11-12):
 Plan steps: 1 data model/ID range, 2 runtime Fonts.registerCustomFont, 3 upload+validation, 4 license dialog, 5 picker UI, 6 persistence/restore, 7 export, 8 fallback for other scripts, 9 removal.
 
 **How to apply:** work one step per commit, stop between steps ([[feedback-small-stages]]); never commit ([[feedback-no-commits]]).
-
 ```
 
 ```text
 File created successfully at: C:\Users\ab200\.claude\projects\c--excalidraw\memory\custom-fonts-issue-140.md
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:53:38Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Add memory index line and create feature branch
 
@@ -556,6 +574,7 @@ Add memory index line and create feature branch
 ```text
 Switched to a new branch 'feat/issue-140-custom-fonts'
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:53:39Z)**_
@@ -565,6 +584,7 @@ Now the step 1 code: font type, constants, and helpers.
 _**Agent (claude-opus-5-5 2026-11-13 00:53:41Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read font type, constants and font string helpers
 
@@ -754,6 +774,7 @@ export const nextAnimationFrame = async (cb: () => any) => {
 
 export const debounce = <T extends any[]>(
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:53:50Z)**_
@@ -763,6 +784,7 @@ _**Agent (claude-opus-5-5 2026-11-13 00:53:50Z)**_
 _**Agent (claude-opus-5-5 2026-11-13 00:54:01Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `c:\excalidraw\packages` pattern `Object\.(entries|keys|values)\(FONT_FAMILY\)|getFontFamilyString|getFontFamilyFallbacks`
 
@@ -790,11 +812,13 @@ packages\excalidraw\components\FontPicker\FontPickerList.tsx:335:              f
 packages\excalidraw\components\UnicodePicker\UnicodePicker.tsx:5:  getFontFamilyString,
 packages\excalidraw\components\UnicodePicker\UnicodePicker.tsx:237:            style={{ fontFamily: getFontFamilyString({ fontFamily }) }}
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:53:55Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find BinaryFile types and common test files
 
@@ -819,11 +843,13 @@ keys.test.ts
 queue.test.ts
 url.test.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:54:03Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\types.ts`
 
@@ -831,9 +857,9 @@ _**Agent (claude-opus-5-5 2026-11-13 00:54:03Z)**_
 118	   */
 119	  laserColor?: string;
 120	};
-121	
+121
 122	export type DataURL = string & { _brand: "DataURL" };
-123	
+123
 124	export type BinaryFileData = {
 125	  mimeType:
 126	    | ValueOf<typeof IMAGE_MIME_TYPES>
@@ -859,17 +885,19 @@ _**Agent (claude-opus-5-5 2026-11-13 00:54:03Z)**_
 146	   */
 147	  version?: number;
 148	};
-149	
+149
 150	export type BinaryFileMetadata = Omit<BinaryFileData, "dataURL">;
-151	
+151
 152	export type BinaryFiles = Record<ExcalidrawElement["id"], BinaryFileData>;
 153
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:54:04Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 View utils test header and utils imports
 
@@ -908,6 +936,7 @@ describe("@excalidraw/common/utils", () => {
 23:import type { MaybePromise, ResolutionType } from "./utility-types";
 25:import type { EVENT } from "./constants";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:54:14Z)**_
@@ -917,6 +946,7 @@ I'll check whether common already has a string hash and font MIME types.
 _**Agent (claude-opus-5-5 2026-11-13 00:54:15Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Search for hash helpers and woff MIME types
 
@@ -929,11 +959,13 @@ packages/element/src/index.ts:34:export const hashString = (s: string): number =
 packages/element/src/store.ts:25:  hashString,
 packages/element/src/store.ts:885:    const changedAppStateHash = hashString(
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:54:18Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read hashString and font metadata
 
@@ -1017,6 +1049,7 @@ export const FONT_METADATA: Record<number, FontMetadata> = {
   },
   [FONT_FAMILY["Comic Shanns"]]: {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:54:20Z)**_
@@ -1026,6 +1059,7 @@ Text layout also uses per-font metrics, so custom IDs need a default. I'll check
 _**Agent (claude-opus-5-5 2026-11-13 00:54:22Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find FONT_METADATA lookups
 
@@ -1046,6 +1080,7 @@ packages/common/src/font-metadata.ts:177:    FONT_METADATA[fontFamily]?.metrics 
 packages/common/src/font-metadata.ts:178:    FONT_METADATA[FONT_FAMILY.Excalifont].metrics;
 packages/excalidraw/fonts/Fonts.ts:380:        FONT_METADATA[fontFamily] ?? FONT_METADATA[FONT_FAMILY.Excalifont];
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:54:25Z)**_
@@ -1055,31 +1090,36 @@ Unknown font IDs already fall back to Excalifont metrics, so layout won't break.
 _**Agent (claude-opus-5-5 2026-11-13 00:54:32Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\common\src\constants.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:54:33Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\common\src\utils.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:54:33Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\common\src\utils.ts`
 
 ```text
-14	
+14
 15	import {
 16	  DEFAULT_VERSION,
 17	  ENV,
@@ -1088,31 +1128,37 @@ _**Agent (claude-opus-5-5 2026-11-13 00:54:33Z)**_
 20	  WINDOWS_EMOJI_FALLBACK_FONT,
 21	} from "./constants";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:54:41Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\common\src\utils.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:54:42Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\types.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:54:42Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check type imports in excalidraw types.ts
 
@@ -1129,11 +1175,13 @@ Check type imports in excalidraw types.ts
 481:  currentHoveredFontFamily: FontFamilyValues | null;
 976:      mimeType: ValueOf<typeof IMAGE_MIME_TYPES>;
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:54:44Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\types.ts`
 
@@ -1147,16 +1195,19 @@ _**Agent (claude-opus-5-5 2026-11-13 00:54:44Z)**_
 7	} from "@excalidraw/common";
 8
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:54:46Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\types.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:54:48Z)**_
@@ -1166,6 +1217,7 @@ Now tests for the helpers.
 _**Agent (claude-opus-5-5 2026-11-13 00:54:49Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 View end of utils test file
 
@@ -1177,11 +1229,13 @@ View end of utils test file
   });
 });
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:54:58Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -1244,17 +1298,18 @@ describe("custom font families (#140)", () => {
     });
   });
 });
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\packages\common\src\customFonts.test.ts (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:55:19Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run new and existing common utils tests
 
@@ -1277,11 +1332,13 @@ $ C:\excalidraw\node_modules\.bin\vitest run packages/common/src/customFonts.tes
 
 Done in 18.48s.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:56:33Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run typecheck and prettier check on changed files
 
@@ -1296,6 +1353,7 @@ Done in 56.91s.
 Checking formatting...
 All matched files use Prettier code style!
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:56:42Z)**_
@@ -1303,6 +1361,7 @@ _**Agent (claude-opus-5-5 2026-11-13 00:56:42Z)**_
 Step 1 is done on the new branch `feat/issue-140-custom-fonts`. The new tests and the existing common tests pass (16 total), typecheck is clean, and Prettier passes on the changed files. I didn't run the full suite. Nothing is committed.
 
 **What changed:**
+
 - **[constants.ts](packages/common/src/constants.ts):**
   - Custom fonts get IDs from 2000 up (`CUSTOM_FONT_FAMILY_ID_START`), well clear of the built-in and fallback IDs.
   - `CUSTOM_FONT_MIME_TYPES` lists only `font/woff` and `font/woff2`, matching your no-TTF/OTF decision.
@@ -1313,6 +1372,7 @@ Step 1 is done on the new branch `feat/issue-140-custom-fonts`. The new tests an
 - **[customFonts.test.ts](packages/common/src/customFonts.test.ts):** 6 tests for the ID range check and the font strings.
 
 **Notes:**
+
 - `FontFamilyValues` is already plain `number`, because `FONT_FAMILY` isn't declared `as const`, so the type didn't need widening.
 - Text layout falls back to Excalifont's metrics for unknown IDs. Custom fonts will lay out reasonably without us reading metrics from the font file, which matters because WOFF2 is compressed.
 - **Decision for step 3:** I'd make the ID a hash of the font file's contents instead of counting up from 2000. Then the same font gets the same ID in every scene, and copying text between scenes won't mix up two different fonts that happen to share an ID. The existing `hashString` in `@excalidraw/element` can do this.
@@ -1325,20 +1385,17 @@ Next is step 2: adding `Fonts.registerCustomFont` and `unregisterCustomFont` at 
 
 _**User (2026-11-13 00:57:36Z)**_
 
-
-
 <pasted_content id="d486">
+
 ## Test Evidence
 
 | Acceptance criterion | Test(s) | Level | Source of expected value |
-|---|---|---|---|
-| AC1: ... | ... | ... | ... |
+| -------------------- | ------- | ----- | ------------------------ |
+| AC1: ...             | ...     | ...   | ...                      |
 
 **Not tested automatically, and why:** [...]
 
-**AI-written tests:** [Which tests were written or modified by AI, and how you
-checked that their expected values are correct. If none, write "None."]
-</pasted_content id="d486">
+**AI-written tests:** [Which tests were written or modified by AI, and how you checked that their expected values are correct. If none, write "None."] </pasted_content id="d486">
 
 keep this in mind also
 
@@ -1351,6 +1408,7 @@ I'll save the template to memory. One fix first: two of my step 1 tests built th
 _**Agent (claude-opus-5-5 2026-11-13 00:57:47Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ````markdown
@@ -1379,17 +1437,18 @@ checked that their expected values are correct. If none, write "None."]
 **Why:** course/team requires traceability from acceptance criteria to tests, and honest disclosure of AI-written tests.
 
 **How to apply:** while implementing each step ([[feedback-small-stages]]), track which AC each test covers, its level (unit/integration/UI), and where its expected value comes from (spec, issue, hand-computed — never derived by calling the code under test). Note anything verified only manually. Fill the template in the PR description. Related: [[custom-fonts-issue-140]].
-
 ````
 
 ```text
 File created successfully at: C:\Users\ab200\.claude\projects\c--excalidraw\memory\feedback-test-evidence-template.md
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:57:53Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Add memory index line for template
 
@@ -1398,41 +1457,49 @@ Add memory index line for template
 ```text
 (Bash completed with no output)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:57:54Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\common\src\customFonts.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:57:55Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\common\src\customFonts.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:57:56Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\common\src\customFonts.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:58:04Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Re-run custom font tests
 
@@ -1442,6 +1509,7 @@ Re-run custom font tests
  Test Files ** **1 passed** (1)
       Tests ** **6 passed** (6)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 00:58:11Z)**_
@@ -1451,7 +1519,7 @@ I saved the Test Evidence template to memory. I'll track each test against an ac
 Here is the running evidence for step 1:
 
 | Acceptance criterion | Test(s) | Level | Source of expected value |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Groundwork for C (custom fonts render): a custom ID gives the right CSS font string | `customFonts.test.ts` › `getFontFamilyString()` and `getFontString()` cases | Unit | Literal strings for the naming scheme we chose (`ExcalidrawCustomFont-<id>`). The fallback list `sans-serif, Segoe UI Emoji` is what built-in fonts already get from `getFontFamilyFallbacks`. |
 | Groundwork, not tied to a criterion: no custom ID collides with a built-in font | `customFonts.test.ts` › `isCustomFontFamily()` cases | Unit | The existing `FONT_FAMILY` and `FONT_FAMILY_FALLBACKS` IDs, plus the range start 2000 chosen in the plan. |
 | No regression in built-in fonts | `customFonts.test.ts` › "leaves built-in font strings unchanged" | Unit | The output built-in fonts gave before this change. |
@@ -1473,6 +1541,7 @@ can you link me to the test(s) and give me samples to put into the terminal so i
 _**Agent (claude-opus-5-5 2026-11-13 01:01:22Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect Stryker config and test line numbers
 
@@ -1505,11 +1574,13 @@ dev-docs/package.json:34:    "@stryker-mutator/vitest-runner": "10.1.1",
 42:    it("leaves built-in font strings unchanged", () => {
 48:    it("includes the custom family in getFontString()", () => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:01:29Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find line numbers of code to mutate
 
@@ -1523,18 +1594,19 @@ packages/common/src/utils.ts:101:  if (isCustomFontFamily(fontFamily)) {
 packages/common/src/constants.ts:2
 packages/common/src/utils.ts:3
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:01:41Z)**_
 
-<think><details><summary>Thought Process</summary>
-Stryker won't run these Vitest tests as configured, so I'll do the mutations by hand and start with the mutants.
+<think><details><summary>Thought Process</summary> Stryker won't run these Vitest tests as configured, so I'll do the mutations by hand and start with the mutants.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:02:45Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Apply each mutant, run tests, restore file
 
@@ -1581,6 +1653,7 @@ git status --short packages/common
  M packages/common/src/utils.ts
 ?? packages/common/src/customFonts.test.ts
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:03:01Z)**_
@@ -1590,6 +1663,7 @@ I ran 8 mutants: 7 make the tests fail, as they should, and 1 survives. All file
 ## The tests and the code they cover
 
 **Tests** in [customFonts.test.ts](packages/common/src/customFonts.test.ts):
+
 - [isCustomFontFamily rejects built-in and fallback IDs](packages/common/src/customFonts.test.ts#L12)
 - [accepts IDs from the custom range start upwards](packages/common/src/customFonts.test.ts#L21)
 - [rejects non-integer and non-finite values](packages/common/src/customFonts.test.ts#L28)
@@ -1598,6 +1672,7 @@ I ran 8 mutants: 7 make the tests fail, as they should, and 1 survives. All file
 - [includes the custom family in getFontString](packages/common/src/customFonts.test.ts#L48)
 
 **Code to mutate:**
+
 - [constants.ts:148](packages/common/src/constants.ts#L148): `CUSTOM_FONT_FAMILY_ID_START`
 - [constants.ts:156](packages/common/src/constants.ts#L156): `isCustomFontFamily`
 - [constants.ts:164](packages/common/src/constants.ts#L164): `getCustomFontFamilyName`
@@ -1630,13 +1705,13 @@ function Mutate($file, $from, $to) {
 The second column is what I got when I ran each one:
 
 | Command | Result |
-|---|---|
+| --- | --- |
 | `Mutate packages/common/src/constants.ts "fontFamily >= CUSTOM_FONT_FAMILY_ID_START" "fontFamily > CUSTOM_FONT_FAMILY_ID_START"` | Killed (2 fail) |
 | `Mutate packages/common/src/constants.ts "ID_START = 2000;" "ID_START = 20;"` | Killed (1 fail) |
 | `Mutate packages/common/src/constants.ts "ID_START = 2000;" "ID_START = 1001;"` | **Survives** |
 | `Mutate packages/common/src/constants.ts "Number.isSafeInteger(fontFamily) && " ""` | Killed (1 fail) |
 | `Mutate packages/common/src/constants.ts "Number.isSafeInteger(fontFamily)" "Number.isFinite(fontFamily)"` | Killed (1 fail) |
-| ``Mutate packages/common/src/constants.ts '`ExcalidrawCustomFont-${fontFamily}`' '`ExcalidrawCustomFont${fontFamily}`'`` | Killed (2 fail) |
+| `` Mutate packages/common/src/constants.ts '`ExcalidrawCustomFont-${fontFamily}`' '`ExcalidrawCustomFont${fontFamily}`' `` | Killed (2 fail) |
 | `Mutate packages/common/src/utils.ts "if (isCustomFontFamily(fontFamily)) {" "if (false) {"` | Killed (2 fail) |
 | `Mutate packages/common/src/utils.ts "isCustomFontFamily(fontFamily)" "isCustomFontFamily(fontFamily) && false"` | Not run. It disables the same branch as the previous row, so it should also fail 2. |
 
@@ -1674,7 +1749,10 @@ For step 1, no. For the later steps, yes.
 {
   "testRunner": "vitest",
   "vitest": { "configFile": "vitest.config.mts" },
-  "mutate": ["packages/common/src/constants.ts:145-165", "packages/common/src/utils.ts:96-112"],
+  "mutate": [
+    "packages/common/src/constants.ts:145-165",
+    "packages/common/src/utils.ts:96-112"
+  ],
   "coverageAnalysis": "perTest",
   "reporters": ["clear-text", "html", "progress"]
 }
@@ -1701,6 +1779,7 @@ I'll add step-by-step messages and a clear KILLED/SURVIVED verdict to the helper
 _**Agent (claude-opus-5-5 2026-11-13 01:07:17Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```ps1
@@ -1741,11 +1820,13 @@ function Mutate($file, $from, $to, $test = "packages/common/src/customFonts.test
 ```text
 File created successfully at: C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\mutate.ps1 (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:07:20Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Test improved Mutate helper with two mutants
 
@@ -1767,37 +1848,38 @@ At C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-
 Missing closing '}' in statement block or type definition.
 At C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\mutate.ps1
 :32 char:1
-+ 
++
 The Try statement is missing its Catch or Finally block.
-At 
-C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\mutate.ps1:1 
+At
+C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\mutate.ps1:1
 char:87
 + ... ile, $from, $to, $test = "packages/common/src/customFonts.test.ts") {
 +                                                                         ~
 Missing closing '}' in statement block or type definition.
     + CategoryInfo          : ParserError: (:) [], ParseException
     + FullyQualifiedErrorId : TerminatorExpectedAtEndOfString
- 
-Mutate : The term 'Mutate' is not recognized as the name of a cmdlet, function, script file, or operable program. 
+
+Mutate : The term 'Mutate' is not recognized as the name of a cmdlet, function, script file, or operable program.
 Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
 At line:1 char:424
 + ... 17-21b1-44c8-ab86-1e60ec313e46\scratchpad\mutate.ps1"; Mutate package ...
 +                                                            ~~~~~~
     + CategoryInfo          : ObjectNotFound: (Mutate:String) [], CommandNotFoundException
     + FullyQualifiedErrorId : CommandNotFoundException
- 
-Mutate : The term 'Mutate' is not recognized as the name of a cmdlet, function, script file, or operable program. 
+
+Mutate : The term 'Mutate' is not recognized as the name of a cmdlet, function, script file, or operable program.
 Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
 At line:1 char:503
 + ... rc/constants.ts "ID_START = 2000;" "ID_START = 1001;"; Mutate package ...
 +                                                            ~~~~~~
     + CategoryInfo          : ObjectNotFound: (Mutate:String) [], CommandNotFoundException
     + FullyQualifiedErrorId : CommandNotFoundException
- 
+
  M packages/common/src/constants.ts
  M packages/common/src/utils.ts
 ?? packages/common/src/customFonts.test.ts
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:07:21Z)**_
@@ -1807,16 +1889,19 @@ PowerShell 5.1 misread the ✓/× characters in the script file. I'm switching t
 _**Agent (claude-opus-5-5 2026-11-13 01:07:23Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\mutate.ps1 has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:07:40Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Re-test Mutate helper with three cases
 
@@ -1844,11 +1929,11 @@ Mutation applied. Running packages/common/src/customFonts.test.ts ...
        → expected false to be true // Object.is equality
        → expected '20px Segoe UI Emoji' to be '20px ExcalidrawCustomFont-2000, sans-…' // Object.is equality
   ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
-   FAIL  packages/common/src/customFonts.test.ts > custom font families (#140) > isCustomFontFamily() > accepts ids from 
+   FAIL  packages/common/src/customFonts.test.ts > custom font families (#140) > isCustomFontFamily() > accepts ids from
   AssertionError: expected false to be true // Object.is equality
   - Expected
   + Received
-   FAIL  packages/common/src/customFonts.test.ts > custom font families (#140) > getFontFamilyString() > includes the 
+   FAIL  packages/common/src/customFonts.test.ts > custom font families (#140) > getFontFamilyString() > includes the
   AssertionError: expected '20px Segoe UI Emoji' to be '20px ExcalidrawCustomFont-2000, sans-…' // Object.is equality
   Expected: "20px ExcalidrawCustomFont-2000, sans-serif, Segoe UI Emoji"
   Received: "20px Segoe UI Emoji"
@@ -1867,6 +1952,7 @@ SKIPPED: pattern not found in file
  M packages/common/src/utils.ts
 ?? packages/common/src/customFonts.test.ts
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:07:50Z)**_
@@ -1914,6 +2000,7 @@ function Mutate($file, $from, $to, $test = "packages/common/src/customFonts.test
 ```
 
 **What you'll see for each mutant:**
+
 1. The file, the original text and its replacement.
 2. How many times the text appears in the file.
 3. The backup and the test run.
@@ -1988,6 +2075,7 @@ Mutate packages/common/src/utils.ts "      .map((x) => ``, `${x}``)
 Skip that last command. It's too fiddly to type in PowerShell; just make that change in the editor, as described below.
 
 **Two easier changes to try by hand in the editor:**
+
 - In the custom branch of `getFontFamilyString`, change `getFontFamilyFallbacks(fontFamily,` to `getFontFamilyFallbacks(FONT_FAMILY.Excalifont,`. Expected: KILLED.
 - Change `, ${x}` to `,${x}`, dropping the space. Expected: KILLED, though it also breaks the built-in fonts test if you change the built-in branch too.
 
@@ -2027,6 +2115,7 @@ While you do that, I'll read the font registry for step 2. I won't edit anything
 _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\fonts\Fonts.ts`
 
@@ -2042,7 +2131,7 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 9	import { getContainerElement } from "@excalidraw/element";
 10	import { charWidth } from "@excalidraw/element";
 11	import { containsCJK } from "@excalidraw/element";
-12	
+12
 13	import {
 14	  FONT_METADATA,
 15	  type FontMetadata,
@@ -2050,20 +2139,20 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 17	  PromisePool,
 18	  promiseTry,
 19	} from "@excalidraw/common";
-20	
+20
 21	import { ShapeCache } from "@excalidraw/element";
-22	
+22
 23	import { isTextElement } from "@excalidraw/element";
-24	
+24
 25	import type {
 26	  ExcalidrawElement,
 27	  ExcalidrawTextElement,
 28	} from "@excalidraw/element/types";
-29	
+29
 30	import type { ValueOf } from "@excalidraw/common/utility-types";
-31	
+31
 32	import type { Scene } from "@excalidraw/element";
-33	
+33
 34	import { CascadiaFontFaces } from "./Cascadia";
 35	import { ComicShannsFontFaces } from "./ComicShanns";
 36	import { EmojiFontFaces } from "./Emoji";
@@ -2075,12 +2164,12 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 42	import { NunitoFontFaces } from "./Nunito";
 43	import { VirgilFontFaces } from "./Virgil";
 44	import { XiaolaiFontFaces } from "./Xiaolai";
-45	
+45
 46	export class Fonts {
 47	  // it's ok to track fonts across multiple instances only once, so let's use
 48	  // a static member to reduce memory footprint
 49	  public static readonly loadedFontsCache = new Set<string>();
-50	
+50
 51	  private static _registered:
 52	    | Map<
 53	        number,
@@ -2090,9 +2179,9 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 57	        }
 58	      >
 59	    | undefined;
-60	
+60
 61	  private static _initialized: boolean = false;
-62	
+62
 63	  public static get registered() {
 64	    // lazy load the font registration
 65	    if (!Fonts._registered) {
@@ -2105,27 +2194,27 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 72	        ...Fonts._registered.entries(),
 73	      ]);
 74	    }
-75	
+75
 76	    return Fonts._registered;
 77	  }
-78	
+78
 79	  public get registered() {
 80	    return Fonts.registered;
 81	  }
-82	
+82
 83	  private readonly scene: Scene;
-84	
+84
 85	  constructor(scene: Scene) {
 86	    this.scene = scene;
 87	  }
-88	
+88
 89	  /**
 90	   * Get all the font families for the given scene.
 91	   */
 92	  public getSceneFamilies = () => {
 93	    return Fonts.getUniqueFamilies(this.scene.getNonDeletedElements());
 94	  };
-95	
+95
 96	  /**
 97	   * if we load a (new) font, it's likely that text elements using it have
 98	   * already been rendered using a fallback font. Thus, we want invalidate
@@ -2139,45 +2228,45 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 106	    // subset of the font properties (though it should be enough), so it
 107	    // can technically bail on a false positive.
 108	    let shouldBail = true;
-109	
+109
 110	    for (const fontFace of fontFaces) {
 111	      const sig = `${fontFace.family}-${fontFace.style}-${fontFace.weight}-${fontFace.unicodeRange}`;
-112	
+112
 113	      // make sure to update our cache with all the loaded font faces
 114	      if (!Fonts.loadedFontsCache.has(sig)) {
 115	        Fonts.loadedFontsCache.add(sig);
 116	        shouldBail = false;
 117	      }
 118	    }
-119	
+119
 120	    if (shouldBail) {
 121	      return;
 122	    }
-123	
+123
 124	    let didUpdate = false;
-125	
+125
 126	    const elementsMap = this.scene.getNonDeletedElementsMap();
-127	
+127
 128	    for (const element of this.scene.getNonDeletedElements()) {
 129	      if (isTextElement(element)) {
 130	        didUpdate = true;
 131	        ShapeCache.delete(element);
-132	
+132
 133	        // clear the width cache, so that we don't perform subsequent wrapping based on the stale fallback font metrics
 134	        charWidth.clearCache(getFontString(element));
-135	
+135
 136	        const container = getContainerElement(element, elementsMap);
 137	        if (container) {
 138	          ShapeCache.delete(container);
 139	        }
 140	      }
 141	    }
-142	
+142
 143	    if (didUpdate) {
 144	      this.scene.triggerUpdate();
 145	    }
 146	  };
-147	
+147
 148	  /**
 149	   * Load font faces for a given scene and trigger scene update.
 150	   */
@@ -2186,10 +2275,10 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 153	    const charsPerFamily = Fonts.getCharsPerFamily(
 154	      this.scene.getNonDeletedElements(),
 155	    );
-156	
+156
 157	    return Fonts.loadFontFaces(sceneFamilies, charsPerFamily);
 158	  };
-159	
+159
 160	  /**
 161	   * Load font faces for passed elements - use when the scene is unavailable (i.e. export).
 162	   */
@@ -2198,10 +2287,10 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 165	  ): Promise<FontFace[]> => {
 166	    const fontFamilies = Fonts.getUniqueFamilies(elements);
 167	    const charsPerFamily = Fonts.getCharsPerFamily(elements);
-168	
+168
 169	    return Fonts.loadFontFaces(fontFamilies, charsPerFamily);
 170	  };
-171	
+171
 172	  /**
 173	   * Generate CSS @font-face declarations for the given elements.
 174	   */
@@ -2210,38 +2299,38 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 177	  ) {
 178	    const families = Fonts.getUniqueFamilies(elements);
 179	    const charsPerFamily = Fonts.getCharsPerFamily(elements);
-180	
+180
 181	    // for simplicity, assuming we have just one family with the CJK handdrawn fallback
 182	    const familyWithCJK = families.find((x) =>
 183	      getFontFamilyFallbacks(x).includes(CJK_HAND_DRAWN_FALLBACK_FONT),
 184	    );
-185	
+185
 186	    if (familyWithCJK) {
 187	      const characters = Fonts.getCharacters(charsPerFamily, familyWithCJK);
-188	
+188
 189	      if (containsCJK(characters)) {
 190	        const family = FONT_FAMILY_FALLBACKS[CJK_HAND_DRAWN_FALLBACK_FONT];
-191	
+191
 192	        // adding the same characters to the CJK handrawn family
 193	        charsPerFamily[family] = new Set(characters);
-194	
+194
 195	        // the order between the families and fallbacks is important, as fallbacks need to be defined first and in the reversed order
 196	        // so that they get overriden with the later defined font faces, i.e. in case they share some codepoints
 197	        families.unshift(FONT_FAMILY_FALLBACKS[CJK_HAND_DRAWN_FALLBACK_FONT]);
 198	      }
 199	    }
-200	
+200
 201	    // don't trigger hundreds of concurrent requests (each performing fetch, creating a worker, etc.),
 202	    // instead go three requests at a time, in a controlled manner, without completely blocking the main thread
 203	    // and avoiding potential issues such as rate limits
 204	    const iterator = Fonts.fontFacesStylesGenerator(families, charsPerFamily);
 205	    const concurrency = 3;
 206	    const fontFaces = await new PromisePool(iterator, concurrency).all();
-207	
+207
 208	    // dedup just in case (i.e. could be the same font faces with 0 glyphs)
 209	    return Array.from(new Set(fontFaces));
 210	  }
-211	
+211
 212	  private static async loadFontFaces(
 213	    fontFamilies: Array<ExcalidrawTextElement["fontFamily"]>,
 214	    charsPerFamily: Record<number, Set<string>>,
@@ -2252,21 +2341,21 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 219	      if (metadata.local) {
 220	        continue;
 221	      }
-222	
+222
 223	      for (const { fontFace } of fontFaces) {
 224	        if (!window.document.fonts.has(fontFace)) {
 225	          window.document.fonts.add(fontFace);
 226	        }
 227	      }
 228	    }
-229	
+229
 230	    // loading 10 font faces at a time, in a controlled manner
 231	    const iterator = Fonts.fontFacesLoader(fontFamilies, charsPerFamily);
 232	    const concurrency = 10;
 233	    const fontFaces = await new PromisePool(iterator, concurrency).all();
 234	    return fontFaces.flat().filter(Boolean);
 235	  }
-236	
+236
 237	  private static *fontFacesLoader(
 238	    fontFamilies: Array<ExcalidrawTextElement["fontFamily"]>,
 239	    charsPerFamily: Record<number, Set<string>>,
@@ -2276,18 +2365,18 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 243	        fontFamily,
 244	        fontSize: FONT_SIZES.sm,
 245	      });
-246	
+246
 247	      // WARN: without "text" param it does not have to mean that all font faces are loaded as it could be just one irrelevant font face!
 248	      // instead, we are always checking chars used in the family, so that no required font faces remain unloaded
 249	      const text = Fonts.getCharacters(charsPerFamily, fontFamily);
-250	
+250
 251	      if (!window.document.fonts.check(font, text)) {
 252	        yield promiseTry(async () => {
 253	          try {
 254	            // WARN: browser prioritizes loading only font faces with unicode ranges for characters which are present in the document (html & canvas), other font faces could stay unloaded
 255	            // we might want to retry here, i.e.  in case CDN is down, but so far I didn't experience any issues - maybe it handles retry-like logic under the hood
 256	            const fontFaces = await window.document.fonts.load(font, text);
-257	
+257
 258	            return [index, fontFaces];
 259	          } catch (e) {
 260	            // don't let it all fail if just one font fails to load
@@ -2302,14 +2391,14 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 269	      }
 270	    }
 271	  }
-272	
+272
 273	  private static *fontFacesStylesGenerator(
 274	    families: Array<number>,
 275	    charsPerFamily: Record<number, Set<string>>,
 276	  ): Generator<Promise<void | readonly [number, string]>> {
 277	    for (const [familyIndex, family] of families.entries()) {
 278	      const { fontFaces, metadata } = Fonts.registered.get(family) ?? {};
-279	
+279
 280	      if (!Array.isArray(fontFaces)) {
 281	        console.error(
 282	          `Couldn't find registered fonts for font-family "${family}"`,
@@ -2317,26 +2406,26 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 284	        );
 285	        continue;
 286	      }
-287	
+287
 288	      if (metadata?.local) {
 289	        // don't inline local fonts
 290	        continue;
 291	      }
-292	
+292
 293	      for (const [fontFaceIndex, fontFace] of fontFaces.entries()) {
 294	        yield promiseTry(async () => {
 295	          try {
 296	            const characters = Fonts.getCharacters(charsPerFamily, family);
 297	            const fontFaceCSS = await fontFace.toCSS(characters);
-298	
+298
 299	            if (!fontFaceCSS) {
 300	              return;
 301	            }
-302	
+302
 303	            // giving a buffer of 10K font faces per family
 304	            const fontFaceOrder = familyIndex * 10_000 + fontFaceIndex;
 305	            const fontFaceTuple = [fontFaceOrder, fontFaceCSS] as const;
-306	
+306
 307	            return fontFaceTuple;
 308	          } catch (error) {
 309	            console.error(
@@ -2348,7 +2437,7 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 315	      }
 316	    }
 317	  }
-318	
+318
 319	  /**
 320	   * Register a new font.
 321	   *
@@ -2373,9 +2462,9 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 340	    const fontFamily =
 341	      FONT_FAMILY[family as keyof typeof FONT_FAMILY] ??
 342	      FONT_FAMILY_FALLBACKS[family as keyof typeof FONT_FAMILY_FALLBACKS];
-343	
+343
 344	    const registeredFamily = this.registered.get(fontFamily);
-345	
+345
 346	    if (!registeredFamily) {
 347	      this.registered.set(fontFamily, {
 348	        metadata,
@@ -2385,10 +2474,10 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 352	        ),
 353	      });
 354	    }
-355	
+355
 356	    return this.registered;
 357	  }
-358	
+358
 359	  /**
 360	   * WARN: should be called just once on init, even across multiple instances.
 361	   */
@@ -2399,7 +2488,7 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 366	        { metadata: FontMetadata; fontFaces: ExcalidrawFontFace[] }
 367	      >(),
 368	    };
-369	
+369
 370	    const init = (
 371	      family: keyof typeof FONT_FAMILY | keyof typeof FONT_FAMILY_FALLBACKS,
 372	      ...fontFacesDescriptors: ExcalidrawFontFaceDescriptor[]
@@ -2407,14 +2496,14 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 374	      const fontFamily =
 375	        FONT_FAMILY[family as keyof typeof FONT_FAMILY] ??
 376	        FONT_FAMILY_FALLBACKS[family as keyof typeof FONT_FAMILY_FALLBACKS];
-377	
+377
 378	      // default to Excalifont metrics
 379	      const metadata =
 380	        FONT_METADATA[fontFamily] ?? FONT_METADATA[FONT_FAMILY.Excalifont];
-381	
+381
 382	      Fonts.register.call(fonts, family, metadata, ...fontFacesDescriptors);
 383	    };
-384	
+384
 385	    init("Cascadia", ...CascadiaFontFaces);
 386	    init("Comic Shanns", ...ComicShannsFontFaces);
 387	    init("Excalifont", ...ExcalifontFontFaces);
@@ -2425,16 +2514,16 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 392	    init("Lilita One", ...LilitaFontFaces);
 393	    init("Nunito", ...NunitoFontFaces);
 394	    init("Virgil", ...VirgilFontFaces);
-395	
+395
 396	    // fallback font faces
 397	    init(CJK_HAND_DRAWN_FALLBACK_FONT, ...XiaolaiFontFaces);
 398	    init(WINDOWS_EMOJI_FALLBACK_FONT, ...EmojiFontFaces);
-399	
+399
 400	    Fonts._initialized = true;
-401	
+401
 402	    return fonts.registered;
 403	  }
-404	
+404
 405	  /**
 406	   * Get all the unique font families for the given elements.
 407	   */
@@ -2450,7 +2539,7 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 417	      }, new Set<number>()),
 418	    );
 419	  }
-420	
+420
 421	  /**
 422	   * Get all the unique characters per font family for the given scene.
 423	   */
@@ -2458,25 +2547,25 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 425	    elements: ReadonlyArray<ExcalidrawElement>,
 426	  ): Record<number, Set<string>> {
 427	    const charsPerFamily: Record<number, Set<string>> = {};
-428	
+428
 429	    for (const element of elements) {
 430	      if (!isTextElement(element)) {
 431	        continue;
 432	      }
-433	
+433
 434	      // gather unique codepoints only when inlining fonts
 435	      for (const char of element.originalText) {
 436	        if (!charsPerFamily[element.fontFamily]) {
 437	          charsPerFamily[element.fontFamily] = new Set();
 438	        }
-439	
+439
 440	        charsPerFamily[element.fontFamily].add(char);
 441	      }
 442	    }
-443	
+443
 444	    return charsPerFamily;
 445	  }
-446	
+446
 447	  /**
 448	   * Get characters for a given family.
 449	   */
@@ -2488,7 +2577,7 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 455	      ? Array.from(charsPerFamily[family]).join("")
 456	      : "";
 457	  }
-458	
+458
 459	  /**
 460	   * Get all registered font families.
 461	   */
@@ -2496,45 +2585,47 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:51Z)**_
 463	    return Array.from(Fonts.registered.keys());
 464	  }
 465	}
-466	
+466
 467	export interface ExcalidrawFontFaceDescriptor {
 468	  uri: string;
 469	  descriptors?: FontFaceDescriptors;
 470	}
 471
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:09:52Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\fonts\ExcalidrawFontFace.ts`
 
 ```text
 1	import { promiseTry, LOCAL_FONT_PROTOCOL } from "@excalidraw/common";
-2	
+2
 3	import { subsetWoff2GlyphsByCodepoints } from "../subset/subset-main";
-4	
+4
 5	type DataURL = string;
-6	
+6
 7	export class ExcalidrawFontFace {
 8	  public readonly urls: URL[] | DataURL[];
 9	  public readonly fontFace: FontFace;
-10	
+10
 11	  private static readonly ASSETS_FALLBACK_URL = `https://esm.sh/${
 12	    import.meta.env.PKG_NAME
 13	      ? `${import.meta.env.PKG_NAME}@${import.meta.env.PKG_VERSION}` // is provided during package build
 14	      : "@excalidraw/excalidraw" // fallback to the latest package version (i.e. for app)
 15	  }/dist/prod/`;
-16	
+16
 17	  constructor(family: string, uri: string, descriptors?: FontFaceDescriptors) {
 18	    this.urls = ExcalidrawFontFace.createUrls(uri);
-19	
+19
 20	    const sources = this.urls
 21	      .map((url) => `url(${url}) ${ExcalidrawFontFace.getFormat(url)}`)
 22	      .join(", ");
-23	
+23
 24	    this.fontFace = new FontFace(family, sources, {
 25	      display: "swap",
 26	      style: "normal",
@@ -2542,7 +2633,7 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:52Z)**_
 28	      ...descriptors,
 29	    });
 30	  }
-31	
+31
 32	  /**
 33	   * Generates CSS `@font-face` definition with the (subsetted) font source as a data url for the characters within the unicode range.
 34	   *
@@ -2553,17 +2644,17 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:52Z)**_
 39	    if (!this.getUnicodeRangeRegex().test(characters)) {
 40	      return;
 41	    }
-42	
+42
 43	    const codepoints = Array.from(characters).map(
 44	      (char) => char.codePointAt(0)!,
 45	    );
-46	
+46
 47	    return this.getContent(codepoints).then(
 48	      (content) =>
 49	        `@font-face { font-family: ${this.fontFace.family}; src: url(${content}); }`,
 50	    );
 51	  }
-52	
+52
 53	  /**
 54	   * Tries to fetch woff2 content, based on the registered urls (from first to last, treated as fallbacks).
 55	   *
@@ -2572,35 +2663,35 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:52Z)**_
 58	  public async getContent(codePoints: Array<number>): Promise<string> {
 59	    let i = 0;
 60	    const errorMessages = [];
-61	
+61
 62	    while (i < this.urls.length) {
 63	      const url = this.urls[i];
-64	
+64
 65	      try {
 66	        const arrayBuffer = await this.fetchFont(url);
 67	        const base64 = await subsetWoff2GlyphsByCodepoints(
 68	          arrayBuffer,
 69	          codePoints,
 70	        );
-71	
+71
 72	        return base64;
 73	      } catch (e) {
 74	        errorMessages.push(`"${url.toString()}" returned error "${e}"`);
 75	      }
-76	
+76
 77	      i++;
 78	    }
-79	
+79
 80	    console.error(
 81	      `Failed to fetch font family "${this.fontFace.family}"`,
 82	      JSON.stringify(errorMessages, undefined, 2),
 83	    );
-84	
+84
 85	    // in case of issues, at least return the last url as a content
 86	    // defaults to unpkg for bundled fonts (so that we don't have to host them forever) and http url for others
 87	    return this.urls.length ? this.urls[this.urls.length - 1].toString() : "";
 88	  }
-89	
+89
 90	  public fetchFont(url: URL | DataURL): Promise<ArrayBuffer> {
 91	    return promiseTry(async () => {
 92	      const response = await fetch(url, {
@@ -2612,19 +2703,19 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:52Z)**_
 98	          Accept: "font/woff2",
 99	        },
 100	      });
-101	
+101
 102	      if (!response.ok) {
 103	        const urlString = url instanceof URL ? url.toString() : "dataurl";
 104	        throw new Error(
 105	          `Failed to fetch "${urlString}": ${response.statusText}`,
 106	        );
 107	      }
-108	
+108
 109	      const arrayBuffer = await response.arrayBuffer();
 110	      return arrayBuffer;
 111	    });
 112	  }
-113	
+113
 114	  private getUnicodeRangeRegex() {
 115	    // using \u{h} or \u{hhhhh} to match any number of hex digits,
 116	    // otherwise we would get an "Invalid Unicode escape" error
@@ -2636,39 +2727,39 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:52Z)**_
 122	        if (end) {
 123	          return `\\u{${start}}-\\u{${end}}`;
 124	        }
-125	
+125
 126	        return `\\u{${start}}`;
 127	      })
 128	      .join("");
-129	
+129
 130	    return new RegExp(`[${unicodeRangeRegex}]`, "u");
 131	  }
-132	
+132
 133	  private static createUrls(uri: string): URL[] | DataURL[] {
 134	    if (uri.startsWith("data")) {
 135	      // don't create the URL instance, as parsing the huge dataurl string is expensive
 136	      return [uri];
 137	    }
-138	
+138
 139	    if (uri.startsWith(LOCAL_FONT_PROTOCOL)) {
 140	      // no url for local fonts
 141	      return [];
 142	    }
-143	
+143
 144	    if (uri.startsWith("http")) {
 145	      // one url for http imports or data url
 146	      return [new URL(uri)];
 147	    }
-148	
+148
 149	    // absolute assets paths, which are found in tests and excalidraw-app build, won't work with base url, so we are stripping initial slash away
 150	    const assetUrl: string = uri.replace(/^\/+/, "");
 151	    const urls: URL[] = [];
-152	
+152
 153	    if (typeof window.EXCALIDRAW_ASSET_PATH === "string") {
 154	      const normalizedBaseUrl = this.normalizeBaseUrl(
 155	        window.EXCALIDRAW_ASSET_PATH,
 156	      );
-157	
+157
 158	      urls.push(new URL(assetUrl, normalizedBaseUrl));
 159	    } else if (Array.isArray(window.EXCALIDRAW_ASSET_PATH)) {
 160	      window.EXCALIDRAW_ASSET_PATH.forEach((path) => {
@@ -2676,35 +2767,35 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:52Z)**_
 162	        urls.push(new URL(assetUrl, normalizedBaseUrl));
 163	      });
 164	    }
-165	
+165
 166	    // fallback url for bundled fonts
 167	    urls.push(new URL(assetUrl, ExcalidrawFontFace.ASSETS_FALLBACK_URL));
-168	
+168
 169	    return urls;
 170	  }
-171	
+171
 172	  private static getFormat(url: URL | DataURL) {
 173	    if (!(url instanceof URL)) {
 174	      // format is irrelevant for data url
 175	      return "";
 176	    }
-177	
+177
 178	    try {
 179	      const parts = new URL(url).pathname.split(".");
-180	
+180
 181	      if (parts.length === 1) {
 182	        return "";
 183	      }
-184	
+184
 185	      return `format('${parts.pop()}')`;
 186	    } catch (error) {
 187	      return "";
 188	    }
 189	  }
-190	
+190
 191	  private static normalizeBaseUrl(baseUrl: string) {
 192	    let result = baseUrl;
-193	
+193
 194	    // in case user passed a root-relative url (~absolute path),
 195	    // like "/" or "/some/path", or relative (starts with "./"),
 196	    // prepend it with `location.origin`
@@ -2714,15 +2805,16 @@ _**Agent (claude-opus-5-5 2026-11-13 01:09:52Z)**_
 200	        window?.location?.origin,
 201	      ).toString();
 202	    }
-203	
+203
 204	    // ensure there is a trailing slash, otherwise url won't be correctly concatenated
 205	    result = `${result.replace(/\/+$/, "")}/`;
-206	
+206
 207	    return result;
 208	  }
 209	}
 210
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:09:58Z)**_
@@ -2732,6 +2824,7 @@ Before proposing step 2, I'll check whether adding entries to the registry chang
 _**Agent (claude-opus-5-5 2026-11-13 01:10:00Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read picker font list logic and find font tests
 
@@ -2852,6 +2945,7 @@ export const FontPickerList = React.memo(
 packages/excalidraw/tests/contextmenu.test.tsx
 packages/excalidraw/tests/fitToContent.test.tsx
 ```
+
 </details></tool-use>
 
 ---
@@ -2871,6 +2965,7 @@ stage for me
 _**Agent (claude-opus-5-5 2026-11-13 01:10:11Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Stage step 1 files and show staged status
 
@@ -2885,6 +2980,7 @@ A  packages/common/src/customFonts.test.ts
 M  packages/common/src/utils.ts
 M  packages/excalidraw/types.ts
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:10:15Z)**_
@@ -2921,6 +3017,7 @@ _**Agent (claude-opus-5-5 2026-11-13 01:14:48Z)**_
 Only at a high level. The button came up in the original plan, but we never pinned down its details.
 
 **What we've covered so far:**
+
 - **The issue's scenario:** the user opens the font picker, clicks a new "add font" button, uploads a WOFF2 file, and the font appears in the picker and is applied to the selected text.
 - **My step 5 outline:** an "Upload font…" entry and a "Custom" section in the font picker list.
 - **Your decisions:**
@@ -2930,6 +3027,7 @@ Only at a high level. The button came up in the original plan, but we never pinn
   - Collaboration sync is out of scope.
 
 **What we haven't decided:**
+
 1. **Where the button goes.** Options:
    - Pinned at the bottom of the font picker dropdown, always visible.
    - At the top of the "Custom" section.
@@ -2941,6 +3039,7 @@ Only at a high level. The button came up in the original plan, but we never pinn
 6. **Keyboard access.** Should the button work with the picker's existing arrow-key navigation and search?
 
 My recommendation:
+
 - Pin the button at the bottom of the picker dropdown, outside the search filtering.
 - File dialog first, then one small dialog with the name field and the license checkbox.
 - Apply the font to the selected text, or make it the default for new text when nothing is selected.
@@ -2965,6 +3064,7 @@ OK, I'll leave those decisions until steps 3–5 and start step 2 now. Your stag
 _**Agent (claude-opus-5-5 2026-11-13 01:15:23Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check FontFace mocks in test setup and FontMetadata usages
 
@@ -2983,11 +3083,13 @@ packages/excalidraw/fonts/Fonts.ts:332:            { metadata: FontMetadata; fon
 packages/excalidraw/fonts/Fonts.ts:336:    metadata: FontMetadata,
 packages/excalidraw/fonts/Fonts.ts:366:        { metadata: FontMetadata; fontFaces: ExcalidrawFontFace[] }
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:15:25Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read FontFace and document.fonts mocks
 
@@ -3071,6 +3173,7 @@ const _consoleError = console.error.bind(console);
 console.error = (...args) => {
   // the react's act() warning usually doesn't contain any useful stack trace
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:15:30Z)**_
@@ -3080,31 +3183,37 @@ The test setup mocks `document.fonts` without a `delete` method, and its `has()`
 _**Agent (claude-opus-5-5 2026-11-13 01:15:41Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\common\src\font-metadata.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:15:42Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\fonts\Fonts.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:15:43Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\fonts\Fonts.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:15:45Z)**_
@@ -3114,26 +3223,31 @@ Next, the picker label, so a custom font shows its user-facing name instead of t
 _**Agent (claude-opus-5-5 2026-11-13 01:15:51Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\FontPicker\FontPickerList.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:15:52Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\FontPicker\FontPickerList.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:15:52Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check picker imports
 
@@ -3164,16 +3278,19 @@ Check picker imports
 48:import type { JSX } from "react";
 49:import type { ExcalidrawFontFace } from "../../fonts/ExcalidrawFontFace";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:15:55Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\FontPicker\FontPickerList.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:16:03Z)**_
@@ -3183,6 +3300,7 @@ Now the step 2 tests. Each expected value is written out as a literal.
 _**Agent (claude-opus-5-5 2026-11-13 01:16:20Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -3294,8 +3412,12 @@ describe("Fonts custom font registry (#140)", () => {
     it("clears only that font's entries from the loaded fonts cache", () => {
       Fonts.registerCustomFont({ id: 2007, name: "A", dataURL: DATA_URL });
       Fonts.registerCustomFont({ id: 2042, name: "B", dataURL: DATA_URL });
-      Fonts.loadedFontsCache.add("ExcalidrawCustomFont-2007-normal-400-U+0-10FFFF");
-      Fonts.loadedFontsCache.add("ExcalidrawCustomFont-2042-normal-400-U+0-10FFFF");
+      Fonts.loadedFontsCache.add(
+        "ExcalidrawCustomFont-2007-normal-400-U+0-10FFFF",
+      );
+      Fonts.loadedFontsCache.add(
+        "ExcalidrawCustomFont-2042-normal-400-U+0-10FFFF",
+      );
       Fonts.loadedFontsCache.add("Excalifont-normal-400-U+0-10FFFF");
 
       Fonts.unregisterCustomFont(2007);
@@ -3318,17 +3440,18 @@ describe("Fonts custom font registry (#140)", () => {
     });
   });
 });
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\packages\excalidraw\fonts\Fonts.test.ts (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:16:44Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Format files and run registry and picker tests
 
@@ -3352,18 +3475,19 @@ Format files and run registry and picker tests
       Tests ** **1 failed** | ****9 passed** (10)
 [This command modified 2 files you've previously read: packages\excalidraw\fonts\Fonts.test.ts, packages\excalidraw\fonts\Fonts.ts. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:16:48Z)**_
 
-<think><details><summary>Thought Process</summary>
-The test failure was my mistake, not the code's: `.sort()` orders "ExcalidrawCustomFont-…" before "Excalifont-…", so I'll compare without relying on order.
+<think><details><summary>Thought Process</summary> The test failure was my mistake, not the code's: `.sort()` orders "ExcalidrawCustomFont-…" before "Excalifont-…", so I'll compare without relying on order.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:16:49Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `c:\excalidraw\packages\excalidraw\fonts\Fonts.test.ts` pattern `sort\(\)|toEqual\(\[$|"Excalifont-normal|"ExcalidrawCustomFont-2042-normal`
 
@@ -3374,38 +3498,44 @@ _**Agent (claude-opus-5-5 2026-11-13 01:16:49Z)**_
 120:        "Excalifont-normal-400-U+0-10FFFF",
 121:        "ExcalidrawCustomFont-2042-normal-400-U+0-10FFFF",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:16:51Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\fonts\Fonts.test.ts`
 
 ```text
 117	      Fonts.unregisterCustomFont(2007);
-118	
+118
 119	      expect(Array.from(Fonts.loadedFontsCache).sort()).toEqual([
 120	        "Excalifont-normal-400-U+0-10FFFF",
 121	        "ExcalidrawCustomFont-2042-normal-400-U+0-10FFFF",
 122	      ]);
 123	    });
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:16:56Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\fonts\Fonts.test.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:17:42Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Rerun tests, typecheck, prettier and eslint
 
@@ -3419,6 +3549,7 @@ Rerun tests, typecheck, prettier and eslint
 Checking formatting...
 All matched files use Prettier code style!
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:17:45Z)**_
@@ -3428,6 +3559,7 @@ Everything passes. Before writing it up, I'll also run the existing export tests
 _**Agent (claude-opus-5-5 2026-11-13 01:18:10Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run existing export tests for regressions
 
@@ -3439,16 +3571,19 @@ export.test.ts
  Test Files ** **2 passed** (2)
       Tests ** **26 passed** (26)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:18:15Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\ab200\.claude\projects\c--excalidraw\memory\custom-fonts-issue-140.md has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:18:25Z)**_
@@ -3456,6 +3591,7 @@ _**Agent (claude-opus-5-5 2026-11-13 01:18:25Z)**_
 Step 2 is done. The 9 new registry tests pass, along with the step 1 tests, the existing font picker test and the 26 existing export tests. Typecheck, ESLint and Prettier are clean. The step 2 changes are unstaged, so they won't mix with your staged step 1 commit.
 
 **What changed:**
+
 - **[Fonts.ts](packages/excalidraw/fonts/Fonts.ts):**
   - `Fonts.registerCustomFont({ id, name, dataURL })` adds a custom font to the registry under its internal CSS name (`ExcalidrawCustomFont-<id>`), using Excalifont's metrics.
     - It throws for IDs outside the custom range, so a built-in font can't be overwritten.
@@ -3470,11 +3606,12 @@ Step 2 is done. The 9 new registry tests pass, along with the step 1 tests, the 
 **Test Evidence for step 2:**
 
 | Acceptance criterion | Test(s) | Level | Source of expected value |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Groundwork for A/C: an uploaded font can be registered | `registerCustomFont()` tests (5) | Unit | The CSS name follows the step 1 naming scheme. The metrics are Excalifont's values from `FONT_METADATA`. The ID boundaries (1999 rejected, 2000 accepted) come from the range start. |
 | Groundwork for removing fonts | `unregisterCustomFont()` tests (4) | Unit | Expected behaviour as described in this step: removed from the registry and the document, only that font's cache entries cleared, built-in fonts protected. |
 
 **Not tested automatically:**
+
 - The picker label change. The label function isn't exported, and the picker can't show a custom font until step 5, so I'll test it there.
 - Loading the font in a real browser. The test setup mocks `FontFace` and `document.fonts`, so that will need a manual check once uploading exists.
 
@@ -3513,6 +3650,7 @@ stage step 2!
 _**Agent (claude-opus-5-5 2026-11-13 01:24:07Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check commits and stage step 2 files
 
@@ -3529,6 +3667,7 @@ M  packages/excalidraw/components/FontPicker/FontPickerList.tsx
 A  packages/excalidraw/fonts/Fonts.test.ts
 M  packages/excalidraw/fonts/Fonts.ts
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:24:10Z)**_
@@ -3563,11 +3702,13 @@ A pinned footer works well. It stays visible no matter how far the list is scrol
 _**Agent (claude-opus-5-5 2026-11-13 01:28:15Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\ab200\.claude\projects\c--excalidraw\memory\custom-fonts-issue-140.md has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:28:20Z)**_
@@ -3588,7 +3729,7 @@ Are these defaults OK, or do you want to change any? Once they're settled, step 
 
 _**User (2026-11-13 01:32:03Z)**_
 
-on click, remove font should function as a toggle (color the button the same light purple as other toggles in excalidraw. the next time you click a font, a small box pops up asking 'are you sure you want to remove this font, and saying 'yes' removes it, similar to your solution proposed in second. also can't remove built in fonts.  for 3 and 4, i agree with your statements
+on click, remove font should function as a toggle (color the button the same light purple as other toggles in excalidraw. the next time you click a font, a small box pops up asking 'are you sure you want to remove this font, and saying 'yes' removes it, similar to your solution proposed in second. also can't remove built in fonts. for 3 and 4, i agree with your statements
 
 ---
 
@@ -3599,6 +3740,7 @@ Got it. I'll record these decisions:
 _**Agent (claude-opus-5-5 2026-11-13 01:32:18Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
@@ -3606,11 +3748,13 @@ _**Agent (claude-opus-5-5 2026-11-13 01:32:18Z)**_
 String: Remaining upload UX (placement, dialog flow, apply-on-upload, size limit/errors, delete UI, keyboard nav) deliberately deferred — user wants to decide these at steps 3–5, not before.
 (note: Edit also tried swapping \uXXXX escapes and their characters; neither form matched, so the mismatch is likely elsewhere in old_string. Re-read the file and copy the exact surrounding text.)</tool_use_error>
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:32:19Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 List helpers exported from blob.ts
 
@@ -3642,11 +3786,13 @@ List helpers exported from blob.ts
 530:export const normalizeFile = async (file: File) => {
 555:export const blobToArrayBuffer = (blob: Blob): Promise<ArrayBuffer> => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:32:23Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read memory file tail and blob helpers
 
@@ -3721,11 +3867,13 @@ export const blobToArrayBuffer = (blob: Blob): Promise<ArrayBuffer> => {
   });
 };
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:32:35Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read getDataURL_sync and check font MIME constants
 
@@ -3744,11 +3892,13 @@ export const getDataURL_sync = (
 
 export const dataURLToFile = (dataURL: DataURL, filename = "") => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:32:36Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```markdown
@@ -3762,12 +3912,14 @@ metadata:
 Issue #140 "Add More Font Options" (Sprint 3): users upload their own fonts, pick them in FontPicker, render in editor + export. Branch feat/issue-140-custom-fonts.
 
 User decisions (2026-11-12):
+
 - Removing custom fonts: IN scope (step 9).
 - File types: WOFF/WOFF2 only — no TTF/OTF (too large/uncompressed).
 - Collaboration sync of custom fonts: OUT of scope; fonts persist in scene JSON only.
 - Licensing: checkbox acknowledgment on upload + warning on export is enough (no fsType parsing).
 
 UX decisions (2026-11-12):
+
 - Upload + Remove buttons in a footer pinned at the bottom of the font picker dropdown, below the scrollable list.
 - Remove is a TOGGLE button (active = same light purple as other Excalidraw toggles). While on, clicking a font row pops a small confirm "Are you sure you want to remove this font?" (mention # text elements using it → they fall back to Excalifont); Yes removes. Built-in fonts can't be removed.
 - Upload: file dialog filtered to .woff/.woff2 → small dialog with name (default = file name) + license checkbox (Add disabled until ticked) → apply to selected text, or make it the current font if nothing selected.
@@ -3777,12 +3929,12 @@ UX decisions (2026-11-12):
 Plan steps: 1 data model/ID range, 2 runtime Fonts.registerCustomFont, 3 upload+validation (file logic only), 4 license/upload dialog, 5 picker UI footer, 6 persistence/restore, 7 export, 8 fallback for other scripts, 9 removal.
 
 **How to apply:** work one step per commit, stop between steps ([[feedback-small-stages]]); never commit ([[feedback-no-commits]]); fill [[feedback-test-evidence-template]] per step.
-
 ```
 
 ```text
 The file C:\Users\ab200\.claude\projects\c--excalidraw\memory\custom-fonts-issue-140.md has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:32:50Z)**_
@@ -3792,6 +3944,7 @@ Memory is updated. Before writing step 3, I'll check that step 2 has been commit
 _**Agent (claude-opus-5-5 2026-11-13 01:32:51Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check whether step 2 is committed
 
@@ -3805,6 +3958,7 @@ b4940e30 Merge pull request #151 from CSCI-435-SE/docs/showcase2
  M dev-docs/package.json
  M dev-docs/yarn.lock
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:32:53Z)**_
@@ -3814,6 +3968,7 @@ Step 2 is committed, so I'll start step 3: the file-handling logic only, with no
 _**Agent (claude-opus-5-5 2026-11-13 01:33:07Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -3838,7 +3993,10 @@ export const CUSTOM_FONT_DEFAULT_NAME = "Custom font";
 const WOFF_SIGNATURE = 0x774f4646; // "wOFF"
 const WOFF2_SIGNATURE = 0x774f4632; // "wOF2"
 
-export type CustomFontErrorCode = "tooLarge" | "unsupportedType" | "invalidFont";
+export type CustomFontErrorCode =
+  | "tooLarge"
+  | "unsupportedType"
+  | "invalidFont";
 
 export class CustomFontError extends Error {
   public readonly code: CustomFontErrorCode;
@@ -3941,24 +4099,24 @@ export const loadCustomFontFile = async (
     created: Date.now(),
   };
 };
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\packages\excalidraw\data\customFonts.ts (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:33:19Z)**_
 
-<think><details><summary>Thought Process</summary>
-I'm working out the test IDs by hand from the djb2 formula, and I'm building the expected data URL with btoa rather than the code under test.
+<think><details><summary>Thought Process</summary> I'm working out the test IDs by hand from the djb2 formula, and I'm building the expected data URL with btoa rather than the code under test.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:33:43Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -4152,17 +4310,18 @@ describe("custom font file handling (#140)", () => {
     });
   });
 });
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\packages\excalidraw\data\customFonts.test.ts (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:33:57Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Format and run step 3 tests
 
@@ -4172,6 +4331,7 @@ Format and run step 3 tests
       Tests ** **17 passed** (17)
 [This command modified 1 file you've previously read: packages\excalidraw\data\customFonts.ts. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:33:58Z)**_
@@ -4181,6 +4341,7 @@ All 17 pass. Next, typecheck and lint:
 _**Agent (claude-opus-5-5 2026-11-13 01:34:25Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Typecheck and lint step 3 files
 
@@ -4200,6 +4361,7 @@ C:\excalidraw\packages\excalidraw\data\customFonts.ts
 
 ESLint found too many warnings (maximum: 0).
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:34:28Z)**_
@@ -4209,16 +4371,19 @@ Two small fixes: a type annotation in the test helper, and import order in the m
 _**Agent (claude-opus-5-5 2026-11-13 01:34:33Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\data\customFonts.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:35:20Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Fix lint, re-run typecheck, lint and tests
 
@@ -4245,6 +4410,7 @@ LINT_OK
       Tests ** **32 passed** (32)
 [This command modified 1 file you've previously read: packages\excalidraw\data\customFonts.ts. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:35:34Z)**_
@@ -4252,6 +4418,7 @@ _**Agent (claude-opus-5-5 2026-11-13 01:35:34Z)**_
 I've recorded your remove and upload decisions in memory and written step 3. It's the file-handling logic only, with no UI yet. The 17 new tests pass, and so do all 32 custom-font tests across steps 1–3. Typecheck and lint are clean. Nothing is staged.
 
 **What's in the new module, [customFonts.ts](packages/excalidraw/data/customFonts.ts):**
+
 - **`loadCustomFontFile(file)`** reads an uploaded file, checks it, and returns the font data for the upload dialog:
   1. Files over 5 MB are rejected (`tooLarge`).
   2. The first 4 bytes must be the WOFF (`wOFF`) or WOFF2 (`wOF2`) signature, otherwise it's rejected (`unsupportedType`). The extension and the browser's reported file type are ignored, because browsers fill those in unreliably for fonts. TTF and OTF are rejected this way.
@@ -4264,7 +4431,7 @@ I've recorded your remove and upload decisions in memory and written step 3. It'
 **Test Evidence for step 3:**
 
 | Acceptance criterion | Test(s) | Level | Source of expected value |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | A: users can add fonts from a WOFF/WOFF2 file | `loadCustomFontFile()`: WOFF2, WOFF, signature beats extension, name trimming and default | Unit | The data URL is built independently with `btoa`. The `font/woff` and `font/woff2` types and the signatures come from the W3C WOFF and WOFF2 specs. |
 | A: only WOFF/WOFF2 allowed (your decision) | `detectCustomFontMimeType()` tests, TTF/OTF rejection | Unit | Standard file signatures: TrueType starts with `00 01 00 00`, OpenType with `OTTO`. |
 | A: 5 MB limit (your decision) | Exactly 5 MB accepted, 5 MB + 1 byte rejected | Unit (boundary) | Your 5 MB decision. |
@@ -4305,6 +4472,7 @@ If all four survived with the same test count, the likely cause is that your ter
 _**Agent (claude-opus-5-5 2026-11-13 01:42:06Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Run the four step 3 mutants with current helper
 
@@ -4319,7 +4487,7 @@ Mutation applied. Running packages/excalidraw/data/customFonts.test.ts ...
    ❯ packages/excalidraw/data/customFonts.test.ts (17 tests | 1 failed) 37ms
      ✓ custom font file handling (#140) > loadCustomFontFile() > doesn't try to parse files that fail the size or type checks
   ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
-   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > loadCustomFontFile() > 
+   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > loadCustomFontFile() >
   AssertionError: promise rejected "CustomFontError: Font file is 5242880 byt… { code: '…' }" instead of resolving
    Test Files  1 failed (1)
         Tests  1 failed | 16 passed (17)
@@ -4340,22 +4508,22 @@ Mutation applied. Running packages/excalidraw/data/customFonts.test.ts ...
        → expected CustomFontError: Only WOFF and WOFF2 font… { code: '…' } to match object { code: 'invalidFont' }
      ✓ custom font file handling (#140) > loadCustomFontFile() > doesn't try to parse files that fail the size or type checks
   ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
-   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > detectCustomFontMimeType() > 
+   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > detectCustomFontMimeType() >
   AssertionError: expected null to be 'font/woff2' // Object.is equality
-  - Expected: 
-  + Received: 
-   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > detectCustomFontMimeType() > 
+  - Expected:
+  + Received:
+   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > detectCustomFontMimeType() >
   AssertionError: expected null to be 'font/woff2' // Object.is equality
-  - Expected: 
-  + Received: 
-   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > loadCustomFontFile() > 
-   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > loadCustomFontFile() > trusts 
-   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > loadCustomFontFile() > gives 
-   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > loadCustomFontFile() > trims 
-   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > loadCustomFontFile() > 
+  - Expected:
+  + Received:
+   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > loadCustomFontFile() >
+   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > loadCustomFontFile() > trusts
+   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > loadCustomFontFile() > gives
+   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > loadCustomFontFile() > trims
+   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > loadCustomFontFile() >
   AssertionError: promise rejected "CustomFontError: Only WOFF and WOFF2 font… { code: '…' }" instead of resolving
-   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > loadCustomFontFile() > 
-  AssertionError: expected CustomFontError: Only WOFF and WOFF2 font… { code: '…' } to match object { code: 
+   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > loadCustomFontFile() >
+  AssertionError: expected CustomFontError: Only WOFF and WOFF2 font… { code: '…' } to match object { code:
   - Expected
   + Received
    Test Files  1 failed (1)
@@ -4374,7 +4542,7 @@ Mutation applied. Running packages/excalidraw/data/customFonts.test.ts ...
    ❯ packages/excalidraw/data/customFonts.test.ts (17 tests | 1 failed) 78ms
      ✓ custom font file handling (#140) > loadCustomFontFile() > doesn't try to parse files that fail the size or type checks
   ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
-   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > detectCustomFontMimeType() > 
+   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > detectCustomFontMimeType() >
    Test Files  1 failed (1)
         Tests  1 failed | 16 passed (17)
      Duration  8.27s (transform 1.76s, setup 2.15s, collect 3.41s, tests 78ms, environment 1.94s, prepare 227ms)
@@ -4392,7 +4560,7 @@ Mutation applied. Running packages/excalidraw/data/customFonts.test.ts ...
        → expected 93478 to be 179574 // Object.is equality
      ✓ custom font file handling (#140) > loadCustomFontFile() > doesn't try to parse files that fail the size or type checks
   ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
-   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > getCustomFontFamilyId() > 
+   FAIL  packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > getCustomFontFamilyId() >
   AssertionError: expected 93478 to be 179574 // Object.is equality
   - Expected
   + Received
@@ -4404,6 +4572,7 @@ Original file restored
 ?? packages/excalidraw/data/customFonts.test.ts
 ?? packages/excalidraw/data/customFonts.ts
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:42:13Z)**_
@@ -4411,7 +4580,7 @@ _**Agent (claude-opus-5-5 2026-11-13 01:42:13Z)**_
 No, a mutation isn't meant to pass. A surviving mutant means no test noticed the change. All four mutants are killed when run with the current helper, so the tests are fine:
 
 | Mutant | Tests failed (of 17) | Caught by |
-|---|---|---|
+| --- | --- | --- |
 | `>` → `>=` on the size limit | 1 | The "exactly 5 MB is accepted" test |
 | WOFF2 signature `…32` → `…33` | 8 | Every test that uses a WOFF2 file |
 | `< 4` → `< 3` on the length check | 1 | The "shorter than 4 bytes" test |
@@ -4468,6 +4637,7 @@ I'll do both. The helper will list every failing test by full name with its expe
 _**Agent (claude-opus-5-5 2026-11-13 01:48:43Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```ps1
@@ -4528,11 +4698,13 @@ function Mutate($file, $from, $to, $test = "packages/common/src/customFonts.test
 ```text
 The file C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\mutate.ps1 has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:49:03Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Test helper listing full failing test names
 
@@ -4578,6 +4750,7 @@ Original file restored
 ?? packages/excalidraw/data/customFonts.test.ts
 ?? packages/excalidraw/data/customFonts.ts
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:49:05Z)**_
@@ -4587,6 +4760,7 @@ The helper now lists every failing test by full name. I'll save this as a standi
 _**Agent (claude-opus-5-5 2026-11-13 01:49:10Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```markdown
@@ -4602,17 +4776,18 @@ When giving mutants to try, or reporting mutation/test results, always outline w
 **Why:** user said (2026-11-12) "make sure you outline which cases are failing going forward so I don't have to figure it out myself." Truncated vitest output and bare counts left them guessing (and an old helper version silently ran the wrong test file).
 
 **How to apply:** for each suggested mutant, run it first and report a table: mutant → result → names of failing tests. Don't present unrun predictions as results. The PowerShell `Mutate` helper (scratchpad mutate.ps1, uses vitest `--reporter=json`) prints full failing test names; the 4th arg selects the test file. Related: [[feedback-test-evidence-template]], [[custom-fonts-issue-140]].
-
 ```
 
 ```text
 File created successfully at: C:\Users\ab200\.claude\projects\c--excalidraw\memory\feedback-name-failing-tests.md
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:49:11Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Add memory index line
 
@@ -4621,6 +4796,7 @@ Add memory index line
 ```text
 (Bash completed with no output)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:49:20Z)**_
@@ -4628,6 +4804,7 @@ _**Agent (claude-opus-5-5 2026-11-13 01:49:20Z)**_
 Updated, and saved as a standing preference: from now on I'll run every mutant before suggesting it and list which tests fail.
 
 **The helper now:**
+
 - Shows which test file it's running, so a wrong file is easy to spot.
 - Reports the count ("Ran 17 tests: 8 failed, 9 passed").
 - Numbers each failing test with its full name and first error line.
@@ -4642,7 +4819,7 @@ I tested it on a killed mutant and a surviving one. Reload it in your terminal w
 **Failing tests for the four step 3 mutants** (from my runs, all against [customFonts.test.ts](packages/excalidraw/data/customFonts.test.ts)):
 
 | Mutant | Result | Failing tests |
-|---|---|---|
+| --- | --- | --- |
 | `file.size > LIMIT` → `>=` | KILLED (1 of 17) | `loadCustomFontFile()` › accepts a file exactly at the 5 MB limit: the 5,242,880-byte file was rejected when it should have been accepted |
 | WOFF2 signature `0x774f4632` → `0x774f4633` | KILLED (8 of 17) | `detectCustomFontMimeType()` › detects WOFF2 and WOFF from the file signature<br>`detectCustomFontMimeType()` › reads the signature from the start of a subarray view<br>`loadCustomFontFile()` › returns the font data for a valid WOFF2 file<br>`loadCustomFontFile()` › trusts the file signature over the extension and reported type<br>`loadCustomFontFile()` › gives the same id to the same font uploaded under different names<br>`loadCustomFontFile()` › trims the name and falls back to a default when it's empty<br>`loadCustomFontFile()` › accepts a file exactly at the 5 MB limit<br>`loadCustomFontFile()` › rejects files the browser can't load with an invalidFont error (it got `unsupportedType` first) |
 | `bytes.length < 4` → `< 3` | KILLED (1 of 17) | `detectCustomFontMimeType()` › rejects inputs shorter than the 4-byte signature: the 3-byte input should return nothing |
@@ -4667,16 +4844,19 @@ Print statements inside the tests wouldn't do this reliably. A test can't know i
 _**Agent (claude-opus-5-5 2026-11-13 01:51:15Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\mutate.ps1 has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:51:37Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Test helper PASS/FAIL listing and verbose reporter
 
@@ -4711,19 +4891,20 @@ Ran 17 tests: 1 failed, 16 passed
 RESULT: KILLED (a test failed, which is what we want)
 Original file restored
 
- ✓ packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > detectCustomFontMimeType() > 
+ ✓ packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > detectCustomFontMimeType() >
 detects WOFF2 and WOFF from the file signature
- ✓ packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > detectCustomFontMimeType() > 
+ ✓ packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > detectCustomFontMimeType() >
 rejects TTF, OTF and other files
- ✓ packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > detectCustomFontMimeType() > 
+ ✓ packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > detectCustomFontMimeType() >
 rejects inputs shorter than the 4-byte signature
- ✓ packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > detectCustomFontMimeType() > 
+ ✓ packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > detectCustomFontMimeType() >
 reads the signature from the start of a subarray view
- ✓ packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > getCustomFontFamilyId() > matches 
+ ✓ packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > getCustomFontFamilyId() > matches
 hand-computed djb2 values offset by the custom range
- ✓ packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > getCustomFontFamilyId() > gives 
+ ✓ packages/excalidraw/data/customFonts.test.ts > custom font file handling (#140) > getCustomFontFamilyId() > gives
 the same id for the same bytes and different ids otherwise
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:51:39Z)**_
@@ -4733,11 +4914,13 @@ Both work. The exit code 255 comes from cutting my preview short with `Select-Ob
 _**Agent (claude-opus-5-5 2026-11-13 01:51:42Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\ab200\.claude\projects\c--excalidraw\memory\feedback-name-failing-tests.md has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:51:48Z)**_
@@ -4789,6 +4972,7 @@ Mostly, but my preview of the verbose run was cut short, so I'll run it in full 
 _**Agent (claude-opus-5-5 2026-11-13 01:57:34Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Run full verbose tests and confirm file restored
 
@@ -4802,6 +4986,7 @@ exit: 0
 packages\excalidraw\data\customFonts.ts:51:  if (bytes.length < 4) {
 False
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:57:37Z)**_
@@ -4829,7 +5014,7 @@ Sorry, I gave you a summary again instead of the per-test breakdown. Here are th
 **Run 1: mutant `bytes.length < 4` → `bytes.length < 3`. Result: KILLED, 1 failed and 16 passed.**
 
 | # | Test | Result |
-|---|---|---|
+| --- | --- | --- |
 | 1 | detectCustomFontMimeType › detects WOFF2 and WOFF from the file signature | PASS |
 | 2 | detectCustomFontMimeType › rejects TTF, OTF and other files | PASS |
 | 3 | detectCustomFontMimeType › rejects inputs shorter than the 4-byte signature | **FAIL**: `RangeError: Offset is outside the bounds of the DataView` (the 3-byte input got past the length check) |
@@ -4869,6 +5054,7 @@ I won't merge anything into `master`. The feature is only three steps into nine,
 _**Agent (claude-opus-5-5 2026-11-13 01:58:33Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Stage step 3 and survey dialog components and font locale strings
 
@@ -4923,18 +5109,19 @@ TextHyperlinkDialog.tsx
 797-    "previousPage": "Previous page",
 798-    "nextPage": "Next page",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:58:35Z)**_
 
-<think><details><summary>Thought Process</summary>
-Step 3 is staged; I'm reading the recent TextHyperlinkDialog and its shared pieces as a pattern for the upload dialog.
+<think><details><summary>Thought Process</summary> Step 3 is staged; I'm reading the recent TextHyperlinkDialog and its shared pieces as a pattern for the upload dialog.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:58:37Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read dialog, checkbox, textfield and button components
 
@@ -5195,18 +5382,19 @@ textHyperlinks.test.tsx
 ../wysiwyg/textWysiwyg.test.tsx
 ../wysiwyg/textWysiwyg.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:58:46Z)**_
 
-<think><details><summary>Thought Process</summary>
-I'm building step 4 as a standalone `CustomFontUploadDialog` based on `TextHyperlinkDialog`, and I'll check how that dialog is tested before writing it.
+<think><details><summary>Thought Process</summary> I'm building step 4 as a standalone `CustomFontUploadDialog` based on `TextHyperlinkDialog`, and I'll check how that dialog is tested before writing it.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:58:48Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect hyperlink dialog tests, locale strings and styles
 
@@ -5252,11 +5440,13 @@ Inspect hyperlink dialog tests, locale strings and styles
   }
 }
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:58:51Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check Dialog component context dependencies
 
@@ -5288,18 +5478,19 @@ Check Dialog component context dependencies
 134:      </Island>
 135:    </Modal>
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:58:56Z)**_
 
-<think><details><summary>Thought Process</summary>
-The step 4 tests will use a simple stand-in for `Dialog`, since it depends on the editor's context, and the real chrome gets covered in step 5. Writing the component next.
+<think><details><summary>Thought Process</summary> The step 4 tests will use a simple stand-in for `Dialog`, since it depends on the editor's context, and the real chrome gets covered in step 5. Writing the component next.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:59:10Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -5360,8 +5551,7 @@ export const CustomFontUploadDialog = ({
         if (!cancelled) {
           setState({
             status: "error",
-            code:
-              error instanceof CustomFontError ? error.code : "invalidFont",
+            code: error instanceof CustomFontError ? error.code : "invalidFont",
           });
         }
       });
@@ -5447,17 +5637,18 @@ export const CustomFontUploadDialog = ({
     </Dialog>
   );
 };
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\packages\excalidraw\components\CustomFontUploadDialog.tsx (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:59:11Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```scss
@@ -5487,17 +5678,18 @@ _**Agent (claude-opus-5-5 2026-11-13 01:59:11Z)**_
     }
   }
 }
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\packages\excalidraw\components\CustomFontUploadDialog.scss (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:59:11Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Verify CSS variables and locale buttons section
 
@@ -5511,6 +5703,7 @@ packages/excalidraw/css/theme.scss:99:  --color-gray-60: #7a7a7a;
 packages/excalidraw/css/theme.scss:131:  --color-muted-darker: var(--color-gray-60);
 288:  "buttons": {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:59:13Z)**_
@@ -5520,11 +5713,13 @@ Both CSS variables exist. Next, the English strings, placed after the `textHyper
 _**Agent (claude-opus-5-5 2026-11-13 01:59:16Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\locales\en.json has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:59:21Z)**_
@@ -5534,6 +5729,7 @@ Now the tests. First I'll check whether `t()` returns the English strings in a b
 _**Agent (claude-opus-5-5 2026-11-13 01:59:23Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check i18n defaults and existing component tests
 
@@ -5549,6 +5745,7 @@ Check i18n defaults and existing component tests
 141:    findPartsForData(currentLangData, parts) ||
 packages/excalidraw/components/Trans.test.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 01:59:24Z)**_
@@ -5558,6 +5755,7 @@ _**Agent (claude-opus-5-5 2026-11-13 01:59:24Z)**_
 _**Agent (claude-opus-5-5 2026-11-13 01:59:47Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -5794,17 +5992,18 @@ describe("<CustomFontUploadDialog /> (#140)", () => {
     });
   });
 });
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\packages\excalidraw\components\CustomFontUploadDialog.test.tsx (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:00:02Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Format and run dialog tests verbosely
 
@@ -5830,6 +6029,7 @@ Format and run dialog tests verbosely
       Tests ** **16 passed** (16)
 [This command modified 1 file you've previously read: packages\excalidraw\components\CustomFontUploadDialog.tsx. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:00:04Z)**_
@@ -5839,6 +6039,7 @@ All 16 pass on the first run. Next, typecheck and lint, then the mutants. Per yo
 _**Agent (claude-opus-5-5 2026-11-13 02:00:35Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Typecheck, lint and prettier check step 4
 
@@ -5850,11 +6051,13 @@ LINT_OK
 Checking formatting...
 All matched files use Prettier code style!
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:01:56Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Run seven mutants against the dialog tests
 
@@ -6059,6 +6262,7 @@ Original file restored
 ?? packages/excalidraw/components/CustomFontUploadDialog.test.tsx
 ?? packages/excalidraw/components/CustomFontUploadDialog.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:02:12Z)**_
@@ -6066,6 +6270,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:02:12Z)**_
 Step 4 is done: the upload dialog component, not yet connected to the picker. Step 3 is staged. Step 4's files are new and unstaged.
 
 **What's new:**
+
 - **[CustomFontUploadDialog.tsx](packages/excalidraw/components/CustomFontUploadDialog.tsx):** given the file the user picked, the dialog:
   1. Shows "Reading font file…" while it checks the file with step 3's `loadCustomFontFile`.
   2. If the file is fine, shows a **Font name** field (pre-filled from the file name, text selected) and the **license checkbox**: "I have the right to use this font, including embedding it in drawings I export or share."
@@ -6076,34 +6281,34 @@ Step 4 is done: the upload dialog component, not yet connected to the picker. St
 
 **Test run** (`--reporter=verbose`): all 16 pass.
 
-| # | Test | Result |
-|---|---|---|
-| 1 | reads the chosen file | PASS |
-| 2 | shows the title and pre-fills the name from the file | PASS |
-| 3 | keeps Add disabled until the license box is ticked | PASS |
-| 4 | disables Add again if the license box is unticked | PASS |
-| 5 | adds the font with the acknowledged license | PASS |
-| 6 | uses the edited name, trimmed | PASS |
-| 7 | disables Add when the name is blank | PASS |
-| 8 | confirms with Enter only once the license is acknowledged | PASS |
-| 9 | cancels without adding the font | PASS |
-| 10 | cancels when the dialog is closed | PASS |
-| 11 | shows a loading message and a disabled Add button | PASS |
-| 12 | shows the tooLarge error message | PASS |
-| 13 | shows the unsupportedType error message | PASS |
-| 14 | shows the invalidFont error message | PASS |
-| 15 | treats unexpected errors as an unreadable font | PASS |
-| 16 | offers only Cancel, with no name field or license box | PASS |
+| #   | Test                                                      | Result |
+| --- | --------------------------------------------------------- | ------ |
+| 1   | reads the chosen file                                     | PASS   |
+| 2   | shows the title and pre-fills the name from the file      | PASS   |
+| 3   | keeps Add disabled until the license box is ticked        | PASS   |
+| 4   | disables Add again if the license box is unticked         | PASS   |
+| 5   | adds the font with the acknowledged license               | PASS   |
+| 6   | uses the edited name, trimmed                             | PASS   |
+| 7   | disables Add when the name is blank                       | PASS   |
+| 8   | confirms with Enter only once the license is acknowledged | PASS   |
+| 9   | cancels without adding the font                           | PASS   |
+| 10  | cancels when the dialog is closed                         | PASS   |
+| 11  | shows a loading message and a disabled Add button         | PASS   |
+| 12  | shows the tooLarge error message                          | PASS   |
+| 13  | shows the unsupportedType error message                   | PASS   |
+| 14  | shows the invalidFont error message                       | PASS   |
+| 15  | treats unexpected errors as an unreadable font            | PASS   |
+| 16  | offers only Cancel, with no name field or license box     | PASS   |
 
 Typecheck, ESLint and Prettier are clean.
 
 **Mutants** (all run, and the file was restored after each):
 
 | Mutant | Result | Failing tests |
-|---|---|---|
+| --- | --- | --- |
 | Drop `licenseAcknowledged &&` from the Add condition | KILLED (3) | #3 keeps Add disabled until ticked<br>#4 disables Add again if unticked<br>#8 confirms with Enter only once acknowledged |
 | `trimmedName !== ""` → `name !== ""` | KILLED (1) | #7 disables Add when the name is blank |
-| `name: trimmedName` → `name` | KILLED (1) | #6 uses the edited name, trimmed (got `'  Renamed  '`) |
+| `name: trimmedName` → `name` | KILLED (1) | #6 uses the edited name, trimmed (got `' Renamed '`) |
 | `error instanceof CustomFontError ? error.code : "invalidFont"` → `error.code` | KILLED (1) | #15 treats unexpected errors as an unreadable font |
 | Show Add font even on error | KILLED (1) | #16 offers only Cancel |
 | Ignore the Enter key | KILLED (1) | #8 confirms with Enter only once acknowledged |
@@ -6114,12 +6319,13 @@ Typecheck, ESLint and Prettier are clean.
 **Test Evidence for step 4:**
 
 | Acceptance criterion | Test(s) | Level | Source of expected value |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | A: add a font from a file | #1, #2, #5, #6, #9, #10, #11 | Component (unit) | The upload flow you agreed: name defaults to the file name and the font is only added on confirm. |
 | D: license acknowledgment required | #3, #4, #5, #8 | Component (unit) | Your checkbox decision, with Add disabled until ticked. |
 | A: clear errors for bad files | #12–#16 | Component (unit) | The error strings come straight from `en.json`. The error codes come from step 3. |
 
 **Not tested automatically:**
+
 - The real dialog chrome (the modal itself, focus handling, Escape to close). The tests swap `Dialog` for a simple stand-in because it needs the whole editor around it. That gets covered once step 5 opens it inside the editor.
 - How it looks.
 
@@ -6146,6 +6352,7 @@ link me the tests
 _**Agent (claude-opus-5-5 2026-11-13 02:04:28Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `c:\excalidraw\packages\excalidraw\components\CustomFontUploadDialog.test.tsx` pattern `^\s*(it|it\.each|describe)\(`
 
@@ -6169,11 +6376,13 @@ _**Agent (claude-opus-5-5 2026-11-13 02:04:28Z)**_
 210:    it("treats unexpected errors as an unreadable font", async () => {
 220:    it("offers only Cancel, with no name field or license box", async () => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:04:28Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `c:\excalidraw\packages\excalidraw\data\customFonts.test.ts` pattern `^\s*(it|describe)\(`
 
@@ -6200,11 +6409,13 @@ _**Agent (claude-opus-5-5 2026-11-13 02:04:28Z)**_
 170:    it("rejects files the browser can't load with an invalidFont error", async () => {
 181:    it("doesn't try to parse files that fail the size or type checks", async () => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:04:29Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `c:\excalidraw\packages\excalidraw\fonts\Fonts.test.ts` pattern `^\s*(it|describe)\(`
 
@@ -6222,11 +6433,13 @@ _**Agent (claude-opus-5-5 2026-11-13 02:04:29Z)**_
 127:    it("returns false for an id that isn't registered", () => {
 132:    it("refuses to unregister built-in fonts", () => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:04:32Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `c:\excalidraw\packages\common\src\customFonts.test.ts` pattern `^\s*(it|describe)\(`
 
@@ -6241,6 +6454,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:04:32Z)**_
 42:    it("leaves built-in font strings unchanged", () => {
 48:    it("includes the custom family in getFontString()", () => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:04:49Z)**_
@@ -6248,7 +6462,9 @@ _**Agent (claude-opus-5-5 2026-11-13 02:04:49Z)**_
 Here are all the issue #140 tests so far, by step. Each link opens the test at its line.
 
 ### Step 4: upload dialog, [CustomFontUploadDialog.test.tsx](packages/excalidraw/components/CustomFontUploadDialog.test.tsx)
+
 **Valid font file:**
+
 1. [reads the chosen file](packages/excalidraw/components/CustomFontUploadDialog.test.tsx#L80)
 2. [shows the title and pre-fills the name from the file](packages/excalidraw/components/CustomFontUploadDialog.test.tsx#L87)
 3. [keeps Add disabled until the license box is ticked](packages/excalidraw/components/CustomFontUploadDialog.test.tsx#L94)
@@ -6272,7 +6488,9 @@ Here are all the issue #140 tests so far, by step. Each link opens the test at i
 16. [offers only Cancel, with no name field or license box](packages/excalidraw/components/CustomFontUploadDialog.test.tsx#L220)
 
 ### Step 3: reading and checking files, [customFonts.test.ts](packages/excalidraw/data/customFonts.test.ts)
+
 **`detectCustomFontMimeType()`:**
+
 1. [detects WOFF2 and WOFF from the file signature](packages/excalidraw/data/customFonts.test.ts#L29)
 2. [rejects TTF, OTF and other files](packages/excalidraw/data/customFonts.test.ts#L34)
 3. [rejects inputs shorter than the 4-byte signature](packages/excalidraw/data/customFonts.test.ts#L42)
@@ -6298,7 +6516,9 @@ Here are all the issue #140 tests so far, by step. Each link opens the test at i
 17. [doesn't parse files that fail the size or type checks](packages/excalidraw/data/customFonts.test.ts#L181)
 
 ### Step 2: runtime registry, [Fonts.test.ts](packages/excalidraw/fonts/Fonts.test.ts)
+
 **`registerCustomFont()`:**
+
 1. [adds the font under its id, labelled with the user-facing name](packages/excalidraw/fonts/Fonts.test.ts#L25)
 2. [uses Excalifont metrics for custom fonts](packages/excalidraw/fonts/Fonts.test.ts#L43)
 3. [is a no-op when the id is already registered](packages/excalidraw/fonts/Fonts.test.ts#L54)
@@ -6313,7 +6533,9 @@ Here are all the issue #140 tests so far, by step. Each link opens the test at i
 9. [refuses to unregister built-in fonts](packages/excalidraw/fonts/Fonts.test.ts#L132)
 
 ### Step 1: ID range and font strings, [customFonts.test.ts](packages/common/src/customFonts.test.ts)
+
 **`isCustomFontFamily()`:**
+
 1. [rejects every built-in and fallback font id](packages/common/src/customFonts.test.ts#L12)
 2. [accepts ids from the custom range start upwards](packages/common/src/customFonts.test.ts#L21)
 3. [rejects non-integer and non-finite values](packages/common/src/customFonts.test.ts#L28)
@@ -6343,6 +6565,7 @@ okay do we stage now
 _**Agent (claude-opus-5-5 2026-11-13 02:10:42Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check whether step 3 is committed
 
@@ -6361,6 +6584,7 @@ a40222e8 feat: added a range for custom fonts and a  'CustomFontData' type (#140
 ?? packages/excalidraw/components/CustomFontUploadDialog.test.tsx
 ?? packages/excalidraw/components/CustomFontUploadDialog.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:10:44Z)**_
@@ -6370,6 +6594,7 @@ Step 3 is committed (`5e531dc1`), so step 4 can be staged on its own.
 _**Agent (claude-opus-5-5 2026-11-13 02:10:46Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Stage step 4 files
 
@@ -6385,6 +6610,7 @@ A  packages/excalidraw/components/CustomFontUploadDialog.tsx
 M  packages/excalidraw/locales/en.json
 ?? dev-docs/stryker.config.json
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:10:49Z)**_
@@ -6419,16 +6645,19 @@ Understood. They'll be normal buttons, so Tab reaches them anyway, but I won't a
 _**Agent (claude-opus-5-5 2026-11-13 02:12:28Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\ab200\.claude\projects\c--excalidraw\memory\custom-fonts-issue-140.md has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:12:30Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find how dialogs are opened from the editor
 
@@ -6469,11 +6698,13 @@ export type StaticCanvasAppState = Readonly<
     gridColor: AppState["gridColor"];
     gridOpacity: AppState["gridOpacity"];
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:12:33Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read openDialog type and hyperlink dialog wiring
 
@@ -6586,11 +6817,13 @@ packages/excalidraw/components/App.tsx:6124:    this.textHyperlinkDialogCallback
 packages/excalidraw/components/App.tsx:6133:    const callback = this.textHyperlinkDialogCallback;
 packages/excalidraw/components/App.tsx:6134:    this.textHyperlinkDialogCallback = null;
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:12:38Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check openDialog persistence and read FontPicker
 
@@ -6730,11 +6963,13 @@ export const FontPicker = React.memo(
     prev.hoveredFontFamily === next.hoveredFontFamily,
 );
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:12:41Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\components\FontPicker\FontPickerList.tsx`
 
@@ -6747,16 +6982,16 @@ _**Agent (claude-opus-5-5 2026-11-13 02:12:41Z)**_
 180	        ),
 181	      [sceneFonts, availableFonts, searchTerm],
 182	    );
-183	
+183
 184	    const hoveredFont = useMemo(() => {
 185	      let font;
-186	
+186
 187	      if (hoveredFontFamily) {
 188	        font = filteredFonts.find((font) => font.value === hoveredFontFamily);
 189	      } else if (selectedFontFamily) {
 190	        font = filteredFonts.find((font) => font.value === selectedFontFamily);
 191	      }
-192	
+192
 193	      if (!font && searchTerm) {
 194	        if (filteredFonts[0]?.value) {
 195	          // hover first element on search
@@ -6766,7 +7001,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:12:41Z)**_
 199	          onLeave();
 200	        }
 201	      }
-202	
+202
 203	      return font;
 204	    }, [
 205	      hoveredFontFamily,
@@ -6776,7 +7011,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:12:41Z)**_
 209	      onHover,
 210	      onLeave,
 211	    ]);
-212	
+212
 213	    // Create a wrapped onSelect function that preserves caret position
 214	    const wrappedOnSelect = useCallback(
 215	      (fontFamily: FontFamilyValues) => {
@@ -6793,9 +7028,9 @@ _**Agent (claude-opus-5-5 2026-11-13 02:12:41Z)**_
 226	            };
 227	          }
 228	        }
-229	
+229
 230	        onSelect(fontFamily);
-231	
+231
 232	        // Restore caret position after font selection if editing text
 233	        if (app.state.editingTextElement && savedSelection) {
 234	          setTimeout(() => {
@@ -6812,7 +7047,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:12:41Z)**_
 245	      },
 246	      [onSelect, app.state.editingTextElement],
 247	    );
-248	
+248
 249	    const onKeyDown = useCallback<KeyboardEventHandler<HTMLDivElement>>(
 250	      (event) => {
 251	        const handled = fontPickerKeyHandler({
@@ -6824,7 +7059,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:12:41Z)**_
 257	          onHover,
 258	          onClose,
 259	        });
-260	
+260
 261	        if (handled) {
 262	          event.preventDefault();
 263	          event.stopPropagation();
@@ -6832,26 +7067,26 @@ _**Agent (claude-opus-5-5 2026-11-13 02:12:41Z)**_
 265	      },
 266	      [hoveredFont, filteredFonts, wrappedOnSelect, onHover, onClose],
 267	    );
-268	
+268
 269	    useEffect(() => {
 270	      onOpen();
-271	
+271
 272	      return () => {
 273	        onClose();
 274	      };
 275	      // eslint-disable-next-line react-hooks/exhaustive-deps
 276	    }, []);
-277	
+277
 278	    const sceneFilteredFonts = useMemo(
 279	      () => filteredFonts.filter((font) => sceneFamilies.has(font.value)),
 280	      [filteredFonts, sceneFamilies],
 281	    );
-282	
+282
 283	    const availableFilteredFonts = useMemo(
 284	      () => filteredFonts.filter((font) => !sceneFamilies.has(font.value)),
 285	      [filteredFonts, sceneFamilies],
 286	    );
-287	
+287
 288	    const FontPickerListItem = ({
 289	      font,
 290	      order,
@@ -6862,7 +7097,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:12:41Z)**_
 295	      const ref = useRef<HTMLButtonElement>(null);
 296	      const isHovered = font.value === hoveredFont?.value;
 297	      const isSelected = font.value === selectedFontFamily;
-298	
+298
 299	      useEffect(() => {
 300	        if (!isHovered) {
 301	          return;
@@ -6874,7 +7109,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:12:41Z)**_
 307	          ref.current?.scrollIntoView?.({ block: "nearest" });
 308	        }
 309	      }, [isHovered, order]);
-310	
+310
 311	      return (
 312	        <button
 313	          ref={ref}
@@ -6911,9 +7146,9 @@ _**Agent (claude-opus-5-5 2026-11-13 02:12:41Z)**_
 344	        </button>
 345	      );
 346	    };
-347	
+347
 348	    const groups = [];
-349	
+349
 350	    if (sceneFilteredFonts.length) {
 351	      groups.push(
 352	        <DropdownMenuGroup title={t("fontList.sceneFonts")} key="group_1">
@@ -6923,7 +7158,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:12:41Z)**_
 356	        </DropdownMenuGroup>,
 357	      );
 358	    }
-359	
+359
 360	    if (availableFilteredFonts.length) {
 361	      groups.push(
 362	        <DropdownMenuGroup title={t("fontList.availableFonts")} key="group_2">
@@ -6937,7 +7172,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:12:41Z)**_
 370	        </DropdownMenuGroup>,
 371	      );
 372	    }
-373	
+373
 374	    return (
 375	      <PropertiesPopover
 376	        className="properties-content"
@@ -6945,7 +7180,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:12:41Z)**_
 378	        style={{ width: "15rem" }}
 379	        onClose={() => {
 380	          onClose();
-381	
+381
 382	          // Refocus text editor when font picker closes if we were editing text
 383	          if (app.state.editingTextElement) {
 384	            setTimeout(() => {
@@ -6984,11 +7219,13 @@ _**Agent (claude-opus-5-5 2026-11-13 02:12:41Z)**_
 417	);
 418
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:12:42Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read font family action
 
@@ -7197,18 +7434,19 @@ Read font family action
         updateData(batchedData);
         // reset the data after we've used the data
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:12:53Z)**_
 
-<think><details><summary>Thought Process</summary>
-registerCustomFont adds fonts to the registry but not to document.fonts, so mid-session uploads won't render until the scene loads; I'll fix that in step 5 and check the font action and file-open helper next.
+<think><details><summary>Thought Process</summary> registerCustomFont adds fonts to the registry but not to document.fonts, so mid-session uploads won't render until the scene loads; I'll fix that in step 5 and check the font action and file-open helper next.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:12:53Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read font action start and fileOpen helper
 
@@ -7318,11 +7556,13 @@ export const actionChangeFontFamily = register<{
 42-    return (await Promise.all(
 43-      files.map((file) => normalizeFile(file)),
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:12:58Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect MIME_TYPES, FILE_EXTENSION and normalizeFile
 
@@ -7387,18 +7627,19 @@ export const normalizeFile = async (file: File) => {
 
 export const blobToArrayBuffer = (blob: Blob): Promise<ArrayBuffer> => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:19Z)**_
 
-<think><details><summary>Thought Process</summary>
-I'm using a hidden file input in the footer, since the shared fileOpen helper's MIME list would need touching for fonts. Next I'll look at how the existing picker test opens the picker.
+<think><details><summary>Thought Process</summary> I'm using a hidden file input in the footer, since the shared fileOpen helper's MIME list would need touching for fonts. Next I'll look at how the existing picker test opens the picker.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:20Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read FontPicker test and popup change handler
 
@@ -7478,18 +7719,19 @@ describe("FontPicker", () => {
 1393-
 1394-              setBatchedData({
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:26Z)**_
 
-<think><details><summary>Thought Process</summary>
-I have the plan for step 5 ready: register the font in `document.fonts` as well, add a `customFontUpload` dialog that applies the font through the existing font-family action, and put an "Upload font" footer under the font list.
+<think><details><summary>Thought Process</summary> I have the plan for step 5 ready: register the font in `document.fonts` as well, add a `customFontUpload` dialog that applies the font through the existing font-family action, and put an "Upload font" footer under the font list.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:28Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check App imports and hyperlink cleanup site
 
@@ -7516,11 +7758,13 @@ Check App imports and hyperlink cleanup site
     if (
       (prevState.openDialog?.name === "elementLinkSelector" ||
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:30Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read App action and type imports
 
@@ -7586,6 +7830,7 @@ Read App action and type imports
 } from "../types";
 20:  actionChangeFontFamily,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:32Z)**_
@@ -7595,16 +7840,19 @@ Now the edits, starting with the types, the registry fix and `App`:
 _**Agent (claude-opus-5-5 2026-11-13 02:13:44Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\types.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:44Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
@@ -7626,41 +7874,49 @@ String:     if (Fonts.registered.has(id)) {
 
     return true;</tool_use_error>
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:45Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\App.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:46Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\App.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:47Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\App.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:47Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find LayerUI dialog import line
 
@@ -7669,6 +7925,7 @@ Find LayerUI dialog import line
 ```text
 51:import { TextHyperlinkDialog } from "./TextHyperlinkDialog";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:48Z)**_
@@ -7678,6 +7935,7 @@ Prettier reformatted `Fonts.ts` earlier, so that edit didn't match. Let me read 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:49Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `c:\excalidraw\packages\excalidraw\fonts\Fonts.ts` pattern `Fonts.registered.has\(id\)`
 
@@ -7700,36 +7958,43 @@ _**Agent (claude-opus-5-5 2026-11-13 02:13:49Z)**_
 360-
 361-  /**
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:57Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\fonts\Fonts.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:58Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\LayerUI.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:13:59Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\LayerUI.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:14:01Z)**_
@@ -7739,6 +8004,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:14:01Z)**_
 _**Agent (claude-opus-5-5 2026-11-13 02:14:02Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find App method picks in types
 
@@ -7747,11 +8013,13 @@ Find App method picks in types
 ```text
 998:  closeTextHyperlinkDialog: App["closeTextHyperlinkDialog"];
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:14:04Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\types.ts`
 
@@ -7763,51 +8031,61 @@ _**Agent (claude-opus-5-5 2026-11-13 02:14:04Z)**_
 998	  closeTextHyperlinkDialog: App["closeTextHyperlinkDialog"];
 999	  insertEmbeddableElement: App["insertEmbeddableElement"];
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:14:14Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\types.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:14:15Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\FontPicker\FontPickerList.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:14:16Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\FontPicker\FontPickerList.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:14:16Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\locales\en.json has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:14:17Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read picker styles and dropdown item styles
 
@@ -7865,21 +8143,25 @@ Read picker styles and dropdown item styles
 90:      .dropdown-menu-item {
 91-        &:hover {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:14:24Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\FontPicker\FontPicker.scss has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:14:48Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check CSS vars, format, typecheck
 
@@ -7893,21 +8175,25 @@ color-on-surface: 2
 (node:7968) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 packages/excalidraw/components/App.tsx(6165,68): error TS2345: Argument of type '{ currentItemFontFamily: number; }' is not assignable to parameter of type '{ currentItemFontFamily: any; currentHoveredFontFamily: any; }'.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:14:52Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\App.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:15:27Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Typecheck and run existing related tests
 
@@ -7918,18 +8204,19 @@ Typecheck and run existing related tests
  Test Files ** **3 passed** (3)
       Tests ** **26 passed** (26)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:15:36Z)**_
 
-<think><details><summary>Thought Process</summary>
-Typecheck and existing tests pass; next I'm adding the step 5 tests, including an integration test in the real editor, after checking how existing ones create and select text elements.
+<think><details><summary>Thought Process</summary> Typecheck and existing tests pass; next I'm adding the step 5 tests, including an integration test in the real editor, after checking how existing ones create and select text elements.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:15:37Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read integration test setup and API helpers
 
@@ -8000,11 +8287,13 @@ describe("opening text hyperlinks", () => {
 91:  static setSelectedElements = (elements: NonDeletedExcalidrawElement[], editingGroupId?: string | null) => {
 165:  static createElement = <
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:16:00Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -8186,9 +8475,7 @@ describe("uploading a custom font through the font picker (#140)", () => {
     openFontPicker();
 
     expect(screen.getByTitle("Test Font")).not.toBeNull();
-    expect(
-      screen.queryByTitle(`ExcalidrawCustomFont-${FONT_ID}`),
-    ).toBeNull();
+    expect(screen.queryByTitle(`ExcalidrawCustomFont-${FONT_ID}`)).toBeNull();
   });
 
   it("leaves everything unchanged when the dialog is cancelled", async () => {
@@ -8250,34 +8537,36 @@ describe("uploading a custom font through the font picker (#140)", () => {
     ).toBe(FONT_FAMILY.Excalifont);
   });
 });
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\packages\excalidraw\tests\customFonts.test.tsx (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:16:09Z)**_
 
-<think><details><summary>Thought Process</summary>
-I replaced the `FONT_ID` placeholder with a hand-computed value of 3,059,216,244 (djb2 over the 8-byte test file, plus the 2000 offset). Next I'll check it against the real file.
+<think><details><summary>Thought Process</summary> I replaced the `FONT_ID` placeholder with a hand-computed value of 3,059,216,244 (djb2 over the 8-byte test file, plus the 2000 offset). Next I'll check it against the real file.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:16:13Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\tests\customFonts.test.tsx has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:16:38Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run integration tests verbosely
 
@@ -8297,38 +8586,39 @@ Run integration tests verbosely
 ⎯⎯⎯⎯⎯⎯⎯** Failed Tests 4 **⎯⎯⎯⎯⎯⎯⎯
 ** FAIL ** packages/excalidraw/tests/customFonts.test.tsx > **uploading a custom font through the font picker (#140) > **closes the picker and opens the upload dialog for the chosen file
 **AssertionError**: expected 'fontFamily' to be null
-- Expected: 
-+ Received: 
+- Expected:
++ Received:
 ** FAIL ** packages/excalidraw/tests/customFonts.test.tsx > **uploading a custom font through the font picker (#140) > **closes the dialog after adding the font
 **AssertionError**: expected { name: 'customFontUpload', …(1) } to be null
-- Expected: 
-+ Received: 
+- Expected:
++ Received:
  ❯** runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12**
 ** FAIL ** packages/excalidraw/tests/customFonts.test.tsx > **uploading a custom font through the font picker (#140) > **lists the uploaded font in the picker under its name
 **AssertionError**: expected { name: 'customFontUpload', …(1) } to be null
-- Expected: 
-+ Received: 
+- Expected:
++ Received:
  ❯** runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12**
 ** FAIL ** packages/excalidraw/tests/customFonts.test.tsx > **uploading a custom font through the font picker (#140) > **selects the existing font when the same file is uploaded again
 **AssertionError**: expected { name: 'customFontUpload', …(1) } to be null
-- Expected: 
-+ Received: 
+- Expected:
++ Received:
  ❯** runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12**
       Tests ** **4 failed** | ****6 passed** (10)
 [This command modified 1 file you've previously read: packages\excalidraw\tests\customFonts.test.tsx. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:16:49Z)**_
 
-<think><details><summary>Thought Process</summary>
-Six tests pass and four fail, from two separate causes: my `closeCustomFontUploadDialog` closes the dialog before running the font action, which restores `openDialog`, so it reappears. I'm reading the picker's close handler next, since `openPopup` is still stuck on "fontFamily".
+<think><details><summary>Thought Process</summary> Six tests pass and four fail, from two separate causes: my `closeCustomFontUploadDialog` closes the dialog before running the font action, which restores `openDialog`, so it reappears. I'm reading the picker's close handler next, since `openPopup` is still stuck on "fontFamily".
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:16:51Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read picker close branch and batched update effect
 
@@ -8387,11 +8677,13 @@ export const actionChangeTextAlign = register<TextAlign>({
 1311-        isUnmounted.current = true;
 1312-      };
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:16:56Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find how the font popup open state is managed
 
@@ -8407,11 +8699,13 @@ Find how the font popup open state is managed
 7:1329:                  openPopup: null,
 8:1396:                openPopup: "fontFamily",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:16:58Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\actions\actionProperties.tsx`
 
@@ -8453,38 +8747,43 @@ _**Agent (claude-opus-5-5 2026-11-13 02:16:58Z)**_
 1352	            });
 1353	          }}
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:17:06Z)**_
 
-<think><details><summary>Thought Process</summary>
-The picker's close handler only resets hover previews and never clears `openPopup`, so `openCustomFontUploadDialog` must close the popup itself; I'm applying both fixes in `App.tsx`.
+<think><details><summary>Thought Process</summary> The picker's close handler only resets hover previews and never clears `openPopup`, so `openCustomFontUploadDialog` must close the popup itself; I'm applying both fixes in `App.tsx`.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:17:13Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\App.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:17:14Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\App.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:17:35Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Rerun integration tests verbosely
 
@@ -8503,6 +8802,7 @@ Rerun integration tests verbosely
  ✓ packages/excalidraw/tests/customFonts.test.tsx > **uploading a custom font through the font picker (#140) > **shows an error for a TTF file and adds nothing
       Tests ** **10 passed** (10)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:17:38Z)**_
@@ -8512,24 +8812,25 @@ All 10 pass, which also confirms the hand-computed font ID matches the code. Nex
 _**Agent (claude-opus-5-5 2026-11-13 02:17:39Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\fonts\Fonts.test.ts`
 
 ```text
 1	import { FONT_FAMILY } from "@excalidraw/common";
-2	
+2
 3	import { Fonts } from "./Fonts";
-4	
+4
 5	const DATA_URL = "data:font/woff2;base64,d09GMgABAAAAAA==";
-6	
+6
 7	describe("Fonts custom font registry (#140)", () => {
 8	  const deleteSpy = vi.fn();
-9	
+9
 10	  beforeAll(() => {
 11	    // the jsdom `document.fonts` mock from setupTests.ts has no `delete`
 12	    Object.assign(window.document.fonts, { delete: deleteSpy });
 13	  });
-14	
+14
 15	  afterEach(() => {
 16	    // the registry is static, so make sure no test leaks into another
 17	    for (const id of [2000, 2007, 2042]) {
@@ -8538,7 +8839,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:17:39Z)**_
 20	    Fonts.loadedFontsCache.clear();
 21	    deleteSpy.mockClear();
 22	  });
-23	
+23
 24	  describe("registerCustomFont()", () => {
 25	    it("adds the font under its id, labelled with the user-facing name", () => {
 26	      expect(
@@ -8548,7 +8849,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:17:39Z)**_
 30	          dataURL: DATA_URL,
 31	        }),
 32	      ).toBe(true);
-33	
+33
 34	      const registered = Fonts.registered.get(2007);
 35	      expect(registered?.metadata.custom).toEqual({ name: "My Font" });
 36	      expect(registered?.fontFaces).toHaveLength(1);
@@ -8557,10 +8858,10 @@ _**Agent (claude-opus-5-5 2026-11-13 02:17:39Z)**_
 39	      );
 40	      expect(registered?.fontFaces[0].urls).toEqual([DATA_URL]);
 41	    });
-42	
+42
 43	    it("uses Excalifont metrics for custom fonts", () => {
 44	      Fonts.registerCustomFont({ id: 2007, name: "A", dataURL: DATA_URL });
-45	
+45
 46	      expect(Fonts.registered.get(2007)?.metadata.metrics).toEqual({
 47	        unitsPerEm: 1000,
 48	        ascender: 886,
@@ -8568,10 +8869,10 @@ _**Agent (claude-opus-5-5 2026-11-13 02:17:39Z)**_
 50	        lineHeight: 1.25,
 51	      });
 52	    });
-53	
+53
 54	    it("is a no-op when the id is already registered", () => {
 55	      Fonts.registerCustomFont({ id: 2007, name: "First", dataURL: DATA_URL });
-56	
+56
 57	      expect(
 58	        Fonts.registerCustomFont({
 59	          id: 2007,
@@ -8583,25 +8884,29 @@ _**Agent (claude-opus-5-5 2026-11-13 02:17:39Z)**_
 65	        name: "First",
 66	      });
 67	    });
-68	
+68
 69	    it("accepts the first id of the custom range", () => {
 70	      expect(
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:17:46Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\fonts\Fonts.test.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:18:22Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Format, typecheck and lint step 5
 
@@ -8613,11 +8918,13 @@ packages/excalidraw/tests/customFonts.test.tsx(92,30): error TS2322: Type 'Excal
 LINT_OK
 All matched files use Prettier code style!
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:18:25Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 View the failing typed line
 
@@ -8638,15 +8945,17 @@ View the failing typed line
     return text;
   };
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:18:51Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Fix element type cast and recheck
 
-`cd /c/excalidraw; sed -i 's/    }) as ExcalidrawTextElement;\r\?$/    }) as NonDeleted<ExcalidrawTextElement>;/' packages/excalidraw/tests/customFonts.test.tsx; sed -i 's/^import type { ExcalidrawTextElement } from "@excalidraw\/element\/types";/import type {\n  ExcalidrawTextElement,\n  NonDeleted,\n} from "@excalidraw\/element\/types";/' packages/excalidraw/tests/customFonts.test.tsx; sed -n 1,8p packages/excalidraw/tests/customFonts.test.tsx; grep -n "as NonDeleted" packages/excalidraw/tests/customFonts.test.tsx; yarn -s tsc 2>&1 | grep error; npx prettier --check packages/excalidraw/tests/customFonts.test.tsx | tail -1`
+`cd /c/excalidraw; sed -i 's/ }) as ExcalidrawTextElement;\r\?$/ }) as NonDeleted<ExcalidrawTextElement>;/' packages/excalidraw/tests/customFonts.test.tsx; sed -i 's/^import type { ExcalidrawTextElement } from "@excalidraw\/element\/types";/import type {\n ExcalidrawTextElement,\n NonDeleted,\n} from "@excalidraw\/element\/types";/' packages/excalidraw/tests/customFonts.test.tsx; sed -n 1,8p packages/excalidraw/tests/customFonts.test.tsx; grep -n "as NonDeleted" packages/excalidraw/tests/customFonts.test.tsx; yarn -s tsc 2>&1 | grep error; npx prettier --check packages/excalidraw/tests/customFonts.test.tsx | tail -1`
 
 ```text
 import { FONT_FAMILY } from "@excalidraw/common";
@@ -8662,6 +8971,7 @@ import { Fonts } from "../fonts";
 All matched files use Prettier code style!
 [This command modified 1 file you've previously read: packages\excalidraw\tests\customFonts.test.tsx. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:18:54Z)**_
@@ -8671,6 +8981,7 @@ Typecheck is clean. Next I'll run all the custom-font tests plus the nearby exis
 _**Agent (claude-opus-5-5 2026-11-13 02:19:42Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run all related suites and list step 5 tests
 
@@ -8700,6 +9011,7 @@ Run all related suites and list step 5 tests
  ✓ packages/excalidraw/tests/customFonts.test.tsx > uploading a custom font through the font picker (#140) > selects the existing font when the same file is uploaded again
  ✓ packages/excalidraw/tests/customFonts.test.tsx > uploading a custom font through the font picker (#140) > shows an error for a TTF file and adds nothing
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:19:43Z)**_
@@ -8709,6 +9021,7 @@ Everything passes: 83 tests across 8 files. Now the mutants, run before I report
 _**Agent (claude-opus-5-5 2026-11-13 02:23:09Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Run step 5 mutants with condensed output
 
@@ -8724,7 +9037,7 @@ Ran 10 tests: 3 failed, 7 passed
   FAIL  uploading a custom font through the font picker (#140) selects the existing font when the same file is uploaded again
 RESULT: KILLED (a test failed, which is what we want)
 From : Fonts.registerCustomFont(font);
-To   : 
+To   :
 Ran 10 tests: 4 failed, 6 passed
   FAIL  uploading a custom font through the font picker (#140) registers the font under the name from the dialog
   FAIL  uploading a custom font through the font picker (#140) adds the font face to the document so it renders straight away
@@ -8739,7 +9052,7 @@ Ran 10 tests: 3 failed, 7 passed
   FAIL  uploading a custom font through the font picker (#140) selects the existing font when the same file is uploaded again
 RESULT: KILLED (a test failed, which is what we want)
 From : app.openCustomFontUploadDialog(file);
-To   : 
+To   :
 Ran 10 tests: 10 failed, 0 passed
   FAIL  uploading a custom font through the font picker (#140) applies the uploaded font to the selected text
   FAIL  uploading a custom font through the font picker (#140) registers the font under the name from the dialog
@@ -8753,12 +9066,12 @@ Ran 10 tests: 10 failed, 0 passed
   FAIL  uploading a custom font through the font picker (#140) shows an error for a TTF file and adds nothing
 RESULT: KILLED (a test failed, which is what we want)
 From : metadata.custom?.name ??
-To   : 
+To   :
 Ran 10 tests: 1 failed, 9 passed
   FAIL  uploading a custom font through the font picker (#140) lists the uploaded font in the picker under its name
 RESULT: KILLED (a test failed, which is what we want)
 From : window.document.fonts.add(fontFace.fontFace);
-To   : 
+To   :
 Ran 10 tests: 1 failed, 9 passed
   FAIL  Fonts custom font registry (#140) registerCustomFont() adds the font face to document.fonts once, so it renders without a scene reload
 RESULT: KILLED (a test failed, which is what we want)
@@ -8773,6 +9086,7 @@ Ran 10 tests: 6 failed, 4 passed
   FAIL  uploading a custom font through the font picker (#140) selects the existing font when the same file is uploaded again
 RESULT: KILLED (a test failed, which is what we want)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:23:26Z)**_
@@ -8780,6 +9094,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:23:26Z)**_
 Step 5 is done: the **Upload font** button works end to end. Nothing is staged.
 
 **What happens now:** the user opens the font picker and clicks **Upload font** in the footer under the list. The file chooser opens, filtered to `.woff` and `.woff2`. When they pick a file:
+
 1. The picker closes and step 4's dialog opens.
 2. When they tick the license box and click **Add font**, the font is registered and applied to the selected text. With nothing selected, it becomes the font for new text.
 3. The font then appears in the picker under the name they gave it.
@@ -8787,6 +9102,7 @@ Step 5 is done: the **Upload font** button works end to end. Nothing is staged.
 Uploading the same file again just selects the existing font.
 
 **What changed:**
+
 - **[FontPickerList.tsx](packages/excalidraw/components/FontPicker/FontPickerList.tsx):** the footer with the Upload font button and a hidden file input. Step 9 will add the Remove toggle beside it.
 - **[FontPicker.scss](packages/excalidraw/components/FontPicker/FontPicker.scss):** styles for the footer.
 - **[App.tsx](packages/excalidraw/components/App.tsx):** `openCustomFontUploadDialog` and `closeCustomFontUploadDialog`.
@@ -8796,13 +9112,14 @@ Uploading the same file again just selects the existing font.
 - **`en.json`:** the "Upload font" label.
 
 **Two bugs I hit and fixed while testing:**
+
 1. **The dialog reopened after you clicked Add.** Applying the font restored the app state from just before the dialog closed. The font is now applied first and the dialog closed after. The test "closes the dialog after adding the font" guards this.
 2. **The font picker stayed open behind the dialog.** The picker's own close handler doesn't close it, so opening the dialog now closes the picker too.
 
 **Test run:** all 83 tests pass across the 5 custom-font suites and the existing picker, export and hyperlink suites. These are the new and changed tests:
 
 | # | Test | File | Result |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | applies the uploaded font to the selected text | [customFonts.test.tsx](packages/excalidraw/tests/customFonts.test.tsx) | PASS |
 | 2 | registers the font under the name from the dialog | same file | PASS |
 | 3 | adds the font face to the document so it renders straight away | same file | PASS |
@@ -8820,7 +9137,7 @@ Typecheck, ESLint and Prettier are clean.
 **Mutants** (7 run, all killed):
 
 | Mutant | Failing tests |
-|---|---|
+| --- | --- |
 | Don't close the picker when the dialog opens | #5, #7, #9 |
 | Don't register the font on Add | #2, #3, #7, #9 |
 | Apply no font on Add | #1, #4, #9 |
@@ -8832,13 +9149,14 @@ Typecheck, ESLint and Prettier are clean.
 **Test Evidence for step 5:**
 
 | Acceptance criterion | Test(s) | Level | Source of expected value |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | A: users can add fonts from a file | #1–#6, #8, #10 | Integration (whole editor) | The flow you agreed. The font ID was worked out by hand, with each step in the test's comment. |
 | B: added fonts appear in the font list | #7 | Integration | The name typed in the dialog ("Test Font"). |
 | Duplicate upload selects the existing font (your decision) | #9 | Integration | Your decision. |
 | C: renders in the editor (partly) | #3, #11 | Integration and unit | The font is added to the document. Actual drawing can't be checked here because the test setup mocks fonts. |
 
 **Not tested automatically:**
+
 - Whether the font actually draws in a real browser.
 - How the footer looks.
 - The native file chooser itself. The tests feed the file straight into the hidden input.
@@ -8866,6 +9184,7 @@ I'll check the file itself first, then the code path the upload takes.
 _**Agent (claude-opus-5-5 2026-11-13 02:34:16Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find the font file and show its signature
 
@@ -8884,11 +9203,13 @@ head: error reading 'Seramonde': Is a directory
 head: cannot open 'Trial.woff2' for reading: No such file or directory
 Shell cwd was reset to c:\excalidraw
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:34:19Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show signature of the Seramonde file
 
@@ -8897,18 +9218,19 @@ Show signature of the Seramonde file
 ```text
    w   O   F   2
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:34:24Z)**_
 
-<think><details><summary>Thought Process</summary>
-The WOFF2 file is valid and only 24 KB, so the upload isn't failing on validation. My main suspect is that the font picker loses focus when the native file chooser opens, which removes the hidden input before the file-chosen event fires, and I'm checking how the picker handles that next.
+<think><details><summary>Thought Process</summary> The WOFF2 file is valid and only 24 KB, so the upload isn't failing on validation. My main suspect is that the font picker loses focus when the native file chooser opens, which removes the hidden input before the file-chosen event fires, and I'm checking how the picker handles that next.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:34:24Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read PropertiesPopover focus handling
 
@@ -9018,6 +9340,7 @@ export const PropertiesPopover = React.forwardRef<
   },
 );
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:34:27Z)**_
@@ -9027,6 +9350,7 @@ Radix itself shouldn't close the popover just because the window loses focus. Ex
 _**Agent (claude-opus-5-5 2026-11-13 02:34:29Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find blur handlers that close popups in App
 
@@ -9040,11 +9364,13 @@ Find blur handlers that close popups in App
 9221:        window.removeEventListener(EVENT.BLUR, teardown);
 9225:    window.addEventListener(EVENT.BLUR, teardown);
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:34:32Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read App onBlur and popup close sites
 
@@ -9078,18 +9404,19 @@ Read App onBlur and popup close sites
 
     this.updateGestureOnPointerDown(event);
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:34:48Z)**_
 
-<think><details><summary>Thought Process</summary>
-My first guess at the bug may be wrong, since `App` doesn't close the picker on window blur. I'm checking for a browser automation tool so I can reproduce it for real.
+<think><details><summary>Thought Process</summary> My first guess at the bug may be wrong, since `App` doesn't close the picker on window blur. I'm checking for a browser automation tool so I can reproduce it for real.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:34:50Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check for browser automation and running dev server
 
@@ -9104,6 +9431,7 @@ excalidraw-app/package.json:49:    "start": "yarn && vite",
 excalidraw-app/package.json:50:    "start:production": "yarn build && yarn serve",
   TCP    [::1]:3001             [::]:0                 LISTENING       29984
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:34:55Z)**_
@@ -9113,6 +9441,7 @@ Your dev server is running on port 3001, and `puppeteer-core` is installed. I'll
 _**Agent (claude-opus-5-5 2026-11-13 02:34:57Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Locate Chrome or Edge and puppeteer version
 
@@ -9124,6 +9453,7 @@ Locate Chrome or Edge and puppeteer version
   "version": "13.7.0",
   "main": "./cjs-entry-core.js",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:35:00Z)**_
@@ -9133,6 +9463,7 @@ I'll write a script that opens your running app in headless Chrome, takes the sa
 _**Agent (claude-opus-5-5 2026-11-13 02:35:12Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```javascript
@@ -9141,7 +9472,11 @@ const path = require("path");
 const puppeteer = require("c:/excalidraw/node_modules/puppeteer-core");
 
 const OUT = __dirname;
-const FONT = path.join(process.env.USERPROFILE, "Downloads", "Seramonde Trial.woff2");
+const FONT = path.join(
+  process.env.USERPROFILE,
+  "Downloads",
+  "Seramonde Trial.woff2",
+);
 const URL = process.argv[2] || "http://localhost:3001";
 
 const log = (...args) => console.log("[repro]", ...args);
@@ -9201,19 +9536,25 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   }
   log("file chooser opened, accepting", FONT);
 
-  const pickerOpenBefore = !!(await page.$('[data-testid="font-picker-upload-input"]'));
+  const pickerOpenBefore = !!(await page.$(
+    '[data-testid="font-picker-upload-input"]',
+  ));
   log("hidden input still mounted when chooser opened:", pickerOpenBefore);
 
   await chooser.accept([FONT]);
   await sleep(1500);
 
   const state = await page.evaluate(() => {
-    const dialogTitle = Array.from(document.querySelectorAll("h2, .Dialog__title"))
+    const dialogTitle = Array.from(
+      document.querySelectorAll("h2, .Dialog__title"),
+    )
       .map((el) => el.textContent)
       .find((t) => t && t.includes("custom font"));
     return {
       dialogTitle: dialogTitle || null,
-      inputMounted: !!document.querySelector('[data-testid="font-picker-upload-input"]'),
+      inputMounted: !!document.querySelector(
+        '[data-testid="font-picker-upload-input"]',
+      ),
       alert: document.querySelector('[role="alert"]')?.textContent ?? null,
       loading: document.body.innerText.includes("Reading font file"),
     };
@@ -9226,17 +9567,18 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   console.error("[repro] SCRIPT ERROR", e);
   process.exit(1);
 });
-
 ```
 
 ```text
 File created successfully at: C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\repro-upload.js (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:35:23Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run upload repro against local dev server
 
@@ -9253,52 +9595,57 @@ Run upload repro against local dev server
     at async Promise.all (index 1)
     at async C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\repro-upload.js:53:21
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:35:27Z)**_
 
-<think><details><summary>Thought Process</summary>
-The upload button disappeared between the script finding it and clicking it, probably because the picker re-rendered or closed. I'm checking the screenshot taken while the picker was open.
+<think><details><summary>Thought Process</summary> The upload button disappeared between the script finding it and clicking it, probably because the picker re-rendered or closed. I'm checking the screenshot taken while the picker was open.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:35:27Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\repro-1-picker-open.png`
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:35:35Z)**_
 
-<think><details><summary>Thought Process</summary>
-The footer looks right, but the button was swapped out between Puppeteer locating it and clicking, so I'm checking whether hovering makes the picker rebuild its DOM and replace the hidden file input.
+<think><details><summary>Thought Process</summary> The footer looks right, but the button was swapped out between Puppeteer locating it and clicking, so I'm checking whether hovering makes the picker rebuild its DOM and replace the hidden file input.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:35:40Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\repro-upload.js has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:35:43Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\repro-upload.js has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:35:54Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Rerun repro checking node identity
 
@@ -9312,18 +9659,19 @@ Rerun repro checking node identity
 [repro] input that opened the chooser still attached: true
 [repro] after choosing the file: {"dialogTitle":"Add custom font","inputMounted":false,"alert":null,"loading":false}
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:36:04Z)**_
 
-<think><details><summary>Thought Process</summary>
-Headless Chrome got past the file chooser and the Add custom font dialog without error, so the detached node was a quirk of my first script. I'm extending the script to finish the flow and to simulate the window losing and regaining focus.
+<think><details><summary>Thought Process</summary> Headless Chrome got past the file chooser and the Add custom font dialog without error, so the detached node was a quirk of my first script. I'm extending the script to finish the flow and to simulate the window losing and regaining focus.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:36:06Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check if window.h is exposed in dev mode
 
@@ -9334,11 +9682,13 @@ Check if window.h is exposed in dev mode
 3351:    if (isTestEnv() || isDevEnv()) {
 14294:  if (isTestEnv() || isDevEnv()) {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:36:06Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Search for window.h exposure
 
@@ -9349,6 +9699,7 @@ Search for window.h exposure
 14295:    window.h = window.h || ({} as Window["h"]);
 14297:    Object.defineProperties(window.h, {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:36:08Z)**_
@@ -9358,16 +9709,19 @@ _**Agent (claude-opus-5-5 2026-11-13 02:36:08Z)**_
 _**Agent (claude-opus-5-5 2026-11-13 02:36:16Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\repro-upload.js has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:36:32Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run full flow repro through Add and typing
 
@@ -9384,11 +9738,13 @@ Run full flow repro through Add and typing
 [repro] after Add: {"openDialog":null,"currentItemFontFamily":3627732859,"openPopup":null,"fontFaceStatus":["ExcalidrawCustomFont-3627732859: unloaded"]}
 [repro] after typing text: {"textFontFamily":3627732859,"fontFaceStatus":["ExcalidrawCustomFont-3627732859: loaded"],"checkLoaded":true}
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:36:34Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\repro-3-after-text.png`
 </details></tool-use>
@@ -9408,11 +9764,13 @@ The screenshot above shows "Seramonde test" drawn in the uploaded font.
 So the code works. The most likely cause is that **your browser tab was running stale code.** Your tab was probably open before step 5's changes. Vite hot-reloaded the picker, so the new button appeared, but `App` is a class component that hot reload often doesn't fully replace. Clicking would then call `app.openCustomFontUploadDialog` on an old `App` that doesn't have it, and the error happens silently in the console. That matches "nothing occurred" exactly.
 
 **Try this:**
+
 1. Hard-reload the tab with **Ctrl+Shift+R**.
 2. Open DevTools (**F12**) and go to the **Console** tab.
 3. Upload the file again.
 
 **If it still does nothing,** tell me:
+
 - Whether the "Add custom font" dialog appears at all, or nothing happens after you pick the file.
 - Any red error in the console. Something like `openCustomFontUploadDialog is not a function` would confirm the stale-code theory.
 - Which browser you're using.
@@ -9436,16 +9794,19 @@ Before asking you for more, I'll test the one thing my run didn't cover: a real 
 _**Agent (claude-opus-5-5 2026-11-13 02:39:50Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\repro-upload.js has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:40:05Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run repro with simulated native dialog focus loss
 
@@ -9463,28 +9824,31 @@ Run repro with simulated native dialog focus loss
 [repro] after Add: {"openDialog":null,"currentItemFontFamily":3627732859,"openPopup":null,"fontFaceStatus":["ExcalidrawCustomFont-3627732859: unloaded"]}
 [repro] after typing text: {"textFontFamily":3627732859,"fontFaceStatus":["ExcalidrawCustomFont-3627732859: loaded"],"checkLoaded":true}
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:40:11Z)**_
 
-<think><details><summary>Thought Process</summary>
-That path still works, so focus loss alone isn't the cause. Next I'll test the case where the user is typing in a text box and clicking outside ends editing, which might rebuild the panel and remove the hidden file input.
+<think><details><summary>Thought Process</summary> That path still works, so focus loss alone isn't the cause. Next I'll test the case where the user is typing in a text box and clicking outside ends editing, which might rebuild the panel and remove the hidden file input.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:40:16Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\repro-upload.js has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:40:46Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Repro upload while editing and with selected text
 
@@ -9514,18 +9878,19 @@ Repro upload while editing and with selected text
 [repro] after Add: {"openDialog":null,"currentItemFontFamily":3627732859,"openPopup":null,"fontFaceStatus":["ExcalidrawCustomFont-3627732859: loaded"]}
 [repro] after typing text: {"textFontFamily":3627732859,"fontFaceStatus":["ExcalidrawCustomFont-3627732859: loaded"],"checkLoaded":true}
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:40:56Z)**_
 
-<think><details><summary>Thought Process</summary>
-All three test scenarios pass without reproducing the failure, so I'm opening a visible Chrome window on your dev server for you to do the real file upload while my script logs errors and app state.
+<think><details><summary>Thought Process</summary> All three test scenarios pass without reproducing the failure, so I'm opening a visible Chrome window on your dev server for you to do the real file upload while my script logs errors and app state.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:41:06Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```javascript
@@ -9578,7 +9943,9 @@ const log = (...a) =>
     document.addEventListener(
       "change",
       (e) => {
-        if (e.target?.getAttribute?.("data-testid") === "font-picker-upload-input") {
+        if (
+          e.target?.getAttribute?.("data-testid") === "font-picker-upload-input"
+        ) {
           const f = e.target.files?.[0];
           report(
             "file input change:",
@@ -9615,17 +9982,18 @@ const log = (...a) =>
   console.error("SCRIPT ERROR", e);
   process.exit(1);
 });
-
 ```
 
 ```text
 File created successfully at: C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\watch-upload.js (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:41:09Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 List properties exposed on window.h
 
@@ -9635,11 +10003,13 @@ List properties exposed on window.h
 5:      elements: {
 16:      scene: {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:41:12Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 List window.h properties set by App instance
 
@@ -9657,6 +10027,7 @@ List window.h properties set by App instance
 25:        store: {
 26:          configurable: true,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:41:14Z)**_
@@ -9666,6 +10037,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:41:14Z)**_
 _**Agent (claude-opus-5-5 2026-11-13 02:41:16Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Open visible Chrome and log the manual upload attempt
 
@@ -9674,6 +10046,7 @@ Open visible Chrome and log the manual upload attempt
 ```text
 Command running in background with ID: bzij7pjak. Output is being written to: C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\tasks\bzij7pjak.output. You will be notified when it completes — do not poll that file or sleep while waiting. Read the file only if the user asks for progress, or if you need a line it prints before you can go on, such as a server's ready line or port.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:41:19Z)**_
@@ -9702,6 +10075,7 @@ That's a useful clue. Let me check what the watcher recorded during the double-c
 _**Agent (claude-opus-5-5 2026-11-13 02:42:47Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read watcher log of the manual attempts
 
@@ -9730,18 +10104,19 @@ Read watcher log of the manual attempts
 [68.9s] [watch] state {"openPopup":"fontFamily","openDialog":null,"currentItemFontFamily":3627732859,"uploadInputMounted":false}
 [72.4s] [watch] state {"openPopup":null,"openDialog":null,"currentItemFontFamily":3627732859,"uploadInputMounted":false}
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:43:13Z)**_
 
-<think><details><summary>Thought Process</summary>
-The file gets lost when the picker tears down the hidden input while it is still open, so a double-click makes it more likely. I'm switching to Excalidraw's existing browser-fs-access helper, which returns the chosen file without depending on a page element, and checking how the codebase calls it.
+<think><details><summary>Thought Process</summary> The file gets lost when the picker tears down the hidden input while it is still open, so a double-click makes it more likely. I'm switching to Excalidraw's existing browser-fs-access helper, which returns the chosen file without depending on a page element, and checking how the codebase calls it.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:43:14Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read filesystem helper and browser-fs-access version
 
@@ -9793,6 +10168,7 @@ export const fileSave = (
     opts.fileHandle,
 3:  "version": "0.38.0",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:43:21Z)**_
@@ -9802,6 +10178,7 @@ Since `fileOpen` only accepts the app's built-in file types, I'll call `browser-
 _**Agent (claude-opus-5-5 2026-11-13 02:43:23Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find how tests mock file opening
 
@@ -9812,6 +10189,7 @@ packages/excalidraw/tests/image.test.tsx:126:    const fileOpenSpy = vi.spyOn(fi
 packages/excalidraw/tests/image.test.tsx:127:    fileOpenSpy.mockImplementation(
 packages/excalidraw/tests/library.test.tsx:48:    fileOpen: vi.fn(() => mockLibraryFilePromise),
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:43:26Z)**_
@@ -9821,6 +10199,7 @@ The existing tests spy on the file-open module, so I'll do the same with the new
 _**Agent (claude-opus-5-5 2026-11-13 02:43:26Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\data\customFonts.ts`
 
@@ -9829,95 +10208,106 @@ _**Agent (claude-opus-5-5 2026-11-13 02:43:26Z)**_
 2	  CUSTOM_FONT_FAMILY_ID_START,
 3	  CUSTOM_FONT_MIME_TYPES,
 4	} from "@excalidraw/common";
-5	
+5
 6	import type { ValueOf } from "@excalidraw/common/utility-types";
-7	
+7
 8	import { blobToArrayBuffer, getDataURL, getNameWithoutExtension } from "./blob";
-9	
+9
 10	import type { CustomFontData } from "../types";
-11	
+11
 12	/** Largest font file users can upload (#140). */
 13	export const CUSTOM_FONT_MAX_SIZE_BYTES = 5 * 1024 * 1024;
-14	
+14
 15	/** Name used when the file name is empty after stripping the extension. */
 16	export const CUSTOM_FONT_DEFAULT_NAME = "Custom font";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:43:39Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\data\customFonts.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:43:40Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\data\customFonts.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:43:41Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\FontPicker\FontPickerList.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:43:42Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\FontPicker\FontPickerList.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:43:43Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\FontPicker\FontPickerList.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:43:50Z)**_
 
-<think><details><summary>Thought Process</summary>
-The integration test will mock `openCustomFontFile` now, since its hidden input is gone, and I'm adding a regression test for the picker closing while the file chooser is open.
+<think><details><summary>Thought Process</summary> The integration test will mock `openCustomFontFile` now, since its hidden input is gone, and I'm adding a regression test for the picker closing while the file chooser is open.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:43:50Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\tests\customFonts.test.tsx`
 
 ```text
 1	import { FONT_FAMILY } from "@excalidraw/common";
-2	
+2
 3	import type {
 4	  ExcalidrawTextElement,
 5	  NonDeleted,
 6	} from "@excalidraw/element/types";
-7	
+7
 8	import { Fonts } from "../fonts";
 9	import { Excalidraw } from "../index";
-10	
+10
 11	import { API } from "./helpers/api";
 12	import { Keyboard } from "./helpers/ui";
 13	import {
@@ -9928,11 +10318,11 @@ _**Agent (claude-opus-5-5 2026-11-13 02:43:50Z)**_
 18	  unmountComponent,
 19	  waitFor,
 20	} from "./test-utils";
-21	
+21
 22	unmountComponent();
-23	
+23
 24	const { h } = window;
-25	
+25
 26	// "wOF2" signature + 4 header bytes
 27	const FONT_BYTES = new Uint8Array([0x77, 0x4f, 0x46, 0x32, 0, 1, 0, 0]);
 28	// djb2 of FONT_BYTES worked out by hand (h = h * 33 + byte, mod 2^32):
@@ -9940,90 +10330,100 @@ _**Agent (claude-opus-5-5 2026-11-13 02:43:50Z)**_
 30	//      → 590458532 → 2305262372 → 3059214244, plus the range start (2000)
 31	const FONT_ID = 3_059_216_244;
 32	const TTF_BYTES = new Uint8Array([0x00, 0x01, 0x00, 0x00, 0, 1, 0, 0]);
-33	
+33
 34	const fontFile = (bytes = FONT_BYTES, name = "Test Font.woff2") =>
 35	  new File([bytes], name);
-36	
+36
 37	const openFontPicker = () => {
 38	  const trigger = screen.getByTestId("font-family-show-fonts");
 39	  act(() => {
 40	    trigger.click();
 41	  });
 42	};
-43	
+43
 44	/** picks a file through the font picker's footer upload input */
 45	const uploadThroughPicker = async (file: File) => {
 46	  openFontPicker();
 47	  expect(screen.getByTestId("font-picker-upload").textContent).toBe(
 48	    "Upload font",
 49	  );
-50	
+50
 51	  const input = screen.getByTestId("font-picker-upload-input");
 52	  await act(async () => {
 53	    fireEvent.change(input, { target: { files: [file] } });
 54	  });
 55	};
-56	
+56
 57	/** ticks the license box and confirms the upload dialog */
 58	const confirmUploadDialog = async () => {
 59	  const checkbox = await screen.findByRole("checkbox");
 60	  fireEvent.click(checkbox);
 61	  fireEvent.click(screen.getByRole("button", { name: "Add font" }));
 62	};
-63	
+63
 64	describe("uploading a custom font through the font picker (#140)", () => {
 65	  const fontsAdd = vi.mocked(window.document.fonts.add);
-66	
+66
 67	  beforeAll(() => {
 68	    (global as any).ResizeObserver =
 69	      (global as any).ResizeObserver ||
 70	      class ResizeObserver {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:44:04Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\tests\customFonts.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:44:05Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\tests\customFonts.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:44:06Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\tests\customFonts.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:44:07Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\tests\customFonts.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:44:07Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Locate hooks in integration test
 
@@ -10033,11 +10433,13 @@ Locate hooks in integration test
 90:  beforeEach(async () => {
 95:  afterEach(() => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:44:09Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\tests\customFonts.test.tsx`
 
@@ -10046,22 +10448,25 @@ _**Agent (claude-opus-5-5 2026-11-13 02:44:09Z)**_
 91	    await render(<Excalidraw handleKeyboardGlobally={true} />);
 92	    fontsAdd.mockClear();
 93	  });
-94	
+94
 95	  afterEach(() => {
 96	    Fonts.unregisterCustomFont(FONT_ID);
 97	  });
 98
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:44:13Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\tests\customFonts.test.tsx has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:44:15Z)**_
@@ -10071,6 +10476,7 @@ Next, a unit test confirming the helper asks the system file chooser for WOFF an
 _**Agent (claude-opus-5-5 2026-11-13 02:44:16Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read step 3 test header
 
@@ -10103,31 +10509,37 @@ describe("custom font file handling (#140)", () => {
   afterEach(() => {
     vi.restoreAllMocks();
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:44:27Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\data\customFonts.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:44:27Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\data\customFonts.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:45:19Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Format, typecheck, lint and run updated tests
 
@@ -10168,6 +10580,7 @@ selects the existing font when the same file is uploaded again
 shows an error for a TTF file and adds nothing
       Tests  30 passed (30)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:45:23Z)**_
@@ -10177,6 +10590,7 @@ All 30 pass. Two quick mutants on the new code:
 _**Agent (claude-opus-5-5 2026-11-13 02:46:51Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Run mutants on the new upload code
 
@@ -10194,18 +10608,19 @@ Ran 18 tests: 1 failed, 17 passed
   PASS  custom font file handling (#140) loadCustomFontFile() doesn't try to parse files that fail the size or type checks
 RESULT: KILLED (a test failed, which is what we want)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:46:56Z)**_
 
-<think><details><summary>Thought Process</summary>
-Both mutants are dead; the exit code 1 came from my output filter, not a test. I'm opening a fresh watcher window so you can try the fixed version with a real double-click.
+<think><details><summary>Thought Process</summary> Both mutants are dead; the exit code 1 came from my output filter, not a test. I'm opening a fresh watcher window so you can try the fixed version with a real double-click.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:46:57Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Open visible Chrome to verify the fix manually
 
@@ -10214,6 +10629,7 @@ Open visible Chrome to verify the fix manually
 ```text
 Command running in background with ID: b5i4fssfo. Output is being written to: C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\tasks\b5i4fssfo.output. You will be notified when it completes — do not poll that file or sleep while waiting. Read the file only if the user asks for progress, or if you need a line it prints before you can go on, such as a server's ready line or port.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:47:05Z)**_
@@ -10225,7 +10641,7 @@ Fixed. When you double-clicked the file, the second click landed on the canvas a
 **Test run:** 30 of 30 pass in the two affected files. The new and changed ones:
 
 | Test | Result |
-|---|---|
+| --- | --- |
 | still opens the upload dialog if the picker closes while the file dialog is open (**regression test for your bug**) | PASS |
 | does nothing when the file dialog is cancelled | PASS |
 | `openCustomFontFile()` asks the system file picker for a single WOFF or WOFF2 file | PASS |
@@ -10237,7 +10653,7 @@ Typecheck and ESLint are clean.
 **Mutants:**
 
 | Mutant | Result | Failing test |
-|---|---|---|
+| --- | --- | --- |
 | Warn in the console even when the file chooser is cancelled | KILLED | does nothing when the file dialog is cancelled |
 | Also offer `.ttf` in the file chooser | KILLED | asks the system file picker for a single WOFF or WOFF2 file |
 
@@ -10260,6 +10676,7 @@ Good to hear. I'll check the log to confirm the double-click path was the one th
 _**Agent (claude-opus-5-5 2026-11-13 02:47:55Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read watcher log of the fixed upload
 
@@ -10272,6 +10689,7 @@ Read watcher log of the fixed upload
 [36.7s] console.error: [NONDELETED][INVARIANT] getSelectedElements skipping deleted selected element which should not be in the selection
 [39.8s] [watch] clicked font-family-show-fonts
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:47:58Z)**_
@@ -10281,6 +10699,7 @@ My filter hid the state lines: the hidden input no longer exists, so every state
 _**Agent (claude-opus-5-5 2026-11-13 02:48:01Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read full watcher log of the fixed upload
 
@@ -10299,18 +10718,19 @@ Read full watcher log of the fixed upload
 [40.1s] [watch] state {"openPopup":"fontFamily","openDialog":null,"currentItemFontFamily":3627732859}
 [40.6s] [watch] state {"openPopup":null,"openDialog":null,"currentItemFontFamily":3627732859}
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:48:10Z)**_
 
-<think><details><summary>Thought Process</summary>
-The font upload now works with a real double-click, and Seramonde became the current font after Add. A dev-only warning about a deleted selected element appeared; I think an empty text box was still selected when the picker opened, and I'm checking that next.
+<think><details><summary>Thought Process</summary> The font upload now works with a real double-click, and Seramonde became the current font after Add. A dev-only warning about a deleted selected element appeared; I think an empty text box was still selected when the picker opened, and I'm checking that next.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:48:44Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check which upload scenario logs the invariant error
 
@@ -10343,6 +10763,7 @@ for mode in "--while-editing --empty" "--while-editing" "--selected-text"; do ec
 [repro] selected elements: 1
 [This command modified 1 file you've previously read: ..\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\repro-upload.js. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:48:47Z)**_
@@ -10352,6 +10773,7 @@ The script no longer reaches the Add step, because it still looks for the hidden
 _**Agent (claude-opus-5-5 2026-11-13 02:49:17Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Fix repro script and rerun three scenarios
 
@@ -10379,11 +10801,13 @@ grep -n "__input" "$S"; for mode in "--while-editing --empty" "--while-editing" 
 ######## --selected-text
 [repro] selected elements: 1
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:49:30Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show full repro output for empty editing case
 
@@ -10402,18 +10826,19 @@ ProtocolError: Protocol error (DOM.resolveNode): Either nodeId or backendNodeId 
 
 Node.js v24.20.0
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:49:36Z)**_
 
-<think><details><summary>Thought Process</summary>
-Puppeteer 13 can't intercept the newer file-picker API that browser-fs-access uses, so I'm stubbing showOpenFilePicker to return your Seramonde file and writing a cleaner version of the script.
+<think><details><summary>Thought Process</summary> Puppeteer 13 can't intercept the newer file-picker API that browser-fs-access uses, so I'm stubbing showOpenFilePicker to return your Seramonde file and writing a cleaner version of the script.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:49:47Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```javascript
@@ -10424,7 +10849,11 @@ const fs = require("fs");
 const path = require("path");
 const puppeteer = require("c:/excalidraw/node_modules/puppeteer-core");
 
-const FONT = path.join(process.env.USERPROFILE, "Downloads", "Seramonde Trial.woff2");
+const FONT = path.join(
+  process.env.USERPROFILE,
+  "Downloads",
+  "Seramonde Trial.woff2",
+);
 const URL = "http://localhost:3001";
 const mode = process.argv[2] || "--selected";
 const log = (...a) => console.log("[repro]", ...a);
@@ -10504,17 +10933,18 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   console.error("[repro] SCRIPT ERROR", e.message);
   process.exit(1);
 });
-
 ```
 
 ```text
 File created successfully at: C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\repro-upload2.js (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:50:13Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run three upload scenarios and capture invariant errors
 
@@ -10532,6 +10962,7 @@ Exit code 1
 [repro] --selected before upload: {"editing":false,"selected":[],"deletedSelected":[],"openDialog":null,"currentItemFontFamily":5,"textFonts":[]}
 [repro] SCRIPT ERROR No node found for selector: [data-testid="font-family-show-fonts"]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:50:17Z)**_
@@ -10541,10 +10972,11 @@ Nothing got created: the first click came before the app was ready, as in my fir
 _**Agent (claude-opus-5-5 2026-11-13 02:50:44Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Rerun scenarios with a longer startup wait
 
-`cd /c/excalidraw; S="C:/Users/ab200/AppData/Local/Temp/claude/7985df2d02985ab2/7311c317-21b1-44c8-ab86-1e60ec313e46/scratchpad/repro-upload2.js"; sed -i 's/  await sleep(1000);\r\?$/  await sleep(2500);/' "$S"; grep -n "sleep(2500)" "$S"; for m in --editing-empty --editing --selected; do echo "######## $m"; node "$S" $m 2>&1; done`
+`cd /c/excalidraw; S="C:/Users/ab200/AppData/Local/Temp/claude/7985df2d02985ab2/7311c317-21b1-44c8-ab86-1e60ec313e46/scratchpad/repro-upload2.js"; sed -i 's/ await sleep(1000);\r\?$/ await sleep(2500);/' "$S"; grep -n "sleep(2500)" "$S"; for m in --editing-empty --editing --selected; do echo "######## $m"; node "$S" $m 2>&1; done`
 
 ```text
 Exit code 1
@@ -10559,6 +10991,7 @@ Exit code 1
 [repro] --selected before upload: {"editing":false,"selected":[],"deletedSelected":[],"openDialog":null,"currentItemFontFamily":5,"textFonts":[]}
 [repro] SCRIPT ERROR No node found for selector: [data-testid="font-family-show-fonts"]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:50:50Z)**_
@@ -10568,6 +11001,7 @@ Text still isn't being created, while the earlier script managed it. Rather than
 _**Agent (claude-opus-5-5 2026-11-13 02:51:02Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Capture screenshot before upload step
 
@@ -10586,11 +11020,13 @@ node "$S" --selected 2>&1 | tail -3
 [repro] --selected before upload: {"editing":false,"selected":[],"deletedSelected":[],"openDialog":null,"currentItemFontFamily":5,"textFonts":[]}
 [repro] SCRIPT ERROR No node found for selector: [data-testid="font-family-show-fonts"]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:51:05Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\repro2-before.png`
 </details></tool-use>
@@ -10602,6 +11038,7 @@ The typed "Hello" was taken as keyboard shortcuts ("o" selected the ellipse tool
 _**Agent (claude-opus-5-5 2026-11-13 02:51:46Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Use toolbar text tool and rerun scenarios
 
@@ -10634,6 +11071,7 @@ for m in --editing-empty --editing --selected; do echo "######## $m"; node "$S" 
 [repro] dialog open: {"editing":false,"selected":["Nq5C2Nni7aylJ5Bd_LFBb"],"deletedSelected":[],"openDialog":"customFontUpload","currentItemFontFamily":5,"textFonts":[5]}
 [repro] after Add: {"editing":false,"selected":["Nq5C2Nni7aylJ5Bd_LFBb"],"deletedSelected":[],"openDialog":null,"currentItemFontFamily":3627732859,"textFonts":[3627732859]}
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:52:00Z)**_
@@ -10641,7 +11079,7 @@ _**Agent (claude-opus-5-5 2026-11-13 02:52:00Z)**_
 I couldn't reproduce the warning. I ran the upload in a real browser with your Seramonde file in three ways:
 
 | Scenario | Dialog opened | Font applied | Warning |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Typing in an **empty** text box, then upload | Yes | Yes | None |
 | Typing "Hello" in a text box, then upload | Yes | Yes | None |
 | A finished text element selected, then upload | Yes | Yes | None |
@@ -10653,6 +11091,7 @@ In every case the selection stayed valid, and no deleted element was left select
 If you remember what you did between the dialog opening and clicking Add, I can try that sequence. Things like clicking the canvas, pressing Escape, or what was selected before you opened the picker would help. Otherwise I'd note it and move on, since it doesn't affect the result.
 
 **Step 5 status:** it works with your real double-click (confirmed in your watcher log) and all 30 tests pass. Nothing is staged. When you want, I'll stage these files:
+
 - `packages/excalidraw/data/customFonts.ts` and its test
 - `FontPickerList.tsx` and `FontPicker.scss`
 - `App.tsx`, `LayerUI.tsx` and `types.ts`
@@ -10703,6 +11142,7 @@ I'll check the Claude Code CLI is available, and look at what the repo contains 
 _**Agent (claude-opus-5-5 2026-11-13 02:53:33Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check Claude CLI and plugin subcommands
 
@@ -10712,11 +11152,13 @@ Check Claude CLI and plugin subcommands
 which: no claude in (/c/Users/ab200/bin:/mingw64/bin:/usr/local/bin:/usr/bin:/bin:/mingw64/bin:/usr/bin:/c/Users/ab200/bin:/c/Users/ab200/anaconda3/Scripts:/c/Windows/system32:/c/Windows:/c/Windows/System32/Wbem:/c/Windows/System32/WindowsPowerShell/v1.0:/c/Windows/System32/OpenSSH:/c/Program Files/dotnet:/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/c/Program Files/NVIDIA Corporation/NVIDIA NvDLISR:/c/WINDOWS/system32:/c/WINDOWS:/c/WINDOWS/System32/Wbem:/c/WINDOWS/System32/WindowsPowerShell/v1.0:/c/WINDOWS/System32/OpenSSH:/cmd:/c/Program Files/nodejs:/c/specstory:/c/Users/ab200/anaconda3:/c/Users/ab200/anaconda3/Library/mingw-w64/bin:/c/Users/ab200/anaconda3/Library/usr/bin:/c/Users/ab200/anaconda3/Library/bin:/c/Users/ab200/anaconda3/Scripts:/c/Users/ab200/AppData/Local/Microsoft/WindowsApps:/c/Users/ab200/AppData/Local/Programs/Microsoft VS Code/bin:/c/Users/ab200/AppData/Local/Programs/DockerDesktop/resources/bin:/c/Users/ab200/AppData/Roaming/npm:/usr/bin/vendor_perl:/usr/bin/core_perl)
 /usr/bin/bash: line 1: claude: command not found
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:53:34Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Look up the ponytail repo and its plugin manifest
 
@@ -10726,6 +11168,7 @@ Look up the ponytail repo and its plugin manifest
 {'full_name': 'DietrichGebert/ponytail', 'description': 'Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote.', 'stargazers_count': 189832, 'pushed_at': '2026-10-29T11:59:31Z', 'message': None}
 ['marketplace.json', 'plugin.json']
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:53:37Z)**_
@@ -10735,6 +11178,7 @@ The `claude` command isn't on your PATH. The VS Code extension ships its own cop
 _**Agent (claude-opus-5-5 2026-11-13 02:53:39Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Find the Claude CLI bundled with VS Code extension
 
@@ -10744,11 +11188,13 @@ Find the Claude CLI bundled with VS Code extension
 /c/Users/ab200/.vscode/extensions/anthropic.claude-code-2.1.322-win32-x64
 /c/Users/ab200/.vscode/extensions/anthropic.claude-code-2.1.322-win32-x64/resources/native-binary/claude.exe
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:53:43Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check bundled CLI version and marketplace help
 
@@ -10771,6 +11217,7 @@ Commands:
   update [options] [name]     Update marketplace(s) from their source - updates
                               all if no name specified
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:53:45Z)**_
@@ -10780,6 +11227,7 @@ The bundled CLI supports it. Adding a marketplace only registers its catalog of 
 _**Agent (claude-opus-5-5 2026-11-13 02:53:55Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Add the ponytail marketplace and list marketplaces
 
@@ -10799,6 +11247,7 @@ From claude.ai:
 
   ❯ (no CLI name) · listed as "Anthropic Directory" (browse on claude.ai)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:53:57Z)**_
@@ -10808,6 +11257,7 @@ Done. I'll check which plugins it offers:
 _**Agent (claude-opus-5-5 2026-11-13 02:54:00Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 List plugins in the ponytail marketplace
 
@@ -10817,11 +11267,13 @@ List plugins in the ponytail marketplace
 /c/Users/ab200/.claude/plugins/marketplaces/ponytail/.agents/plugins/marketplace.json
 - ponytail : None
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:54:05Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read Claude plugin manifest of ponytail marketplace
 
@@ -10852,6 +11304,7 @@ scripts
 skills
 tests
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:54:10Z)**_
@@ -10882,6 +11335,7 @@ I'll take a quick look at what the hooks run before installing:
 _**Agent (claude-opus-5-5 2026-11-13 02:55:53Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect ponytail hooks and network calls
 
@@ -10911,11 +11365,13 @@ qoder-hooks.json
 /c/Users/ab200/.claude/plugins/marketplaces/ponytail/hooks/qoder-hooks.json
 /c/Users/ab200/.claude/plugins/marketplaces/ponytail/scripts/build-openclaw-skills.js
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:55:58Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check which hooks load and their network URLs
 
@@ -10932,6 +11388,7 @@ Check which hooks load and their network URLs
 /c/Users/ab200/.claude/plugins/marketplaces/ponytail/hooks/band/metrics.ts:134:http://www.w3.org/2000/svg
 /c/Users/ab200/.claude/plugins/marketplaces/ponytail/hooks/ponytail-band-import.js:16:https://platform.claude.com/docs/en/about-claude/pricing,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:56:00Z)**_
@@ -10941,6 +11398,7 @@ Nothing concerning in the hooks Claude would load. The only URLs are SVG namespa
 _**Agent (claude-opus-5-5 2026-11-13 02:56:07Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Install ponytail plugin and confirm it is listed
 
@@ -10954,6 +11412,7 @@ Installing plugin "ponytail@ponytail"...✔ Successfully installed plugin: ponyt
     Scope: user
     Status: ✔ enabled
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:56:11Z)**_
@@ -10979,6 +11438,7 @@ okay stage please
 _**Agent (claude-opus-5-5 2026-11-13 02:56:47Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check latest commit and working tree
 
@@ -11002,11 +11462,13 @@ Check latest commit and working tree
 ?? dev-docs/stryker.config.json
 ?? packages/excalidraw/tests/customFonts.test.tsx
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:56:51Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Stage step 5 files
 
@@ -11029,6 +11491,7 @@ A  packages/excalidraw/tests/customFonts.test.tsx
 M  packages/excalidraw/types.ts
 ?? dev-docs/stryker.config.json
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:56:54Z)**_
@@ -11065,6 +11528,7 @@ Step 6 involves a design choice, so I'll look at how scenes are saved today befo
 _**Agent (claude-opus-5-5 2026-11-13 02:57:22Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read JSON serialization and data types
 
@@ -11155,11 +11619,13 @@ export const saveAsJSON = async ({
 35:export interface ImportedDataState {
 49:  files?: BinaryFiles;
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:57:22Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect app-side local persistence
 
@@ -11216,33 +11682,36 @@ tabSync.ts
 56:  IDB_LIBRARY: "excalidraw-library",
 57:  IDB_TTD_CHATS: "excalidraw-ttd-chats",
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:57:34Z)**_
 
-<think><details><summary>Thought Process</summary>
-I'm splitting step 6 into 6a (file save and open) and 6b (browser auto-save), since the two paths differ and fonts need IndexedDB like images; two decisions need your input first.
+<think><details><summary>Thought Process</summary> I'm splitting step 6 into 6a (file save and open) and 6b (browser auto-save), since the two paths differ and fonts need IndexedDB like images; two decisions need your input first.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:59:27Z)**_
 
 <tool-use data-tool-type="generic" data-tool-name="AskUserQuestion"><details>
+
 <summary>Tool use: **AskUserQuestion**</summary>
 **After a page reload, which uploaded custom fonts should still be available in the font picker?**
 
 Options:
+
 - **All uploaded fonts (Recommended)** - Kept in the browser like your library, so every font you've uploaded stays in the picker for any drawing until you remove it (step 9).
 - **Only fonts used in the scene** - Fonts only stay if text in the current drawing uses them; unused uploads disappear on reload.
 
 **When a drawing is saved as a .excalidraw file, which custom fonts should be embedded in it?**
 
 Options:
+
 - **Only fonts the text uses (Recommended)** - Keeps files small (fonts can be up to 5 MB each); matches how unused images are already dropped on save.
 - **All uploaded fonts** - Anyone opening the file gets your whole font collection, even fonts no text uses.
 
-
 **Answer:** All uploaded fonts (Recommended), Only fonts the text uses (Recommended)
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:59:50Z)**_
@@ -11252,16 +11721,19 @@ Got it: **all uploaded fonts survive a reload**, and **saved files embed only th
 _**Agent (claude-opus-5-5 2026-11-13 02:59:52Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\ab200\.claude\projects\c--excalidraw\memory\custom-fonts-issue-140.md has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 02:59:54Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read scene loading and data state types
 
@@ -11400,18 +11872,19 @@ export interface ExportedLibraryData {
 export interface ImportedLibraryData extends Partial<ExportedLibraryData> {
   /** @deprecated v1 */
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:04Z)**_
 
-<think><details><summary>Thought Process</summary>
-I'm making the font registry store each font's full data, adding a customFonts list to serialization that leaves out the field when no fonts are used, and validating embedded fonts when a file opens.
+<think><details><summary>Thought Process</summary> I'm making the font registry store each font's full data, adding a customFonts list to serialization that leaves out the field when no fonts are used, and validating embedded fonts when a file opens.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:05Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  path `c:\excalidraw\packages\excalidraw\fonts\Fonts.ts` pattern `public static registerCustomFont|public static unregisterCustomFont`
 
@@ -11419,11 +11892,13 @@ _**Agent (claude-opus-5-5 2026-11-13 03:00:05Z)**_
 330:  public static registerCustomFont({
 376:  public static unregisterCustomFont(id: number): boolean {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:07Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\fonts\Fonts.ts`
 
@@ -11431,7 +11906,7 @@ _**Agent (claude-opus-5-5 2026-11-13 03:00:07Z)**_
 318	      }
 319	    }
 320	  }
-321	
+321
 322	  /**
 323	   * Register a user-uploaded font (#140) under its custom `fontFamily` id.
 324	   *
@@ -11454,16 +11929,16 @@ _**Agent (claude-opus-5-5 2026-11-13 03:00:07Z)**_
 341	        `Custom font id must be an integer >= ${CUSTOM_FONT_FAMILY_ID_START}, received "${id}"`,
 342	      );
 343	    }
-344	
+344
 345	    if (Fonts.registered.has(id)) {
 346	      return false;
 347	    }
-348	
+348
 349	    const fontFace = new ExcalidrawFontFace(
 350	      getCustomFontFamilyName(id),
 351	      dataURL,
 352	    );
-353	
+353
 354	    Fonts.registered.set(id, {
 355	      // custom fonts reuse Excalifont metrics, same as any unknown family
 356	      metadata: {
@@ -11472,14 +11947,14 @@ _**Agent (claude-opus-5-5 2026-11-13 03:00:07Z)**_
 359	      },
 360	      fontFaces: [fontFace],
 361	    });
-362	
+362
 363	    // built-in faces are only added to the document on scene load, but custom
 364	    // fonts can be registered mid-session, so make them usable straight away
 365	    window.document.fonts.add(fontFace.fontFace);
-366	
+366
 367	    return true;
 368	  }
-369	
+369
 370	  /**
 371	   * Remove a user-uploaded font (#140) from the registry and the document.
 372	   * Built-in fonts can't be unregistered.
@@ -11488,77 +11963,88 @@ _**Agent (claude-opus-5-5 2026-11-13 03:00:07Z)**_
 375	   */
 376	  public static unregisterCustomFont(id: number): boolean {
 377	    const registeredFamily = Fonts.registered.get(id);
-378	
+378
 379	    if (!registeredFamily?.metadata.custom) {
 380	      return false;
 381	    }
-382	
+382
 383	    for (const { fontFace } of registeredFamily.fontFaces) {
 384	      window.document.fonts.delete(fontFace);
-385	
+385
 386	      for (const sig of Fonts.loadedFontsCache) {
 387	        if (sig.startsWith(`${fontFace.family}-`)) {
 388	          Fonts.loadedFontsCache.delete(sig);
 389	        }
 390	      }
 391	    }
-392	
+392
 393	    return Fonts.registered.delete(id);
 394	  }
-395	
+395
 396	  /**
 397	   * Register a new font.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:18Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\fonts\Fonts.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:19Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\fonts\Fonts.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:20Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\fonts\Fonts.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:21Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\fonts\Fonts.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:22Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\fonts\Fonts.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:24Z)**_
@@ -11568,51 +12054,61 @@ Now the saved-file format and `serializeAsJSON`:
 _**Agent (claude-opus-5-5 2026-11-13 03:00:33Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\data\types.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:34Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\data\types.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:35Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\data\types.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:35Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\data\json.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:36Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\data\json.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:45Z)**_
@@ -11622,6 +12118,7 @@ _**Agent (claude-opus-5-5 2026-11-13 03:00:45Z)**_
 _**Agent (claude-opus-5-5 2026-11-13 03:00:46Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check restore.ts imports and exports
 
@@ -11660,11 +12157,13 @@ Check restore.ts imports and exports
 112:import type { ImportedDataState, LegacyAppState } from "./types";
 1351:export const restoreLibraryItems = (
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:49Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read restore.ts common imports and end
 
@@ -11709,28 +12208,31 @@ import type {
   return restoredItems;
 };
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:00:56Z)**_
 
-<think><details><summary>Thought Process</summary>
-The 5 MB limit sits in `data/customFonts.ts`, and importing it into `restore.ts` would create a cycle, so I'm moving the constant to `@excalidraw/common` and re-exporting it.
+<think><details><summary>Thought Process</summary> The 5 MB limit sits in `data/customFonts.ts`, and importing it into `restore.ts` would create a cycle, so I'm moving the constant to `@excalidraw/common` and re-exporting it.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:01:01Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\common\src\constants.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:01:03Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Import size limit from common and re-export
 
@@ -11760,6 +12262,7 @@ grep -n "CUSTOM_FONT_MAX_SIZE_BYTES" packages/excalidraw/data/customFonts.ts
 112:  if (file.size > CUSTOM_FONT_MAX_SIZE_BYTES) {
 115:      `Font file is ${file.size} bytes, the limit is ${CUSTOM_FONT_MAX_SIZE_BYTES}`,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:01:05Z)**_
@@ -11769,26 +12272,31 @@ Now `restoreCustomFonts` at the end of `restore.ts`:
 _**Agent (claude-opus-5-5 2026-11-13 03:01:15Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\data\restore.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:01:16Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\data\restore.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:01:17Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Append restoreCustomFonts and check blob imports
 
@@ -11859,11 +12367,13 @@ grep -n "restoreElements\|^import.*restore\|from \"./restore\"" packages/excalid
 26:} from "./restore";
 172:          elements: restoreElements(data.elements, localElements, {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:01:20Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read blob.ts import block
 
@@ -11883,31 +12393,37 @@ import type { AppState, DataURL, LibraryItem } from "../types";
 
 import type { ImportedLibraryData } from "./types";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:01:27Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\data\blob.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:01:28Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\data\blob.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:01:52Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Format and typecheck step 6a
 
@@ -11928,18 +12444,19 @@ packages/excalidraw/fonts/Fonts.test.ts(109,55): error TS2322: Type 'string' is 
 packages/excalidraw/fonts/Fonts.test.ts(120,55): error TS2322: Type 'string' is not assignable to type 'DataURL'.
 packages/excalidraw/fonts/Fonts.test.ts(121,55): error TS2322: Type 'string' is not assignable to type 'DataURL'.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:01:59Z)**_
 
-<think><details><summary>Thought Process</summary>
-The source compiles, and only the step 2 registry tests need changing, since registerCustomFont now takes a full CustomFontData. I'm adding a font() helper to those tests and routing each call through it.
+<think><details><summary>Thought Process</summary> The source compiles, and only the step 2 registry tests need changing, since registerCustomFont now takes a full CustomFontData. I'm adding a font() helper to those tests and routing each call through it.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:02:26Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Wrap registry test calls with full font data helper
 
@@ -11992,6 +12509,7 @@ wrapped 12
 (node:44712) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 [This command modified 1 file you've previously read: packages\excalidraw\fonts\Fonts.test.ts. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:02:31Z)**_
@@ -12001,6 +12519,7 @@ Typecheck is clean. Before writing the new tests, I'll run the existing suites t
 _**Agent (claude-opus-5-5 2026-11-13 03:03:00Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run existing data, export and font suites
 
@@ -12013,6 +12532,7 @@ restore.test.ts
  Test Files ** **10 passed** (10)
       Tests ** **135 passed** (135)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:03:13Z)**_
@@ -12022,6 +12542,7 @@ Existing suites all pass: 135 tests, no snapshot changes. Now the new tests. Fir
 _**Agent (claude-opus-5-5 2026-11-13 03:03:14Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Locate insertion points in registry test
 
@@ -12034,23 +12555,25 @@ Locate insertion points in registry test
 141:  describe("unregisterCustomFont()", () => {
 191:});
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:03:16Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\fonts\Fonts.test.ts`
 
 ```text
 1	import { FONT_FAMILY } from "@excalidraw/common";
-2	
+2
 3	import { Fonts } from "./Fonts";
-4	
+4
 5	import type { CustomFontData, DataURL } from "../types";
-6	
+6
 7	const DATA_URL = "data:font/woff2;base64,d09GMgABAAAAAA==";
-8	
+8
 9	const font = ({
 10	  dataURL = DATA_URL,
 11	  ...rest
@@ -12064,15 +12587,15 @@ _**Agent (claude-opus-5-5 2026-11-13 03:03:16Z)**_
 19	  ...rest,
 20	  dataURL: dataURL as DataURL,
 21	});
-22	
+22
 23	describe("Fonts custom font registry (#140)", () => {
 24	  const deleteSpy = vi.fn();
-25	
+25
 26	  beforeAll(() => {
 27	    // the jsdom `document.fonts` mock from setupTests.ts has no `delete`
 28	    Object.assign(window.document.fonts, { delete: deleteSpy });
 29	  });
-30	
+30
 31	  afterEach(() => {
 32	    // the registry is static, so make sure no test leaks into another
 33	    for (const id of [2000, 2007, 2042]) {
@@ -12081,25 +12604,27 @@ _**Agent (claude-opus-5-5 2026-11-13 03:03:16Z)**_
 36	    Fonts.loadedFontsCache.clear();
 37	    deleteSpy.mockClear();
 38	  });
-39	
+39
 40	  describe("registerCustomFont()", () => {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:03:17Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\fonts\Fonts.test.ts`
 
 ```text
 178	    });
-179	
+179
 180	    it("returns false for an id that isn't registered", () => {
 181	      expect(Fonts.unregisterCustomFont(2007)).toBe(false);
 182	      expect(deleteSpy).not.toHaveBeenCalled();
 183	    });
-184	
+184
 185	    it("refuses to unregister built-in fonts", () => {
 186	      expect(Fonts.unregisterCustomFont(FONT_FAMILY.Excalifont)).toBe(false);
 187	      expect(Fonts.registered.has(FONT_FAMILY.Excalifont)).toBe(true);
@@ -12109,26 +12634,31 @@ _**Agent (claude-opus-5-5 2026-11-13 03:03:17Z)**_
 191	});
 192
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:03:28Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\fonts\Fonts.test.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:03:28Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file c:\excalidraw\packages\excalidraw\fonts\Fonts.test.ts has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:03:30Z)**_
@@ -12138,6 +12668,7 @@ Next, the tests that check embedded fonts when a file is opened:
 _**Agent (claude-opus-5-5 2026-11-13 03:03:42Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -12251,12 +12782,12 @@ describe("restoreCustomFonts() (#140)", () => {
     });
   });
 });
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\packages\excalidraw\data\restoreCustomFonts.test.ts (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:03:44Z)**_
@@ -12266,6 +12797,7 @@ Finally, the save-and-reopen tests:
 _**Agent (claude-opus-5-5 2026-11-13 03:04:01Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -12349,9 +12881,9 @@ describe("saving and opening scenes with custom fonts (#140)", () => {
       Fonts.registerCustomFont(fontA);
       Fonts.registerCustomFont(fontB);
 
-      expect(
-        save([text(fontA.id), text(fontB.id, true)]).customFonts,
-      ).toEqual([fontA]);
+      expect(save([text(fontA.id), text(fontB.id, true)]).customFonts).toEqual([
+        fontA,
+      ]);
     });
 
     it("omits the field entirely when no custom font is used", () => {
@@ -12423,17 +12955,18 @@ describe("saving and opening scenes with custom fonts (#140)", () => {
     });
   });
 });
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\packages\excalidraw\data\customFontsPersistence.test.ts (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:04:35Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Format and run the new step 6a tests
 
@@ -12489,6 +13022,7 @@ opening > opens files saved before custom fonts existed
       Tests  46 passed (46)
 [This command modified 2 files you've previously read: packages\excalidraw\data\customFontsPersistence.test.ts, packages\excalidraw\fonts\Fonts.test.ts. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:04:37Z)**_
@@ -12498,6 +13032,7 @@ All 46 pass on the first run. Next, typecheck, lint and a broader regression run
 _**Agent (claude-opus-5-5 2026-11-13 03:05:56Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Typecheck, lint, and run broader regression suites
 
@@ -12520,11 +13055,13 @@ ESLint found too many warnings (maximum: 0).
  Test Files ** **19 passed** (19)
       Tests ** **286 passed** (286)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:06:35Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Auto-fix import order and recheck
 
@@ -12535,6 +13072,7 @@ LINT_OK
 (node:41016) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 [This command modified 2 files you've previously read: packages\excalidraw\fonts\Fonts.ts, packages\excalidraw\data\blob.ts. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:06:36Z)**_
@@ -12544,6 +13082,7 @@ Lint and typecheck are clean. Now the mutants, run before I report them:
 _**Agent (claude-opus-5-5 2026-11-13 03:08:48Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Run step 6a mutants with condensed output
 
@@ -12562,18 +13101,18 @@ Ran 9 tests: 1 failed, 8 passed
   FAIL  saving and opening scenes with custom fonts (#140) saving doesn't send fonts to the database (no collaboration sync)
 RESULT: KILLED (a test failed, which is what we want)
 From : !element.isDeleted &&
-To   : 
+To   :
 Ran 15 tests: 1 failed, 14 passed
   FAIL  Fonts custom font registry (#140) getCustomFontsUsedBy() returns only the registered fonts used by non-deleted text
 RESULT: KILLED (a test failed, which is what we want)
 From : Fonts.registerCustomFont(font);
-To   : 
+To   :
 Ran 9 tests: 2 failed, 7 passed
   FAIL  saving and opening scenes with custom fonts (#140) opening restores the fonts and the text that uses them
   FAIL  saving and opening scenes with custom fonts (#140) opening skips invalid embedded fonts and still opens the scene
 RESULT: KILLED (a test failed, which is what we want)
 From : restored.has(id) ||
-To   : 
+To   :
 Ran 22 tests: 1 failed, 21 passed
   FAIL  restoreCustomFonts() (#140) keeps only the first font for a duplicate id
 RESULT: KILLED (a test failed, which is what we want)
@@ -12593,7 +13132,7 @@ Ran 22 tests: 1 failed, 21 passed
   FAIL  restoreCustomFonts() (#140) only treats an explicit true as an acknowledged license
 RESULT: KILLED (a test failed, which is what we want)
 From : Fonts.customFontsData.delete(id);
-To   : 
+To   :
 Ran 15 tests: 4 failed, 11 passed
   FAIL  Fonts custom font registry (#140) unregisterCustomFont() drops the font's saved data too
   FAIL  Fonts custom font registry (#140) getCustomFonts() returns the full data of every registered font, in upload order
@@ -12601,6 +13140,7 @@ Ran 15 tests: 4 failed, 11 passed
   FAIL  Fonts custom font registry (#140) getCustomFontsUsedBy() skips custom font ids that aren't registered
 RESULT: KILLED (a test failed, which is what we want)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:09:05Z)**_
@@ -12608,6 +13148,7 @@ _**Agent (claude-opus-5-5 2026-11-13 03:09:05Z)**_
 Step 6a is done: custom fonts now travel inside saved `.excalidraw` files and come back when the file is opened. Nothing is staged. A page reload still loses uploaded fonts; that's 6b.
 
 **What changed:**
+
 - **[Fonts.ts](packages/excalidraw/fonts/Fonts.ts):** the registry keeps each font's full data. Two new functions:
   - `getCustomFonts()` returns every uploaded font.
   - `getCustomFontsUsedBy(elements)` returns only the fonts used by non-deleted text.
@@ -12621,7 +13162,7 @@ Step 6a is done: custom fonts now travel inside saved `.excalidraw` files and co
 **Test run:** 46 of 46 pass in the three test files below, including the updated step 2 registry tests. The wider regression run passed **286 of 286** across 19 files: save/load, restore, export, library, images, and all custom-font suites. No snapshots changed.
 
 | File | New tests | Result |
-|---|---|---|
+| --- | --- | --- |
 | [restoreCustomFonts.test.ts](packages/excalidraw/data/restoreCustomFonts.test.ts) | 22: valid fonts kept; 12 kinds of bad entry dropped; duplicates, name trimming, license flag, missing upload time; 5 MB boundary | 22 PASS |
 | [customFontsPersistence.test.ts](packages/excalidraw/data/customFontsPersistence.test.ts) | 9: saving embeds only used fonts, ignores deleted text, omits the field when unused, nothing sent to the database; opening restores fonts and text, keeps your local name, skips bad fonts, opens older files | 9 PASS |
 | [Fonts.test.ts](packages/excalidraw/fonts/Fonts.test.ts) | 5 new: `getCustomFonts`, `getCustomFontsUsedBy`, unregister also drops the saved data | 5 PASS (plus the 10 earlier ones) |
@@ -12631,7 +13172,7 @@ Typecheck, ESLint and Prettier are clean.
 **Mutants** (9 run, all killed):
 
 | Mutant | Failing tests |
-|---|---|
+| --- | --- |
 | Always write `customFonts`, even when empty | omits the field entirely when no custom font is used |
 | Also send fonts to the database | doesn't send fonts to the database |
 | Count deleted text as using a font | returns only the registered fonts used by non-deleted text |
@@ -12645,7 +13186,7 @@ Typecheck, ESLint and Prettier are clean.
 **Test Evidence for step 6a:**
 
 | Acceptance criterion | Test(s) | Level | Source of expected value |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | C: custom fonts render in exported drawings (the file part) | Saving and opening tests | Integration (save to JSON, load from Blob) | Your decision to embed only used fonts. The round trip compares against the original font data. |
 | A: added fonts keep working after reopening a file | "restores the fonts and the text that uses them" | Integration | The same font object that was saved. |
 | Robust loading of untrusted files | `restoreCustomFonts` tests | Unit | Step 3's rules (WOFF/WOFF2 only, 5 MB limit, custom ID range). The 5 MB boundary is hand-computed in a test comment: 6,990,508 base64 characters. |
@@ -12688,7 +13229,7 @@ _**Agent (claude-opus-5-5 2026-11-13 03:09:51Z)**_
 With 2 hours, here's how I'd spend them:
 
 | Step | What it gives the PR | Estimate |
-|---|---|---|
+| --- | --- | --- |
 | **6b: fonts survive reload** | The most visible gap when anyone tries it | ~30 min |
 | **7: export check and license warning** | Completes acceptance criteria C and D | ~30 min |
 | **9: Remove toggle** | You said it's in scope | ~30 min |
@@ -12700,6 +13241,7 @@ To keep pace, each step from now on gets one round of tests, a few targeted muta
 _**Agent (claude-opus-5-5 2026-11-13 03:09:53Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check package exports and app save/load hooks
 
@@ -12724,18 +13266,19 @@ Check package exports and app save/load hooks
 41-  try {
 42-    savedElements = localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_ELEMENTS);
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:10:02Z)**_
 
-<think><details><summary>Thought Process</summary>
-`Fonts` is already exported from the package, so the app can use the registry directly. Next I'll check how the app imports the package and how it stores images in IndexedDB.
+<think><details><summary>Thought Process</summary> `Fonts` is already exported from the package, so the app can use the registry directly. Next I'll check how the app imports the package and how it stores images in IndexedDB.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:10:03Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read app storage setup and save/load sites
 
@@ -12831,18 +13374,19 @@ const initializeScene = async (opts: {
                   didChange = true;
                 }
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:10:09Z)**_
 
-<think><details><summary>Thought Process</summary>
-For 6b in excalidraw-app, I'll add a small CustomFontsStorage module on its own IndexedDB store, register saved fonts at startup before the scene loads, and save only newly uploaded fonts on each change.
+<think><details><summary>Thought Process</summary> For 6b in excalidraw-app, I'll add a small CustomFontsStorage module on its own IndexedDB store, register saved fonts at startup before the scene loads, and save only newly uploaded fonts on each change.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:10:11Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read export block, storage keys and App imports
 
@@ -12873,11 +13417,13 @@ export {
   __LEGACY_LOCAL_STORAGE_LIBRARY: "excalidraw-library",
 2:11:} from "@excalidraw/excalidraw";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:10:17Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Export restoreCustomFonts and add storage key
 
@@ -12919,11 +13465,13 @@ import {
 } from "@excalidraw/excalidraw";
 import { trackEvent } from "@excalidraw/excalidraw/analytics";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:10:29Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -12985,17 +13533,18 @@ export class CustomFontsStorage {
     }
   }
 }
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\excalidraw-app\data\customFontsStorage.ts (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:10:31Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Wire font storage into app startup and onChange
 
@@ -13033,11 +13582,13 @@ grep -n "CustomFontsStorage\|  Fonts,$" excalidraw-app/App.tsx; grep -n "from \"
 702:      CustomFontsStorage.saveNew(Fonts.getCustomFonts());
 133:} from "./data/LocalData";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:10:33Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 View LocalData import in app
 
@@ -13052,11 +13603,13 @@ import {
 } from "./data/LocalData";
 import { isBrowserStorageStateNewer } from "./data/tabSync";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:11:08Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Add import, typecheck, lint, check app test setup
 
@@ -13086,18 +13639,19 @@ creatorStamp.test.ts
 visibleExports.test.tsx
 setupTests.ts:47:require("fake-indexeddb/auto");
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:11:17Z)**_
 
-<think><details><summary>Thought Process</summary>
-Typecheck and lint pass, and the storage tests will run against fake-indexeddb with a fresh database and fresh modules for each test. Next I'll write the storage module tests.
+<think><details><summary>Thought Process</summary> Typecheck and lint pass, and the storage tests will run against fake-indexeddb with a fresh database and fresh modules for each test. Next I'll write the storage module tests.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:11:34Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -13243,17 +13797,18 @@ describe("CustomFontsStorage (#140)", () => {
     expect(setMany).toHaveBeenCalledTimes(2);
   });
 });
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\excalidraw-app\tests\customFontsStorage.test.ts (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:11:43Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run the storage tests
 
@@ -13271,11 +13826,13 @@ retries a font whose save failed on the next change
 ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
       Tests  8 failed (8)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:11:52Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show the first failure's error
 
@@ -13313,6 +13870,7 @@ TypeError: IDBFactory is not a constructor
  ❯ reload excalidraw-app/tests/customFontsStorage.test.ts:28:29
      26|  * keep the stored data, like a real reload does.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:11:54Z)**_
@@ -13322,6 +13880,7 @@ All 8 failures share one setup error: the installed `fake-indexeddb` doesn't exp
 _**Agent (claude-opus-5-5 2026-11-13 03:11:56Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check fake-indexeddb version and exports
 
@@ -13342,11 +13901,13 @@ FDBRequest.js
 FDBTransaction.js
 FDBVersionChangeEvent.js
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:13:00Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Fix factory import and rerun storage tests
 
@@ -13385,7 +13946,7 @@ TypeError: Cannot redefine property: setMany
      82|     const { CustomFontsStorage, idbKeyval } = await reload();
      83|     const setMany = vi.spyOn(idbKeyval, "setMany");
        |                        ^
-     84| 
+     84|
      85|     await CustomFontsStorage.saveNew([fontA]);
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
@@ -13400,18 +13961,19 @@ TypeError: Cannot redefine property: setMany
     101|     await after.CustomFontsStorage.saveNew(after.Fonts.getCustomFonts(…
     102|
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:13:07Z)**_
 
-<think><details><summary>Thought Process</summary>
-Two test-setup issues, not in the storage logic: re-importing the excalidraw package after a module reset takes over 5 seconds, and ES module exports can't be spied on directly. I'm switching to an instance-based storage that takes its IndexedDB store, so a test "reload" is just a new instance over the same store.
+<think><details><summary>Thought Process</summary> Two test-setup issues, not in the storage logic: re-importing the excalidraw package after a module reset takes over 5 seconds, and ES module exports can't be spied on directly. I'm switching to an instance-based storage that takes its IndexedDB store, so a test "reload" is just a new instance over the same store.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:13:15Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -13479,17 +14041,18 @@ export const customFontsStorage = new CustomFontsStorage(
     `${STORAGE_KEYS.IDB_CUSTOM_FONTS}-store`,
   ),
 );
-
 ```
 
 ```text
 The file c:\excalidraw\excalidraw-app\data\customFontsStorage.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:13:16Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Point app at the shared storage instance
 
@@ -13500,11 +14063,13 @@ Point app at the shared storage instance
 236:  await customFontsStorage.restore();
 703:      customFontsStorage.saveNew(Fonts.getCustomFonts());
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:13:33Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -13649,17 +14214,18 @@ describe("CustomFontsStorage (#140)", () => {
     expect(await reload().restore()).toEqual([fontA]);
   });
 });
-
 ```
 
 ```text
 The file c:\excalidraw\excalidraw-app\tests\customFontsStorage.test.ts has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:14:27Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run reworked storage tests
 
@@ -13675,6 +14241,7 @@ starts without custom fonts if IndexedDB can't be read
 retries a font whose save failed on the next change
       Tests  7 passed (7)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:14:31Z)**_
@@ -13684,6 +14251,7 @@ All 7 pass. Next, typecheck, lint, a regression run, and two targeted mutants:
 _**Agent (claude-opus-5-5 2026-11-13 03:16:54Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Typecheck, lint and run app plus font suites
 
@@ -13695,11 +14263,13 @@ LINT_OK
  Test Files ** **16 passed** (16)
       Tests ** **137 passed** (137)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:18:53Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Run storage mutants
 
@@ -13712,7 +14282,7 @@ Ran 7 tests: 2 failed, 5 passed
   FAIL  CustomFontsStorage (#140) doesn't rewrite fonts it restored from storage
 RESULT: KILLED (a test failed, which is what we want)
 From :       unsaved.forEach((font) => this.savedIds.delete(font.id));
-To   : 
+To   :
 Ran 7 tests: 1 failed, 6 passed
   FAIL  CustomFontsStorage (#140) retries a font whose save failed on the next change
 RESULT: KILLED (a test failed, which is what we want)
@@ -13723,6 +14293,7 @@ Ran 7 tests: 1 failed, 6 passed
   FAIL  CustomFontsStorage (#140) doesn't rewrite fonts it restored from storage
 RESULT: KILLED (a test failed, which is what we want)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:18:56Z)**_
@@ -13732,6 +14303,7 @@ Everything passes and all 3 mutants are killed. One last check in a real browser
 _**Agent (claude-opus-5-5 2026-11-13 03:19:24Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Verify uploaded font survives a page reload
 
@@ -13767,6 +14339,7 @@ node "$S" --selected --reload 2>&1 | grep -E "after Add|after reload|PAGE ERROR|
 [repro] after Add: {"editing":false,"selected":["ah3dTwt1dSYRjp_OjqjEi"],"deletedSelected":[],"openDialog":null,"currentItemFontFamily":3627732859,"textFonts":[3627732859]}
 [repro] after reload, font picker lists: ["Seramonde Trial","Comic Shanns","Excalifont","Lilita One","Nunito"]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:19:35Z)**_
@@ -13774,6 +14347,7 @@ _**Agent (claude-opus-5-5 2026-11-13 03:19:35Z)**_
 Step 6b is done: uploaded fonts now survive a page reload. I checked it in a real browser against your dev server. I uploaded Seramonde and reloaded, and the font picker then listed **"Seramonde Trial"**, Comic Shanns, Excalifont, Lilita One and Nunito. Nothing is staged.
 
 **What changed:**
+
 - **[customFontsStorage.ts](excalidraw-app/data/customFontsStorage.ts):** new. It keeps every uploaded font in its own IndexedDB store, `excalidraw-custom-fonts`.
   - `restore()` registers all saved fonts and still checks them, in case they were saved by an older version. If IndexedDB can't be read, the app starts normally without custom fonts.
   - `saveNew()` writes only fonts not yet stored. If a save fails, it retries on the next change.
@@ -13783,28 +14357,28 @@ Step 6b is done: uploaded fonts now survive a page reload. I checked it in a rea
 
 **Test run:** 7 of 7 new tests pass in [customFontsStorage.test.ts](excalidraw-app/tests/customFontsStorage.test.ts). The regression run passed **137 of 137** across 16 files: all app tests, plus the custom-font, data and font suites. Typecheck and ESLint are clean.
 
-| # | Test | Result |
-|---|---|---|
-| 1 | restores nothing when no font was ever saved | PASS |
-| 2 | brings every saved font back into the picker after a reload | PASS |
-| 3 | writes each font only once, however often the scene changes | PASS |
-| 4 | doesn't rewrite fonts it restored from storage | PASS |
-| 5 | skips invalid stored entries | PASS |
-| 6 | starts without custom fonts if IndexedDB can't be read | PASS |
-| 7 | retries a font whose save failed on the next change | PASS |
+| #   | Test                                                        | Result |
+| --- | ----------------------------------------------------------- | ------ |
+| 1   | restores nothing when no font was ever saved                | PASS   |
+| 2   | brings every saved font back into the picker after a reload | PASS   |
+| 3   | writes each font only once, however often the scene changes | PASS   |
+| 4   | doesn't rewrite fonts it restored from storage              | PASS   |
+| 5   | skips invalid stored entries                                | PASS   |
+| 6   | starts without custom fonts if IndexedDB can't be read      | PASS   |
+| 7   | retries a font whose save failed on the next change         | PASS   |
 
 **Mutants** (3 run, all killed):
 
-| Mutant | Failing tests |
-|---|---|
-| Save every font on every change | #3, #4 |
-| Don't retry after a failed save | #7 |
-| Don't remember restored fonts as already saved | #4 |
+| Mutant                                         | Failing tests |
+| ---------------------------------------------- | ------------- |
+| Save every font on every change                | #3, #4        |
+| Don't retry after a failed save                | #7            |
+| Don't remember restored fonts as already saved | #4            |
 
 **Test Evidence for 6b:**
 
 | Acceptance criterion | Test(s) | Level | Source of expected value |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | A/B: uploaded fonts stay available (your decision: all fonts survive a reload) | #1–#7, plus the browser check | Integration (fake IndexedDB) and manual (real browser) | The saved font data itself, and your decision. |
 
 **AI-written tests:** I wrote all 7.
@@ -13826,6 +14400,7 @@ stage as one commit
 _**Agent (claude-opus-5-5 2026-11-13 03:20:05Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check latest commit and changed files
 
@@ -13853,11 +14428,13 @@ Check latest commit and changed files
 ?? packages/excalidraw/data/customFontsPersistence.test.ts
 ?? packages/excalidraw/data/restoreCustomFonts.test.ts
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:20:09Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Stage step 6a and 6b files
 
@@ -13884,18 +14461,19 @@ M  packages/excalidraw/fonts/Fonts.ts
 M  packages/excalidraw/index.tsx
 ?? dev-docs/stryker.config.json
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:20:20Z)**_
 
-<think><details><summary>Thought Process</summary>
-Fifteen files are staged as one commit, and step 5 is already committed; I'm starting step 7 (font export and the export license warning) while you commit, with my new edits left unstaged.
+<think><details><summary>Thought Process</summary> Fifteen files are staged as one commit, and step 5 is already committed; I'm starting step 7 (font export and the export license warning) while you commit, with my new edits left unstaged.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:20:21Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Locate settings area in image export dialog
 
@@ -13921,11 +14499,13 @@ Locate settings area in image export dialog
 312:                exportedElements,
 335:                exportedElements,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:20:25Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read export dialog layout and imports
 
@@ -14016,18 +14596,19 @@ Read export dialog layout and imports
 39:import type { ActionManager } from "../actions/manager";
 41:import type { AppClassProperties, BinaryFiles, UIAppState } from "../types";
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:20:29Z)**_
 
-<think><details><summary>Thought Process</summary>
-I'll add a small CustomFontsLicenseNotice component to both export dialogs, shown only when custom fonts are in use, and I'm checking the JSON export dialog's structure first.
+<think><details><summary>Thought Process</summary> I'll add a small CustomFontsLicenseNotice component to both export dialogs, shown only when custom fonts are in use, and I'm checking the JSON export dialog's structure first.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:20:30Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Inspect JSON export dialog structure
 
@@ -14055,11 +14636,13 @@ Inspect JSON export dialog structure
 49:  return (
 51:      <div className="ExportDialog-cards">
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:20:33Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read JSON export modal opening markup
 
@@ -14079,11 +14662,13 @@ Read JSON export modal opening markup
             <h2>{t("exportDialog.disk_title")}</h2>
             <div className="Card-details">
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:20:41Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -14118,17 +14703,18 @@ export const CustomFontsLicenseNotice = ({
     </p>
   );
 };
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\packages\excalidraw\components\CustomFontsLicenseNotice.tsx (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:20:41Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```scss
@@ -14143,21 +14729,22 @@ _**Agent (claude-opus-5-5 2026-11-13 03:20:41Z)**_
     line-height: 1.4;
   }
 }
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\packages\excalidraw\components\CustomFontsLicenseNotice.scss (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:20:42Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check warning color tokens and locale position
 
-`cd /c/excalidraw; grep -n "\-\-color-warning" packages/excalidraw/css/theme.scss | head -5; grep -n "^  \"textHyperlinkDialog\"" packages/excalidraw/locales/en.json`
+`cd /c/excalidraw; grep -n "\-\-color-warning" packages/excalidraw/css/theme.scss | head -5; grep -n "^ \"textHyperlinkDialog\"" packages/excalidraw/locales/en.json`
 
 ```text
 108:  --color-warning: #fceeca;
@@ -14167,6 +14754,7 @@ Check warning color tokens and locale position
 125:  --color-warning-background: var(--color-warning);
 261:  "textHyperlinkDialog": {
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:20:44Z)**_
@@ -14176,6 +14764,7 @@ _**Agent (claude-opus-5-5 2026-11-13 03:20:44Z)**_
 _**Agent (claude-opus-5-5 2026-11-13 03:20:55Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```scss
@@ -14191,17 +14780,18 @@ _**Agent (claude-opus-5-5 2026-11-13 03:20:55Z)**_
     line-height: 1.4;
   }
 }
-
 ```
 
 ```text
 The file c:\excalidraw\packages\excalidraw\components\CustomFontsLicenseNotice.scss has been updated successfully. (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:22:28Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Add notice string, wire into both dialogs, check
 
@@ -14250,11 +14840,13 @@ C:\excalidraw\packages\excalidraw\components\CustomFontsLicenseNotice.tsx
 
 ESLint found too many warnings (maximum: 0).
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:22:53Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Fix lint and check exportToSvg test usage
 
@@ -14279,11 +14871,13 @@ LINT_OK
 29:import { API } from "../helpers/api";
 [This command modified 1 file you've previously read: packages\excalidraw\components\CustomFontsLicenseNotice.tsx. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:25:51Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Read an exportToSvg test setup
 
@@ -14293,6 +14887,7 @@ Read an exportToSvg test setup
 Command did not complete within its 120s timeout and was moved to the background (ID: bmevlb3f4). Output is being written to: C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\tasks\bmevlb3f4.output. You will be notified when it completes. It is running now: do not start a second copy while it runs. If it is no longer needed, stop it with TaskStop. No output had been read from it when it was moved. A program that buffers its output, or a pipe into one such as tail, can keep the output file empty until the command finishes. To check interim output, use Read on that file path.
 Session cwd remains c:\excalidraw; directory changes made by the backgrounded command do not apply to subsequent commands.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:25:55Z)**_
@@ -14302,28 +14897,29 @@ A plain `sed` read hung, which looks like a file-system hiccup. I'll read the fi
 _**Agent (claude-opus-5-5 2026-11-13 03:25:56Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `c:\excalidraw\packages\excalidraw\tests\scene\export.test.ts`
 
 ```text
 60	  ] as NonDeletedExcalidrawElement[];
-61	
+61
 62	  const DEFAULT_OPTIONS = {
 63	    exportBackground: false,
 64	    viewBackgroundColor: "#ffffff",
 65	    files: {},
 66	  };
-67	
+67
 68	  it("with default arguments", async () => {
 69	    const svgElement = await exportUtils.exportToSvg(
 70	      ELEMENTS,
 71	      DEFAULT_OPTIONS,
 72	      null,
 73	    );
-74	
+74
 75	    expect(svgElement).toMatchSnapshot();
 76	  });
-77	
+77
 78	  it("with a CJK font", async () => {
 79	    const svgElement = await exportUtils.exportToSvg(
 80	      [
@@ -14341,24 +14937,25 @@ _**Agent (claude-opus-5-5 2026-11-13 03:25:56Z)**_
 92	      DEFAULT_OPTIONS,
 93	      null,
 94	    );
-95	
+95
 96	    expect(svgElement).toMatchSnapshot();
 97	    // extend the timeout, as it needs to first load the fonts from disk and then perform whole woff2 decode, subset and encode (without workers)
 98	  }, 30_000);
 99
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:26:06Z)**_
 
-<think><details><summary>Thought Process</summary>
-The background read is done, and I'm writing the step 7 tests next, using a real bundled Excalifont WOFF2 file so the SVG embed path runs end to end.
+<think><details><summary>Thought Process</summary> The background read is done, and I'm writing the step 7 tests next, using a real bundled Excalifont WOFF2 file so the SVG embed path runs end to end.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:26:12Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Glob"><details>
+
 <summary>Tool use: **Glob**</summary>
  pattern `packages/excalidraw/fonts/Excalifont/*.woff2`
 
@@ -14371,11 +14968,13 @@ packages\excalidraw\fonts\Excalifont\Excalifont-Regular-a88b72a24fb54c9f94e3b5fd
 packages\excalidraw\fonts\Excalifont\Excalifont-Regular-b9dcf9d2e50a1eaf42fc664b50a3fd0d.woff2
 packages\excalidraw\fonts\Excalifont\Excalifont-Regular-be310b9bcd4f1a43f571c46df7809174.woff2
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:26:31Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -14536,17 +15135,18 @@ describe("exporting drawings with custom fonts (#140)", () => {
     );
   });
 });
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\packages\excalidraw\tests\customFontsExport.test.tsx (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:27:01Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run step 7 export tests
 
@@ -14567,26 +15167,27 @@ license notice > is shown in the jsonExport dialog
 TypeError: Cannot read properties of undefined (reading 'innerHTML')
  ❯ packages/excalidraw/tests/customFontsExport.test.tsx:110:24
     108|       );
-    109| 
+    109|
     110|       expect(container.innerHTML).toBe("");
        |                        ^
     111|     });
-    112| 
+    112|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:27:05Z)**_
 
-<think><details><summary>Thought Process</summary>
-One test failed because the repo's `render` helper is async and built for the full editor, so it returns no `container`. I'll switch the plain component tests to React Testing Library's `render` directly.
+<think><details><summary>Thought Process</summary> One test failed because the repo's `render` helper is async and built for the full editor, so it returns no `container`. I'll switch the plain component tests to React Testing Library's `render` directly.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:27:42Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Use plain render for component tests and rerun
 
@@ -14633,15 +15234,17 @@ C:\excalidraw\packages\excalidraw\tests\customFontsExport.test.tsx
 
 ESLint found too many warnings (maximum: 0).
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:28:14Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Fix test element type and import order
 
-`cd /c/excalidraw; F=packages/excalidraw/tests/customFontsExport.test.tsx; sed -i 's/    const exportSvg = (elements: ExcalidrawTextElement\[\]) =>/    const exportSvg = (elements: NonDeleted<ExcalidrawTextElement>[]) =>/; s/^import type { ExcalidrawTextElement } from "@excalidraw\/element\/types";/import type {\n  ExcalidrawTextElement,\n  NonDeleted,\n} from "@excalidraw\/element\/types";/; s/  }) as ExcalidrawTextElement;/  }) as NonDeleted<ExcalidrawTextElement>;/' $F; npx eslint --fix $F; npx prettier --write $F >/dev/null; yarn -s tsc 2>&1 | grep error; npx eslint --max-warnings=0 $F && echo LINT_OK`
+`cd /c/excalidraw; F=packages/excalidraw/tests/customFontsExport.test.tsx; sed -i 's/ const exportSvg = (elements: ExcalidrawTextElement\[\]) =>/ const exportSvg = (elements: NonDeleted<ExcalidrawTextElement>[]) =>/; s/^import type { ExcalidrawTextElement } from "@excalidraw\/element\/types";/import type {\n ExcalidrawTextElement,\n NonDeleted,\n} from "@excalidraw\/element\/types";/; s/ }) as ExcalidrawTextElement;/ }) as NonDeleted<ExcalidrawTextElement>;/' $F; npx eslint --fix $F; npx prettier --write $F >/dev/null; yarn -s tsc 2>&1 | grep error; npx eslint --max-warnings=0 $F && echo LINT_OK`
 
 ```text
 (node:4084) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
@@ -14649,11 +15252,13 @@ packages/excalidraw/tests/customFontsExport.test.tsx(73,65): error TS2353: Objec
 LINT_OK
 [This command modified 1 file you've previously read: packages\excalidraw\tests\customFontsExport.test.tsx. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:28:52Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Drop invalid option, typecheck, rerun export tests
 
@@ -14666,6 +15271,7 @@ Drop invalid option, typecheck, rerun export tests
       Tests ** **34 passed** (34)
 [This command modified 1 file you've previously read: packages\excalidraw\tests\customFontsExport.test.tsx. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 ---
@@ -14689,6 +15295,7 @@ No problem. Everything is green: typecheck is clean, and all 34 tests pass acros
 _**Agent (claude-opus-5-5 2026-11-13 03:29:49Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Run license notice mutants
 
@@ -14697,21 +15304,22 @@ Exit code 1
 From : if (!fonts.length) {
     return null;
   }
-To   : 
+To   :
 Ran 8 tests: 1 failed, 7 passed
   FAIL  exporting drawings with custom fonts (#140) license notice isn't shown when no custom font is used
 RESULT: KILLED (a test failed, which is what we want)
 From : <CustomFontsLicenseNotice elements={exportedElements} />
-To   : 
+To   :
 Ran 8 tests: 1 failed, 7 passed
   FAIL  exporting drawings with custom fonts (#140) license notice is shown in the imageExport dialog
 RESULT: KILLED (a test failed, which is what we want)
 From : <CustomFontsLicenseNotice elements={elements} />
-To   : 
+To   :
 Ran 8 tests: 1 failed, 7 passed
   FAIL  exporting drawings with custom fonts (#140) license notice is shown in the jsonExport dialog
 RESULT: KILLED (a test failed, which is what we want)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:30:00Z)**_
@@ -14719,46 +15327,49 @@ _**Agent (claude-opus-5-5 2026-11-13 03:30:00Z)**_
 Step 7 is done. Nothing is staged.
 
 **What changed:**
+
 - **SVG export already embeds custom fonts.** Step 6a's work means the existing export code inlines any registered font. I added tests that prove it using a real WOFF2 file, so no export code needed changing.
 - **[CustomFontsLicenseNotice.tsx](packages/excalidraw/components/CustomFontsLicenseNotice.tsx) (new) and its `.scss`:** a warning box shown in both the **image export** dialog and the **save to file** dialog, only when the exported text uses custom fonts:
 
   > "This drawing uses custom fonts (Seramonde Trial). They're embedded in what you export, so only share it if their licenses allow it."
 
   It lists only the fonts the exported text actually uses, and ignores deleted text. Exporting only a selection means only the selected text's fonts are listed.
+
 - **`ImageExportDialog.tsx` and `JSONExportDialog.tsx`:** show the notice.
 - **`en.json`:** the notice text.
 
 **Test run:** 8 of 8 new tests pass in [customFontsExport.test.tsx](packages/excalidraw/tests/customFontsExport.test.tsx), and the existing export suites still pass (34 of 34 together).
 
-| # | Test | Result |
-|---|---|---|
-| 1 | SVG export embeds the custom font as an inline `@font-face` | PASS |
-| 2 | SVG text uses the custom font family | PASS |
-| 3 | SVG export doesn't embed custom fonts the text doesn't use | PASS |
-| 4 | Notice isn't shown when no custom font is used | PASS |
-| 5 | Notice names the custom fonts the exported text uses | PASS |
-| 6 | Notice ignores fonts only used by deleted text | PASS |
-| 7 | Notice is shown in the image export dialog | PASS |
-| 8 | Notice is shown in the save-to-file dialog | PASS |
+| #   | Test                                                        | Result |
+| --- | ----------------------------------------------------------- | ------ |
+| 1   | SVG export embeds the custom font as an inline `@font-face` | PASS   |
+| 2   | SVG text uses the custom font family                        | PASS   |
+| 3   | SVG export doesn't embed custom fonts the text doesn't use  | PASS   |
+| 4   | Notice isn't shown when no custom font is used              | PASS   |
+| 5   | Notice names the custom fonts the exported text uses        | PASS   |
+| 6   | Notice ignores fonts only used by deleted text              | PASS   |
+| 7   | Notice is shown in the image export dialog                  | PASS   |
+| 8   | Notice is shown in the save-to-file dialog                  | PASS   |
 
 Typecheck and ESLint are clean.
 
 **Mutants** (3 run, all killed):
 
-| Mutant | Failing test |
-|---|---|
-| Notice always shows, even without custom fonts | #4 |
-| Notice removed from the image export dialog | #7 |
-| Notice removed from the save-to-file dialog | #8 |
+| Mutant                                         | Failing test |
+| ---------------------------------------------- | ------------ |
+| Notice always shows, even without custom fonts | #4           |
+| Notice removed from the image export dialog    | #7           |
+| Notice removed from the save-to-file dialog    | #8           |
 
 **Test Evidence for step 7:**
 
 | Acceptance criterion | Test(s) | Level | Source of expected value |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | C: custom fonts render in exported drawings | #1–#3 | Integration (real WOFF2 through the real export code) | The CSS name from step 1 and the fallback list. |
 | D: warnings so users only distribute properly licensed fonts | #4–#8 | Component and integration | Your checkbox-plus-warning decision. The text comes straight from `en.json`. |
 
 **Not tested automatically:**
+
 - **PNG export.** jsdom can't draw real glyphs. PNG goes through the same font registry that already renders the font on the canvas, but it's worth a quick manual export.
 
 **AI-written tests:** I wrote all 8.
@@ -14778,12 +15389,14 @@ _**Agent (claude-opus-5-5 2026-11-13 03:32:48Z)**_
 Not skipping it outright. I moved step 8 to the end because of your 2-hour deadline. Here's where it actually stands.
 
 **Criterion E** says characters from other writing systems render correctly. Most of that already works through the browser, without any step 8 code:
+
 - **Characters the uploaded font supports** (for example Cyrillic or Arabic in a font that includes them) render in that font, because the browser uses the font's own glyphs.
 - **Characters the font lacks** fall back to the system `sans-serif`, then Segoe UI Emoji. That's the fallback list every custom font gets from step 1 (`ExcalidrawCustomFont-2007, sans-serif, Segoe UI Emoji`). This also answers the issue's open question about unsupported characters.
 
 **What's missing is evidence.** No test shows non-Latin text working with a custom font, so criterion E would have an empty row in the PR's Test Evidence table.
 
 **A quick step 8 could cover it in about 15 minutes:**
+
 1. A test that SVG export of Cyrillic and CJK text in a custom font embeds the font and keeps the characters.
 2. A test that the fallback list stays in place, so missing glyphs fall back instead of showing as blank boxes.
 3. One manual check in the browser with non-Latin text in Seramonde.
@@ -14805,23 +15418,25 @@ Done deal: step 9 is deferred and step 8 is next. I'll record that, then write t
 _**Agent (claude-opus-5-5 2026-11-13 03:38:49Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Edit"><details>
+
 <summary>Tool use: **Edit**</summary>
 
 ```text
 The file C:\Users\ab200\.claude\projects\c--excalidraw\memory\custom-fonts-issue-140.md has been updated successfully.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:38:58Z)**_
 
-<think><details><summary>Thought Process</summary>
-Jsdom's fake FontFace hard-codes its Unicode range to Latin-1, so for the non-Latin test I'm setting the range to the browser default. Next, the tests.
+<think><details><summary>Thought Process</summary> Jsdom's fake FontFace hard-codes its Unicode range to Latin-1, so for the non-Latin test I'm setting the range to the browser default. Next, the tests.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:39:12Z)**_
 
 <tool-use data-tool-type="write" data-tool-name="Write"><details>
+
 <summary>Tool use: **Write**</summary>
 
 ```typescript
@@ -14943,17 +15558,18 @@ describe("custom fonts with other writing systems (#140, criterion E)", () => {
     expect(Fonts.getCustomFonts()).toEqual([font]);
   });
 });
-
 ```
 
 ```text
 File created successfully at: c:\excalidraw\packages\excalidraw\tests\customFontsScripts.test.ts (file state is current in your context — no need to Read it back)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:41:10Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run step 8 tests, typecheck and lint
 
@@ -14969,18 +15585,19 @@ keeps the text and its font when the drawing is saved and reopened
 LINT_OK
 [This command modified 1 file you've previously read: packages\excalidraw\tests\customFontsScripts.test.ts. Call Read before editing.]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:41:15Z)**_
 
-<think><details><summary>Thought Process</summary>
-All four tests pass and lint and typecheck are clean. Next I'll run a real-browser check with Seramonde text in several scripts to see whether missing glyphs fall back or show as empty boxes.
+<think><details><summary>Thought Process</summary> All four tests pass and lint and typecheck are clean. Next I'll run a real-browser check with Seramonde text in several scripts to see whether missing glyphs fall back or show as empty boxes.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:41:37Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Type multi-script text in Seramonde in real browser
 
@@ -15014,25 +15631,27 @@ node "$S" --selected --multiscript 2>&1 | grep -E "texts:|PAGE ERROR|SCRIPT ERRO
 ```text
 [repro] texts: [{"fontFamily":3627732859,"text":"Hello","width":30},{"fontFamily":3627732859,"text":"Seramonde: Hello! Привет Γειά مرحبا 你好 안녕 👋","width":391}]
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:41:40Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `C:\Users\ab200\AppData\Local\Temp\claude\7985df2d02985ab2\7311c317-21b1-44c8-ab86-1e60ec313e46\scratchpad\repro2-multiscript.png`
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:41:45Z)**_
 
-<think><details><summary>Thought Process</summary>
-Latin text in Seramonde renders correctly in a real browser, and scripts the font lacks fall back cleanly; I'm running a quick mutant to confirm the tests guard that fallback.
+<think><details><summary>Thought Process</summary> Latin text in Seramonde renders correctly in a real browser, and scripts the font lacks fall back cleanly; I'm running a quick mutant to confirm the tests guard that fallback.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:42:31Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Mutate custom font fallback list
 
@@ -15044,6 +15663,7 @@ Ran 4 tests: 1 failed, 3 passed
   FAIL  custom fonts with other writing systems (#140, criterion E) falls back to system fonts for characters the custom font lacks
 RESULT: KILLED (a test failed, which is what we want)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:42:43Z)**_
@@ -15053,7 +15673,7 @@ Step 8 is done. It's test-only: the behavior already worked, and it now has evid
 **Test run:** 4 of 4 pass in [customFontsScripts.test.ts](packages/excalidraw/tests/customFontsScripts.test.ts).
 
 | # | Test | Result |
-|---|---|---|
+| --- | --- | --- |
 | 1 | Text in 8 scripts plus an emoji stays intact in SVG export | PASS |
 | 2 | The custom font is embedded even for text written entirely in Cyrillic | PASS |
 | 3 | Characters the font lacks fall back to `sans-serif`, then `Segoe UI Emoji` | PASS |
@@ -15068,7 +15688,7 @@ The 8 scripts in test #1 are Cyrillic, Greek, Arabic, Hebrew, Devanagari, Chines
 **Test Evidence for step 8:**
 
 | Acceptance criterion | Test(s) | Level | Source of expected value |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | E: characters from other writing systems render correctly | #1–#4, plus the screenshot | Integration (real WOFF2 through export and save/load) and manual (real browser) | Expected text is the exact input string. The fallback list is step 1's (`sans-serif, Segoe UI Emoji`). |
 
 This also answers one of the issue's open questions: **characters a custom font doesn't support fall back to the system sans-serif and emoji fonts.**
@@ -15078,6 +15698,7 @@ One test-setup detail: jsdom's fake `FontFace` limits fonts to Latin-1, so test 
 **AI-written tests:** I wrote all 4.
 
 **Next:**
+
 1. **Staging.** Steps 7 and 8 are both unstaged. I can stage them as one commit or two. Suggested messages:
    - `feat(fonts): embed custom fonts in exports and warn about font licenses (#140)`
    - `test(fonts): cover custom fonts with other writing systems (#140)`
@@ -15108,6 +15729,7 @@ stage
 _**Agent (claude-opus-5-5 2026-11-13 03:43:52Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check latest commit and changed files
 
@@ -15127,6 +15749,7 @@ Check latest commit and changed files
 ?? packages/excalidraw/tests/customFontsExport.test.tsx
 ?? packages/excalidraw/tests/customFontsScripts.test.ts
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:43:55Z)**_
@@ -15136,6 +15759,7 @@ Your latest commit is named "custom fonts embed in exports", so I'll check what 
 _**Agent (claude-opus-5-5 2026-11-13 03:43:57Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show files in the latest commit
 
@@ -15160,6 +15784,7 @@ Show files in the latest commit
  packages/excalidraw/index.tsx                      |   1 +
  15 files changed, 732 insertions(+), 35 deletions(-)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:43:59Z)**_
@@ -15169,6 +15794,7 @@ That commit holds the step 6 persistence work (6a and 6b), so it's complete. Its
 _**Agent (claude-opus-5-5 2026-11-13 03:44:02Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Stage step 7 and 8 files
 
@@ -15187,6 +15813,7 @@ A  packages/excalidraw/tests/customFontsExport.test.tsx
 A  packages/excalidraw/tests/customFontsScripts.test.ts
 ?? dev-docs/stryker.config.json
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-13 03:44:06Z)**_
@@ -15218,13 +15845,14 @@ A little, but not badly. There are about 117 tests across the 9 test files. Most
 
 **Real redundancy (about 10 tests you could cut):**
 
-1. **The fallback font string is checked three times:** step 1's `getFontFamilyString` test, step 7 "SVG text uses the custom font family", and step 8 "falls back to system fonts". All three assert the same `ExcalidrawCustomFont-2007, sans-serif, Segoe UI Emoji`. I'd keep the step 1 unit test and the step 8 one, which explains *why* the fallback matters, and drop step 7's.
+1. **The fallback font string is checked three times:** step 1's `getFontFamilyString` test, step 7 "SVG text uses the custom font family", and step 8 "falls back to system fonts". All three assert the same `ExcalidrawCustomFont-2007, sans-serif, Segoe UI Emoji`. I'd keep the step 1 unit test and the step 8 one, which explains _why_ the fallback matters, and drop step 7's.
 2. **"Ignore deleted text" is checked at three levels:** `getCustomFontsUsedBy` (unit), the save tests, and the license notice tests. All three call the same function. Keep the unit test and drop the other two.
 3. **Step 5's integration tests repeat step 4's dialog tests.** "Leaves everything unchanged when cancelled" and "TTF shows an error" repeat what step 4 already covers at the component level. Each could shrink to a single check that the editor wires the dialog up.
 4. **Step 8's save-and-reopen test** is mostly 6a's round-trip test with different text. The only new part is that non-Latin text survives, which JSON guarantees anyway.
 5. **The three step 8 SVG tests each run a full export** with real font subsetting, which takes a few seconds per test. They could share one export and check three things.
 
 **Not bloat, even though it's a lot:**
+
 - **`restoreCustomFonts` (22 tests):** most of these are one-line table rows, one per kind of bad input. File loading takes untrusted input, so each rejection rule is worth a row.
 - **Step 4's 16 dialog tests:** each covers a distinct rule (license gating, blank names, Enter key, each error message). Several were the only test catching a mutant.
 
@@ -15245,6 +15873,7 @@ I'll find the SpecStory log for this conversation. It should be the newest file 
 _**Agent (claude-opus-5-5 2026-11-13 03:51:33Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 List untracked SpecStory files by recency
 
@@ -15281,6 +15910,7 @@ total 3652
 -rw-r--r-- 1 ab200 197609 104816 Oct 29 20:52 2026-10-14_18-40-13Z-do-you-know-the.md
 -rw-r--r-- 1 ab200 197609   5596 Oct 29 20:52 2026-10-13_15-25-17Z-trying-to-install-figma.md
 ```
+
 </details></tool-use>
 
 ---
