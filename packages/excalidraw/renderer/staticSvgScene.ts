@@ -4,7 +4,9 @@ import {
   SVG_NS,
   THEME,
   DARK_THEME_FILTER,
+  IMAGE_BLUR_FILTER,
   IMAGE_GRAYSCALE_FILTER,
+  IMAGE_INVERT_FILTER,
   getFontFamilyString,
   isRTL,
   isTestEnv,
@@ -671,7 +673,9 @@ const renderElementToSvg = (
         // applied per element (not on the shared symbol) so images reusing
         // the same file can be filtered independently
         const filters = [
+          element.filter === "blur" && IMAGE_BLUR_FILTER,
           element.filter === "grayscale" && IMAGE_GRAYSCALE_FILTER,
+          element.filter === "invert" && IMAGE_INVERT_FILTER,
           renderConfig.theme === THEME.DARK &&
             fileData.mimeType === MIME_TYPES.svg &&
             DARK_THEME_FILTER,

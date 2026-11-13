@@ -158,7 +158,7 @@ export type ImageCrop = {
 };
 
 /** visual filters applied to an image at render time (source data untouched) */
-export type ImageFilter = "grayscale";
+export type ImageFilter = "grayscale" | "invert" | "blur";
 
 export type ExcalidrawImageElement = _ExcalidrawElementBase &
   Readonly<{

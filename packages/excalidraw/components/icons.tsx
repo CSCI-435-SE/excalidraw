@@ -2495,6 +2495,28 @@ export const grayscaleIcon = createIcon(
   tablerIconProps,
 );
 
+export const invertIcon = createIcon(
+  <g strokeWidth="1.25">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M12 3v18" />
+    <path d="M12 3a9 9 0 0 0 0 18" />
+    <path d="M12 3a9 9 0 0 1 0 18" />
+  </g>,
+  tablerIconProps,
+);
+
+export const blurIcon = createIcon(
+  <g strokeWidth="1.25">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <circle cx="12" cy="12" r="2" />
+    <circle cx="12" cy="5" r="1" />
+    <circle cx="19" cy="12" r="1" />
+    <circle cx="12" cy="19" r="1" />
+    <circle cx="5" cy="12" r="1" />
+  </g>,
+  tablerIconProps,
+);
+
 export const elementLinkIcon = createIcon(
   <g>
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />

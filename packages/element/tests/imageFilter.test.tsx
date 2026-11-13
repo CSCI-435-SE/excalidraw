@@ -6,7 +6,9 @@ import {
   arrayToMap,
   cloneJSON,
   DARK_THEME_FILTER,
+  IMAGE_BLUR_FILTER,
   IMAGE_GRAYSCALE_FILTER,
+  IMAGE_INVERT_FILTER,
   MIME_TYPES,
   THEME,
 } from "@excalidraw/common";
@@ -160,6 +162,18 @@ describe("image filter", () => {
     ).toEqual([IMAGE_GRAYSCALE_FILTER]);
   });
 
+  it("renders the image inverted when the filter is applied", () => {
+    expect(
+      renderImageFilters(createImage("invert"), createImageCache()),
+    ).toEqual([IMAGE_INVERT_FILTER]);
+  });
+
+  it("renders the image blurred when the filter is applied", () => {
+    expect(renderImageFilters(createImage("blur"), createImageCache())).toEqual(
+      [IMAGE_BLUR_FILTER],
+    );
+  });
+
   it("combines grayscale with the dark mode SVG inversion", () => {
     expect(
       renderImageFilters(
@@ -269,6 +283,24 @@ describe("image filter", () => {
       expect(groups[0].getAttribute("filter")).toBe(IMAGE_GRAYSCALE_FILTER);
     });
 
+    it("exports the image inverted when the filter is applied", async () => {
+      const { groups } = await exportImages(
+        [createImage("invert")],
+        createFiles(),
+      );
+
+      expect(groups[0].getAttribute("filter")).toBe(IMAGE_INVERT_FILTER);
+    });
+
+    it("exports the image blurred when the filter is applied", async () => {
+      const { groups } = await exportImages(
+        [createImage("blur")],
+        createFiles(),
+      );
+
+      expect(groups[0].getAttribute("filter")).toBe(IMAGE_BLUR_FILTER);
+    });
+
     it("exports the image without a filter when none is applied", async () => {
       const { groups } = await exportImages([createImage()], createFiles());
 
@@ -310,14 +342,13 @@ describe("image filter", () => {
       element: NonDeleted<ExcalidrawImageElement>,
       imageCache: AppClassProperties["imageCache"],
       theme: StaticCanvasRenderConfig["theme"] = THEME.LIGHT,
+      imageData = new ImageData(new Uint8ClampedArray([255, 0, 0, 255]), 1, 1),
     ) => {
       browser.isSafari = true;
       vi.spyOn(
         CanvasRenderingContext2D.prototype,
         "getImageData",
-      ).mockImplementation(
-        () => new ImageData(new Uint8ClampedArray([255, 0, 0, 255]), 1, 1),
-      );
+      ).mockImplementation(() => imageData);
       const putImageData = vi.spyOn(
         CanvasRenderingContext2D.prototype,
         "putImageData",
@@ -341,6 +372,36 @@ describe("image filter", () => {
       expect(filters).toEqual(["none"]);
       // 0.2126 * 255 (red) ≈ 54
       expect(pixel).toEqual([54, 54, 54, 255]);
+    });
+
+    it("converts a copy of the image to inverted colors", () => {
+      const { filters, pixel } = renderSafariPixel(
+        createImage("invert"),
+        createImageCache(),
+      );
+
+      expect(filters).toEqual(["none"]);
+      expect(pixel).toEqual([0, 255, 255, 255]);
+    });
+
+    it("blurs a copy of the image", () => {
+      const data = new Uint8ClampedArray(9 * 9 * 4);
+      for (let i = 3; i < data.length; i += 4) {
+        data[i] = 255;
+      }
+      data[(4 * 9 + 4) * 4] = 255;
+
+      const { filters, pixel } = renderSafariPixel(
+        createImage("blur"),
+        createImageCache(),
+        THEME.LIGHT,
+        new ImageData(data, 9, 9),
+      );
+
+      expect(filters).toEqual(["none"]);
+      expect(pixel.slice((4 * 9 + 4) * 4, (4 * 9 + 5) * 4)).toEqual([
+        3, 0, 0, 255,
+      ]);
     });
 
     it("combines grayscale with the dark mode SVG inversion", () => {

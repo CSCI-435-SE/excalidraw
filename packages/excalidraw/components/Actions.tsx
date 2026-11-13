@@ -217,6 +217,8 @@ export const SelectedShapeActions = ({
             {predicates.link && renderAction("hyperlink")}
             {predicates.cropEditor && renderAction("cropEditor")}
             {predicates.imageFilter && renderAction("toggleImageGrayscale")}
+            {predicates.imageFilter && renderAction("toggleImageInvert")}
+            {predicates.imageFilter && renderAction("toggleImageBlur")}
             {predicates.lineEditor && renderAction("toggleLinearEditor")}
           </div>
         </fieldset>
@@ -577,6 +579,8 @@ const CombinedExtraActions = ({
                   {predicates.cropEditor && renderAction("cropEditor")}
                   {predicates.imageFilter &&
                     renderAction("toggleImageGrayscale")}
+                  {predicates.imageFilter && renderAction("toggleImageInvert")}
+                  {predicates.imageFilter && renderAction("toggleImageBlur")}
                   {showDuplicate && renderAction("duplicateSelection")}
                   {showDelete && renderAction("deleteSelectedElements")}
                 </div>

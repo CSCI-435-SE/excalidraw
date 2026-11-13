@@ -15,7 +15,9 @@ import {
   ELEMENT_READY_TO_ERASE_OPACITY,
   FRAME_STYLE,
   DARK_THEME_FILTER,
+  IMAGE_BLUR_FILTER,
   IMAGE_GRAYSCALE_FILTER,
+  IMAGE_INVERT_FILTER,
   MIME_TYPES,
   THEME,
   distance,
@@ -381,6 +383,96 @@ const drawTextHyperlinkLine = (
   context.restore();
 };
 
+const blurImageData = (imageData: ImageData, radius: number) => {
+  const { data, width, height } = imageData;
+  const blurred = new Uint8ClampedArray(data.length);
+  const windowSize = radius * 2 + 1;
+  const clamp = (value: number, max: number) =>
+    Math.max(0, Math.min(max - 1, value));
+
+  for (let i = 0; i < data.length; i += 4) {
+    const alpha = data[i + 3] / 255;
+    data[i] *= alpha;
+    data[i + 1] *= alpha;
+    data[i + 2] *= alpha;
+  }
+
+  for (let y = 0; y < height; y++) {
+    const rowStart = y * width * 4;
+    let red = 0;
+    let green = 0;
+    let blue = 0;
+    let alpha = 0;
+
+    for (let offset = -radius; offset <= radius; offset++) {
+      const index = rowStart + clamp(offset, width) * 4;
+      red += data[index];
+      green += data[index + 1];
+      blue += data[index + 2];
+      alpha += data[index + 3];
+    }
+
+    for (let x = 0; x < width; x++) {
+      const index = rowStart + x * 4;
+      blurred[index] = red / windowSize;
+      blurred[index + 1] = green / windowSize;
+      blurred[index + 2] = blue / windowSize;
+      blurred[index + 3] = alpha / windowSize;
+
+      const removeIndex = rowStart + clamp(x - radius, width) * 4;
+      const addIndex = rowStart + clamp(x + radius + 1, width) * 4;
+      red += data[addIndex] - data[removeIndex];
+      green += data[addIndex + 1] - data[removeIndex + 1];
+      blue += data[addIndex + 2] - data[removeIndex + 2];
+      alpha += data[addIndex + 3] - data[removeIndex + 3];
+    }
+  }
+
+  for (let x = 0; x < width; x++) {
+    let red = 0;
+    let green = 0;
+    let blue = 0;
+    let alpha = 0;
+
+    for (let offset = -radius; offset <= radius; offset++) {
+      const index = clamp(offset, height) * width * 4 + x * 4;
+      red += blurred[index];
+      green += blurred[index + 1];
+      blue += blurred[index + 2];
+      alpha += blurred[index + 3];
+    }
+
+    for (let y = 0; y < height; y++) {
+      const index = y * width * 4 + x * 4;
+      data[index] = red / windowSize;
+      data[index + 1] = green / windowSize;
+      data[index + 2] = blue / windowSize;
+      data[index + 3] = alpha / windowSize;
+
+      const removeIndex = clamp(y - radius, height) * width * 4 + x * 4;
+      const addIndex = clamp(y + radius + 1, height) * width * 4 + x * 4;
+      red += blurred[addIndex] - blurred[removeIndex];
+      green += blurred[addIndex + 1] - blurred[removeIndex + 1];
+      blue += blurred[addIndex + 2] - blurred[removeIndex + 2];
+      alpha += blurred[addIndex + 3] - blurred[removeIndex + 3];
+    }
+  }
+
+  for (let i = 0; i < data.length; i += 4) {
+    const alpha = data[i + 3];
+    if (alpha > 0) {
+      const unpremultiply = 255 / alpha;
+      data[i] *= unpremultiply;
+      data[i + 1] *= unpremultiply;
+      data[i + 2] *= unpremultiply;
+    } else {
+      data[i] = 0;
+      data[i + 1] = 0;
+      data[i + 2] = 0;
+    }
+  }
+};
+
 const drawElementOnCanvas = (
   element: NonDeletedExcalidrawElement,
   rc: RoughCanvas,
@@ -563,8 +655,16 @@ const drawElementOnCanvas = (
           renderConfig.theme === THEME.DARK &&
           cacheEntry?.mimeType === MIME_TYPES.svg;
         const shouldGrayscaleImage = element.filter === "grayscale";
+        const shouldInvertImageColors = element.filter === "invert";
+        const shouldBlurImage = element.filter === "blur";
 
-        if ((shouldInvertImage || shouldGrayscaleImage) && isSafari) {
+        if (
+          (shouldInvertImage ||
+            shouldGrayscaleImage ||
+            shouldInvertImageColors ||
+            shouldBlurImage) &&
+          isSafari
+        ) {
           const devicePixelRatio = window.devicePixelRatio || 1;
           const tempCanvas = document.createElement("canvas");
           tempCanvas.width = element.width * devicePixelRatio;
@@ -605,11 +705,18 @@ const drawElementOnCanvas = (
                 data[i + 1] = luminance;
                 data[i + 2] = luminance;
               }
-              if (shouldInvertImage) {
+              if (shouldInvertImageColors || shouldInvertImage) {
                 data[i] = 255 - data[i];
                 data[i + 1] = 255 - data[i + 1];
                 data[i + 2] = 255 - data[i + 2];
               }
+            }
+
+            if (shouldBlurImage) {
+              blurImageData(
+                imageData,
+                Math.max(1, Math.round(4 * devicePixelRatio)),
+              );
             }
 
             tempContext.putImageData(imageData, 0, 0);
@@ -627,7 +734,9 @@ const drawElementOnCanvas = (
           }
         } else {
           const filters = [
+            shouldBlurImage && IMAGE_BLUR_FILTER,
             shouldGrayscaleImage && IMAGE_GRAYSCALE_FILTER,
+            shouldInvertImageColors && IMAGE_INVERT_FILTER,
             shouldInvertImage && DARK_THEME_FILTER,
           ].filter(Boolean);
 
