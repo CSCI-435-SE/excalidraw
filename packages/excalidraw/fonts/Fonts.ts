@@ -2,8 +2,11 @@ import {
   FONT_FAMILY,
   FONT_FAMILY_FALLBACKS,
   CJK_HAND_DRAWN_FALLBACK_FONT,
+  CUSTOM_FONT_FAMILY_ID_START,
   WINDOWS_EMOJI_FALLBACK_FONT,
+  getCustomFontFamilyName,
   getFontFamilyFallbacks,
+  isCustomFontFamily,
   FONT_SIZES,
 } from "@excalidraw/common";
 import { getContainerElement } from "@excalidraw/element";
@@ -43,6 +46,8 @@ import { NunitoFontFaces } from "./Nunito";
 import { VirgilFontFaces } from "./Virgil";
 import { XiaolaiFontFaces } from "./Xiaolai";
 
+import type { CustomFontData } from "../types";
+
 export class Fonts {
   // it's ok to track fonts across multiple instances only once, so let's use
   // a static member to reduce memory footprint
@@ -59,6 +64,9 @@ export class Fonts {
     | undefined;
 
   private static _initialized: boolean = false;
+
+  /** full data of the registered user-uploaded fonts (#140), for saving */
+  private static readonly customFontsData = new Map<number, CustomFontData>();
 
   public static get registered() {
     // lazy load the font registration
@@ -314,6 +322,102 @@ export class Fonts {
         });
       }
     }
+  }
+
+  /**
+   * Register a user-uploaded font (#140) under its custom `fontFamily` id.
+   *
+   * Idempotent: registering an id that's already registered is a no-op, as
+   * custom ids are derived from the font content.
+   *
+   * @returns `true` if the font was newly registered, `false` if it already was
+   */
+  public static registerCustomFont(font: CustomFontData): boolean {
+    const { id, name, dataURL } = font;
+
+    if (!isCustomFontFamily(id)) {
+      throw new Error(
+        `Custom font id must be an integer >= ${CUSTOM_FONT_FAMILY_ID_START}, received "${id}"`,
+      );
+    }
+
+    if (Fonts.registered.has(id)) {
+      return false;
+    }
+
+    const fontFace = new ExcalidrawFontFace(
+      getCustomFontFamilyName(id),
+      dataURL,
+    );
+
+    Fonts.registered.set(id, {
+      // custom fonts reuse Excalifont metrics, same as any unknown family
+      metadata: {
+        ...FONT_METADATA[FONT_FAMILY.Excalifont],
+        custom: { name },
+      },
+      fontFaces: [fontFace],
+    });
+
+    Fonts.customFontsData.set(id, font);
+
+    // built-in faces are only added to the document on scene load, but custom
+    // fonts can be registered mid-session, so make them usable straight away
+    window.document.fonts.add(fontFace.fontFace);
+
+    return true;
+  }
+
+  /** All registered user-uploaded fonts (#140), in registration order. */
+  public static getCustomFonts(): CustomFontData[] {
+    return Array.from(Fonts.customFontsData.values());
+  }
+
+  /**
+   * Registered user-uploaded fonts (#140) used by the non-deleted text in
+   * `elements`, i.e. the fonts a saved scene needs to embed.
+   */
+  public static getCustomFontsUsedBy(
+    elements: readonly ExcalidrawElement[],
+  ): CustomFontData[] {
+    const used = new Set<number>();
+    for (const element of elements) {
+      if (
+        isTextElement(element) &&
+        !element.isDeleted &&
+        isCustomFontFamily(element.fontFamily)
+      ) {
+        used.add(element.fontFamily);
+      }
+    }
+    return Fonts.getCustomFonts().filter((font) => used.has(font.id));
+  }
+
+  /**
+   * Remove a user-uploaded font (#140) from the registry and the document.
+   * Built-in fonts can't be unregistered.
+   *
+   * @returns `true` if the font was removed, `false` if it wasn't registered
+   */
+  public static unregisterCustomFont(id: number): boolean {
+    const registeredFamily = Fonts.registered.get(id);
+
+    if (!registeredFamily?.metadata.custom) {
+      return false;
+    }
+
+    for (const { fontFace } of registeredFamily.fontFaces) {
+      window.document.fonts.delete(fontFace);
+
+      for (const sig of Fonts.loadedFontsCache) {
+        if (sig.startsWith(`${fontFace.family}-`)) {
+          Fonts.loadedFontsCache.delete(sig);
+        }
+      }
+    }
+
+    Fonts.customFontsData.delete(id);
+    return Fonts.registered.delete(id);
   }
 
   /**

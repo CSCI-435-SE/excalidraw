@@ -6,6 +6,7 @@ import type { cleanAppStateForExport } from "../appState";
 import type {
   AppState,
   BinaryFiles,
+  CustomFontData,
   LibraryItem,
   LibraryItems,
   LibraryItems_anyVersion,
@@ -18,6 +19,8 @@ export interface ExportedDataState {
   elements: readonly ExcalidrawElement[];
   appState: ReturnType<typeof cleanAppStateForExport>;
   files: BinaryFiles | undefined;
+  /** user-uploaded fonts (#140) used by the scene's text, omitted if none */
+  customFonts?: CustomFontData[];
 }
 
 /**
@@ -47,6 +50,8 @@ export interface ImportedDataState {
   scrollToContent?: boolean;
   libraryItems?: LibraryItems_anyVersion;
   files?: BinaryFiles;
+  /** user-uploaded fonts (#140); untrusted, see `restoreCustomFonts` */
+  customFonts?: unknown;
 }
 
 export interface ExportedLibraryData {

@@ -1,4 +1,5 @@
 import type {
+  CUSTOM_FONT_MIME_TYPES,
   IMAGE_MIME_TYPES,
   UserIdleState,
   throttleRAF,
@@ -148,6 +149,22 @@ export type BinaryFileData = {
 };
 
 export type BinaryFileMetadata = Omit<BinaryFileData, "dataURL">;
+
+/** A user-uploaded font (issue #140), persisted alongside the scene. */
+export type CustomFontData = {
+  /** `fontFamily` id used by text elements (>= CUSTOM_FONT_FAMILY_ID_START) */
+  id: FontFamilyValues;
+  /** user-facing name shown in the font picker */
+  name: string;
+  mimeType: ValueOf<typeof CUSTOM_FONT_MIME_TYPES>;
+  dataURL: DataURL;
+  /** user confirmed they have the right to use & embed this font */
+  licenseAcknowledged: boolean;
+  /** Epoch timestamp in milliseconds */
+  created: number;
+};
+
+export type CustomFonts = Record<FontFamilyValues, CustomFontData>;
 
 export type BinaryFiles = Record<ExcalidrawElement["id"], BinaryFileData>;
 
@@ -497,6 +514,7 @@ export interface AppState {
     | { name: "settings" }
     | { name: "elementLinkSelector"; sourceElementId: ExcalidrawElement["id"] }
     | { name: "textHyperlink"; initialDisplayText: string }
+    | { name: "customFontUpload"; file: File }
     | { name: "charts"; data: Spreadsheet; rawText: string }
     | { name: "duplicateRotated" };
   /**
@@ -983,6 +1001,8 @@ export type AppClassProperties = {
   setActiveTool: App["setActiveTool"];
   setOpenDialog: App["setOpenDialog"];
   closeTextHyperlinkDialog: App["closeTextHyperlinkDialog"];
+  openCustomFontUploadDialog: App["openCustomFontUploadDialog"];
+  closeCustomFontUploadDialog: App["closeCustomFontUploadDialog"];
   insertEmbeddableElement: App["insertEmbeddableElement"];
   onMagicframeToolSelect: App["onMagicframeToolSelect"];
   getName: App["getName"];

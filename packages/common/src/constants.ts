@@ -140,6 +140,32 @@ export const FONT_FAMILY = {
   Assistant: 10,
 };
 
+/**
+ * User-uploaded custom fonts (issue #140) use numeric `fontFamily` ids from
+ * this value upwards, clear of built-in families (1-10) and fallback ids
+ * (100, 998-1000).
+ */
+export const CUSTOM_FONT_FAMILY_ID_START = 2000;
+
+export const CUSTOM_FONT_MIME_TYPES = {
+  woff: "font/woff",
+  woff2: "font/woff2",
+} as const;
+
+/** Largest font file users can upload (#140). */
+export const CUSTOM_FONT_MAX_SIZE_BYTES = 5 * 1024 * 1024;
+
+export const isCustomFontFamily = (fontFamily: number): boolean =>
+  Number.isSafeInteger(fontFamily) && fontFamily >= CUSTOM_FONT_FAMILY_ID_START;
+
+/**
+ * CSS `font-family` name a custom font is registered under. Derived from the
+ * id (not the user-facing name) so it never collides with built-in families
+ * and is always a valid unquoted CSS identifier.
+ */
+export const getCustomFontFamilyName = (fontFamily: number) =>
+  `ExcalidrawCustomFont-${fontFamily}`;
+
 // Segoe UI Emoji fails to properly fallback for some glyphs: ∞, ∫, ≠
 // so we need to have generic font fallback before it
 export const SANS_SERIF_GENERIC_FONT = "sans-serif";

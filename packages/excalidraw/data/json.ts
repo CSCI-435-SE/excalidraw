@@ -10,6 +10,7 @@ import type { ExcalidrawElement } from "@excalidraw/element/types";
 import type { MaybePromise } from "@excalidraw/common/utility-types";
 
 import { cleanAppStateForExport, clearAppStateForDatabase } from "../appState";
+import { Fonts } from "../fonts";
 
 import { isImageFileHandle, loadFromBlob } from "./blob";
 import { fileOpen, fileSave } from "./filesystem";
@@ -70,6 +71,15 @@ export const serializeAsJSON = (
         : // will be stripped from JSON
           undefined,
   };
+
+  // embed only the uploaded fonts the scene's text uses (#140); custom fonts
+  // aren't synced through the database (collaboration is out of scope)
+  if (type === "local") {
+    const customFonts = Fonts.getCustomFontsUsedBy(elements);
+    if (customFonts.length) {
+      data.customFonts = customFonts;
+    }
+  }
 
   return JSON.stringify(data, null, 2);
 };

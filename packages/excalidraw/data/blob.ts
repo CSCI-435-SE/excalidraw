@@ -16,11 +16,15 @@ import { CanvasError, ImageSceneDataError } from "../errors";
 import { getScrollToContentState } from "../scene";
 import { decodeSvgBase64Payload } from "../scene/export";
 
+import { Fonts } from "../fonts";
+
 import { base64ToString, stringToBase64, toByteString } from "./encode";
 import { nativeFileSystemSupported } from "./filesystem";
 import { isValidExcalidrawData, isValidLibrary } from "./json";
+
 import {
   restoreAppState,
+  restoreCustomFonts,
   restoreElements,
   restoreLibraryItems,
 } from "./restore";
@@ -162,6 +166,12 @@ export const loadSceneOrLibraryFromBlob = async (
       throw error;
     }
     if (isValidExcalidrawData(data)) {
+      // make the scene's embedded fonts (#140) available before its text is
+      // laid out; already registered ones (same content) are left as they are
+      for (const font of restoreCustomFonts(data.customFonts)) {
+        Fonts.registerCustomFont(font);
+      }
+
       const cleanedAppState = cleanAppStateForExport(data.appState || {});
       // the name isn't retained across export/import, so derive it from the
       // opened file itself (native file handle, or the input's file name)

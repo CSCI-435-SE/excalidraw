@@ -55,6 +55,8 @@ export const STORAGE_KEYS = {
 
   IDB_LIBRARY: "excalidraw-library",
   IDB_TTD_CHATS: "excalidraw-ttd-chats",
+  /** user-uploaded fonts (#140), kept across reloads for every drawing */
+  IDB_CUSTOM_FONTS: "excalidraw-custom-fonts",
 
   // do not use apart from migrations
   __LEGACY_LOCAL_STORAGE_LIBRARY: "excalidraw-library",

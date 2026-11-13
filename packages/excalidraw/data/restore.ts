@@ -30,6 +30,9 @@ import {
   STROKE_WIDTH,
   MIN_STROKE_WIDTH,
   MAX_STROKE_WIDTH,
+  CUSTOM_FONT_MAX_SIZE_BYTES,
+  CUSTOM_FONT_MIME_TYPES,
+  isCustomFontFamily,
 } from "@excalidraw/common";
 import {
   calculateFixedPointForNonElbowArrowBinding,
@@ -106,6 +109,8 @@ import {
 import type {
   AppState,
   BinaryFiles,
+  CustomFontData,
+  DataURL,
   LibraryItem,
   NormalizedZoomValue,
 } from "../types";
@@ -1382,4 +1387,60 @@ export const restoreLibraryItems = (
     }
   }
   return restoredItems;
+};
+
+const customFontMimeTypes: readonly string[] = Object.values(
+  CUSTOM_FONT_MIME_TYPES,
+);
+
+/**
+ * Validates user-uploaded fonts (#140) read from a scene file or storage,
+ * which may come from anyone. Drops malformed entries, duplicate ids and
+ * fonts over the upload size limit instead of failing the whole load.
+ */
+export const restoreCustomFonts = (input: unknown): CustomFontData[] => {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  const restored = new Map<number, CustomFontData>();
+
+  for (const font of input) {
+    if (!font || typeof font !== "object") {
+      continue;
+    }
+    const { id, name, mimeType, dataURL, licenseAcknowledged, created } =
+      font as Record<string, unknown>;
+
+    if (
+      typeof id !== "number" ||
+      !isCustomFontFamily(id) ||
+      restored.has(id) ||
+      typeof name !== "string" ||
+      !name.trim() ||
+      typeof mimeType !== "string" ||
+      !customFontMimeTypes.includes(mimeType) ||
+      typeof dataURL !== "string" ||
+      !dataURL.startsWith(`data:${mimeType};base64,`)
+    ) {
+      continue;
+    }
+
+    // base64 encodes 3 bytes in 4 characters
+    const base64Length = dataURL.length - `data:${mimeType};base64,`.length;
+    if ((base64Length * 3) / 4 > CUSTOM_FONT_MAX_SIZE_BYTES + 2) {
+      continue;
+    }
+
+    restored.set(id, {
+      id,
+      name: name.trim(),
+      mimeType: mimeType as CustomFontData["mimeType"],
+      dataURL: dataURL as DataURL,
+      licenseAcknowledged: licenseAcknowledged === true,
+      created: typeof created === "number" ? created : Date.now(),
+    });
+  }
+
+  return Array.from(restored.values());
 };

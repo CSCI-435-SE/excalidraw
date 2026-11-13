@@ -16,7 +16,9 @@ import {
   DEFAULT_VERSION,
   ENV,
   FONT_FAMILY,
+  getCustomFontFamilyName,
   getFontFamilyFallbacks,
+  isCustomFontFamily,
   WINDOWS_EMOJI_FALLBACK_FONT,
 } from "./constants";
 
@@ -96,6 +98,13 @@ export const getFontFamilyString = ({
 }: {
   fontFamily: FontFamilyValues;
 }) => {
+  if (isCustomFontFamily(fontFamily)) {
+    return `${getCustomFontFamilyName(fontFamily)}${getFontFamilyFallbacks(
+      fontFamily,
+    )
+      .map((x) => `, ${x}`)
+      .join("")}`;
+  }
   for (const [fontFamilyString, id] of Object.entries(FONT_FAMILY)) {
     if (id === fontFamily) {
       return `${fontFamilyString}${getFontFamilyFallbacks(id)

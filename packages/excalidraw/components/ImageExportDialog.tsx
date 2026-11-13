@@ -28,6 +28,7 @@ import { t } from "../i18n";
 import { isSomeElementSelected } from "../scene";
 
 import { copyIcon, downloadIcon, helpIcon } from "./icons";
+import { CustomFontsLicenseNotice } from "./CustomFontsLicenseNotice";
 import { Dialog } from "./Dialog";
 import { RadioGroup } from "./RadioGroup";
 import { Switch } from "./Switch";
@@ -219,6 +220,7 @@ const ImageExportModal = ({
       </div>
       <div className="ImageExportModal__settings">
         <h3>{t("imageExportDialog.header")}</h3>
+        <CustomFontsLicenseNotice elements={exportedElements} />
         {hasSelection && (
           <ExportSetting
             label={t("imageExportDialog.label.onlySelected")}
