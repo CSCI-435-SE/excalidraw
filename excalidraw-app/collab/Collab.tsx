@@ -95,6 +95,10 @@ import {
 } from "./collaboratorDirectory";
 import { collabErrorIndicatorAtom } from "./CollabError";
 import { getElementsToStamp, getStampedCustomData } from "./creatorStamp";
+import {
+  getExpiredResurrections,
+  getLocalElementsWithExpiredDeletion,
+} from "./expiredDeletions";
 import Portal from "./Portal";
 
 import type { CollaboratorDirectory } from "./collaboratorDirectory";
@@ -155,6 +159,8 @@ class Collab extends PureComponent<CollabProps, CollabState> {
    * client and gets its creator stamp (see creatorStamp.ts).
    */
   private remoteElementIds = new Set<string>();
+  /** ids of elements seen in the room's stored scene (after our saves) */
+  private storedElementIds = new Set<string>();
   /** collaborators seen in the current room (see collaboratorDirectory.ts) */
   private collaboratorDirectory: CollaboratorDirectory = new Map();
   private directoryRoomId: string | null = null;
@@ -340,12 +346,18 @@ class Collab extends PureComponent<CollabProps, CollabState> {
         this.portal,
         syncableElements,
         this.excalidrawAPI.getAppState(),
+        this.isKnownToRoom,
       );
 
       this.resetErrorIndicator();
 
       if (this.isCollaborating() && storedElements) {
-        this.handleRemoteSceneUpdate(this._reconcileElements(storedElements));
+        for (const element of storedElements) {
+          this.storedElementIds.add(element.id);
+        }
+        this.handleRemoteSceneUpdate(
+          this._reconcileElements(storedElements, "storedScene"),
+        );
       }
     } catch (error: any) {
       const errorMessage = /is longer than.*?bytes/.test(error.message)
@@ -424,6 +436,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   private destroySocketClient = (opts?: { isUnload: boolean }) => {
     this.lastBroadcastedOrReceivedSceneVersion = -1;
     this.remoteElementIds = new Set();
+    this.storedElementIds = new Set();
     this.portal.close();
     this.fileManager.reset();
     if (!opts?.isUnload) {
@@ -513,6 +526,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     // before the socket opens, so all our messages carry the id
     this.clientId = await getClientId();
     this.remoteElementIds = new Set();
+    this.storedElementIds = new Set();
 
     let roomId;
     let roomKey;
@@ -638,8 +652,10 @@ class Collab extends PureComponent<CollabProps, CollabState> {
               const remoteElements = toBrandedType<
                 readonly RemoteExcalidrawElement[]
               >(decryptedData.payload.elements);
-              const reconciledElements =
-                this._reconcileElements(remoteElements);
+              const reconciledElements = this._reconcileElements(
+                remoteElements,
+                "initialScene",
+              );
               this.handleRemoteSceneUpdate(reconciledElements);
               // noop if already resolved via init from firebase
               scenePromise.resolve({
@@ -655,6 +671,8 @@ class Collab extends PureComponent<CollabProps, CollabState> {
                 toBrandedType<readonly RemoteExcalidrawElement[]>(
                   decryptedData.payload.elements,
                 ),
+                "update",
+                decryptedData.payload.sentAt,
               ),
             );
             break;
@@ -820,12 +838,35 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     return null;
   };
 
+  /**
+   * @param source where the remote elements come from:
+   * - `"update"`: a peer's incremental update
+   * - `"initialScene"`: the room scene sent to us when joining
+   * - `"storedScene"`: the room's stored scene (the reference for what the
+   *   room has)
+   */
   private _reconcileElements = (
     remoteElements: readonly RemoteExcalidrawElement[],
+    source: "update" | "initialScene" | "storedScene" = "update",
+    /** for updates: the sender's clock when it sent them */
+    senderNow?: number,
   ): ReconciledExcalidrawElement[] => {
     const appState = this.excalidrawAPI.getAppState();
 
     const existingElements = this.getSceneElementsIncludingDeleted();
+
+    // don't let a peer bring back elements whose deletion expired (see
+    // expiredDeletions.ts)
+    if (source === "update") {
+      const expired = getExpiredResurrections(
+        remoteElements,
+        this.excalidrawAPI.getSceneElementsMapIncludingDeleted(),
+        senderNow,
+      );
+      if (expired.size) {
+        remoteElements = remoteElements.filter((el) => !expired.has(el.id));
+      }
+    }
 
     // peers' new elements (INIT/UPDATE) + stored-scene echoes. Our own
     // elements are already in the scene, so they're never marked remote.
@@ -858,8 +899,39 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       getSceneVersion(reconciledElements),
     );
 
+    // our live copies of elements the room deleted so long ago it forgot:
+    // delete them here too. After the line above, so the fresh deletes are
+    // broadcast (to other clients that may hold stale copies too).
+    if (source === "storedScene") {
+      const expired = new Set(
+        getLocalElementsWithExpiredDeletion(
+          reconciledElements,
+          new Set(remoteElements.map((el) => el.id)),
+          this.isKnownToRoom,
+        ).map((el) => el.id),
+      );
+      if (expired.size) {
+        reconciledElements = reconciledElements.map((el) =>
+          expired.has(el.id)
+            ? (newElementWith(el, {
+                isDeleted: true,
+              }) as ReconciledExcalidrawElement)
+            : el,
+        );
+      }
+    }
+
     return reconciledElements;
   };
+
+  /**
+   * Whether the element was ever in the room's scene as far as this client
+   * knows: received from the room, or part of the stored scene after one of
+   * our saves.
+   */
+  private isKnownToRoom = (elementId: string) =>
+    this.remoteElementIds.has(elementId) ||
+    this.storedElementIds.has(elementId);
 
   private loadImageFiles = throttle(async () => {
     const { loadedFiles, erroredFiles } =

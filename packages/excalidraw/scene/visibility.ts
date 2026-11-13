@@ -2,7 +2,7 @@ import { arrayToMap } from "@excalidraw/common";
 import {
   UNKNOWN_CREATOR_ID,
   excludeElementsByHiddenCreators,
-  getElementVisibilityBucket,
+  getElementVisibilityBuckets,
   getElementsInGroup,
   getSelfCreatorId,
   isCollaboratorInteractive,
@@ -174,13 +174,14 @@ export const getVisibilityBuckets = (
   const elementsMap = arrayToMap(elements);
   for (const element of elements) {
     if (!element.isDeleted) {
-      buckets.add(
-        getElementVisibilityBucket(
-          element,
-          elementsMap,
-          appState.collaboratorDirectory,
-        ),
-      );
+      // co-owners too, or "Hide all" would leave co-owned elements visible
+      for (const bucket of getElementVisibilityBuckets(
+        element,
+        elementsMap,
+        appState.collaboratorDirectory,
+      )) {
+        buckets.add(bucket);
+      }
     }
   }
 
@@ -197,7 +198,10 @@ export type CollaboratorVisibilityRow = {
   isLocked: boolean;
   /** the lock can't be changed: hidden, or your own row */
   isLockDisabled: boolean;
-  /** non-deleted elements in this bucket (bound text counts with its shape) */
+  /**
+   * non-deleted elements in this bucket (bound text counts with its shape;
+   * a co-owned element counts for each of its owners)
+   */
   drawingsCount: number;
   avatarUrl?: string;
 };
@@ -256,12 +260,14 @@ export const getCollaboratorVisibilityRows = (
     ) {
       continue;
     }
-    const bucket = getElementVisibilityBucket(
+    // a co-owned element counts for each of its owners
+    for (const bucket of getElementVisibilityBuckets(
       element,
       elementsMap,
       appState.collaboratorDirectory,
-    );
-    counts.set(bucket, (counts.get(bucket) ?? 0) + 1);
+    )) {
+      counts.set(bucket, (counts.get(bucket) ?? 0) + 1);
+    }
   }
 
   const toRow = (

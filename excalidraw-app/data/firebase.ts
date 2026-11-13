@@ -1,5 +1,6 @@
 import { reconcileElements } from "@excalidraw/excalidraw";
 import { MIME_TYPES, toBrandedType } from "@excalidraw/common";
+
 import { decompressData } from "@excalidraw/excalidraw/data/encode";
 import {
   encryptData,
@@ -29,6 +30,8 @@ import type {
   BinaryFileMetadata,
   DataURL,
 } from "@excalidraw/excalidraw/types";
+
+import { getLocalElementsWithExpiredDeletion } from "../collab/expiredDeletions";
 
 import { FILE_CACHE_MAX_AGE_SEC } from "../app_constants";
 
@@ -184,10 +187,16 @@ const createFirebaseSceneDocument = async (
   } as FirebaseStoredScene;
 };
 
+/**
+ * @param isKnownToRoom whether an element was ever in the room's scene as
+ * far as this client knows. Local elements the stored scene no longer has
+ * because their deletion expired aren't saved (see expiredDeletions.ts).
+ */
 export const saveToFirebase = async (
   portal: Portal,
   elements: readonly SyncableExcalidrawElement[],
   appState: AppState,
+  isKnownToRoom?: (elementId: string) => boolean,
 ) => {
   const { roomId, roomKey, socket } = portal;
   if (
@@ -218,9 +227,19 @@ export const saveToFirebase = async (
     const prevStoredElements = getSyncableElements(
       restoreElements(await decryptElements(prevStoredScene, roomKey), null),
     );
+    // don't save our live copies of elements whose deletion expired
+    const expiredIds = isKnownToRoom
+      ? new Set(
+          getLocalElementsWithExpiredDeletion(
+            elements,
+            new Set(prevStoredElements.map((el) => el.id)),
+            isKnownToRoom,
+          ).map((el) => el.id),
+        )
+      : new Set<string>();
     const reconciledElements = getSyncableElements(
       reconcileElements(
-        elements,
+        elements.filter((el) => !expiredIds.has(el.id)),
         prevStoredElements as OrderedExcalidrawElement[] as RemoteExcalidrawElement[],
         appState,
       ),

@@ -20,6 +20,8 @@ import {
   WINDOWS_EMOJI_FALLBACK_FONT,
 } from "./constants";
 
+import { elementClock } from "./clock";
+
 import type { MaybePromise, ResolutionType } from "./utility-types";
 
 import type { EVENT } from "./constants";
@@ -526,7 +528,16 @@ export const bytesToHexString = (bytes: Uint8Array) => {
     .join("");
 };
 
-export const getUpdatedTimestamp = () => (isTestEnv() ? 1 : Date.now());
+/**
+ * Timestamp for an element change (`updated`), from the hybrid logical clock
+ * collaboration orders concurrent changes by (see `clock.ts`).
+ */
+export const getUpdatedTimestamp = () =>
+  isTestEnv() ? 1 : elementClock.tick();
+
+/** advances the element clock past a timestamp seen on a remote element */
+export const observeUpdatedTimestamp = (timestamp: unknown) =>
+  elementClock.observe(timestamp);
 
 /**
  * Transforms array of objects containing `id` attribute,

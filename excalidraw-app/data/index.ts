@@ -90,6 +90,12 @@ export type SocketUpdateDataSource = {
     type: WS_SUBTYPES.UPDATE;
     payload: {
       elements: readonly OrderedExcalidrawElement[];
+      /**
+       * the sender's wall clock when sending, so receivers can tell how old
+       * the elements are by the clock that stamped them (see
+       * expiredDeletions.ts). Optional: older clients omit it.
+       */
+      sentAt?: number;
     };
   };
   MOUSE_LOCATION: {

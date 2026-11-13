@@ -194,7 +194,12 @@ const getLineCaretOffsetFromNativeLayout = ({
   return closestOffset;
 };
 
-type SubmitHandler = () => void;
+export type TextWysiwygHandle = {
+  /** submits the text (as when the editor loses focus) */
+  submit: () => void;
+  /** closes the editor without writing anything back */
+  cancel: () => void;
+};
 
 export const textWysiwyg = ({
   onChange,
@@ -229,7 +234,7 @@ export const textWysiwyg = ({
   app: App;
   autoSelect?: boolean;
   initialCaretSceneCoords?: { x: number; y: number } | null;
-}): SubmitHandler => {
+}): TextWysiwygHandle => {
   let currentTextLayout: {
     angle: Radians;
     font: ReturnType<typeof getFontString>;
@@ -1128,5 +1133,17 @@ export const textWysiwyg = ({
     ?.querySelector(".excalidraw-textEditorContainer")!
     .appendChild(editable);
 
-  return handleSubmit;
+  /**
+   * closes the editor without writing anything back to the element (e.g. a
+   * collaborator deleted it meanwhile). The caller resets the editing state.
+   */
+  const cancel = () => {
+    if (isDestroyed) {
+      return;
+    }
+    isDestroyed = true;
+    cleanup();
+  };
+
+  return { submit: handleSubmit, cancel };
 };
