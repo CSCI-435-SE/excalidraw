@@ -132,7 +132,11 @@ export { actionToggleSearchMenu } from "./actionToggleSearchMenu";
 
 export { actionToggleCropEditor } from "./actionCropEditor";
 
-export { actionToggleImageGrayscale } from "./actionImageFilter";
+export {
+  actionToggleImageGrayscale,
+  actionToggleImageInvert,
+  actionToggleImageBlur,
+} from "./actionImageFilter";
 
 export {
   actionToggleCollaboratorVisibility,

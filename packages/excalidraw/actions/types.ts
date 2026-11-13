@@ -160,6 +160,8 @@ export type ActionName =
   | "linkToElement"
   | "cropEditor"
   | "toggleImageGrayscale"
+  | "toggleImageInvert"
+  | "toggleImageBlur"
   | "wrapSelectionInFrame"
   | "toggleShapeSwitch"
   | "togglePolygon"

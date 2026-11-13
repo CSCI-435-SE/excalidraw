@@ -12,6 +12,10 @@ const { h } = window;
 
 const APPLY = "Apply grayscale";
 const REMOVE = "Remove grayscale";
+const APPLY_INVERT = "Apply color inversion";
+const REMOVE_INVERT = "Remove color inversion";
+const APPLY_BLUR = "Apply blur";
+const REMOVE_BLUR = "Remove blur";
 
 const createImage = (groupIds: string[] = []) =>
   API.createElement({
@@ -125,5 +129,49 @@ describe("actionToggleImageGrayscale", () => {
     act(() => h.setState({ croppingElementId: image.id }));
 
     expect(queryButton(APPLY)).toBe(null);
+  });
+});
+
+describe("actionToggleImageInvert", () => {
+  beforeEach(async () => {
+    await render(<Excalidraw handleKeyboardGlobally={true} />);
+  });
+
+  it("applies and removes color inversion from the selected image", () => {
+    const image = createImage();
+    API.setElements([image]);
+    API.setSelectedElements([image]);
+
+    expect(queryButton(APPLY_INVERT)).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(queryButton(APPLY_INVERT)!);
+    expect(API.getElement(image).filter).toBe("invert");
+    expect(queryButton(REMOVE_INVERT)).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(queryButton(REMOVE_INVERT)!);
+    expect(API.getElement(image).filter).toBe(null);
+    expect(queryButton(APPLY_INVERT)).not.toBe(null);
+  });
+});
+
+describe("actionToggleImageBlur", () => {
+  beforeEach(async () => {
+    await render(<Excalidraw handleKeyboardGlobally={true} />);
+  });
+
+  it("applies and removes blur from the selected image", () => {
+    const image = createImage();
+    API.setElements([image]);
+    API.setSelectedElements([image]);
+
+    expect(queryButton(APPLY_BLUR)).toHaveAttribute("aria-pressed", "false");
+
+    fireEvent.click(queryButton(APPLY_BLUR)!);
+    expect(API.getElement(image).filter).toBe("blur");
+    expect(queryButton(REMOVE_BLUR)).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(queryButton(REMOVE_BLUR)!);
+    expect(API.getElement(image).filter).toBe(null);
+    expect(queryButton(APPLY_BLUR)).not.toBe(null);
   });
 });

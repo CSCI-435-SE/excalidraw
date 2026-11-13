@@ -215,6 +215,10 @@
     },
     "applyGrayscale": "Apply grayscale",
     "removeGrayscale": "Remove grayscale",
+    "applyInvert": "Apply color inversion",
+    "removeInvert": "Remove color inversion",
+    "applyBlur": "Apply blur",
+    "removeBlur": "Remove blur",
     "elementLock": {
       "lock": "Lock",
       "unlock": "Unlock",
