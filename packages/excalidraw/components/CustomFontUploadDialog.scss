@@ -1,0 +1,26 @@
+.excalidraw {
+  .CustomFontUploadDialog {
+    .CustomFontUploadDialog__fields {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .CustomFontUploadDialog__status {
+      margin: 0;
+      color: var(--color-gray-60);
+    }
+
+    .CustomFontUploadDialog__error {
+      margin: 0;
+      color: var(--color-danger);
+    }
+
+    .CustomFontUploadDialog__actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+  }
+}

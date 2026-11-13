@@ -265,6 +265,19 @@
     "url": "Link",
     "useTextColor": "Use text color"
   },
+  "customFontDialog": {
+    "title": "Add custom font",
+    "loading": "Reading font file…",
+    "name": "Font name",
+    "namePlaceholder": "Name shown in the font list",
+    "license": "I have the right to use this font, including embedding it in drawings I export or share.",
+    "add": "Add font",
+    "errors": {
+      "tooLarge": "This font file is larger than 5 MB.",
+      "unsupportedType": "Only WOFF and WOFF2 font files are supported.",
+      "invalidFont": "This file couldn't be read as a font. It may be damaged."
+    }
+  },
   "library": {
     "noItems": "No items added yet...",
     "hint_emptyLibrary": "Select an item on canvas to add it here, or install a library from the public repository, below.",
