@@ -46,6 +46,8 @@ import { NunitoFontFaces } from "./Nunito";
 import { VirgilFontFaces } from "./Virgil";
 import { XiaolaiFontFaces } from "./Xiaolai";
 
+import type { CustomFontData } from "../types";
+
 export class Fonts {
   // it's ok to track fonts across multiple instances only once, so let's use
   // a static member to reduce memory footprint
@@ -62,6 +64,9 @@ export class Fonts {
     | undefined;
 
   private static _initialized: boolean = false;
+
+  /** full data of the registered user-uploaded fonts (#140), for saving */
+  private static readonly customFontsData = new Map<number, CustomFontData>();
 
   public static get registered() {
     // lazy load the font registration
@@ -327,15 +332,9 @@ export class Fonts {
    *
    * @returns `true` if the font was newly registered, `false` if it already was
    */
-  public static registerCustomFont({
-    id,
-    name,
-    dataURL,
-  }: {
-    id: number;
-    name: string;
-    dataURL: string;
-  }): boolean {
+  public static registerCustomFont(font: CustomFontData): boolean {
+    const { id, name, dataURL } = font;
+
     if (!isCustomFontFamily(id)) {
       throw new Error(
         `Custom font id must be an integer >= ${CUSTOM_FONT_FAMILY_ID_START}, received "${id}"`,
@@ -360,11 +359,38 @@ export class Fonts {
       fontFaces: [fontFace],
     });
 
+    Fonts.customFontsData.set(id, font);
+
     // built-in faces are only added to the document on scene load, but custom
     // fonts can be registered mid-session, so make them usable straight away
     window.document.fonts.add(fontFace.fontFace);
 
     return true;
+  }
+
+  /** All registered user-uploaded fonts (#140), in registration order. */
+  public static getCustomFonts(): CustomFontData[] {
+    return Array.from(Fonts.customFontsData.values());
+  }
+
+  /**
+   * Registered user-uploaded fonts (#140) used by the non-deleted text in
+   * `elements`, i.e. the fonts a saved scene needs to embed.
+   */
+  public static getCustomFontsUsedBy(
+    elements: readonly ExcalidrawElement[],
+  ): CustomFontData[] {
+    const used = new Set<number>();
+    for (const element of elements) {
+      if (
+        isTextElement(element) &&
+        !element.isDeleted &&
+        isCustomFontFamily(element.fontFamily)
+      ) {
+        used.add(element.fontFamily);
+      }
+    }
+    return Fonts.getCustomFonts().filter((font) => used.has(font.id));
   }
 
   /**
@@ -390,6 +416,7 @@ export class Fonts {
       }
     }
 
+    Fonts.customFontsData.delete(id);
     return Fonts.registered.delete(id);
   }
 

@@ -8,6 +8,7 @@ import {
   useEditorInterface,
   ExcalidrawAPIProvider,
   useExcalidrawAPI,
+  Fonts,
 } from "@excalidraw/excalidraw";
 import { trackEvent } from "@excalidraw/excalidraw/analytics";
 import { getDefaultAppState } from "@excalidraw/excalidraw/appState";
@@ -130,6 +131,7 @@ import {
   LocalData,
   localStorageQuotaExceededAtom,
 } from "./data/LocalData";
+import { customFontsStorage } from "./data/customFontsStorage";
 import { isBrowserStorageStateNewer } from "./data/tabSync";
 import { ShareDialog, shareDialogStateAtom } from "./share/ShareDialog";
 import CollabError, { collabErrorIndicatorAtom } from "./collab/CollabError";
@@ -229,6 +231,9 @@ const initializeScene = async (opts: {
     /^#json=([a-zA-Z0-9_-]+),([a-zA-Z0-9_-]+)$/,
   );
   const externalUrlMatch = window.location.hash.match(/^#url=(.*)$/);
+
+  // register saved custom fonts (#140) before any scene text is laid out
+  await customFontsStorage.restore();
 
   const localDataState = importFromLocalStorage();
 
@@ -694,6 +699,9 @@ const ExcalidrawWrapper = () => {
     // this check is redundant, but since this is a hot path, it's best
     // not to evaludate the nested expression every time
     if (!LocalData.isSavePaused()) {
+      // keep every uploaded custom font (#140) across reloads
+      customFontsStorage.saveNew(Fonts.getCustomFonts());
+
       LocalData.save(elements, appState, files, () => {
         if (excalidrawAPI) {
           let didChange = false;

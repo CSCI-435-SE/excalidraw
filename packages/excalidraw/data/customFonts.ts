@@ -2,6 +2,7 @@ import { fileOpen } from "browser-fs-access";
 
 import {
   CUSTOM_FONT_FAMILY_ID_START,
+  CUSTOM_FONT_MAX_SIZE_BYTES,
   CUSTOM_FONT_MIME_TYPES,
 } from "@excalidraw/common";
 
@@ -11,8 +12,7 @@ import { blobToArrayBuffer, getDataURL, getNameWithoutExtension } from "./blob";
 
 import type { CustomFontData } from "../types";
 
-/** Largest font file users can upload (#140). */
-export const CUSTOM_FONT_MAX_SIZE_BYTES = 5 * 1024 * 1024;
+export { CUSTOM_FONT_MAX_SIZE_BYTES };
 
 /**
  * Opens the system file picker for a WOFF / WOFF2 font.

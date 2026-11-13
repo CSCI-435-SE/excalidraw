@@ -152,6 +152,9 @@ export const CUSTOM_FONT_MIME_TYPES = {
   woff2: "font/woff2",
 } as const;
 
+/** Largest font file users can upload (#140). */
+export const CUSTOM_FONT_MAX_SIZE_BYTES = 5 * 1024 * 1024;
+
 export const isCustomFontFamily = (fontFamily: number): boolean =>
   Number.isSafeInteger(fontFamily) && fontFamily >= CUSTOM_FONT_FAMILY_ID_START;
 
