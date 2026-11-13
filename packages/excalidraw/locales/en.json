@@ -841,6 +841,9 @@
     "hiddenAlwaysLocked": "{{name}}'s drawings are hidden, so they stay locked",
     "ownCantLock": "Your own drawings can't be locked"
   },
+  "collaboratorEdit": {
+    "deletedWhileEditing": "A collaborator deleted the element you were editing"
+  },
   "commandPalette": {
     "title": "Command palette",
     "shortcuts": {

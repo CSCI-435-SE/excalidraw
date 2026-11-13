@@ -83,6 +83,16 @@ export class Store {
     [DurableIncrement | EphemeralIncrement]
   >();
 
+  /**
+   * Emitted right before a local change is captured into a durable increment
+   * (i.e. a new undo entry), with the scene and the last captured elements.
+   * Listeners may still mutate the scene's elements (bumping their versions):
+   * those changes become part of the same increment.
+   */
+  public readonly onBeforeDurableCaptureEmitter = new Emitter<
+    [nextElements: SceneElementsMap, prevElements: SceneElementsMap]
+  >();
+
   private scheduledMacroActions: Set<CaptureUpdateActionType> = new Set();
   private scheduledMicroActions: MicroActionsQueue = [];
 
@@ -192,6 +202,14 @@ export class Store {
       // execute a single scheduled "macro" function
       // similar to macro tasks, there can be only one within a single commit (loop)
       const action = this.getScheduledMacroAction();
+      if (action === CaptureUpdateAction.IMMEDIATELY && elements) {
+        // after the micro actions, so the snapshot already includes remote
+        // updates and only this capture's own changes differ from it
+        this.onBeforeDurableCaptureEmitter.trigger(
+          elements,
+          this.snapshot.elements,
+        );
+      }
       this.processAction({ action, elements, appState });
     } finally {
       this.satisfiesScheduledActionsInvariant();

@@ -4,6 +4,9 @@ import {
   CaptureUpdateAction,
   StoreChange,
   StoreDelta,
+  getSelfCreatorId,
+  newElementWith,
+  reconcileEditorIdsAfterHistory,
 } from "@excalidraw/element";
 
 import type { StoreSnapshot, Store } from "@excalidraw/element";
@@ -34,6 +37,8 @@ export class HistoryDelta extends StoreDelta {
       },
     );
 
+    HistoryDelta.keepOthersCoOwnership(elements, nextElements, appState);
+
     const [nextAppState, appStateContainsVisibleChange] = this.appState.applyTo(
       appState,
       nextElements,
@@ -43,6 +48,39 @@ export class HistoryDelta extends StoreDelta {
       elementsContainVisibleChange || appStateContainsVisibleChange;
 
     return [nextElements, nextAppState, appliedVisibleChanges];
+  }
+
+  /**
+   * Undo/redo restores whole `customData` objects, so it would also take
+   * away co-ownership other clients gained since. Only this client's own
+   * co-ownership follows history (so undoing all of its edits to an element
+   * removes it as a co-owner); everyone else's is kept as it was.
+   *
+   * Updates `nextElements` (a fresh map from `applyTo`) in place.
+   */
+  private static keepOthersCoOwnership(
+    prevElements: SceneElementsMap,
+    nextElements: SceneElementsMap,
+    appState: AppState,
+  ) {
+    if (prevElements === nextElements) {
+      return;
+    }
+    const selfId = getSelfCreatorId(appState);
+    for (const [id, nextElement] of nextElements) {
+      const prevElement = prevElements.get(id);
+      if (!prevElement || prevElement.customData === nextElement.customData) {
+        continue;
+      }
+      const customData = reconcileEditorIdsAfterHistory(
+        prevElement,
+        nextElement,
+        selfId,
+      );
+      if (customData) {
+        nextElements.set(id, newElementWith(nextElement, { customData }));
+      }
+    }
   }
 
   /**
