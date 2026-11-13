@@ -30,6 +30,8 @@ export interface FontMetadata {
   local?: true;
   /** flag to indicate a fallback font */
   fallback?: true;
+  /** set for user-uploaded fonts (#140), holds the user-facing label */
+  custom?: { name: string };
 }
 
 export const FONT_METADATA: Record<number, FontMetadata> = {

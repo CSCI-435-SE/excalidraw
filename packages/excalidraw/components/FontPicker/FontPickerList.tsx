@@ -16,6 +16,7 @@ import {
   getFontFamilyString,
 } from "@excalidraw/common";
 
+import type { FontMetadata } from "@excalidraw/common";
 import type { ValueOf } from "@excalidraw/common/utility-types";
 
 import { Fonts } from "../../fonts";
@@ -89,8 +90,11 @@ const getFontFamilyIcon = (fontFamily: FontFamilyValues): JSX.Element => {
 
 const getFontFamilyLabel = (
   fontFamily: FontFamilyValues,
+  metadata: FontMetadata,
   fontFaces: ExcalidrawFontFace[],
 ) =>
+  // user-uploaded fonts (#140) are labelled by their user-facing name, not the internal CSS family
+  metadata.custom?.name ??
   // prefer our config as the browser resolved names may be wrapped in quotes and such
   Object.entries(FONT_FAMILY).find(([, id]) => id === fontFamily)?.[0] ??
   fontFaces[0]?.fontFace?.family ??
@@ -124,7 +128,7 @@ export const FontPickerList = React.memo(
             const fontDescriptor = {
               value: familyId,
               icon: getFontFamilyIcon(familyId),
-              text: getFontFamilyLabel(familyId, fontFaces),
+              text: getFontFamilyLabel(familyId, metadata, fontFaces),
             };
 
             if (metadata.deprecated) {

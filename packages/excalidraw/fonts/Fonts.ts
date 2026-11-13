@@ -2,8 +2,11 @@ import {
   FONT_FAMILY,
   FONT_FAMILY_FALLBACKS,
   CJK_HAND_DRAWN_FALLBACK_FONT,
+  CUSTOM_FONT_FAMILY_ID_START,
   WINDOWS_EMOJI_FALLBACK_FONT,
+  getCustomFontFamilyName,
   getFontFamilyFallbacks,
+  isCustomFontFamily,
   FONT_SIZES,
 } from "@excalidraw/common";
 import { getContainerElement } from "@excalidraw/element";
@@ -314,6 +317,71 @@ export class Fonts {
         });
       }
     }
+  }
+
+  /**
+   * Register a user-uploaded font (#140) under its custom `fontFamily` id.
+   *
+   * Idempotent: registering an id that's already registered is a no-op, as
+   * custom ids are derived from the font content.
+   *
+   * @returns `true` if the font was newly registered, `false` if it already was
+   */
+  public static registerCustomFont({
+    id,
+    name,
+    dataURL,
+  }: {
+    id: number;
+    name: string;
+    dataURL: string;
+  }): boolean {
+    if (!isCustomFontFamily(id)) {
+      throw new Error(
+        `Custom font id must be an integer >= ${CUSTOM_FONT_FAMILY_ID_START}, received "${id}"`,
+      );
+    }
+
+    if (Fonts.registered.has(id)) {
+      return false;
+    }
+
+    Fonts.registered.set(id, {
+      // custom fonts reuse Excalifont metrics, same as any unknown family
+      metadata: {
+        ...FONT_METADATA[FONT_FAMILY.Excalifont],
+        custom: { name },
+      },
+      fontFaces: [new ExcalidrawFontFace(getCustomFontFamilyName(id), dataURL)],
+    });
+
+    return true;
+  }
+
+  /**
+   * Remove a user-uploaded font (#140) from the registry and the document.
+   * Built-in fonts can't be unregistered.
+   *
+   * @returns `true` if the font was removed, `false` if it wasn't registered
+   */
+  public static unregisterCustomFont(id: number): boolean {
+    const registeredFamily = Fonts.registered.get(id);
+
+    if (!registeredFamily?.metadata.custom) {
+      return false;
+    }
+
+    for (const { fontFace } of registeredFamily.fontFaces) {
+      window.document.fonts.delete(fontFace);
+
+      for (const sig of Fonts.loadedFontsCache) {
+        if (sig.startsWith(`${fontFace.family}-`)) {
+          Fonts.loadedFontsCache.delete(sig);
+        }
+      }
+    }
+
+    return Fonts.registered.delete(id);
   }
 
   /**
