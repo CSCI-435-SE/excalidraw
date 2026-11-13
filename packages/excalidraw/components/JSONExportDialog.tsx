@@ -11,6 +11,7 @@ import { nativeFileSystemSupported } from "../data/filesystem";
 import { t } from "../i18n";
 
 import { Card } from "./Card";
+import { CustomFontsLicenseNotice } from "./CustomFontsLicenseNotice";
 import { Dialog } from "./Dialog";
 import { IconButton } from "./IconButton";
 import { exportToFileIcon, LinkIcon } from "./icons";
@@ -48,6 +49,7 @@ const JSONExportModal = ({
   const { onExportToBackend } = exportOpts;
   return (
     <div className="ExportDialog ExportDialog--json">
+      <CustomFontsLicenseNotice elements={elements} />
       <div className="ExportDialog-cards">
         {exportOpts.saveFileToDisk && (
           <Card color="lime">
