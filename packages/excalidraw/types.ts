@@ -514,6 +514,7 @@ export interface AppState {
     | { name: "settings" }
     | { name: "elementLinkSelector"; sourceElementId: ExcalidrawElement["id"] }
     | { name: "textHyperlink"; initialDisplayText: string }
+    | { name: "customFontUpload"; file: File }
     | { name: "charts"; data: Spreadsheet; rawText: string }
     | { name: "duplicateRotated" };
   /**
@@ -995,6 +996,8 @@ export type AppClassProperties = {
   setActiveTool: App["setActiveTool"];
   setOpenDialog: App["setOpenDialog"];
   closeTextHyperlinkDialog: App["closeTextHyperlinkDialog"];
+  openCustomFontUploadDialog: App["openCustomFontUploadDialog"];
+  closeCustomFontUploadDialog: App["closeCustomFontUploadDialog"];
   insertEmbeddableElement: App["insertEmbeddableElement"];
   onMagicframeToolSelect: App["onMagicframeToolSelect"];
   getName: App["getName"];

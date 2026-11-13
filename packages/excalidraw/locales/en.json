@@ -802,7 +802,8 @@
     },
     "sceneFonts": "In this scene",
     "availableFonts": "Available fonts",
-    "empty": "No fonts found"
+    "empty": "No fonts found",
+    "uploadFont": "Upload font"
   },
   "unicodePicker": {
     "search": "Code point, e.g. U+2603",

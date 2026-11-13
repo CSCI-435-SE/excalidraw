@@ -346,14 +346,23 @@ export class Fonts {
       return false;
     }
 
+    const fontFace = new ExcalidrawFontFace(
+      getCustomFontFamilyName(id),
+      dataURL,
+    );
+
     Fonts.registered.set(id, {
       // custom fonts reuse Excalifont metrics, same as any unknown family
       metadata: {
         ...FONT_METADATA[FONT_FAMILY.Excalifont],
         custom: { name },
       },
-      fontFaces: [new ExcalidrawFontFace(getCustomFontFamilyName(id), dataURL)],
+      fontFaces: [fontFace],
     });
+
+    // built-in faces are only added to the document on scene load, but custom
+    // fonts can be registered mid-session, so make them usable straight away
+    window.document.fonts.add(fontFace.fontFace);
 
     return true;
   }

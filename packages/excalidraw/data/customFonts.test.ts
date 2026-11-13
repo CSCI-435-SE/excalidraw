@@ -1,3 +1,5 @@
+import { fileOpen } from "browser-fs-access";
+
 import { isCustomFontFamily } from "@excalidraw/common";
 
 import {
@@ -6,7 +8,13 @@ import {
   detectCustomFontMimeType,
   getCustomFontFamilyId,
   loadCustomFontFile,
+  openCustomFontFile,
 } from "./customFonts";
+
+vi.mock("browser-fs-access", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("browser-fs-access")>()),
+  fileOpen: vi.fn(),
+}));
 
 // "wOF2" / "wOFF" signatures followed by a few header bytes
 const WOFF2_BYTES = new Uint8Array([0x77, 0x4f, 0x46, 0x32, 0, 1, 0, 0]);
@@ -23,6 +31,21 @@ const makeFile = (bytes: Uint8Array<ArrayBuffer>, name: string, type = "") =>
 describe("custom font file handling (#140)", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  describe("openCustomFontFile()", () => {
+    it("asks the system file picker for a single WOFF or WOFF2 file", async () => {
+      const file = new File([WOFF2_BYTES], "a.woff2");
+      vi.mocked(fileOpen).mockResolvedValueOnce(file);
+
+      await expect(openCustomFontFile()).resolves.toBe(file);
+      expect(fileOpen).toHaveBeenCalledWith({
+        description: "WOFF / WOFF2 font",
+        extensions: [".woff", ".woff2"],
+        mimeTypes: ["font/woff", "font/woff2"],
+        multiple: false,
+      });
+    });
   });
 
   describe("detectCustomFontMimeType()", () => {

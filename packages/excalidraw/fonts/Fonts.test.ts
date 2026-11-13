@@ -40,6 +40,19 @@ describe("Fonts custom font registry (#140)", () => {
       expect(registered?.fontFaces[0].urls).toEqual([DATA_URL]);
     });
 
+    it("adds the font face to document.fonts once, so it renders without a scene reload", () => {
+      const addSpy = vi.mocked(window.document.fonts.add);
+      addSpy.mockClear();
+
+      Fonts.registerCustomFont({ id: 2007, name: "A", dataURL: DATA_URL });
+      Fonts.registerCustomFont({ id: 2007, name: "A", dataURL: DATA_URL });
+
+      expect(addSpy).toHaveBeenCalledTimes(1);
+      expect(addSpy).toHaveBeenCalledWith(
+        Fonts.registered.get(2007)!.fontFaces[0].fontFace,
+      );
+    });
+
     it("uses Excalifont metrics for custom fonts", () => {
       Fonts.registerCustomFont({ id: 2007, name: "A", dataURL: DATA_URL });
 

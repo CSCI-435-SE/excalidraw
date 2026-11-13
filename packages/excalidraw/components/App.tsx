@@ -354,6 +354,7 @@ import {
   actionCancelMasking,
   actionEditMask,
   actionCloseMaskEditor,
+  actionChangeFontFamily,
 } from "../actions";
 import { actionWrapTextInContainer } from "../actions/actionBoundText";
 import { actionPaste } from "../actions/actionClipboard";
@@ -525,6 +526,7 @@ import type {
   AppProps,
   AppState,
   BinaryFileData,
+  CustomFontData,
   ExcalidrawImperativeAPI,
   BinaryFiles,
   Gesture,
@@ -6136,6 +6138,38 @@ class App extends React.Component<AppProps, AppState> {
       this.setState({ openDialog: null });
     }
     callback?.(result);
+  };
+
+  /** opens the dialog for naming & licensing an uploaded font file (#140) */
+  public openCustomFontUploadDialog = (file: File) => {
+    // the font picker popup closes as the dialog opens
+    this.setState({
+      openDialog: { name: "customFontUpload", file },
+      openPopup: null,
+    });
+  };
+
+  /**
+   * Closes the custom font upload dialog. When a font is passed, registers it
+   * and applies it to the selected text, or makes it the font for new text
+   * when nothing is selected.
+   */
+  public closeCustomFontUploadDialog = (font: CustomFontData | null) => {
+    if (font) {
+      // no-op for an already uploaded font, which then simply gets selected
+      Fonts.registerCustomFont(font);
+
+      // NOTE runs before closing the dialog: the action spreads the current
+      // appState into its result, which would otherwise reopen the dialog
+      this.actionManager.executeAction(actionChangeFontFamily, "ui", {
+        currentItemFontFamily: font.id,
+        currentHoveredFontFamily: null,
+      });
+    }
+
+    if (this.state.openDialog?.name === "customFontUpload") {
+      this.setState({ openDialog: null });
+    }
   };
 
   private setCursor = (cursor: string) => {

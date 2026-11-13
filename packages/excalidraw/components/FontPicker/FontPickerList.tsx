@@ -19,6 +19,7 @@ import {
 import type { FontMetadata } from "@excalidraw/common";
 import type { ValueOf } from "@excalidraw/common/utility-types";
 
+import { openCustomFontFile } from "../../data/customFonts";
 import { Fonts } from "../../fonts";
 import { t } from "../../i18n";
 import {
@@ -408,6 +409,31 @@ export const FontPickerList = React.memo(
         >
           {groups.length ? groups : null}
         </ScrollableList>
+        <div className="FontPickerList__footer">
+          <button
+            type="button"
+            className="FontPickerList__footer-button"
+            data-testid="font-picker-upload"
+            onClick={async () => {
+              let file: File;
+              try {
+                // NOTE the picker popover can unmount while the system file
+                // dialog is open, so don't rely on anything inside it (such as
+                // a hidden file input) to receive the chosen file
+                file = await openCustomFontFile();
+              } catch (error: any) {
+                if (error?.name !== "AbortError") {
+                  console.warn(error);
+                }
+                return;
+              }
+              onClose();
+              app.openCustomFontUploadDialog(file);
+            }}
+          >
+            {t("fontList.uploadFont")}
+          </button>
+        </div>
       </PropertiesPopover>
     );
   },

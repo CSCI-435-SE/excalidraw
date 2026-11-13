@@ -17,4 +17,30 @@
       grid-template-columns: none;
     }
   }
+
+  // pinned below the scrollable font list (#140)
+  .FontPickerList__footer {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--default-border-color);
+  }
+
+  .FontPickerList__footer-button {
+    flex: 1;
+    height: 2rem;
+    padding: 0 0.5rem;
+    border: 1px solid var(--default-border-color);
+    border-radius: var(--border-radius-lg);
+    background-color: transparent;
+    color: var(--color-on-surface);
+    font-family: inherit;
+    font-size: 0.875rem;
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--button-hover-bg);
+    }
+  }
 }

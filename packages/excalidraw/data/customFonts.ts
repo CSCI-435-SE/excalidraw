@@ -1,3 +1,5 @@
+import { fileOpen } from "browser-fs-access";
+
 import {
   CUSTOM_FONT_FAMILY_ID_START,
   CUSTOM_FONT_MIME_TYPES,
@@ -11,6 +13,23 @@ import type { CustomFontData } from "../types";
 
 /** Largest font file users can upload (#140). */
 export const CUSTOM_FONT_MAX_SIZE_BYTES = 5 * 1024 * 1024;
+
+/**
+ * Opens the system file picker for a WOFF / WOFF2 font.
+ *
+ * Uses the File System Access API where available (with a detached input as
+ * fallback), so the result doesn't depend on any element of the UI that
+ * opened it staying mounted while the picker is open.
+ *
+ * @throws `AbortError` when the user cancels the picker
+ */
+export const openCustomFontFile = (): Promise<File> =>
+  fileOpen({
+    description: "WOFF / WOFF2 font",
+    extensions: [".woff", ".woff2"],
+    mimeTypes: Object.values(CUSTOM_FONT_MIME_TYPES),
+    multiple: false,
+  });
 
 /** Name used when the file name is empty after stripping the extension. */
 export const CUSTOM_FONT_DEFAULT_NAME = "Custom font";

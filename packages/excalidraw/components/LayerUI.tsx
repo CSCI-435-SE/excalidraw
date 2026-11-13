@@ -49,6 +49,7 @@ import { TTDDialog } from "./TTDDialog/TTDDialog";
 import { Stats } from "./Stats";
 import ElementLinkDialog from "./ElementLinkDialog";
 import { TextHyperlinkDialog } from "./TextHyperlinkDialog";
+import { CustomFontUploadDialog } from "./CustomFontUploadDialog";
 import { ErrorDialog } from "./ErrorDialog";
 import { EyeDropper, activeEyeDropperAtom } from "./EyeDropper";
 import { FixedSideContainer } from "./FixedSideContainer";
@@ -550,6 +551,13 @@ const LayerUI = ({
           initialDisplayText={appState.openDialog.initialDisplayText}
           onConfirm={(result) => app.closeTextHyperlinkDialog(result)}
           onCancel={() => app.closeTextHyperlinkDialog(null)}
+        />
+      )}
+      {appState.openDialog?.name === "customFontUpload" && (
+        <CustomFontUploadDialog
+          file={appState.openDialog.file}
+          onConfirm={(font) => app.closeCustomFontUploadDialog(font)}
+          onCancel={() => app.closeCustomFontUploadDialog(null)}
         />
       )}
       <tunnels.OverwriteConfirmDialogTunnel.Out />
