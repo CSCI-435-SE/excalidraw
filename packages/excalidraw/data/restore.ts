@@ -43,6 +43,11 @@ import {
 import { normalizeFixedPoint } from "@excalidraw/element";
 import { normalizePathMotion } from "@excalidraw/element";
 import {
+  createImageFilter,
+  normalizeImageAdjustments,
+  normalizeImageFilters,
+} from "@excalidraw/element";
+import {
   updateElbowArrowPoints,
   validateElbowPoints,
 } from "@excalidraw/element";
@@ -675,14 +680,26 @@ export const restoreElement = (
         pressures,
       });
     }
-    case "image":
-      return restoreElementWithProperties(element, {
+    case "image": {
+      // LEGACY: single `filter` field, before images could stack filters
+      const { filter: legacyFilter, ...imageElement } =
+        element as typeof element & {
+          filter?: string | null;
+        };
+      return restoreElementWithProperties(imageElement, {
         status: element.status || "pending",
         fileId: element.fileId,
         scale: element.scale || [1, 1],
         crop: element.crop ?? null,
-        filter: element.filter ?? null,
+        filters: normalizeImageFilters(
+          element.filters ??
+            (legacyFilter === "grayscale"
+              ? [createImageFilter("grayscale")]
+              : []),
+        ),
+        adjustments: normalizeImageAdjustments(element.adjustments),
       });
+    }
     case "line":
     // @ts-ignore LEGACY type
     // eslint-disable-next-line no-fallthrough

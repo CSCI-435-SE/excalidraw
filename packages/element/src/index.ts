@@ -79,6 +79,7 @@ export * from "./gradient";
 export * from "./groups";
 export * from "./heading";
 export * from "./image";
+export * from "./imageFilters";
 export * from "./linearElementEditor";
 export * from "./mask";
 export * from "./mutateElement";
