@@ -2495,6 +2495,16 @@ export const grayscaleIcon = createIcon(
   tablerIconProps,
 );
 
+// tabler-icons: restore
+export const resetIcon = createIcon(
+  <g strokeWidth="1.25">
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M3.06 13a9 9 0 1 0 .49 -4.087" />
+    <path d="M3 4.001v5h5" />
+  </g>,
+  tablerIconProps,
+);
+
 export const elementLinkIcon = createIcon(
   <g>
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />

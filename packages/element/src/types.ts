@@ -158,7 +158,18 @@ export type ImageCrop = {
 };
 
 /** visual filters applied to an image at render time (source data untouched) */
-export type ImageFilter = "grayscale";
+export type ImageFilterType = "grayscale" | "colorShift";
+
+export type ImageFilterEntry =
+  | Readonly<{ type: "grayscale"; intensity: number }>
+  | Readonly<{ type: "colorShift"; intensity: number; hue: number }>;
+
+/** per-image exposure adjustments, applied after the filter stack */
+export type ImageAdjustments = Readonly<{
+  brightness: number;
+  contrast: number;
+  saturation: number;
+}>;
 
 export type ExcalidrawImageElement = _ExcalidrawElementBase &
   Readonly<{
@@ -170,8 +181,10 @@ export type ExcalidrawImageElement = _ExcalidrawElementBase &
     scale: [number, number];
     /** whether an element is cropped */
     crop: ImageCrop | null;
-    /** visual filter applied when rendering, `null` = original appearance */
-    filter: ImageFilter | null;
+    /** filters applied when rendering, in canonical order, `[]` = none */
+    filters: readonly ImageFilterEntry[];
+    /** exposure adjustments, `null` = defaults (original appearance) */
+    adjustments: ImageAdjustments | null;
   }>;
 
 export type InitializedExcalidrawImageElement = MarkNonNullable<

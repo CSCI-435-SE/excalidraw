@@ -14074,6 +14074,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
 
 exports[`history > singleplayer undo/redo > should create new history entry on image drag&drop > [end of test] element 0 1`] = `
 {
+  "adjustments": null,
   "angle": 0,
   "backgroundColor": "transparent",
   "boundElements": null,
@@ -14081,7 +14082,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
   "customData": undefined,
   "fileId": "id2",
   "fillStyle": "solid",
-  "filter": null,
+  "filters": [],
   "frameId": null,
   "groupIds": [],
   "height": 335,
@@ -14112,6 +14113,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
 
 exports[`history > singleplayer undo/redo > should create new history entry on image drag&drop > [end of test] element 1 1`] = `
 {
+  "adjustments": null,
   "angle": 0,
   "backgroundColor": "transparent",
   "boundElements": null,
@@ -14119,7 +14121,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
   "customData": undefined,
   "fileId": "id3",
   "fillStyle": "solid",
-  "filter": null,
+  "filters": [],
   "frameId": null,
   "groupIds": [],
   "height": 77,
@@ -14175,6 +14177,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
       "removed": {
         "id0": {
           "deleted": {
+            "adjustments": null,
             "angle": 0,
             "backgroundColor": "transparent",
             "boundElements": null,
@@ -14182,7 +14185,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
             "customData": undefined,
             "fileId": "id2",
             "fillStyle": "solid",
-            "filter": null,
+            "filters": [],
             "frameId": null,
             "groupIds": [],
             "height": 335,
@@ -14214,6 +14217,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
         },
         "id1": {
           "deleted": {
+            "adjustments": null,
             "angle": 0,
             "backgroundColor": "transparent",
             "boundElements": null,
@@ -14221,7 +14225,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
             "customData": undefined,
             "fileId": "id3",
             "fillStyle": "solid",
-            "filter": null,
+            "filters": [],
             "frameId": null,
             "groupIds": [],
             "height": 77,
@@ -14392,6 +14396,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
 
 exports[`history > singleplayer undo/redo > should create new history entry on image paste > [end of test] element 0 1`] = `
 {
+  "adjustments": null,
   "angle": 0,
   "backgroundColor": "transparent",
   "boundElements": null,
@@ -14399,7 +14404,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
   "customData": undefined,
   "fileId": "id2",
   "fillStyle": "solid",
-  "filter": null,
+  "filters": [],
   "frameId": null,
   "groupIds": [],
   "height": 335,
@@ -14430,6 +14435,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
 
 exports[`history > singleplayer undo/redo > should create new history entry on image paste > [end of test] element 1 1`] = `
 {
+  "adjustments": null,
   "angle": 0,
   "backgroundColor": "transparent",
   "boundElements": null,
@@ -14437,7 +14443,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
   "customData": undefined,
   "fileId": "id3",
   "fillStyle": "solid",
-  "filter": null,
+  "filters": [],
   "frameId": null,
   "groupIds": [],
   "height": 77,
@@ -14493,6 +14499,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
       "removed": {
         "id0": {
           "deleted": {
+            "adjustments": null,
             "angle": 0,
             "backgroundColor": "transparent",
             "boundElements": null,
@@ -14500,7 +14507,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
             "customData": undefined,
             "fileId": "id2",
             "fillStyle": "solid",
-            "filter": null,
+            "filters": [],
             "frameId": null,
             "groupIds": [],
             "height": 335,
@@ -14532,6 +14539,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
         },
         "id1": {
           "deleted": {
+            "adjustments": null,
             "angle": 0,
             "backgroundColor": "transparent",
             "boundElements": null,
@@ -14539,7 +14547,7 @@ exports[`history > singleplayer undo/redo > should create new history entry on i
             "customData": undefined,
             "fileId": "id3",
             "fillStyle": "solid",
-            "filter": null,
+            "filters": [],
             "frameId": null,
             "groupIds": [],
             "height": 77,

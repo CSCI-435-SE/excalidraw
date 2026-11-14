@@ -6,7 +6,6 @@ import {
   arrayToMap,
   cloneJSON,
   DARK_THEME_FILTER,
-  IMAGE_GRAYSCALE_FILTER,
   MIME_TYPES,
   THEME,
 } from "@excalidraw/common";
@@ -34,6 +33,13 @@ import type {
   DataURL,
 } from "@excalidraw/excalidraw/types";
 
+import {
+  applyImageFiltersToPixels,
+  createImageFilter,
+  getImageFilterCSS,
+  normalizeImageAdjustments,
+  normalizeImageFilters,
+} from "../src/imageFilters";
 import { mutateElement } from "../src/mutateElement";
 import { newImageElement } from "../src/newElement";
 import { renderElement } from "../src/renderElement";
@@ -73,13 +79,20 @@ const createImageCache = (
   return new Map([[FILE_ID, { image, mimeType } as any]]);
 };
 
-const createImage = (filter: ExcalidrawImageElement["filter"] = null) =>
+const GRAYSCALE = [createImageFilter("grayscale")];
+const IMAGE_GRAYSCALE_FILTER = "grayscale(100%)";
+
+const createImage = (
+  filters: ExcalidrawImageElement["filters"] = [],
+  adjustments: ExcalidrawImageElement["adjustments"] = null,
+) =>
   API.createElement({
     type: "image",
     fileId: FILE_ID,
     width: 100,
     height: 100,
-    filter,
+    filters,
+    adjustments,
   });
 
 /**
@@ -148,7 +161,9 @@ afterEach(async () => {
 
 describe("image filter", () => {
   it("defaults to no filter", () => {
-    expect(newImageElement({ type: "image", x: 0, y: 0 }).filter).toBe(null);
+    const image = newImageElement({ type: "image", x: 0, y: 0 });
+    expect(image.filters).toEqual([]);
+    expect(image.adjustments).toBe(null);
     expect(renderImageFilters(createImage(), createImageCache())).toEqual([
       "none",
     ]);
@@ -156,14 +171,14 @@ describe("image filter", () => {
 
   it("renders the image in grayscale when the filter is applied", () => {
     expect(
-      renderImageFilters(createImage("grayscale"), createImageCache()),
+      renderImageFilters(createImage(GRAYSCALE), createImageCache()),
     ).toEqual([IMAGE_GRAYSCALE_FILTER]);
   });
 
   it("combines grayscale with the dark mode SVG inversion", () => {
     expect(
       renderImageFilters(
-        createImage("grayscale"),
+        createImage(GRAYSCALE),
         createImageCache(MIME_TYPES.svg),
         { theme: THEME.DARK },
       ),
@@ -182,12 +197,12 @@ describe("image filter", () => {
       renderImageFilters(image, imageCache, { isExporting: false }),
     ).toEqual(["none"]);
 
-    mutateElement(image, elementsMap, { filter: "grayscale" });
+    mutateElement(image, elementsMap, { filters: GRAYSCALE });
     expect(
       renderImageFilters(image, imageCache, { isExporting: false }),
     ).toEqual([IMAGE_GRAYSCALE_FILTER]);
 
-    mutateElement(image, elementsMap, { filter: null });
+    mutateElement(image, elementsMap, { filters: [] });
     expect(
       renderImageFilters(image, imageCache, { isExporting: false }),
     ).toEqual(["none"]);
@@ -208,9 +223,9 @@ describe("image filter", () => {
     const cachedImage = imageCache.get(FILE_ID)!.image as HTMLImageElement;
     act(() => API.setElements([image]));
 
-    act(() => h.app.scene.mutateElement(image, { filter: "grayscale" }));
+    act(() => h.app.scene.mutateElement(image, { filters: GRAYSCALE }));
     renderImageFilters(image, imageCache);
-    act(() => h.app.scene.mutateElement(image, { filter: null }));
+    act(() => h.app.scene.mutateElement(image, { filters: [] }));
     renderImageFilters(image, imageCache);
 
     expect(image.fileId).toBe(FILE_ID);
@@ -219,15 +234,199 @@ describe("image filter", () => {
     expect(cachedImage.src).toBe(DATA_URL);
   });
 
-  it("restores the filter, defaulting legacy images to no filter", () => {
-    const { filter: _, ...legacyImage } = createImage();
+  it("restores filters, defaulting legacy images to no filter", () => {
+    const { filters: _, adjustments: __, ...legacyImage } = createImage();
     const [restoredLegacy, restoredFiltered] = restoreElements(
-      [legacyImage as ExcalidrawImageElement, createImage("grayscale")],
+      [legacyImage as ExcalidrawImageElement, createImage(GRAYSCALE)],
       null,
     ) as ExcalidrawImageElement[];
 
-    expect(restoredLegacy.filter).toBe(null);
-    expect(restoredFiltered.filter).toBe("grayscale");
+    expect(restoredLegacy.filters).toEqual([]);
+    expect(restoredLegacy.adjustments).toBe(null);
+    expect(restoredFiltered.filters).toEqual(GRAYSCALE);
+  });
+
+  it("migrates the legacy single `filter` field", () => {
+    const { filters: _, ...image } = createImage();
+    const [restored] = restoreElements(
+      [{ ...image, filter: "grayscale" } as any],
+      null,
+    ) as ExcalidrawImageElement[];
+
+    expect(restored.filters).toEqual(GRAYSCALE);
+    expect("filter" in restored).toBe(false);
+  });
+
+  it("sanitizes invalid filters and adjustments on restore", () => {
+    const [restored] = restoreElements(
+      [
+        {
+          ...createImage(),
+          filters: [
+            { type: "colorShift", hue: 5, intensity: "x" },
+            { type: "blur", intensity: 1 },
+            { type: "grayscale", intensity: Number.NaN },
+            { type: "grayscale", intensity: 0.2 },
+          ],
+          adjustments: { brightness: -1, contrast: null, saturation: 0.7 },
+        } as any,
+      ],
+      null,
+    ) as ExcalidrawImageElement[];
+
+    // unknown/duplicate types dropped, canonical order, values clamped
+    expect(restored.filters).toEqual([
+      { type: "grayscale", intensity: 1 },
+      { type: "colorShift", hue: 1, intensity: 1 },
+    ]);
+    expect(restored.adjustments).toEqual({
+      brightness: 0,
+      contrast: 0.5,
+      saturation: 0.7,
+    });
+    expect(() =>
+      renderImageFilters(restored as any, createImageCache()),
+    ).not.toThrow();
+  });
+
+  describe("filter stack and adjustments", () => {
+    const colorShift = (hue: number, intensity = 1) =>
+      createImageFilter("colorShift", { hue, intensity });
+
+    it("applies filters in canonical order, then adjustments", () => {
+      const css = getImageFilterCSS({
+        // given out of order on purpose
+        filters: normalizeImageFilters([colorShift(0.25), GRAYSCALE[0]]),
+        adjustments: { brightness: 0.75, contrast: 0.25, saturation: 0 },
+      });
+
+      // grayscale is the base, the color shift tints the gray image on top
+      expect(css).toEqual([
+        "grayscale(100%)",
+        "sepia(100%)",
+        "hue-rotate(52deg)",
+        "saturate(300%)",
+        "brightness(150%)",
+        "contrast(50%)",
+        "saturate(0%)",
+      ]);
+    });
+
+    it("color shift on top of grayscale tints toward the target hue", () => {
+      const data = new Uint8ClampedArray([255, 0, 0, 255]);
+      applyImageFiltersToPixels(data, {
+        // hue 1/3 -> 120deg (green)
+        filters: [GRAYSCALE[0], colorShift(1 / 3)],
+        adjustments: null,
+      });
+      const [r, g, b] = data;
+
+      // no longer gray, green is the dominant channel
+      expect(g).toBeGreaterThan(r);
+      expect(g).toBeGreaterThan(b);
+    });
+
+    it("color shift scales its tint with intensity over grayscale", () => {
+      expect(
+        getImageFilterCSS({
+          filters: [GRAYSCALE[0], colorShift(0.5, 0)],
+          adjustments: null,
+        }),
+      ).toEqual(["grayscale(100%)"]);
+    });
+
+    it("renders the combined filters on the canvas", () => {
+      expect(
+        renderImageFilters(
+          createImage([colorShift(0.5, 0.5)], {
+            brightness: 0.6,
+            contrast: 0.5,
+            saturation: 0.5,
+          }),
+          createImageCache(),
+        ),
+      ).toEqual(["hue-rotate(90deg) brightness(120%)"]);
+    });
+
+    it("scales the color shift rotation by its intensity", () => {
+      expect(
+        getImageFilterCSS({
+          filters: [colorShift(0.5, 0.5)],
+          adjustments: null,
+        }),
+      ).toEqual(["hue-rotate(90deg)"]);
+    });
+
+    it("skips neutral values so the original appearance is kept", () => {
+      expect(
+        getImageFilterCSS({
+          filters: [
+            createImageFilter("grayscale", { intensity: 0 }),
+            colorShift(1),
+            colorShift(0.5, 0),
+          ],
+          adjustments: { brightness: 0.5, contrast: 0.5, saturation: 0.5 },
+        }),
+      ).toEqual([]);
+      expect(
+        normalizeImageAdjustments({
+          brightness: 0.5,
+          contrast: 0.5,
+          saturation: 0.5,
+        }),
+      ).toBe(null);
+    });
+
+    it("re-renders when an adjustment changes (cache invalidation)", () => {
+      const image = createImage();
+      const imageCache = createImageCache();
+      const elementsMap = arrayToMap([image]);
+
+      expect(
+        renderImageFilters(image, imageCache, { isExporting: false }),
+      ).toEqual(["none"]);
+
+      mutateElement(image, elementsMap, {
+        adjustments: { brightness: 1, contrast: 0.5, saturation: 0.5 },
+      });
+      expect(
+        renderImageFilters(image, imageCache, { isExporting: false }),
+      ).toEqual(["brightness(200%)"]);
+    });
+
+    it("matches CSS filter math in the pixel fallback", () => {
+      const pixel = (
+        rgb: [number, number, number],
+        element: Parameters<typeof applyImageFiltersToPixels>[1],
+      ) => {
+        const data = new Uint8ClampedArray([...rgb, 255]);
+        applyImageFiltersToPixels(data, element);
+        return Array.from(data);
+      };
+
+      // hue-rotate(180deg) on pure red
+      expect(
+        pixel([255, 0, 0], { filters: [colorShift(0.5)], adjustments: null }),
+      ).toEqual([0, 109, 109, 255]);
+      // brightness(200%), clamped
+      expect(
+        pixel([100, 200, 0], {
+          filters: [],
+          adjustments: { brightness: 1, contrast: 0.5, saturation: 0.5 },
+        }),
+      ).toEqual([200, 255, 0, 255]);
+      // contrast(0%) collapses to mid gray
+      expect(
+        pixel([0, 255, 30], {
+          filters: [],
+          adjustments: { brightness: 0.5, contrast: 0, saturation: 0.5 },
+        }),
+      ).toEqual([128, 128, 128, 255]);
+      // no filters leaves pixels untouched
+      expect(pixel([1, 2, 3], { filters: [], adjustments: null })).toEqual([
+        1, 2, 3, 255,
+      ]);
+    });
   });
 
   describe("svg export", () => {
@@ -262,7 +461,7 @@ describe("image filter", () => {
 
     it("exports the image in grayscale when the filter is applied", async () => {
       const { groups } = await exportImages(
-        [createImage("grayscale")],
+        [createImage(GRAYSCALE)],
         createFiles(),
       );
 
@@ -277,7 +476,7 @@ describe("image filter", () => {
 
     it("combines grayscale with the dark mode SVG inversion", async () => {
       const { groups } = await exportImages(
-        [createImage("grayscale")],
+        [createImage(GRAYSCALE)],
         createFiles(MIME_TYPES.svg),
         true,
       );
@@ -289,7 +488,7 @@ describe("image filter", () => {
 
     it("filters per element without altering the shared image data", async () => {
       const { svg, groups } = await exportImages(
-        [createImage("grayscale"), createImage()],
+        [createImage(GRAYSCALE), createImage()],
         createFiles(),
       );
 
@@ -333,7 +532,7 @@ describe("image filter", () => {
 
     it("converts a copy of the image to grayscale", () => {
       const { filters, pixel } = renderSafariPixel(
-        createImage("grayscale"),
+        createImage(GRAYSCALE),
         createImageCache(),
       );
 
@@ -345,7 +544,7 @@ describe("image filter", () => {
 
     it("combines grayscale with the dark mode SVG inversion", () => {
       const { pixel } = renderSafariPixel(
-        createImage("grayscale"),
+        createImage(GRAYSCALE),
         createImageCache(MIME_TYPES.svg),
         THEME.DARK,
       );
