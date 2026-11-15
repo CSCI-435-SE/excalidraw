@@ -49,12 +49,24 @@ export const IMAGE_FILTER_DEFS: {
       intensity: { ...UNIT_RANGE, default: 1 },
     },
   },
+  blur: {
+    props: {
+      radius: { min: 0, max: 10, step: 0.1, default: 5 },
+    },
+  },
+  invert: {
+    props: {
+      intensity: { ...UNIT_RANGE, default: 1 },
+    },
+  },
 };
 
 /** order in which filters are listed in the UI and applied when rendering */
 export const IMAGE_FILTER_ORDER: readonly ImageFilterType[] = [
   "grayscale",
   "colorShift",
+  "blur",
+  "invert",
 ];
 
 // neutral value (0.5) maps to CSS `100%`, the full range to `0%..200%`
@@ -176,10 +188,11 @@ type Matrix3 = readonly [
   number,
 ];
 
-/** a single render step, as a CSS filter and an equivalent per-pixel op */
+/** a CSS filter step with an optional pixel operation for the Safari fallback */
 type ImageFilterOp = {
   css: string;
-  apply: (rgb: RGB) => void;
+  apply: ((rgb: RGB) => void) | null;
+  blur?: number;
 };
 
 const round = (value: number) => Math.round(value * 100) / 100;
@@ -288,6 +301,23 @@ const getFilterOps = (
           ]
         : [];
     }
+    case "blur": {
+      const radius = round(filter.radius);
+      return radius > 0
+        ? [{ css: `blur(${radius}px)`, apply: null, blur: radius }]
+        : [];
+    }
+    case "invert": {
+      const amount = round(filter.intensity);
+      return amount > 0
+        ? [
+            {
+              css: `invert(${round(amount * 100)}%)`,
+              apply: applyLinear(1 - 2 * amount, 255 * amount),
+            },
+          ]
+        : [];
+    }
     case "colorShift": {
       if (isOverGrayscale) {
         const amount = round(filter.intensity);
@@ -383,21 +413,129 @@ export const hasImageFilters = (
 export const applyImageFiltersToPixels = (
   data: Uint8ClampedArray,
   element: Pick<ExcalidrawImageElement, "filters" | "adjustments">,
+  width?: number,
+  height?: number,
+  pixelRatio = 1,
 ) => {
   const ops = getImageFilterOps(element);
   if (!ops.length) {
     return;
   }
   const rgb: RGB = [0, 0, 0];
-  for (let i = 0; i < data.length; i += 4) {
-    rgb[0] = data[i];
-    rgb[1] = data[i + 1];
-    rgb[2] = data[i + 2];
-    for (const op of ops) {
-      op.apply(rgb);
+  for (const op of ops) {
+    if (op.blur !== undefined) {
+      if (
+        !width ||
+        !height ||
+        !Number.isInteger(width) ||
+        !Number.isInteger(height) ||
+        width * height * 4 !== data.length
+      ) {
+        throw new RangeError(
+          "Image dimensions must match pixel data to apply blur.",
+        );
+      }
+      blurImageData(data, width, height, op.blur * pixelRatio);
+      continue;
     }
-    data[i] = rgb[0];
-    data[i + 1] = rgb[1];
-    data[i + 2] = rgb[2];
+    if (!op.apply) {
+      continue;
+    }
+    for (let i = 0; i < data.length; i += 4) {
+      rgb[0] = data[i];
+      rgb[1] = data[i + 1];
+      rgb[2] = data[i + 2];
+      op.apply(rgb);
+      data[i] = rgb[0];
+      data[i + 1] = rgb[1];
+      data[i + 2] = rgb[2];
+    }
+  }
+};
+
+const blurImageData = (
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+  radius: number,
+) => {
+  const pixelRadius = Math.ceil(radius);
+  if (pixelRadius < 1) {
+    return;
+  }
+
+  const intermediate = new Float32Array(data.length);
+  const windowSize = pixelRadius * 2 + 1;
+  const clampX = (x: number) => Math.min(width - 1, Math.max(0, x));
+  const clampY = (y: number) => Math.min(height - 1, Math.max(0, y));
+
+  for (let y = 0; y < height; y++) {
+    let red = 0;
+    let green = 0;
+    let blue = 0;
+    let alpha = 0;
+    for (let x = -pixelRadius; x <= pixelRadius; x++) {
+      const index = (y * width + clampX(x)) * 4;
+      const pixelAlpha = data[index + 3] / 255;
+      red += data[index] * pixelAlpha;
+      green += data[index + 1] * pixelAlpha;
+      blue += data[index + 2] * pixelAlpha;
+      alpha += data[index + 3];
+    }
+    for (let x = 0; x < width; x++) {
+      const index = (y * width + x) * 4;
+      intermediate[index] = red / windowSize;
+      intermediate[index + 1] = green / windowSize;
+      intermediate[index + 2] = blue / windowSize;
+      intermediate[index + 3] = alpha / windowSize;
+      if (x < width - 1) {
+        const removeIndex = (y * width + clampX(x - pixelRadius)) * 4;
+        const addIndex = (y * width + clampX(x + pixelRadius + 1)) * 4;
+        const removeAlpha = data[removeIndex + 3] / 255;
+        const addAlpha = data[addIndex + 3] / 255;
+        red += data[addIndex] * addAlpha - data[removeIndex] * removeAlpha;
+        green +=
+          data[addIndex + 1] * addAlpha - data[removeIndex + 1] * removeAlpha;
+        blue +=
+          data[addIndex + 2] * addAlpha - data[removeIndex + 2] * removeAlpha;
+        alpha += data[addIndex + 3] - data[removeIndex + 3];
+      }
+    }
+  }
+
+  for (let x = 0; x < width; x++) {
+    let red = 0;
+    let green = 0;
+    let blue = 0;
+    let alpha = 0;
+    for (let y = -pixelRadius; y <= pixelRadius; y++) {
+      const index = (clampY(y) * width + x) * 4;
+      red += intermediate[index];
+      green += intermediate[index + 1];
+      blue += intermediate[index + 2];
+      alpha += intermediate[index + 3];
+    }
+    for (let y = 0; y < height; y++) {
+      const index = (y * width + x) * 4;
+      const blurredAlpha = alpha / windowSize;
+      data[index] = blurredAlpha
+        ? ((red / windowSize) * 255) / blurredAlpha
+        : 0;
+      data[index + 1] = blurredAlpha
+        ? ((green / windowSize) * 255) / blurredAlpha
+        : 0;
+      data[index + 2] = blurredAlpha
+        ? ((blue / windowSize) * 255) / blurredAlpha
+        : 0;
+      data[index + 3] = blurredAlpha;
+      if (y < height - 1) {
+        const removeIndex = (clampY(y - pixelRadius) * width + x) * 4;
+        const addIndex = (clampY(y + pixelRadius + 1) * width + x) * 4;
+        red += intermediate[addIndex] - intermediate[removeIndex];
+        green += intermediate[addIndex + 1] - intermediate[removeIndex + 1];
+        blue += intermediate[addIndex + 2] - intermediate[removeIndex + 2];
+        alpha += intermediate[addIndex + 3] - intermediate[removeIndex + 3];
+      }
+    }
   }
 };

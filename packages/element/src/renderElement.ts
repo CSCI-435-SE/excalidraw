@@ -598,7 +598,13 @@ const drawElementOnCanvas = (
 
             const data = imageData.data;
 
-            applyImageFiltersToPixels(data, element);
+            applyImageFiltersToPixels(
+              data,
+              element,
+              tempCanvas.width,
+              tempCanvas.height,
+              devicePixelRatio,
+            );
 
             if (shouldInvertImage) {
               for (let i = 0; i < data.length; i += 4) {

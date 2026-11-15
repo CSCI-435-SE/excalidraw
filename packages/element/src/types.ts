@@ -158,11 +158,13 @@ export type ImageCrop = {
 };
 
 /** visual filters applied to an image at render time (source data untouched) */
-export type ImageFilterType = "grayscale" | "colorShift";
+export type ImageFilterType = "grayscale" | "colorShift" | "blur" | "invert";
 
 export type ImageFilterEntry =
   | Readonly<{ type: "grayscale"; intensity: number }>
-  | Readonly<{ type: "colorShift"; intensity: number; hue: number }>;
+  | Readonly<{ type: "colorShift"; intensity: number; hue: number }>
+  | Readonly<{ type: "blur"; radius: number }>
+  | Readonly<{ type: "invert"; intensity: number }>;
 
 /** per-image exposure adjustments, applied after the filter stack */
 export type ImageAdjustments = Readonly<{
