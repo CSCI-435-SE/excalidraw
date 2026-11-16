@@ -264,7 +264,7 @@ describe("image filter", () => {
           ...createImage(),
           filters: [
             { type: "colorShift", hue: 5, intensity: "x" },
-            { type: "blur", intensity: 1 },
+            { type: "unknown", intensity: 1 },
             { type: "grayscale", intensity: Number.NaN },
             { type: "grayscale", intensity: 0.2 },
           ],
@@ -355,6 +355,42 @@ describe("image filter", () => {
           adjustments: null,
         }),
       ).toEqual(["hue-rotate(90deg)"]);
+    });
+
+    it("renders blur and color inversion", () => {
+      expect(
+        getImageFilterCSS({
+          filters: [
+            createImageFilter("invert", { intensity: 0.5 }),
+            createImageFilter("blur", { radius: 2 }),
+          ],
+          adjustments: null,
+        }),
+      ).toEqual(["blur(2px)", "invert(50%)"]);
+    });
+
+    it("applies blur and color inversion in the pixel fallback", () => {
+      const blurred = new Uint8ClampedArray([
+        0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255,
+        255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255, 0, 0, 0, 255,
+      ]);
+      applyImageFiltersToPixels(
+        blurred,
+        {
+          filters: [createImageFilter("blur", { radius: 1 })],
+          adjustments: null,
+        },
+        3,
+        3,
+      );
+      expect(blurred[16]).toBe(28);
+
+      const inverted = new Uint8ClampedArray([255, 0, 10, 255]);
+      applyImageFiltersToPixels(inverted, {
+        filters: [createImageFilter("invert")],
+        adjustments: null,
+      });
+      expect(Array.from(inverted)).toEqual([0, 255, 245, 255]);
     });
 
     it("skips neutral values so the original appearance is kept", () => {

@@ -177,8 +177,25 @@ describe("image filters panel", () => {
     selectOption("image-filter-add", "grayscale");
 
     expect(getImage(image).filters).toEqual([GRAYSCALE, COLOR_SHIFT]);
-    // every filter type applied, nothing left to add
-    expect(queryTestId("image-filter-add")).toBe(null);
+    expect(queryTestId("image-filter-add")).not.toBe(null);
+    expect(queryTestId("image-filter-blur")).toBe(null);
+    expect(queryTestId("image-filter-invert")).toBe(null);
+  });
+
+  it("adds and adjusts blur and color inversion", () => {
+    const image = createImage();
+    API.setElements([image]);
+    API.setSelectedElements([image]);
+
+    selectOption("image-filter-add", "blur");
+    setSlider("image-filter-blur-radius", 2);
+    selectOption("image-filter-add", "invert");
+    setSlider("image-filter-invert-intensity", 0.5);
+
+    expect(getImage(image).filters).toEqual([
+      { type: "blur", radius: 2 },
+      { type: "invert", intensity: 0.5 },
+    ]);
   });
 
   it("adjusts filter properties independently", () => {

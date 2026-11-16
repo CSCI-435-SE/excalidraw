@@ -3,7 +3,7 @@ import type {
   NonDeleted,
 } from "@excalidraw/element/types";
 
-import { Excalidraw } from "../..";
+import { Excalidraw } from "../../index";
 import { API } from "../../tests/helpers/api";
 import { Keyboard, Pointer, UI } from "../../tests/helpers/ui";
 import { getTextEditor, updateTextEditor } from "../../tests/queries/dom";
