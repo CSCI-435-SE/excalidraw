@@ -878,6 +878,16 @@
     "hiddenAlwaysLocked": "{{name}}'s drawings are hidden, so they stay locked",
     "ownCantLock": "Your own drawings can't be locked"
   },
+  "collaboratorLayer": {
+    "toggle": "Toggle collaborator layering",
+    "move": "Move collaborator's layer",
+    "reset": "Reset collaborator layer order",
+    "layering": "Layering",
+    "resetShort": "Reset order",
+    "moveUp": "Move {{name}} up a layer",
+    "moveDown": "Move {{name}} down a layer",
+    "dragHandle": "Drag to move {{name}}'s layer"
+  },
   "commandPalette": {
     "title": "Command palette",
     "shortcuts": {

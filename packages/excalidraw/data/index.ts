@@ -143,6 +143,11 @@ export const exportCanvas = async (
         exportPadding,
         exportScale: appState.exportScale,
         exportEmbedScene: appState.exportEmbedScene && type === "svg",
+        // drawn in this client's layer order (#82)
+        collaboratorLayeringEnabled: appState.collaboratorLayeringEnabled,
+        collaboratorLayerOrder: appState.collaboratorLayerOrder,
+        collaboratorDirectory: appState.collaboratorDirectory,
+        collaborators: appState.collaborators,
       },
       files,
       { exportingFrame },
