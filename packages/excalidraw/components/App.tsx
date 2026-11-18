@@ -377,6 +377,7 @@ import {
   isEraserActive,
   isHandToolActive,
 } from "../appState";
+import { createPage, getPageSettings } from "../pages";
 import {
   copyTextToSystemClipboard,
   parseClipboard,
@@ -519,6 +520,7 @@ import type {
 
 import type { ClipboardData, PastedMixedContent } from "../clipboard";
 import type { ExportedElements } from "../data";
+import type { DrawingPage } from "../pages";
 import type { ContextMenuItems } from "./ContextMenu";
 import type { TextHyperlinkDialogResult } from "./TextHyperlinkDialog";
 
@@ -679,6 +681,27 @@ const MAX_EMBEDDABLE_VIEWPORT_SCALE = 4;
  * scroll constraints box */
 const SCROLL_CONSTRAINTS_SNAP_BACK_DELAY = 200;
 
+const getPageActivationAppState = (settings: DrawingPage["settings"]) => ({
+  ...settings,
+  selectedElementIds: {},
+  hoveredElementIds: {},
+  selectedGroupIds: {},
+  previousSelectedElementIds: {},
+  editingGroupId: null,
+  editingTextElement: null,
+  editingFrame: null,
+  frameToHighlight: null,
+  newElement: null,
+  multiElement: null,
+  selectionElement: null,
+  resizingElement: null,
+  activeEmbeddable: null,
+  isCropping: false,
+  croppingElementId: null,
+  isResizing: false,
+  isRotating: false,
+});
+
 let IS_PLAIN_PASTE = false;
 let IS_PLAIN_PASTE_TIMER = 0;
 let PLAIN_PASTE_TOAST_SHOWN = false;
@@ -733,6 +756,8 @@ class App extends React.Component<AppProps, AppState> {
   public id: string;
   private store: Store;
   private history: History;
+  private pages: DrawingPage[];
+  private activePageId: string;
   public excalidrawContainerValue: {
     container: HTMLDivElement | null;
     id: string;
@@ -921,6 +946,9 @@ class App extends React.Component<AppProps, AppState> {
       width: window.innerWidth,
       height: window.innerHeight,
     };
+
+    this.pages = [createPage(nanoid())];
+    this.activePageId = this.pages[0].id;
 
     this.refreshEditorInterface();
     this.stylesPanelMode = deriveStylesPanelMode(this.editorInterface);
@@ -2357,6 +2385,10 @@ class App extends React.Component<AppProps, AppState> {
                               !this.scene.getElementsIncludingDeleted().length
                             }
                             app={this}
+                            pages={this.getPagesForUI()}
+                            activePageId={this.activePageId}
+                            onPageSelect={this.selectPage}
+                            onPageCreate={this.createPage}
                             isCollaborating={this.props.isCollaborating}
                             generateLinkForSelection={
                               this.props.generateLinkForSelection
@@ -2659,6 +2691,63 @@ class App extends React.Component<AppProps, AppState> {
 
   public getSceneElements = () => {
     return this.scene.getNonDeletedElements();
+  };
+
+  private saveActivePage = () => {
+    const activePage = this.pages.find((page) => page.id === this.activePageId);
+    if (!activePage) {
+      throw new Error(`Active page ${this.activePageId} does not exist`);
+    }
+
+    this.pages = this.pages.map((page) =>
+      page.id === this.activePageId
+        ? {
+            ...page,
+            elements: this.scene.getElementsIncludingDeleted(),
+            settings: getPageSettings(this.state),
+          }
+        : page,
+    );
+  };
+
+  private getPagesForUI = (): readonly DrawingPage[] => {
+    const elements = this.scene.getElementsIncludingDeleted();
+    const settings = getPageSettings(this.state);
+    return this.pages.map((page) =>
+      page.id === this.activePageId ? { ...page, elements, settings } : page,
+    );
+  };
+
+  private selectPage = (pageId: string) => {
+    const page = this.pages.find((candidate) => candidate.id === pageId);
+    if (!page) {
+      throw new Error(`Cannot select unknown page ${pageId}`);
+    }
+    if (pageId === this.activePageId) {
+      return;
+    }
+
+    this.saveActivePage();
+    this.activePageId = pageId;
+    this.history.clear();
+    this.updateScene({
+      elements: page.elements,
+      appState: getPageActivationAppState(page.settings),
+      captureUpdate: CaptureUpdateAction.NEVER,
+    });
+  };
+
+  private createPage = () => {
+    const page = createPage(nanoid());
+    this.saveActivePage();
+    this.pages = [...this.pages, page];
+    this.activePageId = page.id;
+    this.history.clear();
+    this.updateScene({
+      elements: page.elements,
+      appState: getPageActivationAppState(page.settings),
+      captureUpdate: CaptureUpdateAction.NEVER,
+    });
   };
 
   public onInsertElements = (elements: readonly ExcalidrawElement[]) => {

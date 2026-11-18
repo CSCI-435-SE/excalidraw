@@ -8,6 +8,8 @@
     "chartType_radar": "Radar chart",
     "chartType_plaintext": "Plain text",
     "selectAll": "Select all",
+    "pages": "Pages",
+    "page": "Page",
     "multiSelect": "Add element to selection",
     "moveCanvas": "Move canvas",
     "cut": "Cut",
@@ -322,6 +324,7 @@
   },
   "buttons": {
     "clearReset": "Reset the canvas",
+    "addPage": "Add page",
     "exportJSON": "Export to file",
     "exportImage": "Export image...",
     "export": "Save to...",
