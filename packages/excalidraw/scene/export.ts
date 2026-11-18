@@ -323,6 +323,7 @@ export const exportToSvg = async (
       | "collaboratorLayerOrder"
       | "collaboratorDirectory"
       | "collaborators"
+      | "hiddenCollaboratorIds"
     >
   >,
   files: BinaryFiles | null,

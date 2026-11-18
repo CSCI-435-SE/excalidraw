@@ -148,6 +148,8 @@ export const exportCanvas = async (
         collaboratorLayerOrder: appState.collaboratorLayerOrder,
         collaboratorDirectory: appState.collaboratorDirectory,
         collaborators: appState.collaborators,
+        // co-owned elements follow their highest visible owner (#84)
+        hiddenCollaboratorIds: appState.hiddenCollaboratorIds,
       },
       files,
       { exportingFrame },

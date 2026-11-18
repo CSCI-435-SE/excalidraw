@@ -21,7 +21,11 @@
  *   collaborator directory order), miscellaneous last
  * - binding (decision): arrows bind to the shape on top in my layering
  */
-import { CREATOR_ID_KEY, UNKNOWN_CREATOR_ID } from "@excalidraw/element";
+import {
+  CREATOR_ID_KEY,
+  EDITOR_IDS_KEY,
+  UNKNOWN_CREATOR_ID,
+} from "@excalidraw/element";
 import { getCollaboratorLayerOrder, newElementWith } from "@excalidraw/element";
 import { assert } from "vitest";
 
@@ -552,6 +556,84 @@ describe("collaborator layering — Criteria C (what I click is what I see)", ()
 // -----------------------------------------------------------------------------
 // shared state and export
 // -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// co-owned elements (#84): drawn in the layer of their highest visible owner
+// (decision on #82, option C)
+// -----------------------------------------------------------------------------
+
+describe("collaborator layering — co-owned elements (#84, highest visible owner)", () => {
+  /** I edit the element, which makes me a co-owner (#84), then deselect it */
+  const coOwn = (id: string) => {
+    API.setSelectedElements([getElement(id) as NonDeletedExcalidrawElement]);
+    execute("changeStrokeWidth", 4);
+    API.setSelectedElements([]);
+    expect(getElement(id).customData?.[EDITOR_IDS_KEY]).toContain("me");
+  };
+
+  /** ids in the order the PNG (canvas) export draws them */
+  const exportPngDrawOrder = async () => {
+    const renderSpy = vi.spyOn(StaticScene, "renderStaticScene");
+    await exportToCanvas(
+      h.elements.filter((el) => !el.isDeleted) as NonDeletedExcalidrawElement[],
+      h.state,
+      {},
+      { exportBackground: false, viewBackgroundColor: "#ffffff" },
+    );
+    const drawn = renderSpy.mock.calls[0][0].visibleElements.map((el) => el.id);
+    renderSpy.mockRestore();
+    return drawn;
+  };
+
+  it("(control) before I edit Bob's shape, it's drawn in Bob's layer", () => {
+    toggleLayering(); // default: me, alice, bob
+    expect(drawnIds()).toEqual(["bob-over", "alice-under"]);
+  });
+
+  it("AC-B: after I edit Bob's shape I co-own it, so it's drawn in my higher layer", () => {
+    toggleLayering();
+    coOwn("bob-over");
+    expect(drawnIds()).toEqual(["alice-under", "bob-over"]);
+  });
+
+  it("AC-C: (control) before I edit Bob's shape, clicking the overlap selects Alice's shape on top", () => {
+    toggleLayering();
+    mouse.clickAt(50, 50);
+    expect(getSelectedIds()).toEqual(["alice-under"]);
+  });
+
+  it("AC-C: once I co-own Bob's shape, clicking the overlap selects it", () => {
+    toggleLayering();
+    // a click before co-owning, so the cached drawing order already exists
+    mouse.clickAt(50, 50);
+    expect(getSelectedIds()).toEqual(["alice-under"]);
+    coOwn("bob-over");
+    mouse.clickAt(50, 50);
+    expect(getSelectedIds()).toEqual(["bob-over"]);
+  });
+
+  it("AC-G: hiding its higher co-owner moves it to its highest visible owner's layer, and back when shown again", () => {
+    // my own shape on top of both in the shared order
+    API.setElements([...h.elements, stamp(createSolidRect("m1"), "me")]);
+    toggleLayering();
+    move("bob", 0); // bob, me, alice
+    coOwn("bob-over"); // owned by bob and me
+    expect(drawnIds()).toEqual(["alice-under", "m1", "bob-over"]);
+
+    execute("toggleCollaboratorVisibility", "bob");
+    // still visible through me (#84), now in my layer (shared order: before m1)
+    expect(drawnIds()).toEqual(["alice-under", "bob-over", "m1"]);
+
+    execute("toggleCollaboratorVisibility", "bob");
+    expect(drawnIds()).toEqual(["alice-under", "m1", "bob-over"]);
+  });
+
+  it("AC-I: the export draws a co-owned shape in the same layer as the canvas", async () => {
+    toggleLayering();
+    coOwn("bob-over");
+    expect(await exportPngDrawOrder()).toEqual(["alice-under", "bob-over"]);
+  });
+});
 
 describe("collaborator layering — Criteria E (shared-state integrity, editor side)", () => {
   it("AC-E: the switch, moves and reset change no element index or version", () => {

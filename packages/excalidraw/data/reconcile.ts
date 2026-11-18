@@ -1,8 +1,14 @@
 import throttle from "lodash.throttle";
 
-import { arrayToMap, isDevEnv, isTestEnv } from "@excalidraw/common";
+import {
+  arrayToMap,
+  isDevEnv,
+  isTestEnv,
+  observeUpdatedTimestamp,
+} from "@excalidraw/common";
 
 import {
+  mergeCoOwnership,
   orderByFractionalIndex,
   syncInvalidIndices,
   validateFractionalIndices,
@@ -10,7 +16,13 @@ import {
 
 import type { OrderedExcalidrawElement } from "@excalidraw/element/types";
 
-import type { MakeBrand } from "@excalidraw/common/utility-types";
+import type { MakeBrand, Mutable } from "@excalidraw/common/utility-types";
+
+import {
+  getInProgressEditKind,
+  getProtectedEditKind,
+  resolveRemoteChangeToInProgressEdit,
+} from "./inProgressEdit";
 
 import type { AppState } from "../types";
 
@@ -25,22 +37,67 @@ export const shouldDiscardRemoteElement = (
   local: OrderedExcalidrawElement | undefined,
   remote: RemoteExcalidrawElement,
 ): boolean => {
-  if (
-    local &&
-    // local element is being edited
-    (local.id === localAppState.editingTextElement?.id ||
-      local.id === localAppState.resizingElement?.id ||
-      local.id === localAppState.newElement?.id ||
-      // local element is newer
-      local.version > remote.version ||
-      // resolve conflicting edits deterministically by taking the one with
-      // the lowest versionNonce
-      (local.version === remote.version &&
-        local.versionNonce <= remote.versionNonce))
-  ) {
+  if (!local) {
+    return false;
+  }
+
+  // local element is being edited (`reconcileElements` merges what it can
+  // into it first, see inProgressEdit.ts)
+  if (getProtectedEditKind(localAppState, local.id)) {
     return true;
   }
-  return false;
+
+  // the latest change wins: `updated` comes from a hybrid logical clock
+  // (see common/clock.ts), so a change made after seeing another one is never
+  // older than it. Elements without a valid timestamp (old data) fall through
+  // to the version rules, as do changes made in the same millisecond.
+  if (
+    isValidTimestamp(local.updated) &&
+    isValidTimestamp(remote.updated) &&
+    local.updated !== remote.updated
+  ) {
+    return local.updated > remote.updated;
+  }
+
+  return (
+    // local element has more changes
+    local.version > remote.version ||
+    // resolve conflicting edits deterministically by taking the one with
+    // the lowest versionNonce
+    (local.version === remote.version &&
+      local.versionNonce <= remote.versionNonce)
+  );
+};
+
+const isValidTimestamp = (timestamp: unknown): timestamp is number =>
+  typeof timestamp === "number" && Number.isFinite(timestamp);
+
+/*
+ * Co-owners (`customData.editorIds`) are merged rather than taken from the
+ * winning copy, so concurrent co-owner stamps on different clients all
+ * survive (see `mergeCoOwnership`). The merge doesn't bump the version: each
+ * client merges every copy it receives, so all of them converge.
+ */
+
+/** local copy wins: merge the remote's co-owners into it (in place) */
+const mergeLosingCoOwnership = (
+  local: OrderedExcalidrawElement,
+  remote: RemoteExcalidrawElement,
+) => {
+  const customData = mergeCoOwnership(local, remote);
+  if (customData) {
+    // in place: the local element may be referenced by in-progress edits
+    (local as Mutable<OrderedExcalidrawElement>).customData = customData;
+  }
+};
+
+/** remote copy wins: a copy of it with the local co-owners merged in */
+const withMergedCoOwnership = (
+  remote: RemoteExcalidrawElement,
+  local: OrderedExcalidrawElement,
+): RemoteExcalidrawElement => {
+  const customData = mergeCoOwnership(remote, local);
+  return customData ? { ...remote, customData } : remote;
 };
 
 const validateIndicesThrottled = throttle(
@@ -81,19 +138,39 @@ export const reconcileElements = (
 
   // process remote elements
   for (const remoteElement of remoteElements) {
+    // hybrid logical clock: local changes from now on are newer than this
+    observeUpdatedTimestamp(remoteElement.updated);
+
     if (!added.has(remoteElement.id)) {
       const localElement = localElementsMap.get(remoteElement.id);
-      const discardRemoteElement = shouldDiscardRemoteElement(
-        localAppState,
-        localElement,
-        remoteElement,
-      );
+      const editKind =
+        localElement && getInProgressEditKind(localAppState, localElement.id);
+      // being edited here: merge what the edit doesn't own, or accept a
+      // delete (cancels the edit); otherwise the usual rules
+      const discardRemoteElement =
+        localElement && editKind
+          ? resolveRemoteChangeToInProgressEdit(
+              localElement,
+              remoteElement,
+              editKind,
+              localElementsMap,
+            ) === "keepLocal"
+          : shouldDiscardRemoteElement(
+              localAppState,
+              localElement,
+              remoteElement,
+            );
 
       if (localElement && discardRemoteElement) {
+        mergeLosingCoOwnership(localElement, remoteElement);
         reconciledElements.push(localElement);
         added.add(localElement.id);
       } else {
-        reconciledElements.push(remoteElement);
+        reconciledElements.push(
+          localElement
+            ? withMergedCoOwnership(remoteElement, localElement)
+            : remoteElement,
+        );
         added.add(remoteElement.id);
       }
     }

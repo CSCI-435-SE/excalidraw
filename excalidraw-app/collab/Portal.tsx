@@ -170,6 +170,7 @@ class Portal {
       type: updateType,
       payload: {
         elements: syncableElements,
+        ...(updateType === WS_SUBTYPES.UPDATE ? { sentAt: Date.now() } : {}),
       },
     };
 

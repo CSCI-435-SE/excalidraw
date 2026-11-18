@@ -23,6 +23,7 @@ import { arrayToMap } from "@excalidraw/common";
 import { newElement, newTextElement } from "../newElement";
 import {
   CREATOR_ID_KEY,
+  EDITOR_IDS_KEY,
   UNKNOWN_CREATOR_ID,
   getCollaboratorLayerOrder,
   getDefaultCollaboratorLayerOrder,
@@ -51,6 +52,24 @@ const createLabel = (id: string, containerId: string, creatorId: string) => ({
     x: 0,
     y: 0,
     customData: { [CREATOR_ID_KEY]: creatorId },
+  }),
+  id,
+});
+
+/** created by `creatorId`, co-owned (#84) by `editorIds` */
+const createCoOwnedRect = (
+  id: string,
+  creatorId: string,
+  editorIds: string[],
+) => ({
+  ...newElement({
+    type: "rectangle",
+    x: 0,
+    y: 0,
+    customData: {
+      [CREATOR_ID_KEY]: creatorId,
+      [EDITOR_IDS_KEY]: editorIds,
+    },
   }),
   id,
 });
@@ -248,6 +267,97 @@ describe("orderElementsByCollaboratorLayer (the single ordering function)", () =
         versionNonce: el.versionNonce,
       })),
     ).toEqual(before);
+  });
+});
+
+/**
+ * #84 co-ownership: an element edited by several collaborators has several
+ * owners. Decision on #82 (option C): it's drawn in the layer of its highest
+ * VISIBLE owner, like #84 makes it follow its least restricted owner.
+ */
+describe("orderElementsByCollaboratorLayer — co-owned elements (#84, highest visible owner)", () => {
+  const ALICE_TOP = ["alice", "me", "bob", UNKNOWN_CREATOR_ID];
+  const myRect = createRect("my-rect", "me");
+
+  it("(control) without co-owners, an element is drawn in its creator's layer", () => {
+    const bobOnly = createRect("bob-only", "bob");
+    expect(
+      ids(
+        orderElementsByCollaboratorLayer([bobOnly, myRect], layered(ALICE_TOP)),
+      ),
+    ).toEqual(["bob-only", "my-rect"]);
+  });
+
+  it("AC-B: a co-owned element is drawn in its highest owner's layer", () => {
+    const shared = createCoOwnedRect("shared", "bob", ["alice"]);
+    expect(
+      ids(
+        orderElementsByCollaboratorLayer([shared, myRect], layered(ALICE_TOP)),
+      ),
+    ).toEqual(["my-rect", "shared"]);
+  });
+
+  it("AC-G: with its highest owner hidden, it's drawn in its highest visible owner's layer", () => {
+    const shared = createCoOwnedRect("shared", "bob", ["alice"]);
+    expect(
+      ids(
+        orderElementsByCollaboratorLayer(
+          [shared, myRect],
+          layered(ALICE_TOP, { hiddenCollaboratorIds: new Set(["alice"]) }),
+        ),
+      ),
+    ).toEqual(["shared", "my-rect"]);
+  });
+
+  it("AC-G: a hidden owner below doesn't change its layer", () => {
+    const shared = createCoOwnedRect("shared", "bob", ["alice"]);
+    expect(
+      ids(
+        orderElementsByCollaboratorLayer(
+          [shared, myRect],
+          layered(ALICE_TOP, { hiddenCollaboratorIds: new Set(["bob"]) }),
+        ),
+      ),
+    ).toEqual(["my-rect", "shared"]);
+  });
+
+  it("with every owner hidden, it keeps its highest owner's layer", () => {
+    const shared = createCoOwnedRect("shared", "bob", ["alice"]);
+    expect(
+      ids(
+        orderElementsByCollaboratorLayer(
+          [shared, myRect],
+          layered(ALICE_TOP, {
+            hiddenCollaboratorIds: new Set(["alice", "bob"]),
+          }),
+        ),
+      ),
+    ).toEqual(["my-rect", "shared"]);
+  });
+
+  it("AC-D: a label on a co-owned shape follows the shape's owners", () => {
+    const container = createCoOwnedRect("container", "bob", ["alice"]);
+    const label = createLabel("label", "container", "me");
+    expect(
+      ids(
+        orderElementsByCollaboratorLayer(
+          [container, myRect, label],
+          layered(ALICE_TOP),
+        ),
+      ),
+    ).toEqual(["my-rect", "container", "label"]);
+  });
+
+  it("AC-A: a co-owner this client never saw counts as the miscellaneous bucket", () => {
+    const shared = createCoOwnedRect("shared", "bob", ["stranger"]);
+    expect(
+      ids(
+        orderElementsByCollaboratorLayer(
+          [shared, myRect],
+          layered([UNKNOWN_CREATOR_ID, "alice", "me", "bob"]),
+        ),
+      ),
+    ).toEqual(["my-rect", "shared"]);
   });
 });
 

@@ -210,6 +210,8 @@ export class Renderer {
           collaboratorLayeringEnabled: !!collaboratorLayerOrder,
           collaboratorLayerOrder,
           collaboratorDirectory,
+          // co-owned elements follow their highest visible owner (#84)
+          hiddenCollaboratorIds,
         },
         this.scene.getNonDeletedElementsMap(),
       );

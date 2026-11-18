@@ -23,6 +23,8 @@ import { LibraryIcon, searchIcon } from "./icons";
 
 import type { SidebarProps, SidebarTriggerProps } from "./Sidebar/common";
 
+export const PAGES_SIDEBAR_TAB = "pages";
+
 const DefaultSidebarTrigger = withInternalFallback(
   "DefaultSidebarTrigger",
   (
@@ -53,6 +55,16 @@ const DefaultTabTriggers = ({ children }: { children: React.ReactNode }) => {
 };
 DefaultTabTriggers.displayName = "DefaultTabTriggers";
 
+const DefaultTabContents = ({ children }: { children: React.ReactNode }) => {
+  const { DefaultSidebarTabContentsTunnel } = useTunnels();
+  return (
+    <DefaultSidebarTabContentsTunnel.In>
+      {children}
+    </DefaultSidebarTabContentsTunnel.In>
+  );
+};
+DefaultTabContents.displayName = "DefaultTabContents";
+
 export const DefaultSidebar = Object.assign(
   withInternalFallback(
     "DefaultSidebar",
@@ -72,7 +84,10 @@ export const DefaultSidebar = Object.assign(
       const appState = useUIAppState();
       const setAppState = useExcalidrawSetAppState();
 
-      const { DefaultSidebarTabTriggersTunnel } = useTunnels();
+      const {
+        DefaultSidebarTabTriggersTunnel,
+        DefaultSidebarTabContentsTunnel,
+      } = useTunnels();
 
       const isForceDocked = appState.openSidebar?.tab === CANVAS_SEARCH_TAB;
 
@@ -114,6 +129,7 @@ export const DefaultSidebar = Object.assign(
             <Sidebar.Tab tab={CANVAS_SEARCH_TAB}>
               <SearchMenu />
             </Sidebar.Tab>
+            <DefaultSidebarTabContentsTunnel.Out />
             {children}
           </Sidebar.Tabs>
         </Sidebar>
@@ -123,5 +139,6 @@ export const DefaultSidebar = Object.assign(
   {
     Trigger: DefaultSidebarTrigger,
     TabTriggers: DefaultTabTriggers,
+    TabContents: DefaultTabContents,
   },
 );

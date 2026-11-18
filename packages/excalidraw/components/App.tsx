@@ -211,6 +211,8 @@ import {
   ShapeCache,
   getRenderOpacity,
   editGroupForSelectedElement,
+  getCoOwnedCustomData,
+  getElementsToCoOwn,
   getElementsInGroup,
   getSelectedGroupIdForElement,
   getSelectedGroupIds,
@@ -380,6 +382,7 @@ import {
   isEraserActive,
   isHandToolActive,
 } from "../appState";
+import { createPage, getPageSettings } from "../pages";
 import {
   copyTextToSystemClipboard,
   parseClipboard,
@@ -474,6 +477,12 @@ import { LaserTrails } from "../laserTrails";
 import { withBatchedUpdates, withBatchedUpdatesThrottled } from "../reactUtils";
 import { isPointHittingTextAutoResizeHandle } from "../textAutoResizeHandle";
 import { textWysiwyg } from "../wysiwyg/textWysiwyg";
+import {
+  beginInProgressEdit,
+  endInProgressEdit,
+  getInProgressEdit,
+  takeRemotelyDeletedEditElements,
+} from "../data/inProgressEdit";
 import { isOverScrollBars } from "../scene/scrollbars";
 import { isMaybeMermaidDefinition } from "../mermaid";
 import { LassoTrail } from "../lasso";
@@ -522,6 +531,7 @@ import type {
 
 import type { ClipboardData, PastedMixedContent } from "../clipboard";
 import type { ExportedElements } from "../data";
+import type { DrawingPage } from "../pages";
 import type { ContextMenuItems } from "./ContextMenu";
 import type { TextHyperlinkDialogResult } from "./TextHyperlinkDialog";
 
@@ -557,6 +567,8 @@ import type {
   ViewportUIDock,
   ViewportUIName,
 } from "../types";
+import type { TextWysiwygHandle } from "../wysiwyg/textWysiwyg";
+import type { InProgressEditKind } from "../data/inProgressEdit";
 import type { RoughCanvas } from "roughjs/bin/canvas";
 import type { Action, ActionResult } from "../actions/types";
 
@@ -682,6 +694,27 @@ const MAX_EMBEDDABLE_VIEWPORT_SCALE = 4;
  * scroll constraints box */
 const SCROLL_CONSTRAINTS_SNAP_BACK_DELAY = 200;
 
+const getPageActivationAppState = (settings: DrawingPage["settings"]) => ({
+  ...settings,
+  selectedElementIds: {},
+  hoveredElementIds: {},
+  selectedGroupIds: {},
+  previousSelectedElementIds: {},
+  editingGroupId: null,
+  editingTextElement: null,
+  editingFrame: null,
+  frameToHighlight: null,
+  newElement: null,
+  multiElement: null,
+  selectionElement: null,
+  resizingElement: null,
+  activeEmbeddable: null,
+  isCropping: false,
+  croppingElementId: null,
+  isResizing: false,
+  isRotating: false,
+});
+
 let IS_PLAIN_PASTE = false;
 let IS_PLAIN_PASTE_TIMER = 0;
 let PLAIN_PASTE_TOAST_SHOWN = false;
@@ -736,6 +769,8 @@ class App extends React.Component<AppProps, AppState> {
   public id: string;
   private store: Store;
   private history: History;
+  private pages: DrawingPage[];
+  private activePageId: string;
   public excalidrawContainerValue: {
     container: HTMLDivElement | null;
     id: string;
@@ -851,6 +886,11 @@ class App extends React.Component<AppProps, AppState> {
   >();
   onRemoveEventListenersEmitter = new Emitter<[]>();
 
+  /** the open text editor, so it can be cancelled (see inProgressEdit.ts) */
+  private textEditor: TextWysiwygHandle | null = null;
+  /** the pointer gesture in progress, so it can be cancelled */
+  private activePointerDownState: PointerDownState | null = null;
+
   api: ExcalidrawImperativeAPI;
 
   private createExcalidrawAPI(): ExcalidrawImperativeAPI {
@@ -924,6 +964,9 @@ class App extends React.Component<AppProps, AppState> {
       width: window.innerWidth,
       height: window.innerHeight,
     };
+
+    this.pages = [createPage(nanoid())];
+    this.activePageId = this.pages[0].id;
 
     this.refreshEditorInterface();
     this.stylesPanelMode = deriveStylesPanelMode(this.editorInterface);
@@ -2361,6 +2404,10 @@ class App extends React.Component<AppProps, AppState> {
                               !this.scene.getElementsIncludingDeleted().length
                             }
                             app={this}
+                            pages={this.getPagesForUI()}
+                            activePageId={this.activePageId}
+                            onPageSelect={this.selectPage}
+                            onPageCreate={this.createPage}
                             isCollaborating={this.props.isCollaborating}
                             generateLinkForSelection={
                               this.props.generateLinkForSelection
@@ -2663,6 +2710,63 @@ class App extends React.Component<AppProps, AppState> {
 
   public getSceneElements = () => {
     return this.scene.getNonDeletedElements();
+  };
+
+  private saveActivePage = () => {
+    const activePage = this.pages.find((page) => page.id === this.activePageId);
+    if (!activePage) {
+      throw new Error(`Active page ${this.activePageId} does not exist`);
+    }
+
+    this.pages = this.pages.map((page) =>
+      page.id === this.activePageId
+        ? {
+            ...page,
+            elements: this.scene.getElementsIncludingDeleted(),
+            settings: getPageSettings(this.state),
+          }
+        : page,
+    );
+  };
+
+  private getPagesForUI = (): readonly DrawingPage[] => {
+    const elements = this.scene.getElementsIncludingDeleted();
+    const settings = getPageSettings(this.state);
+    return this.pages.map((page) =>
+      page.id === this.activePageId ? { ...page, elements, settings } : page,
+    );
+  };
+
+  private selectPage = (pageId: string) => {
+    const page = this.pages.find((candidate) => candidate.id === pageId);
+    if (!page) {
+      throw new Error(`Cannot select unknown page ${pageId}`);
+    }
+    if (pageId === this.activePageId) {
+      return;
+    }
+
+    this.saveActivePage();
+    this.activePageId = pageId;
+    this.history.clear();
+    this.updateScene({
+      elements: page.elements,
+      appState: getPageActivationAppState(page.settings),
+      captureUpdate: CaptureUpdateAction.NEVER,
+    });
+  };
+
+  private createPage = () => {
+    const page = createPage(nanoid());
+    this.saveActivePage();
+    this.pages = [...this.pages, page];
+    this.activePageId = page.id;
+    this.history.clear();
+    this.updateScene({
+      elements: page.elements,
+      appState: getPageActivationAppState(page.settings),
+      captureUpdate: CaptureUpdateAction.NEVER,
+    });
   };
 
   public onInsertElements = (elements: readonly ExcalidrawElement[]) => {
@@ -3387,6 +3491,37 @@ class App extends React.Component<AppProps, AppState> {
       });
     }
 
+    // editing a collaborator's element makes you a co-owner of it. Stamped
+    // as part of the edit's own capture (same undo entry), so undoing every
+    // edit you made to the element also removes you as a co-owner
+    this.store.onBeforeDurableCaptureEmitter.on(
+      (nextElements, prevElements) => {
+        const selfId = getSelfCollaboratorId(this.state);
+        if (!selfId) {
+          return;
+        }
+        for (const element of getElementsToCoOwn(
+          prevElements,
+          nextElements,
+          this.state,
+          selfId,
+        )) {
+          this.scene.mutateElement(
+            element,
+            { customData: getCoOwnedCustomData(element, selfId) },
+            // not a visual change for this client (it can already see and
+            // interact with what it just edited), except while layering is on
+            // (#82): co-owned elements are drawn in their highest visible
+            // owner's layer, so it can move up and must be redrawn
+            {
+              informMutation: this.state.collaboratorLayeringEnabled,
+              isDragging: false,
+            },
+          );
+        }
+      },
+    );
+
     this.store.onDurableIncrementEmitter.on((increment) => {
       this.history.record(increment.delta);
     });
@@ -3687,6 +3822,8 @@ class App extends React.Component<AppProps, AppState> {
         this.setState(visibleSelection);
       }
     }
+
+    this.syncInProgressEdit();
 
     // own drawings hidden → locked to view mode (anything drawn would vanish
     // immediately). Enforced here so it holds however the hidden set changed
@@ -6327,7 +6464,7 @@ class App extends React.Component<AppProps, AppState> {
       ]);
     };
 
-    textWysiwyg({
+    this.textEditor = textWysiwyg({
       canvas: this.canvas,
       getViewportCoords: (x, y) => {
         const { x: viewportX, y: viewportY } = sceneCoordsToViewportCoords(
@@ -6351,6 +6488,7 @@ class App extends React.Component<AppProps, AppState> {
         },
       ),
       onSubmit: withBatchedUpdates((data) => {
+        this.textEditor = null;
         const { viaKeyboard, nextOriginalText, nextTextHyperlinks } = data;
         const isDeleted = !nextOriginalText.trim();
         updateElement(nextOriginalText, nextTextHyperlinks, isDeleted);
@@ -6616,6 +6754,192 @@ class App extends React.Component<AppProps, AppState> {
     return null;
   }
 
+  /** the kind of edit in progress on this client, if any */
+  private getCurrentEditKind(): InProgressEditKind | null {
+    const { state } = this;
+    if (state.editingTextElement) {
+      return "text";
+    }
+    if (state.resizingElement) {
+      return "resize";
+    }
+    if (state.newElement) {
+      return "new";
+    }
+    if (state.selectedElementsAreBeingDragged) {
+      return "drag";
+    }
+    if (state.isResizing || state.isRotating) {
+      return "transform";
+    }
+    return null;
+  }
+
+  /**
+   * The elements an edit changes: the edited element, or for a drag /
+   * multi-element transform the selection with its labels and frame
+   * children, plus the arrows rerouted because they're bound to it.
+   */
+  private getEditedElementIds(kind: InProgressEditKind): Set<string> {
+    const { state } = this;
+    if (kind === "text" || kind === "resize" || kind === "new") {
+      const element =
+        kind === "text"
+          ? state.editingTextElement
+          : kind === "resize"
+          ? state.resizingElement
+          : state.newElement;
+      return new Set(element ? [element.id] : []);
+    }
+
+    const ids = new Set<string>();
+    for (const element of this.scene.getSelectedElements({
+      selectedElementIds: state.selectedElementIds,
+      includeBoundTextElement: true,
+      includeElementsInFrames: true,
+    })) {
+      ids.add(element.id);
+      for (const bound of element.boundElements ?? []) {
+        ids.add(bound.id);
+      }
+    }
+    return ids;
+  }
+
+  /**
+   * Keeps the in-progress edit's baselines (see inProgressEdit.ts) in sync
+   * with the edit state, and reacts to collaborators' deletes of edited
+   * elements once they were accepted.
+   */
+  private syncInProgressEdit() {
+    const deletedIds = takeRemotelyDeletedEditElements();
+    if (deletedIds.length) {
+      this.handleRemoteDeletesOfInProgressEdit(deletedIds);
+    }
+
+    const kind = this.getCurrentEditKind();
+    const edit = getInProgressEdit();
+    if (kind === (edit?.kind ?? null)) {
+      return;
+    }
+    if (!kind) {
+      endInProgressEdit();
+      return;
+    }
+
+    // baselines from before the gesture started when we have them (the
+    // first move may already have changed the elements)
+    const originals = this.activePointerDownState?.originalElements;
+    const elements = [];
+    for (const id of this.getEditedElementIds(kind)) {
+      const element = originals?.get(id) ?? this.scene.getElement(id);
+      if (element) {
+        elements.push(element);
+      }
+    }
+    beginInProgressEdit(kind, elements);
+  }
+
+  /**
+   * Collaborators deleted elements this client is editing. A drag carries on
+   * without them; any other edit is stopped without being applied. Either
+   * way the delete is re-issued with a new timestamp, so it also wins against
+   * changes this client broadcast before the delete arrived (which may have
+   * restored the element on other clients).
+   */
+  private handleRemoteDeletesOfInProgressEdit(elementIds: readonly string[]) {
+    const deleted = new Set(elementIds);
+
+    if (this.getCurrentEditKind() !== "drag") {
+      this.cancelInProgressEdit();
+    }
+
+    // re-issue the deletes
+    this.updateScene({
+      elements: this.scene
+        .getElementsIncludingDeleted()
+        .map((el) =>
+          deleted.has(el.id)
+            ? newElementWith(el, { isDeleted: true }, true)
+            : el,
+        ),
+      captureUpdate: CaptureUpdateAction.NEVER,
+    });
+
+    this.setState((prevState) => ({
+      selectedElementIds: Object.keys(prevState.selectedElementIds).some((id) =>
+        deleted.has(id),
+      )
+        ? makeNextSelectedElementIds(
+            Object.fromEntries(
+              Object.keys(prevState.selectedElementIds)
+                .filter((id) => !deleted.has(id))
+                .map((id) => [id, true as const]),
+            ),
+            prevState,
+          )
+        : prevState.selectedElementIds,
+      multiElement:
+        prevState.multiElement && deleted.has(prevState.multiElement.id)
+          ? null
+          : prevState.multiElement,
+      selectedLinearElement:
+        prevState.selectedLinearElement &&
+        deleted.has(prevState.selectedLinearElement.elementId)
+          ? null
+          : prevState.selectedLinearElement,
+      toast: {
+        message: t("collaboratorEdit.deletedWhileEditing"),
+        duration: 5000,
+      },
+    }));
+  }
+
+  /**
+   * Stops the edit in progress without applying the rest of it: closes the
+   * text editor without writing back, or drops the pointer gesture's
+   * listeners without finishing it.
+   */
+  private cancelInProgressEdit() {
+    endInProgressEdit();
+
+    if (this.textEditor) {
+      this.textEditor.cancel();
+      this.textEditor = null;
+    }
+
+    const pointerDownState = this.activePointerDownState;
+    if (pointerDownState) {
+      this.activePointerDownState = null;
+      this.missingPointerEventCleanupEmitter.clear();
+      const { onMove, onUp, onKeyDown, onKeyUp } =
+        pointerDownState.eventListeners;
+      onMove?.cancel();
+      onMove && window.removeEventListener(EVENT.POINTER_MOVE, onMove);
+      onUp && window.removeEventListener(EVENT.POINTER_UP, onUp);
+      onKeyDown && window.removeEventListener(EVENT.KEYDOWN, onKeyDown);
+      onKeyUp && window.removeEventListener(EVENT.KEYUP, onKeyUp);
+      this.lassoTrail.endPath();
+      this.previousPointerMoveCoords = null;
+      SnapCache.setReferenceSnapPoints(null);
+      SnapCache.setVisibleGaps(null);
+    }
+
+    this.setState((prevState) => ({
+      editingTextElement: null,
+      newElement: null,
+      resizingElement: null,
+      isResizing: false,
+      isRotating: false,
+      selectedElementsAreBeingDragged: false,
+      selectionElement: null,
+      cursorButton: "up",
+      snapLines: updateStable(prevState.snapLines, []),
+      originSnapOffset: null,
+    }));
+    this.focusContainer();
+  }
+
   /** leaves the "own drawings hidden" view-mode lock */
   private showOwnDrawings = () => {
     const selfId = getSelfCollaboratorId(this.state);
@@ -6670,11 +6994,14 @@ class App extends React.Component<AppProps, AppState> {
     ({
       collaboratorLayerOrder,
       collaboratorDirectory,
+      hiddenCollaboratorIds,
     }: {
       // recomputed whenever the scene changes
       sceneNonce: number | undefined;
       collaboratorLayerOrder: readonly string[];
       collaboratorDirectory: AppState["collaboratorDirectory"];
+      // co-owned elements follow their highest visible owner (#84)
+      hiddenCollaboratorIds: AppState["hiddenCollaboratorIds"];
     }) =>
       orderElementsByCollaboratorLayer(
         this.scene.getNonDeletedElements(),
@@ -6682,6 +7009,7 @@ class App extends React.Component<AppProps, AppState> {
           collaboratorLayeringEnabled: true,
           collaboratorLayerOrder,
           collaboratorDirectory,
+          hiddenCollaboratorIds,
         },
         this.scene.getNonDeletedElementsMap(),
       ),
@@ -6701,6 +7029,7 @@ class App extends React.Component<AppProps, AppState> {
       sceneNonce: this.scene.getSceneNonce(),
       collaboratorLayerOrder,
       collaboratorDirectory: this.state.collaboratorDirectory,
+      hiddenCollaboratorIds: this.state.hiddenCollaboratorIds,
     });
   }
 
@@ -9084,6 +9413,7 @@ class App extends React.Component<AppProps, AppState> {
       pointerDownState.eventListeners.onUp = onPointerUp;
       pointerDownState.eventListeners.onKeyUp = onKeyUp;
       pointerDownState.eventListeners.onKeyDown = onKeyDown;
+      this.activePointerDownState = pointerDownState;
     }
   };
 
@@ -12104,6 +12434,9 @@ class App extends React.Component<AppProps, AppState> {
       }
 
       this.missingPointerEventCleanupEmitter.clear();
+      if (this.activePointerDownState === pointerDownState) {
+        this.activePointerDownState = null;
+      }
 
       window.removeEventListener(
         EVENT.POINTER_MOVE,
