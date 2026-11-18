@@ -1,5 +1,7 @@
 import React from "react";
 
+import { DEFAULT_SIDEBAR } from "@excalidraw/common";
+
 import type { NonDeletedExcalidrawElement } from "@excalidraw/element/types";
 
 import { useTunnels } from "../context/tunnels";
@@ -14,6 +16,8 @@ import { FixedSideContainer } from "./FixedSideContainer";
 import { Island } from "./Island";
 
 import { PenModeButton } from "./PenModeButton";
+import { DefaultSidebar, PAGES_SIDEBAR_TAB } from "./DefaultSidebar";
+import { PageIcon } from "./Pages";
 
 import type { ActionManager } from "../actions/manager";
 import type {
@@ -85,6 +89,13 @@ export const MobileMenu = ({
               <DefaultSidebarTriggerTunnel.Out />
             </>
           ))}
+        {appState.openSidebar?.name !== DEFAULT_SIDEBAR.name && (
+          <DefaultSidebar.Trigger
+            tab={PAGES_SIDEBAR_TAB}
+            title={t("labels.pages")}
+            icon={<PageIcon />}
+          />
+        )}
         {appState.viewModeEnabled && (
           <ExitViewModeButton actionManager={actionManager} />
         )}

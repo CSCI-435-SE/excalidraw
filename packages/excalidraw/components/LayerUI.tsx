@@ -44,7 +44,9 @@ import { ActiveConfirmDialog } from "./ActiveConfirmDialog";
 import { useEditorInterface, useStylesPanelMode } from "./App";
 import { OverwriteConfirmDialog } from "./OverwriteConfirm/OverwriteConfirm";
 import { sidebarRightIcon } from "./icons";
-import { DefaultSidebar } from "./DefaultSidebar";
+import { DefaultSidebar, PAGES_SIDEBAR_TAB } from "./DefaultSidebar";
+import { PageIcon, Pages } from "./Pages";
+import { Sidebar } from "./Sidebar/Sidebar";
 import { TTDDialog } from "./TTDDialog/TTDDialog";
 import { Stats } from "./Stats";
 import ElementLinkDialog from "./ElementLinkDialog";
@@ -77,6 +79,7 @@ import type {
   UIAppState,
   AppClassProperties,
 } from "../types";
+import type { DrawingPage } from "../pages";
 
 interface LayerUIProps {
   actionManager: ActionManager;
@@ -99,6 +102,10 @@ interface LayerUIProps {
   app: AppClassProperties;
   isCollaborating: boolean;
   generateLinkForSelection?: AppProps["generateLinkForSelection"];
+  pages: readonly DrawingPage[];
+  activePageId: string;
+  onPageSelect: (pageId: string) => void;
+  onPageCreate: () => void;
 }
 
 const DefaultMainMenu: React.FC<{
@@ -157,6 +164,10 @@ const LayerUI = ({
   app,
   isCollaborating,
   generateLinkForSelection,
+  pages,
+  activePageId,
+  onPageSelect,
+  onPageCreate,
 }: LayerUIProps) => {
   const editorInterface = useEditorInterface();
   const stylesPanelMode = useStylesPanelMode();
@@ -403,13 +414,23 @@ const LayerUI = ({
               editorInterface.formFactor === "phone",
               appState,
             )}
-            {!appState.viewModeEnabled &&
-              appState.openDialog?.name !== "elementLinkSelector" &&
-              // hide button when sidebar docked
-              (!isSidebarDocked ||
-                appState.openSidebar?.name !== DEFAULT_SIDEBAR.name) && (
-                <tunnels.DefaultSidebarTriggerTunnel.Out />
-              )}
+            {appState.openDialog?.name !== "elementLinkSelector" && (
+              <>
+                {!appState.viewModeEnabled &&
+                  // hide button when sidebar docked
+                  (!isSidebarDocked ||
+                    appState.openSidebar?.name !== DEFAULT_SIDEBAR.name) && (
+                    <tunnels.DefaultSidebarTriggerTunnel.Out />
+                  )}
+                {appState.openSidebar?.name !== DEFAULT_SIDEBAR.name && (
+                  <DefaultSidebar.Trigger
+                    tab={PAGES_SIDEBAR_TAB}
+                    title={t("labels.pages")}
+                    icon={<PageIcon />}
+                  />
+                )}
+              </>
+            )}
             {shouldShowStats && (
               <Stats
                 app={app}
@@ -427,18 +448,40 @@ const LayerUI = ({
 
   const renderSidebars = () => {
     return (
-      <DefaultSidebar
-        __fallback
-        onDock={(docked) => {
-          trackEvent(
-            "sidebar",
-            `toggleDock (${docked ? "dock" : "undock"})`,
-            `(${
-              editorInterface.formFactor === "phone" ? "mobile" : "desktop"
-            })`,
-          );
-        }}
-      />
+      <>
+        <DefaultSidebar
+          __fallback
+          onDock={(docked) => {
+            trackEvent(
+              "sidebar",
+              `toggleDock (${docked ? "dock" : "undock"})`,
+              `(${
+                editorInterface.formFactor === "phone" ? "mobile" : "desktop"
+              })`,
+            );
+          }}
+        />
+        <DefaultSidebar.TabTriggers>
+          <Sidebar.TabTrigger
+            tab={PAGES_SIDEBAR_TAB}
+            aria-label={t("labels.pages")}
+          >
+            <PageIcon />
+          </Sidebar.TabTrigger>
+        </DefaultSidebar.TabTriggers>
+        <DefaultSidebar.TabContents>
+          <Sidebar.Tab tab={PAGES_SIDEBAR_TAB}>
+            <Pages
+              pages={pages}
+              activePageId={activePageId}
+              appState={appState}
+              files={files}
+              onSelectPage={onPageSelect}
+              onCreatePage={onPageCreate}
+            />
+          </Sidebar.Tab>
+        </DefaultSidebar.TabContents>
+      </>
     );
   };
 
