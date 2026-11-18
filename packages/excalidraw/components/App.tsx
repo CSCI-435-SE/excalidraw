@@ -696,6 +696,8 @@ const getPageActivationAppState = (settings: DrawingPage["settings"]) => ({
   selectionElement: null,
   resizingElement: null,
   activeEmbeddable: null,
+  isCropping: false,
+  croppingElementId: null,
   isResizing: false,
   isRotating: false,
 });
