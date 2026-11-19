@@ -10,7 +10,8 @@
  *   affected when they rejoin
  * - C: changing the setting doesn't change anyone already seen
  * - D: with a layer order, a newcomer is added directly above
- *   "unknown / miscellaneous"; several newcomers in join order
+ *   "unknown / miscellaneous"; several newcomers in join order. Decision
+ *   (Q1): if I moved miscellaneous up, newcomers go to the very bottom
  * - E: never applies to me or to the miscellaneous bucket
  * - decision (Phase 1, Q4): a first-seen collaborator with leftover state
  *   (e.g. pruned from the directory) starts in the chosen state
@@ -201,7 +202,7 @@ describe("getNewcomerState — Criteria D (layer order)", () => {
     ]);
   });
 
-  it("AC-D: with miscellaneous moved up, a newcomer still goes directly above it", () => {
+  it("AC-D: with miscellaneous moved up, a newcomer goes to the bottom", () => {
     const next = getNewcomerState(
       "carol",
       state("locked", {
@@ -211,10 +212,10 @@ describe("getNewcomerState — Criteria D (layer order)", () => {
     )!;
     expect(next.collaboratorLayerOrder).toEqual([
       "alice",
-      "carol",
       UNKNOWN_CREATOR_ID,
       "me",
       "bob",
+      "carol",
     ]);
   });
 

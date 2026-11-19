@@ -350,9 +350,11 @@ export const getDefaultCollaboratorLayerOrder = (
 };
 
 /**
- * Returns `order` with `ids` added directly above the miscellaneous bucket,
- * in the given (join) order (#83 D). My own id goes on top instead, like in
- * the default order. Ids already in `order` are moved, never duplicated.
+ * Returns `order` with `ids` added below every collaborator already in it,
+ * in the given (join) order (#83 D): directly above the miscellaneous bucket
+ * while it's the bottom row, otherwise at the very bottom. My own id goes on
+ * top instead, like in the default order. Ids already in `order` are moved,
+ * never duplicated.
  */
 const addToLayerOrder = (
   order: readonly string[],
@@ -360,9 +362,9 @@ const addToLayerOrder = (
   selfId: string | null,
 ): string[] => {
   const next = order.filter((id) => !ids.includes(id));
-  const miscIndex = next.indexOf(UNKNOWN_CREATOR_ID);
+  const isMiscellaneousLast = next[next.length - 1] === UNKNOWN_CREATOR_ID;
   next.splice(
-    miscIndex === -1 ? next.length : miscIndex,
+    isMiscellaneousLast ? next.length - 1 : next.length,
     0,
     ...ids.filter((id) => id !== selfId),
   );

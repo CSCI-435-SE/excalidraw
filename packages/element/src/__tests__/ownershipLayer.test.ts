@@ -513,7 +513,7 @@ describe("getCollaboratorLayerOrder (the order the rows show and the canvas uses
     ]);
   });
 
-  it("#83 AC-D: with miscellaneous moved up, a newcomer still goes directly above it", () => {
+  it("#83 AC-D: with miscellaneous moved up, a newcomer goes to the bottom", () => {
     const state = {
       collaborators: room("me", "alice", "carol"),
       collaboratorDirectory: directory("me", "alice", "carol"),
@@ -522,9 +522,9 @@ describe("getCollaboratorLayerOrder (the order the rows show and the canvas uses
     };
     expect(getCollaboratorLayerOrder(state)).toEqual([
       "alice",
-      "carol",
       UNKNOWN_CREATOR_ID,
       "me",
+      "carol",
     ]);
   });
 
