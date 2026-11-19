@@ -327,3 +327,94 @@ describe("page deletion UI", () => {
     }
   });
 });
+
+describe("page range deletion", () => {
+  let queries: Awaited<ReturnType<typeof render>>;
+  let pageIds: string[];
+
+  const pageIdsNow = () => pageInternals().pages.map((page) => page.id);
+  const rangeInput = () =>
+    queries.getByRole("textbox", { name: "Delete pages by number" });
+  const rangeButton = () =>
+    queries.getByRole("button", { name: "Delete pages" });
+  const typeRange = (value: string) =>
+    fireEvent.change(rangeInput(), { target: { value } });
+
+  // three pages, page 3 active, pages sidebar open
+  beforeEach(async () => {
+    unmountComponent();
+    localStorage.clear();
+    queries = await render(<Excalidraw initialData={{ elements: [] }} />);
+    fireEvent.click(queries.getByRole("button", { name: "Pages" }));
+    fireEvent.click(queries.getByRole("button", { name: "Add page" }));
+    fireEvent.click(queries.getByRole("button", { name: "Add page" }));
+    pageIds = pageIdsNow();
+  });
+
+  it("deletes the pages in a valid range after confirming", () => {
+    typeRange("1-2");
+    expect(queries.queryByRole("alert")).toBeNull();
+    fireEvent.click(rangeButton());
+
+    const dialog = within(queries.getByRole("dialog"));
+    expect(
+      dialog.getByText(/This will delete Page 1, Page 2 and/),
+    ).toBeTruthy();
+    fireEvent.click(dialog.getByRole("button", { name: "Delete" }));
+
+    expect(pageIdsNow()).toEqual([pageIds[2]]);
+    expect(rangeInput()).toHaveProperty("value", "");
+  });
+
+  it("accepts a mixed list of pages and ranges", () => {
+    typeRange("3, 1");
+    fireEvent.click(rangeButton());
+
+    const dialog = within(queries.getByRole("dialog"));
+    expect(
+      dialog.getByText(/This will delete Page 1, Page 3 and/),
+    ).toBeTruthy();
+    fireEvent.click(dialog.getByRole("button", { name: "Delete" }));
+
+    expect(pageIdsNow()).toEqual([pageIds[1]]);
+  });
+
+  it("submits with the Enter key", () => {
+    typeRange("2");
+    fireEvent.submit(rangeInput());
+
+    const dialog = within(queries.getByRole("dialog"));
+    expect(dialog.getByText(/This will delete Page 2 and/)).toBeTruthy();
+  });
+
+  it.each(["4", "0", "3-1", "abc", "1,,2"])(
+    "rejects %j with an error and a disabled button",
+    (value) => {
+      typeRange(value);
+
+      expect(queries.getByRole("alert").textContent).toBe(
+        "Enter page numbers from 1 to 3, like 2-4, 7",
+      );
+      expect(rangeInput().getAttribute("aria-invalid")).toBe("true");
+      expect(rangeButton()).toHaveProperty("disabled", true);
+
+      fireEvent.submit(rangeInput());
+      expect(queries.queryByRole("dialog")).toBeNull();
+    },
+  );
+
+  it("disables the button without an error while the field is empty", () => {
+    expect(rangeButton()).toHaveProperty("disabled", true);
+    expect(queries.queryByRole("alert")).toBeNull();
+  });
+
+  it("disables the field and button in view mode", () => {
+    typeRange("1");
+    API.setAppState({ viewModeEnabled: true });
+
+    expect(rangeInput()).toHaveProperty("disabled", true);
+    expect(rangeButton()).toHaveProperty("disabled", true);
+    fireEvent.submit(rangeInput());
+    expect(queries.queryByRole("dialog")).toBeNull();
+  });
+});

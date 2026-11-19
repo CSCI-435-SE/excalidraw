@@ -11,6 +11,8 @@
     "pages": "Pages",
     "page": "Page",
     "pageSelected": "selected",
+    "deletePageRange": "Delete pages by number",
+    "pageRangePlaceholder": "e.g. 2-4, 7",
     "multiSelect": "Add element to selection",
     "moveCanvas": "Move canvas",
     "cut": "Cut",
@@ -330,6 +332,7 @@
     "deleteSelectedPages": "Delete selected ({{count}})",
     "deleteAllPages": "Delete all",
     "deleteOtherPages": "Delete all but current",
+    "deletePageRange": "Delete pages",
     "exportJSON": "Export to file",
     "exportImage": "Export image...",
     "export": "Save to...",
@@ -394,6 +397,7 @@
     "localStorageQuotaExceeded": "Browser storage quota exceeded. Changes will not be saved."
   },
   "errors": {
+    "invalidPageRange": "Enter page numbers from 1 to {{count}}, like 2-4, 7",
     "unsupportedFileType": "Unsupported file type.",
     "imageInsertError": "Couldn't insert image. Try again later...",
     "fileTooBig": "File is too big. Maximum allowed size is {{maxSize}}.",

@@ -12,6 +12,7 @@ import { getPageLabel } from "../pages";
 import { t } from "../i18n";
 
 import { PageDeleteDialog } from "./PageDeleteDialog";
+import { PageRangeDelete } from "./PageRangeDelete";
 
 import "./Pages.scss";
 
@@ -264,6 +265,11 @@ export const Pages = ({
           {t("buttons.deleteOtherPages")}
         </button>
       </div>
+      <PageRangeDelete
+        pages={pages}
+        disabled={appState.viewModeEnabled}
+        onDelete={setPendingDeleteIds}
+      />
       {pendingDeleteIds && (
         <PageDeleteDialog
           pages={pages}

@@ -472,7 +472,7 @@ const LayerUI = ({
           </Sidebar.TabTrigger>
         </DefaultSidebar.TabTriggers>
         <DefaultSidebar.TabContents>
-          <Sidebar.Tab tab={PAGES_SIDEBAR_TAB}>
+          <Sidebar.Tab tab={PAGES_SIDEBAR_TAB} className="page-navigation-tab">
             <Pages
               pages={pages}
               activePageId={activePageId}
