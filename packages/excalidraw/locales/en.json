@@ -10,6 +10,7 @@
     "selectAll": "Select all",
     "pages": "Pages",
     "page": "Page",
+    "pageSelected": "selected",
     "multiSelect": "Add element to selection",
     "moveCanvas": "Move canvas",
     "cut": "Cut",

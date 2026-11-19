@@ -1,6 +1,8 @@
 import React from "react";
 import { act, configure, fireEvent, waitFor } from "@testing-library/react";
 
+import { KEYS } from "@excalidraw/common";
+
 import "@excalidraw/utils/test-utils";
 
 import { DefaultSidebar, Excalidraw, Sidebar } from "../index";
@@ -147,5 +149,77 @@ describe("page deletion", () => {
       firstPageId,
       secondPageId,
     ]);
+  });
+});
+
+describe("page selection", () => {
+  const ctrlClick = { [KEYS.CTRL_OR_CMD]: true };
+  let queries: Awaited<ReturnType<typeof render>>;
+
+  // two pages, page 2 active, pages sidebar open
+  beforeEach(async () => {
+    unmountComponent();
+    localStorage.clear();
+    queries = await render(<Excalidraw initialData={{ elements: [] }} />);
+    fireEvent.click(queries.getByRole("button", { name: "Pages" }));
+    fireEvent.click(queries.getByRole("button", { name: "Add page" }));
+  });
+
+  it("ctrl/cmd+click toggles a page's selection without switching to it", () => {
+    const { getByRole, queryByRole } = queries;
+    const activePageId = pageInternals().activePageId;
+
+    fireEvent.click(getByRole("button", { name: "Page 1" }), ctrlClick);
+    expect(getByRole("button", { name: "Page 1, selected" })).toBeTruthy();
+    expect(pageInternals().activePageId).toBe(activePageId);
+
+    fireEvent.click(
+      getByRole("button", { name: "Page 1, selected" }),
+      ctrlClick,
+    );
+    expect(getByRole("button", { name: "Page 1" })).toBeTruthy();
+    expect(queryByRole("button", { name: /^Page d+, selected$/ })).toBeNull();
+  });
+
+  it("selects several pages, including the active one", () => {
+    const { getByRole } = queries;
+
+    fireEvent.click(getByRole("button", { name: "Page 1" }), ctrlClick);
+    fireEvent.click(getByRole("button", { name: "Page 2" }), ctrlClick);
+
+    expect(getByRole("button", { name: "Page 1, selected" })).toBeTruthy();
+    expect(getByRole("button", { name: "Page 2, selected" })).toBeTruthy();
+  });
+
+  it("select all selects every page", () => {
+    const { getByRole } = queries;
+
+    fireEvent.click(getByRole("button", { name: "Select all" }));
+
+    expect(getByRole("button", { name: "Page 1, selected" })).toBeTruthy();
+    expect(getByRole("button", { name: "Page 2, selected" })).toBeTruthy();
+  });
+
+  it("a plain click switches page and clears the selection", () => {
+    const { getByRole, queryByRole } = queries;
+    const [firstPage] = pageInternals().pages;
+
+    fireEvent.click(getByRole("button", { name: "Select all" }));
+    fireEvent.click(getByRole("button", { name: "Page 1, selected" }));
+
+    expect(pageInternals().activePageId).toBe(firstPage.id);
+    expect(queryByRole("button", { name: /^Page d+, selected$/ })).toBeNull();
+  });
+
+  it("forgets the selection of a page once it is deleted", () => {
+    const { getByRole, queryByRole } = queries;
+    const [firstPage] = pageInternals().pages;
+
+    fireEvent.click(getByRole("button", { name: "Page 1" }), ctrlClick);
+    act(() => pageInternals().deletePages([firstPage.id]));
+
+    // the remaining page is now "Page 1" and must not inherit the selection
+    expect(getByRole("button", { name: "Page 1" })).toBeTruthy();
+    expect(queryByRole("button", { name: /^Page d+, selected$/ })).toBeNull();
   });
 });

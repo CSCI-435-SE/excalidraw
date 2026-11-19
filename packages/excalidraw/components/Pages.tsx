@@ -1,4 +1,7 @@
+import clsx from "clsx";
 import React, { useEffect, useState } from "react";
+
+import { KEYS } from "@excalidraw/common";
 
 import { isNonDeletedElement } from "@excalidraw/element";
 
@@ -122,6 +125,34 @@ const PagePreview = React.memo(
     prevProps.appState.theme === nextProps.appState.theme,
 );
 
+/** The one place page names are built, so page naming (#160) only changes this. */
+export const getPageLabel = (page: DrawingPage, index: number) =>
+  `${t("labels.page")} ${index + 1}`;
+
+/**
+ * Ctrl/Cmd+click multi-selection of pages, kept out of the page tabs so other
+ * page features (e.g. clearing, #159) can reuse it.
+ */
+export const usePageSelection = (pages: readonly DrawingPage[]) => {
+  const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
+  // in page order, and ignoring ids of pages that no longer exist
+  const selectedPageIds = pages
+    .filter((page) => selectedIds.includes(page.id))
+    .map((page) => page.id);
+
+  return {
+    selectedPageIds,
+    toggle: (pageId: string) =>
+      setSelectedIds((ids) =>
+        ids.includes(pageId)
+          ? ids.filter((id) => id !== pageId)
+          : [...ids, pageId],
+      ),
+    selectAll: () => setSelectedIds(pages.map((page) => page.id)),
+    clear: () => setSelectedIds([]),
+  };
+};
+
 export const Pages = ({
   pages,
   activePageId,
@@ -136,35 +167,63 @@ export const Pages = ({
   files: BinaryFiles;
   onSelectPage: (pageId: string) => void;
   onCreatePage: () => void;
-}) => (
-  <div className="page-navigation" role="region" aria-label={t("labels.pages")}>
-    <div className="page-navigation__list">
-      {pages.map((page, index) => (
-        <button
-          type="button"
-          key={page.id}
-          className="page-navigation__item"
-          aria-label={`${t("labels.page")} ${index + 1}`}
-          aria-pressed={page.id === activePageId}
-          onClick={() => onSelectPage(page.id)}
-        >
-          <PagePreview page={page} files={files} appState={appState} />
-          <span className="page-navigation__item-title">
-            {t("labels.page")} {index + 1}
-          </span>
-        </button>
-      ))}
-    </div>
-    <button
-      type="button"
-      className="page-navigation__add"
-      onClick={onCreatePage}
-      disabled={appState.viewModeEnabled}
+}) => {
+  const selection = usePageSelection(pages);
+
+  return (
+    <div
+      className="page-navigation"
+      role="region"
+      aria-label={t("labels.pages")}
     >
-      <span aria-hidden="true">+</span>
-      {t("buttons.addPage")}
-    </button>
-  </div>
-);
+      <div className="page-navigation__list">
+        {pages.map((page, index) => {
+          const label = getPageLabel(page, index);
+          const isSelected = selection.selectedPageIds.includes(page.id);
+          return (
+            <button
+              type="button"
+              key={page.id}
+              className={clsx("page-navigation__item", {
+                "page-navigation__item--selected": isSelected,
+              })}
+              aria-label={
+                isSelected ? `${label}, ${t("labels.pageSelected")}` : label
+              }
+              aria-pressed={page.id === activePageId}
+              onClick={(event) => {
+                if (event[KEYS.CTRL_OR_CMD]) {
+                  selection.toggle(page.id);
+                  return;
+                }
+                selection.clear();
+                onSelectPage(page.id);
+              }}
+            >
+              <PagePreview page={page} files={files} appState={appState} />
+              <span className="page-navigation__item-title">{label}</span>
+            </button>
+          );
+        })}
+      </div>
+      <button
+        type="button"
+        className="page-navigation__action"
+        onClick={selection.selectAll}
+      >
+        {t("labels.selectAll")}
+      </button>
+      <button
+        type="button"
+        className="page-navigation__action"
+        onClick={onCreatePage}
+        disabled={appState.viewModeEnabled}
+      >
+        <span aria-hidden="true">+</span>
+        {t("buttons.addPage")}
+      </button>
+    </div>
+  );
+};
 
 export { PageIcon };

@@ -30,6 +30,10 @@
     text-align: left;
     cursor: pointer;
 
+    &--selected {
+      background: var(--color-primary-light);
+    }
+
     &[aria-pressed="true"] {
       border-color: var(--color-primary);
       box-shadow: 0 0 0 1px var(--color-primary);
@@ -72,7 +76,7 @@
     font-size: 0.875rem;
   }
 
-  .page-navigation__add {
+  .page-navigation__action {
     display: flex;
     align-items: center;
     justify-content: center;
