@@ -6,7 +6,7 @@
 | **Issue** | [#82 Add User Priority and Layering](https://github.com/CSCI-435-SE/excalidraw/issues/82) |
 | **Tool** | StrykerJS 10.1.1 (`@stryker-mutator/core`) with the Vitest runner (`@stryker-mutator/vitest-runner` 10.1.1) |
 | **Configuration** | [`stryker.config.json`](../../../stryker.config.json), [`vitest.stryker.config.mts`](../../../vitest.stryker.config.mts) |
-| **Command** | `npx stryker run` (after checking the test set passes with `npx vitest run --config vitest.stryker.config.mts`) |
+| **Command** | `npx -p @stryker-mutator/core@10.1.1 -p @stryker-mutator/vitest-runner@10.1.1 stryker run` (after checking the test set passes with `npx vitest run --config vitest.stryker.config.mts`). Stryker isn't a project dependency: version 10 needs Node 22+, and CI runs Node 20, so it's run with `npx`, pinned to the version that produced the reports. Requires Node 22+ locally. |
 | **Reports** | Before: [`reports/82-CashenCroft-before.json`](reports/82-CashenCroft-before.json) · After: [`reports/82-CashenCroft-after.json`](reports/82-CashenCroft-after.json) |
 | **Run against** | `feat/issue-82-user-priority-and-layering` at `0232722d` ("82 merge implementation": after merging `master` with #84). The "after" run adds the new tests from [`5e3cd2c3`](https://github.com/CSCI-435-SE/excalidraw/commit/5e3cd2c3). |
 | **Mutation score** | **86.51% → 87.74%** (killed 494 → 501, survived 69 → 66, no coverage 8 → 4, of 571 mutants; 0 timeouts, 0 errors) |
