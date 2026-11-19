@@ -731,6 +731,51 @@ describe("collaborator layering — Criteria I (export)", () => {
     expect(await exportPngDrawOrder()).toEqual(["bob-over", "alice-under"]);
   });
 
+  it("AC-I: the Export image dialog's preview renders in my layer order (no error, no freeze)", async () => {
+    toggleLayering();
+    move("alice", 0);
+
+    // jsdom gives elements no size, and the preview only renders into a
+    // sized container
+    const width = vi
+      .spyOn(HTMLElement.prototype, "offsetWidth", "get")
+      .mockReturnValue(400);
+    const height = vi
+      .spyOn(HTMLElement.prototype, "offsetHeight", "get")
+      .mockReturnValue(300);
+    const renderSpy = vi.spyOn(StaticScene, "renderStaticScene");
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      act(() => {
+        h.setState({ openDialog: { name: "imageExport" } });
+      });
+
+      const exportRenders = () =>
+        renderSpy.mock.calls.filter(([args]) => args.renderConfig.isExporting);
+      // the preview's export reaches drawing only if the layering state
+      // survived the dialog's snapshot (it used to throw before drawing)
+      await waitFor(() => expect(exportRenders().length).toBeGreaterThan(0));
+      expect(exportRenders()[0][0].visibleElements.map((el) => el.id)).toEqual([
+        "bob-over",
+        "alice-under",
+      ]);
+      expect(
+        errorSpy.mock.calls.some(([error]) =>
+          String(error).includes("is not a function"),
+        ),
+      ).toBe(false);
+    } finally {
+      act(() => {
+        h.setState({ openDialog: null });
+      });
+      width.mockRestore();
+      height.mockRestore();
+      renderSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
+  });
+
   it("AC-E: exporting with layering on changes no element index or version", async () => {
     toggleLayering();
     move("alice", 0);
