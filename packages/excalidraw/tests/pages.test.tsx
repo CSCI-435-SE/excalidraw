@@ -906,3 +906,70 @@ describe("deleting mode keeps the rest of the drawing intact", () => {
     expect(h.elements[0].isDeleted).toBe(false);
   });
 });
+
+describe("all but current", () => {
+  let queries: Awaited<ReturnType<typeof render>>;
+
+  const button = (name: string) => queries.getByRole("button", { name });
+  const checkedPages = () =>
+    queries
+      .getAllByRole("checkbox")
+      .filter((box) => box.getAttribute("aria-checked") === "true")
+      .map((box) => box.getAttribute("aria-label"));
+
+  // three pages, page 3 active, pages sidebar open
+  beforeEach(async () => {
+    unmountComponent();
+    localStorage.clear();
+    queries = await render(<Excalidraw initialData={{ elements: [] }} />);
+    fireEvent.click(button("Pages"));
+    fireEvent.click(button("Add page"));
+    fireEvent.click(button("Add page"));
+  });
+
+  it.each(["Enter clearing mode", "Enter deleting mode"])(
+    "selects every page except the current one (%s)",
+    (enterMode) => {
+      fireEvent.click(button(enterMode));
+      // the current page is ticked first and must end up unticked
+      fireEvent.click(queries.getByRole("checkbox", { name: "Page 3" }));
+      fireEvent.click(button("All but current"));
+
+      expect(checkedPages()).toEqual(["Page 1", "Page 2"]);
+    },
+  );
+
+  it("replaces an existing selection that included the current page", () => {
+    fireEvent.click(button("Enter deleting mode"));
+    fireEvent.click(button("Select all pages"));
+    fireEvent.click(button("All but current"));
+
+    expect(checkedPages()).toEqual(["Page 1", "Page 2"]);
+  });
+
+  it("deletes all but the current page", () => {
+    const [, , currentPage] = pageInternals().pages;
+    fireEvent.click(button("Enter deleting mode"));
+    fireEvent.click(button("All but current"));
+    fireEvent.click(button("Delete"));
+    fireEvent.click(getConfirmDialog().getByRole("button", { name: "Delete" }));
+
+    expect(pageInternals().pages.map((page) => page.id)).toEqual([
+      currentPage.id,
+    ]);
+    expect(button("All but current")).toHaveProperty("disabled", true);
+  });
+
+  it("clears all but the current page", () => {
+    API.updateScene({
+      elements: [API.createElement({ type: "rectangle", id: "current" })],
+    });
+    fireEvent.click(button("Enter clearing mode"));
+    fireEvent.click(button("All but current"));
+    fireEvent.click(button("Clear"));
+    fireEvent.click(getConfirmDialog().getByRole("button", { name: "Clear" }));
+
+    expect(liveIds()).toEqual(["current"]);
+    expect(pageInternals().pages).toHaveLength(3);
+  });
+});

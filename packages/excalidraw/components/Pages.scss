@@ -144,6 +144,19 @@
     padding-bottom: 0.75rem;
   }
 
+  // buttons sharing one row of the actions column
+  .page-navigation__actions-row {
+    display: flex;
+    gap: 0.5rem;
+
+    > .page-navigation__add {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 0.25rem 0.5rem;
+      text-align: center;
+    }
+  }
+
   .page-navigation__add {
     display: flex;
     align-items: center;

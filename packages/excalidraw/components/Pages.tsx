@@ -143,6 +143,7 @@ export const Pages = ({
   selectionMode,
   onEnterDeletingMode,
   onDeleteSelectedPages,
+  onSetPageSelection,
 }: {
   pages: readonly DrawingPage[];
   activePageId: string;
@@ -161,6 +162,7 @@ export const Pages = ({
   selectionMode: "clear" | "delete";
   onEnterDeletingMode: () => void;
   onDeleteSelectedPages: () => void;
+  onSetPageSelection: (pageIds: readonly string[]) => void;
 }) => {
   // local state so the confirmation is scoped to this editor instance
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
@@ -250,15 +252,31 @@ export const Pages = ({
       </div>
       {isClearing ? (
         <div className="page-navigation__actions">
-          <button
-            type="button"
-            className="page-navigation__add"
-            onClick={() => onSetAllPagesForClearing(!allSelected)}
-          >
-            {allSelected
-              ? t("buttons.deselectAllPages")
-              : t("buttons.selectAllPages")}
-          </button>
+          <div className="page-navigation__actions-row">
+            <button
+              type="button"
+              className="page-navigation__add"
+              onClick={() => onSetAllPagesForClearing(!allSelected)}
+            >
+              {allSelected
+                ? t("buttons.deselectAllPages")
+                : t("buttons.selectAllPages")}
+            </button>
+            <button
+              type="button"
+              className="page-navigation__add"
+              onClick={() =>
+                onSetPageSelection(
+                  pages
+                    .filter((page) => page.id !== activePageId)
+                    .map((page) => page.id),
+                )
+              }
+              disabled={pages.length < 2}
+            >
+              {t("buttons.selectOtherPages")}
+            </button>
+          </div>
           <button
             type="button"
             className="page-navigation__add page-navigation__add--danger"

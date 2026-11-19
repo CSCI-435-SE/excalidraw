@@ -338,6 +338,7 @@
     "clearPages": "Clear",
     "selectAllPages": "Select all pages",
     "deselectAllPages": "Deselect all pages",
+    "selectOtherPages": "All but current",
     "clearCanvasOnly": "Clear this canvas only",
     "clearCanvasAndPages": "Clear canvas and all pages",
     "exportJSON": "Export to file",

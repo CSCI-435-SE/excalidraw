@@ -113,6 +113,7 @@ interface LayerUIProps {
   onClearSelectedPages: () => void;
   pageSelectionMode: "clear" | "delete";
   onEnterPageDeletingMode: () => void;
+  onSetPageSelection: (pageIds: readonly string[]) => void;
   onDeleteSelectedPages: () => void;
 }
 
@@ -183,6 +184,7 @@ const LayerUI = ({
   onClearSelectedPages,
   pageSelectionMode,
   onEnterPageDeletingMode,
+  onSetPageSelection,
   onDeleteSelectedPages,
 }: LayerUIProps) => {
   const editorInterface = useEditorInterface();
@@ -502,6 +504,7 @@ const LayerUI = ({
               onClearSelectedPages={onClearSelectedPages}
               selectionMode={pageSelectionMode}
               onEnterDeletingMode={onEnterPageDeletingMode}
+              onSetPageSelection={onSetPageSelection}
               onDeleteSelectedPages={onDeleteSelectedPages}
             />
           </Sidebar.Tab>

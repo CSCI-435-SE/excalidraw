@@ -2415,6 +2415,7 @@ class App extends React.Component<AppProps, AppState> {
                             onClearSelectedPages={this.clearSelectedPages}
                             pageSelectionMode={this.pageSelectionMode}
                             onEnterPageDeletingMode={this.enterPageDeletingMode}
+                            onSetPageSelection={this.setPageSelection}
                             onDeleteSelectedPages={this.deleteSelectedPages}
                             isCollaborating={this.props.isCollaborating}
                             generateLinkForSelection={
@@ -2869,6 +2870,15 @@ class App extends React.Component<AppProps, AppState> {
           : [...selection, pageId],
       };
     });
+  };
+
+  /** Replaces the page selection of the active page mode (clearing/deleting). */
+  private setPageSelection = (pageIds: readonly string[]) => {
+    this.setState((state) =>
+      state.pageClearingSelection
+        ? { pageClearingSelection: [...pageIds] }
+        : null,
+    );
   };
 
   private setAllPagesForClearing = (selected: boolean) => {
