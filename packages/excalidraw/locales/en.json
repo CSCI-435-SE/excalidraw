@@ -10,7 +10,7 @@
     "selectAll": "Select all",
     "pages": "Pages",
     "page": "Page",
-    "deletePageRange": "Delete pages by number",
+    "selectPageRange": "Select pages by number",
     "pageRangePlaceholder": "e.g. 2-4, 7",
     "currentPage": "Current",
     "clearingMode": "Clearing mode: select pages to clear",
@@ -330,7 +330,7 @@
   "buttons": {
     "clearReset": "Reset the canvas",
     "addPage": "Add page",
-    "deletePageRange": "Delete pages",
+    "selectPageRange": "Select",
     "enterClearingMode": "Enter clearing mode",
     "exitClearingMode": "Exit clearing mode",
     "enterDeletingMode": "Enter deleting mode",

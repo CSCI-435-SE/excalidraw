@@ -11,6 +11,7 @@ import { t } from "../i18n";
 
 import ConfirmDialog from "./ConfirmDialog";
 import { PageDeleteDialog } from "./PageDeleteDialog";
+import { PageRangeSelect } from "./PageRangeSelect";
 
 import "./Pages.scss";
 
@@ -277,6 +278,7 @@ export const Pages = ({
               {t("buttons.selectOtherPages")}
             </button>
           </div>
+          <PageRangeSelect pages={pages} onSelect={onSetPageSelection} />
           <button
             type="button"
             className="page-navigation__add page-navigation__add--danger"

@@ -973,3 +973,90 @@ describe("all but current", () => {
     expect(pageInternals().pages).toHaveLength(3);
   });
 });
+
+describe("select pages by number", () => {
+  let queries: Awaited<ReturnType<typeof render>>;
+  let pageIds: string[];
+
+  const button = (name: string) => queries.getByRole("button", { name });
+  const rangeInput = () =>
+    queries.getByRole("textbox", { name: "Select pages by number" });
+  const typeRange = (value: string) =>
+    fireEvent.change(rangeInput(), { target: { value } });
+  const checkedPages = () =>
+    queries
+      .getAllByRole("checkbox")
+      .filter((box) => box.getAttribute("aria-checked") === "true")
+      .map((box) => box.getAttribute("aria-label"));
+
+  // three pages, page 3 active, pages sidebar open
+  beforeEach(async () => {
+    unmountComponent();
+    localStorage.clear();
+    queries = await render(<Excalidraw initialData={{ elements: [] }} />);
+    fireEvent.click(button("Pages"));
+    fireEvent.click(button("Add page"));
+    fireEvent.click(button("Add page"));
+    pageIds = pageInternals().pages.map((page) => page.id);
+  });
+
+  it("is only shown in a selection mode", () => {
+    expect(
+      queries.queryByRole("textbox", { name: "Select pages by number" }),
+    ).toBeNull();
+  });
+
+  it.each(["Enter clearing mode", "Enter deleting mode"])(
+    "selects the pages in a range, replacing the selection (%s)",
+    (enterMode) => {
+      fireEvent.click(button(enterMode));
+      fireEvent.click(queries.getByRole("checkbox", { name: "Page 3" }));
+      typeRange("1-2");
+      expect(queries.queryByRole("alert")).toBeNull();
+      fireEvent.click(button("Select"));
+
+      expect(checkedPages()).toEqual(["Page 1", "Page 2"]);
+      expect(rangeInput()).toHaveProperty("value", "");
+    },
+  );
+
+  it("deletes the pages picked by a mixed list after confirming", () => {
+    fireEvent.click(button("Enter deleting mode"));
+    typeRange("3, 1");
+    fireEvent.submit(rangeInput()); // Enter key
+    expect(checkedPages()).toEqual(["Page 1", "Page 3"]);
+
+    fireEvent.click(button("Delete"));
+    expect(
+      getConfirmDialog().getByText(/This will delete Page 1, Page 3 and/),
+    ).toBeTruthy();
+    fireEvent.click(getConfirmDialog().getByRole("button", { name: "Delete" }));
+
+    expect(pageInternals().pages.map((page) => page.id)).toEqual([pageIds[1]]);
+  });
+
+  it.each(["4", "0", "3-1", "abc", "1,,2"])(
+    "rejects %j with an error and leaves the selection alone",
+    (value) => {
+      fireEvent.click(button("Enter deleting mode"));
+      fireEvent.click(queries.getByRole("checkbox", { name: "Page 2" }));
+      typeRange(value);
+
+      expect(queries.getByRole("alert").textContent).toBe(
+        "Enter page numbers from 1 to 3, like 2-4, 7",
+      );
+      expect(rangeInput().getAttribute("aria-invalid")).toBe("true");
+      expect(button("Select")).toHaveProperty("disabled", true);
+
+      fireEvent.submit(rangeInput());
+      expect(checkedPages()).toEqual(["Page 2"]);
+    },
+  );
+
+  it("disables Select without an error while the field is empty", () => {
+    fireEvent.click(button("Enter clearing mode"));
+
+    expect(button("Select")).toHaveProperty("disabled", true);
+    expect(queries.queryByRole("alert")).toBeNull();
+  });
+});

@@ -6,15 +6,13 @@ import { parsePageRange } from "../pages";
 
 import type { DrawingPage } from "../pages";
 
-/** Text field for picking pages to delete by position, e.g. "2-4, 7". */
-export const PageRangeDelete = ({
+/** Text field for selecting pages by position, e.g. "2-4, 7". */
+export const PageRangeSelect = ({
   pages,
-  disabled,
-  onDelete,
+  onSelect,
 }: {
   pages: readonly DrawingPage[];
-  disabled: boolean;
-  onDelete: (pageIds: readonly string[]) => void;
+  onSelect: (pageIds: readonly string[]) => void;
 }) => {
   const [input, setInput] = useState("");
   const [errorId] = useState(() => `page-range-error-${nanoid()}`);
@@ -23,41 +21,40 @@ export const PageRangeDelete = ({
 
   return (
     <form
-      className="page-range-delete"
+      className="page-range-select"
       onSubmit={(event) => {
         event.preventDefault();
-        if (pageIds && !disabled) {
+        if (pageIds) {
           // positions shift once pages are deleted, so don't keep stale input
           setInput("");
-          onDelete(pageIds);
+          onSelect(pageIds);
         }
       }}
     >
-      <label className="page-range-delete__label">
-        {t("labels.deletePageRange")}
+      <div className="page-navigation__actions-row">
         <input
           type="text"
-          className="page-range-delete__input"
+          className="page-range-select__input"
           value={input}
+          aria-label={t("labels.selectPageRange")}
           placeholder={t("labels.pageRangePlaceholder")}
           onChange={(event) => setInput(event.target.value)}
-          disabled={disabled}
           aria-invalid={showError}
           aria-describedby={showError ? errorId : undefined}
         />
-      </label>
+        <button
+          type="submit"
+          className="page-navigation__add"
+          disabled={!pageIds}
+        >
+          {t("buttons.selectPageRange")}
+        </button>
+      </div>
       {showError && (
-        <p id={errorId} className="page-range-delete__error" role="alert">
+        <p id={errorId} className="page-range-select__error" role="alert">
           {t("errors.invalidPageRange", { count: pages.length })}
         </p>
       )}
-      <button
-        type="submit"
-        className="page-navigation__action"
-        disabled={disabled || !pageIds}
-      >
-        {t("buttons.deletePageRange")}
-      </button>
     </form>
   );
 };
