@@ -8,12 +8,14 @@ import {
 } from "@testing-library/react";
 
 import { KEYS } from "@excalidraw/common";
+import { CaptureUpdateAction } from "@excalidraw/element";
 
 import "@excalidraw/utils/test-utils";
 
 import { DefaultSidebar, Excalidraw, Sidebar } from "../index";
 
 import { API } from "./helpers/api";
+import { Keyboard } from "./helpers/ui";
 import { render, unmountComponent } from "./test-utils";
 
 import type { DrawingPage } from "../pages";
@@ -416,5 +418,87 @@ describe("page range deletion", () => {
     expect(rangeButton()).toHaveProperty("disabled", true);
     fireEvent.submit(rangeInput());
     expect(queries.queryByRole("dialog")).toBeNull();
+  });
+});
+
+describe("page deletion keeps the rest of the drawing intact", () => {
+  const ctrlClick = { [KEYS.CTRL_OR_CMD]: true };
+  let queries: Awaited<ReturnType<typeof render>>;
+
+  const elementIds = () => h.elements.map((element) => element.id);
+  const addUndoableElement = (
+    type: "rectangle" | "ellipse" | "diamond",
+    id: string,
+  ) =>
+    API.updateScene({
+      elements: [API.createElement({ type, id })],
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    });
+  const confirmDelete = () =>
+    fireEvent.click(
+      within(queries.getByRole("dialog")).getByRole("button", {
+        name: "Delete",
+      }),
+    );
+
+  // page 1: "one", page 2: "two", page 3 (active): "three", each undoable
+  beforeEach(async () => {
+    unmountComponent();
+    localStorage.clear();
+    // so Ctrl+Z reaches the editor in tests
+    queries = await render(
+      <Excalidraw
+        handleKeyboardGlobally={true}
+        initialData={{ elements: [] }}
+      />,
+    );
+    fireEvent.click(queries.getByRole("button", { name: "Pages" }));
+    addUndoableElement("rectangle", "one");
+    fireEvent.click(queries.getByRole("button", { name: "Add page" }));
+    addUndoableElement("ellipse", "two");
+    fireEvent.click(queries.getByRole("button", { name: "Add page" }));
+    addUndoableElement("diamond", "three");
+  });
+
+  it("keeps every other page's elements when a middle page is deleted", () => {
+    fireEvent.click(queries.getByRole("button", { name: "Page 2" }), ctrlClick);
+    fireEvent.click(
+      queries.getByRole("button", { name: "Delete selected (1)" }),
+    );
+    confirmDelete();
+
+    // still on the old page 3, now listed second
+    expect(elementIds()).toEqual(["three"]);
+    expect(queries.queryByRole("button", { name: "Page 3" })).toBeNull();
+
+    fireEvent.click(queries.getByRole("button", { name: "Page 1" }));
+    expect(elementIds()).toEqual(["one"]);
+    fireEvent.click(queries.getByRole("button", { name: "Page 2" }));
+    expect(elementIds()).toEqual(["three"]);
+  });
+
+  it("keeps undo history when a page other than the current one is deleted", () => {
+    expect(h.history.isUndoStackEmpty).toBe(false);
+
+    fireEvent.click(queries.getByRole("button", { name: "Page 1" }), ctrlClick);
+    fireEvent.click(
+      queries.getByRole("button", { name: "Delete selected (1)" }),
+    );
+    confirmDelete();
+
+    expect(h.history.isUndoStackEmpty).toBe(false);
+    Keyboard.undo();
+    expect(h.elements.filter((element) => !element.isDeleted)).toEqual([]);
+  });
+
+  it("does not let undo replay the deleted page's edits on the next page", () => {
+    fireEvent.click(queries.getByRole("button", { name: "Delete page" }));
+    confirmDelete();
+
+    expect(elementIds()).toEqual(["two"]);
+    expect(h.history.isUndoStackEmpty).toBe(true);
+    Keyboard.undo();
+    expect(elementIds()).toEqual(["two"]);
+    expect(h.elements[0].isDeleted).toBe(false);
   });
 });
