@@ -10,6 +10,8 @@
     "selectAll": "Select all",
     "pages": "Pages",
     "page": "Page",
+    "currentPage": "Current",
+    "clearingMode": "Clearing mode: select pages to clear",
     "multiSelect": "Add element to selection",
     "moveCanvas": "Move canvas",
     "cut": "Cut",
@@ -325,6 +327,13 @@
   "buttons": {
     "clearReset": "Reset the canvas",
     "addPage": "Add page",
+    "enterClearingMode": "Enter clearing mode",
+    "exitClearingMode": "Exit clearing mode",
+    "clearPages": "Clear",
+    "selectAllPages": "Select all pages",
+    "deselectAllPages": "Deselect all pages",
+    "clearCanvasOnly": "Clear this canvas only",
+    "clearCanvasAndPages": "Clear canvas and all pages",
     "exportJSON": "Export to file",
     "exportImage": "Export image...",
     "export": "Save to...",
@@ -575,7 +584,12 @@
     "cropFinish": "Finish image cropping"
   },
   "clearCanvasDialog": {
-    "title": "Clear canvas"
+    "title": "Clear canvas",
+    "withPages": "This drawing has other pages. Clear only the page you are on, or clear it and all other pages? Cleared pages are kept, but empty."
+  },
+  "clearPagesDialog": {
+    "title": "Clear pages",
+    "content": "This will remove all elements from {{count}} selected page(s). Are you sure?"
   },
   "publishDialog": {
     "title": "Publish library",

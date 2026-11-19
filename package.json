@@ -71,6 +71,7 @@
     "test:other": "yarn prettier --list-different",
     "test:typecheck": "tsc",
     "test:update": "yarn test:app --update --watch=false",
+    "test:mutation": "yarn --cwd tools/mutation install --ignore-engines --silent && node tools/mutation/node_modules/@stryker-mutator/core/bin/stryker.js run",
     "test": "yarn test:app",
     "test:coverage": "vitest --coverage",
     "test:coverage:watch": "vitest --coverage --watch",
