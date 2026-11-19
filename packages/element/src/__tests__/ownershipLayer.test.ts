@@ -246,6 +246,19 @@ describe("orderElementsByCollaboratorLayer (the single ordering function)", () =
     expect(ids(result)).toEqual(["carol-rect", "alice-rect"]);
   });
 
+  it("AC-H: elements of a creator missing from the order are drawn below even the bottom row", () => {
+    // miscellaneous is the bottom row; carol isn't in the order at all
+    const untagged = createRect("untagged");
+    const carolRect = createRect("carol-rect", "carol");
+    const result = orderElementsByCollaboratorLayer([untagged, carolRect], {
+      collaborators: room("me", "alice"),
+      collaboratorDirectory: null,
+      collaboratorLayeringEnabled: true,
+      collaboratorLayerOrder: ["alice", "me", UNKNOWN_CREATOR_ID],
+    });
+    expect(ids(result)).toEqual(["carol-rect", "untagged"]);
+  });
+
   it("AC-E: changes no element and doesn't mutate the input array", () => {
     const before = shared.map((el) => ({
       id: el.id,
@@ -415,6 +428,40 @@ describe("getDefaultCollaboratorLayerOrder (first switch-on and Reset)", () => {
         collaboratorDirectory: directory("alice"),
       }),
     ).toEqual(["alice", UNKNOWN_CREATOR_ID]);
+  });
+
+  it("default: outside a room (no directory), me on top, then the live collaborators, miscellaneous last", () => {
+    expect(
+      getDefaultCollaboratorLayerOrder({
+        collaborators: room("me", "alice"),
+        collaboratorDirectory: null,
+      }),
+    ).toEqual(["me", "alice", UNKNOWN_CREATOR_ID]);
+  });
+
+  it("default: with no live collaborators given, the directory's join order, miscellaneous last", () => {
+    expect(
+      getDefaultCollaboratorLayerOrder({
+        collaboratorDirectory: directory("alice", "bob"),
+      }),
+    ).toEqual(["alice", "bob", UNKNOWN_CREATOR_ID]);
+  });
+
+  it("default: a live collaborator without an id yet (still connecting) isn't listed", () => {
+    // like #116's rows, which skip collaborators without an id
+    expect(
+      getDefaultCollaboratorLayerOrder({
+        collaborators: new Map<
+          string,
+          { id?: string; isCurrentUser?: boolean }
+        >([
+          ["my-socket", { id: "me", isCurrentUser: true }],
+          ["connecting-socket", {}],
+          ["alice-socket", { id: "alice" }],
+        ]),
+        collaboratorDirectory: directory("me", "alice"),
+      }),
+    ).toEqual(["me", "alice", UNKNOWN_CREATOR_ID]);
   });
 });
 

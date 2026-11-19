@@ -46,6 +46,7 @@ import { restoreAppState } from "../data/restore";
 import { Excalidraw } from "../index";
 import * as StaticScene from "../renderer/staticScene";
 import { exportToCanvas } from "../scene/export";
+import { getCollaboratorLayerRows } from "../scene/visibility";
 
 import { API } from "./helpers/api";
 import { Pointer, UI } from "./helpers/ui";
@@ -61,6 +62,7 @@ import {
 
 import type { ActionName } from "../actions/types";
 import type { ExportedElements } from "../data";
+import type { CollaboratorVisibilityRows } from "../scene/visibility";
 import type { AppState } from "../types";
 
 unmountComponent();
@@ -1019,6 +1021,21 @@ describe("collaborator layering — dropdown UI", () => {
       expect(h.state.hiddenCollaboratorIds.has("bob")).toBe(true);
       expect(listedIds()).toEqual(["me", "bob", "alice", MISC]);
     });
+
+    it("AC-G: a collaborator who left keeps their place in the list, labelled Previously seen", () => {
+      // carol was seen after bob (directory order) but is no longer in the room
+      act(() => {
+        API.setAppState({
+          collaboratorDirectory: new Map([
+            ...collaboratorDirectory,
+            ["carol", { username: "Carol", lastSeen: 2 }],
+          ]),
+        });
+      });
+      fireEvent.click(getSwitch());
+      expect(listedIds()).toEqual(["me", "alice", "bob", "carol", MISC]);
+      expect(getRowElement("carol").textContent).toContain("Previously seen");
+    });
   });
 
   describe("phone layout", () => {
@@ -1049,5 +1066,54 @@ describe("collaborator layering — dropdown UI", () => {
       fireEvent.click(getDown("me"));
       expect(listedIds()).toEqual(["alice", "me", "bob", MISC]);
     });
+  });
+});
+
+// -----------------------------------------------------------------------------
+// getCollaboratorLayerRows (pure): the rows of the layered list
+// -----------------------------------------------------------------------------
+
+describe("getCollaboratorLayerRows", () => {
+  const row = (id: string) => ({
+    id,
+    username: id,
+    isCurrentUser: false,
+    isHidden: false,
+    isLocked: false,
+    isLockDisabled: false,
+    drawingsCount: 0,
+  });
+  const rows: CollaboratorVisibilityRows = {
+    inRoom: [row("me"), row("alice")],
+    previouslySeen: [row("carol")],
+    miscellaneous: row(UNKNOWN_CREATOR_ID),
+  };
+
+  it("AC-A: lists every row in layer order, each with its section", () => {
+    expect(
+      getCollaboratorLayerRows(rows, [
+        "carol",
+        UNKNOWN_CREATOR_ID,
+        "me",
+        "alice",
+      ]).map(({ id, section }) => [id, section]),
+    ).toEqual([
+      ["carol", "previouslySeen"],
+      [UNKNOWN_CREATOR_ID, "miscellaneous"],
+      ["me", "inRoom"],
+      ["alice", "inRoom"],
+    ]);
+  });
+
+  it("AC-A: an id in the order with no collaborator row (e.g. pruned from the directory) isn't listed", () => {
+    expect(
+      getCollaboratorLayerRows(rows, [
+        "me",
+        "pruned",
+        "alice",
+        "carol",
+        UNKNOWN_CREATOR_ID,
+      ]).map(({ id }) => id),
+    ).toEqual(["me", "alice", "carol", UNKNOWN_CREATOR_ID]);
   });
 });

@@ -27,3 +27,7 @@ dev-dist
 html
 meta*.json
 .claude
+
+# StrykerJS mutation testing
+/.stryker-tmp/
+/reports/
