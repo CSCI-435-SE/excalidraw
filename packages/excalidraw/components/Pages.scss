@@ -1,20 +1,36 @@
 @use "../css/variables.module" as *;
 
 .excalidraw {
+  // let the sidebar's flex chain shrink to the sidebar's height so the page
+  // list (rather than the whole sidebar) overflows and scrolls
+  .sidebar-tabs-root:has(> .page-navigation-tab[data-state="active"]) {
+    min-height: 0;
+  }
+
+  .page-navigation-tab {
+    min-height: 0;
+  }
+
   .page-navigation {
     display: flex;
     flex-direction: column;
+    flex: 1 1 auto;
     gap: 1rem;
     min-height: 0;
-    height: 100%;
     padding: 0 0.75rem;
   }
 
   .page-navigation__list {
     display: flex;
     flex-direction: column;
+    flex: 1 1 auto;
     gap: 0.75rem;
+    min-height: 0;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    // room for the focus/selection outline and the scrollbar
+    padding: 2px 0.25rem 2px 2px;
+    margin: -2px -0.25rem -2px -2px;
   }
 
   .page-navigation__item {
@@ -27,12 +43,24 @@
     border-radius: var(--border-radius-md);
     background: var(--island-bg-color);
     color: var(--text-primary-color);
+    flex-shrink: 0;
     text-align: left;
     cursor: pointer;
 
     &[aria-pressed="true"] {
       border-color: var(--color-primary);
       box-shadow: 0 0 0 1px var(--color-primary);
+    }
+
+    &--current {
+      border-style: dashed;
+      border-color: var(--color-primary);
+    }
+
+    &--selected {
+      border-style: solid;
+      border-color: var(--color-danger);
+      box-shadow: 0 0 0 1px var(--color-danger);
     }
 
     &:hover {
@@ -69,7 +97,51 @@
   }
 
   .page-navigation__item-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-size: 0.875rem;
+  }
+
+  .page-navigation__clearing-header {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-danger);
+  }
+
+  .page-navigation__checkbox {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid var(--sidebar-border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75rem;
+    line-height: 1;
+
+    &--checked {
+      border-color: var(--color-danger);
+      background: var(--color-danger);
+      color: #fff;
+    }
+  }
+
+  .page-navigation__current-badge {
+    margin-left: auto;
+    padding: 0.125rem 0.375rem;
+    border-radius: var(--border-radius-sm);
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    font-size: 0.75rem;
+  }
+
+  .page-navigation__actions {
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
   }
 
   .page-navigation__add {
@@ -87,6 +159,17 @@
     &:hover:not(:disabled) {
       border-color: var(--color-primary);
       color: var(--color-primary);
+    }
+
+    &--danger:not(:disabled) {
+      border-color: var(--color-danger);
+      color: var(--color-danger);
+
+      &:hover {
+        border-color: var(--color-danger);
+        color: var(--color-danger);
+        background: var(--button-hover-bg);
+      }
     }
 
     &:disabled {
