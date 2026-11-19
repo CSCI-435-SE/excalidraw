@@ -33,6 +33,20 @@ export type CollaboratorSettings = Pick<
   | "collaboratorLayerOrder"
 >;
 
+const SETTINGS_KEYS = [
+  "newCollaboratorDefault",
+  "hiddenCollaboratorIds",
+  "lockedCollaboratorIds",
+  "collaboratorLayeringEnabled",
+  "collaboratorLayerOrder",
+] as const;
+
+/** whether `a` and `b` (e.g. two AppStates) hold the same settings objects */
+export const isSameCollaboratorSettings = (
+  a: CollaboratorSettings,
+  b: CollaboratorSettings,
+) => SETTINGS_KEYS.every((key) => a[key] === b[key]);
+
 type StoredRoom = {
   updated: number;
   hidden: string[];

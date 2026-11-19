@@ -13,7 +13,8 @@
  *   click through (#81 D)
  * - D: labels drawn with their container; frame children still clipped
  * - E: no element changes; Bring forward still works, within the layer
- * - F: local, not in history, reset on reload
+ * - F: local, not in history, reset on reload (replaced by #83 Criteria F:
+ *   saved per room by the host app, never with the scene)
  * - G: hiding/locking and moving don't affect each other
  * - H: newcomers go to the bottom (replaced by #83 Criteria D: directly
  *   above miscellaneous)
@@ -346,7 +347,7 @@ describe("collaborator layering — #83 Criteria D (new collaborators)", () => {
   });
 });
 
-describe("collaborator layering — Criteria F (local and non-persistent)", () => {
+describe("collaborator layering — Criteria F (local only; saved by the host app per #83)", () => {
   it("AC-F: the switch, moves and reset add no undo history entries", () => {
     const undoStackSize = API.getUndoStack().length;
 
@@ -379,11 +380,14 @@ describe("collaborator layering — Criteria F (local and non-persistent)", () =
     expect(sent).not.toHaveProperty("collaboratorLayerOrder");
   });
 
-  it("AC-F: the layer order resets when the page reloads", () => {
+  // #83 Criteria F replaces "reset on reload": the switch and order are now
+  // saved per room by the host app (collaboratorSettings.ts), never with the
+  // scene. They reset only through Reset order.
+  it("AC-F (#83 F): the Layering switch and order are not restored from the scene's local save", () => {
     toggleLayering();
     move("bob", 0);
 
-    // a reload restores app state from what was saved locally
+    // what the scene's own local save would give back on a reload
     const restored = restoreAppState(
       clearAppStateForLocalStorage(h.state),
       null,
