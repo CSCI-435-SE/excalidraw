@@ -379,7 +379,7 @@ import {
   isEraserActive,
   isHandToolActive,
 } from "../appState";
-import { createPage, getPageSettings } from "../pages";
+import { createPage, deletePages, getPageSettings } from "../pages";
 import {
   copyTextToSystemClipboard,
   parseClipboard,
@@ -2757,6 +2757,32 @@ class App extends React.Component<AppProps, AppState> {
     this.saveActivePage();
     this.pages = [...this.pages, page];
     this.activePageId = page.id;
+    this.history.clear();
+    this.updateScene({
+      elements: page.elements,
+      appState: getPageActivationAppState(page.settings),
+      captureUpdate: CaptureUpdateAction.NEVER,
+    });
+  };
+
+  private deletePages = (pageIds: readonly string[]) => {
+    // shortcut: view mode is the only lock, revisit with real permissions
+    if (this.state.viewModeEnabled) {
+      return;
+    }
+    const previousActivePageId = this.activePageId;
+    const result = deletePages(this.pages, pageIds, this.activePageId, nanoid);
+    this.pages = [...result.pages];
+    this.activePageId = result.activePageId;
+
+    if (result.activePageId === previousActivePageId) {
+      // scene unchanged; re-render so the page list drops the deleted pages
+      this.triggerRender();
+      return;
+    }
+    const page = this.pages.find(
+      (candidate) => candidate.id === result.activePageId,
+    )!;
     this.history.clear();
     this.updateScene({
       elements: page.elements,
