@@ -28,8 +28,10 @@ import {
   clearAppStateForLocalStorage,
 } from "@excalidraw/excalidraw/appState";
 import { API } from "@excalidraw/excalidraw/tests/helpers/api";
+import * as StaticScene from "@excalidraw/excalidraw/renderer/staticScene";
 import {
   act,
+  fireEvent,
   render,
   unmountComponent,
   waitFor,
@@ -669,5 +671,101 @@ describe("newcomer default and saved settings — Criteria G and H (local only, 
     expect(clearAppStateForDatabase(h.state)).not.toHaveProperty(
       "newCollaboratorDefault",
     );
+  });
+});
+
+describe("New collaborators setting — dropdown UI in the app", () => {
+  const openMenu = () => {
+    fireEvent.click(
+      document.querySelector<HTMLElement>(
+        "[data-testid='collaborator-visibility-trigger']",
+      )!,
+    );
+  };
+
+  /** Visible, Locked, Hidden (the AC's order) */
+  const getRadios = () => [
+    ...document.querySelectorAll<HTMLInputElement>(
+      "input[name='collaborator-newcomer-default']",
+    ),
+  ];
+
+  it("AC-F: an option chosen in the dropdown is still selected after a reload, and applies to newcomers", async () => {
+    await openRoomLink(ROOM);
+    openMenu();
+    fireEvent.click(getRadios()[2]); // Hidden
+    expect(h.state.newCollaboratorDefault).toBe("hidden");
+
+    await openRoomLink(ROOM);
+    openMenu();
+
+    expect(getRadios().map((radio) => radio.checked)).toEqual([
+      false,
+      false,
+      true,
+    ]);
+    await peerJoins("alice");
+    expect(isHidden("alice")).toBe(true);
+  });
+
+  it("AC-D (#82 I): Export image with layering on and a newcomer present renders without freezing", async () => {
+    await startNewRoom();
+    execute("toggleCollaboratorLayering");
+    await peerJoins("alice");
+    // shared order: alice's shape, then an untagged (miscellaneous) one on top
+    await receivePeerElement("alice-rect", "alice");
+    await deliver({
+      type: WS_SUBTYPES.UPDATE,
+      payload: {
+        elements: syncInvalidIndices([
+          ...h.app.scene.getElementsIncludingDeleted(),
+          API.createElement({ id: "untagged" }),
+        ]),
+      },
+    });
+    await waitFor(() =>
+      expect(h.elements.some((element) => element.id === "untagged")).toBe(
+        true,
+      ),
+    );
+
+    // jsdom gives elements no size, and the preview only renders into a
+    // sized container
+    const width = vi
+      .spyOn(HTMLElement.prototype, "offsetWidth", "get")
+      .mockReturnValue(400);
+    const height = vi
+      .spyOn(HTMLElement.prototype, "offsetHeight", "get")
+      .mockReturnValue(300);
+    const renderSpy = vi.spyOn(StaticScene, "renderStaticScene");
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      act(() => {
+        h.setState({ openDialog: { name: "imageExport" } });
+      });
+
+      const exportRenders = () =>
+        renderSpy.mock.calls.filter(([args]) => args.renderConfig.isExporting);
+      await waitFor(() => expect(exportRenders().length).toBeGreaterThan(0));
+      // drawing order, bottom first: miscellaneous, then the newcomer above it
+      expect(exportRenders()[0][0].visibleElements.map((el) => el.id)).toEqual([
+        "untagged",
+        "alice-rect",
+      ]);
+      expect(
+        errorSpy.mock.calls.some(([error]) =>
+          String(error).includes("is not a function"),
+        ),
+      ).toBe(false);
+    } finally {
+      act(() => {
+        h.setState({ openDialog: null });
+      });
+      width.mockRestore();
+      height.mockRestore();
+      renderSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
   });
 });

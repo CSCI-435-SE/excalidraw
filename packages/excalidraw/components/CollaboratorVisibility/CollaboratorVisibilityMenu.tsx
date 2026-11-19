@@ -4,11 +4,14 @@ import { useMemo, useState } from "react";
 
 import { getCollaboratorLayerOrder } from "@excalidraw/element";
 
+import type { NewCollaboratorDefault } from "@excalidraw/element";
+
 import {
   actionHideAllCollaborators,
   actionLockAllCollaborators,
   actionMoveCollaboratorLayer,
   actionResetCollaboratorLayerOrder,
+  actionSetNewCollaboratorDefault,
   actionShowAllCollaborators,
   actionToggleCollaboratorLayering,
   actionToggleCollaboratorLock,
@@ -38,11 +41,14 @@ import {
 } from "../icons";
 import { Island } from "../Island";
 import { QuickSearch } from "../QuickSearch";
+import { RadioGroup } from "../RadioGroup";
 import { Switch } from "../Switch";
 
 import "./CollaboratorVisibilityMenu.scss";
 
 import type { DragEvent } from "react";
+
+import type { RadioGroupChoice } from "../RadioGroup";
 
 import type {
   CollaboratorLayerRow,
@@ -68,6 +74,25 @@ const getLockTitle = (row: CollaboratorVisibilityRow, label: string) => {
     { name: label },
   );
 };
+
+/** #83: the "New collaborators" options (labels resolved per render, i18n) */
+const getNewcomerChoices = (): RadioGroupChoice<NewCollaboratorDefault>[] => [
+  {
+    value: "visible",
+    label: t("collaboratorNewcomer.visible"),
+    ariaLabel: t("collaboratorNewcomer.visibleHint"),
+  },
+  {
+    value: "locked",
+    label: t("collaboratorNewcomer.locked"),
+    ariaLabel: t("collaboratorNewcomer.lockedHint"),
+  },
+  {
+    value: "hidden",
+    label: t("collaboratorNewcomer.hidden"),
+    ariaLabel: t("collaboratorNewcomer.hiddenHint"),
+  },
+];
 
 /** #82: while layering is on, #116's section titles become row labels */
 const SECTION_LABELS = {
@@ -500,6 +525,23 @@ const MenuContent = () => {
           {resetIcon}
           {t("collaboratorLayer.resetShort")}
         </button>
+      </div>
+      <div className="CollaboratorVisibilityMenu__bulk CollaboratorVisibilityMenu__newcomers">
+        <span className="CollaboratorVisibilityMenu__newcomers-title">
+          {t("collaboratorNewcomer.title")}
+        </span>
+        <RadioGroup
+          name="collaborator-newcomer-default"
+          value={appState.newCollaboratorDefault}
+          choices={getNewcomerChoices()}
+          onChange={(value) =>
+            actionManager.executeAction(
+              actionSetNewCollaboratorDefault,
+              "ui",
+              value,
+            )
+          }
+        />
       </div>
 
       {showSearch && (

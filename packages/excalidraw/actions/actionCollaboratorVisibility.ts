@@ -1,5 +1,6 @@
 import {
   CaptureUpdateAction,
+  NEW_COLLABORATOR_DEFAULTS,
   addLockedCollaborators,
   getCollaboratorLayerOrder,
   getDefaultCollaboratorLayerOrder,
@@ -7,6 +8,8 @@ import {
   toggleLockedCollaborator,
   unlockVisibleCollaborators,
 } from "@excalidraw/element";
+
+import type { NewCollaboratorDefault } from "@excalidraw/element";
 
 import {
   BringForwardIcon,
@@ -215,6 +218,28 @@ export const actionMoveCollaboratorLayer = register<{
     };
   },
 });
+
+/**
+ * sets how collaborators this client sees for the first time start (#83).
+ * Only future newcomers are affected; the host app applies it and saves it
+ */
+export const actionSetNewCollaboratorDefault = register<NewCollaboratorDefault>(
+  {
+    name: "setNewCollaboratorDefault",
+    label: "collaboratorNewcomer.title",
+    viewMode: true,
+    trackEvent: { category: "collab" },
+    perform(elements, appState, value) {
+      if (!value || !NEW_COLLABORATOR_DEFAULTS.includes(value)) {
+        return false;
+      }
+      return {
+        appState: { ...appState, newCollaboratorDefault: value },
+        captureUpdate: CaptureUpdateAction.NEVER,
+      };
+    },
+  },
+);
 
 /** returns the layer order to the default (me on top, then join order) */
 export const actionResetCollaboratorLayerOrder = register({
