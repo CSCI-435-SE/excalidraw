@@ -23,13 +23,13 @@ export default {
     "packages/excalidraw/actions/actionCanvas.tsx:126-126",
     "packages/excalidraw/appState.ts:102-102",
     "packages/excalidraw/appState.ts:255-255",
-    "packages/excalidraw/components/ActiveConfirmDialog.tsx:15-51",
+    "packages/excalidraw/components/ActiveConfirmDialog.tsx:15-49",
     "packages/excalidraw/components/App.tsx:2407-2413",
     "packages/excalidraw/components/App.tsx:2775-2852",
     "packages/excalidraw/components/ConfirmDialog.tsx:20-76",
     "packages/excalidraw/components/DefaultSidebar.tsx:92-96",
     "packages/excalidraw/components/LayerUI.tsx:483-496",
-    "packages/excalidraw/components/Pages.tsx:129-304",
+    "packages/excalidraw/components/Pages.tsx:129-302",
   ],
   // keep the sandbox copy small: docs, logs and build output aren't needed
   ignorePatterns: [

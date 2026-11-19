@@ -160,19 +160,17 @@ export const Pages = ({
   const selectedCount = clearingSelection
     ? pages.filter((page) => clearingSelection.includes(page.id)).length
     : 0;
-  const allSelected = pages.length > 0 && selectedCount === pages.length;
+  // there is always at least one page
+  const allSelected = selectedCount === pages.length;
 
+  // never carry a pending confirmation into or out of clearing mode
   useEffect(() => {
-    if (!isClearing) {
-      setIsConfirmingClear(false);
-    }
+    setIsConfirmingClear(false);
   }, [isClearing]);
 
   return (
     <div
-      className={clsx("page-navigation", {
-        "page-navigation--clearing": isClearing,
-      })}
+      className="page-navigation"
       role="region"
       aria-label={t("labels.pages")}
     >

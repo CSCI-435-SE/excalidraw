@@ -26,9 +26,7 @@ export const ActiveConfirmDialog = () => {
       return (
         <ConfirmDialog
           onSecondaryConfirm={() => {
-            actionManager.executeAction(actionClearCanvas, "ui", {
-              scope: "canvas",
-            });
+            actionManager.executeAction(actionClearCanvas);
             setActiveConfirmDialog(null);
           }}
           secondaryConfirmText={t("buttons.clearCanvasOnly")}
