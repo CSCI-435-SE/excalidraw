@@ -51,6 +51,8 @@ import type { SocketId } from "@excalidraw/excalidraw/types";
 
 import { STORAGE_KEYS, WS_EVENTS, WS_SUBTYPES } from "../app_constants";
 import ExcalidrawApp from "../App";
+import { appJotaiStore } from "../app-jotai";
+import { collabAPIAtom } from "../collab/Collab";
 import { saveCollaboratorDirectory } from "../collab/collaboratorDirectory";
 import { saveCollaboratorSettings } from "../collab/collaboratorSettings";
 
@@ -59,24 +61,39 @@ import type { SocketUpdateDataSource } from "../data";
 const { h } = window;
 
 const mocks = vi.hoisted(() => ({
-  handlers: new Map<string, (...args: any[]) => any>(),
-  emitted: [] as any[][],
   storedRoomElements: null as readonly any[] | null,
 }));
 
+/**
+ * Each socket keeps its own handlers and sent messages, and the helpers only
+ * use the socket of the app under test. If an unmounted app's Collab ever
+ * opens a socket (see `openRoomLink`), the test's events can't reach it and
+ * its messages don't count as what this client sent.
+ */
+type MockSocket = {
+  handlers: Map<string, (...args: any[]) => any>;
+  emitted: any[][];
+};
+
 vi.mock("socket.io-client", () => ({
-  default: () => ({
-    id: "my-socket",
-    on: (event: string, handler: (...args: any[]) => any) => {
-      mocks.handlers.set(event, handler);
-    },
-    once: () => {},
-    off: () => {},
-    emit: (...args: any[]) => {
-      mocks.emitted.push(args);
-    },
-    close: () => {},
-  }),
+  default: () => {
+    const handlers = new Map<string, (...args: any[]) => any>();
+    const emitted: any[][] = [];
+    return {
+      id: "my-socket",
+      handlers,
+      emitted,
+      on: (event: string, handler: (...args: any[]) => any) => {
+        handlers.set(event, handler);
+      },
+      once: () => {},
+      off: () => {},
+      emit: (...args: any[]) => {
+        emitted.push(args);
+      },
+      close: () => {},
+    };
+  },
 }));
 
 // all exports mocked explicitly: spreading `importOriginal()` here deadlocks
@@ -114,9 +131,16 @@ const stamp = <T extends ExcalidrawElement>(element: T, creatorId: string) =>
     customData: { [CREATOR_ID_KEY]: creatorId },
   }) as T;
 
+/** the socket of the app under test (never one of an unmounted app) */
+const getSocket = () =>
+  window.collab.portal.socket as unknown as MockSocket | null;
+
+/** what the server does: calls this client's handler for `event` */
+const getHandler = (event: string) => getSocket()!.handlers.get(event)!;
+
 /** scene updates this client sent to the room (decoded) */
 const getSentUpdates = () =>
-  mocks.emitted
+  (getSocket()?.emitted ?? [])
     .filter(([event]) => event === WS_EVENTS.SERVER)
     .map(([, , buffer]) => JSON.parse(new TextDecoder().decode(buffer)))
     .filter(
@@ -129,7 +153,7 @@ const getSentUpdates = () =>
 const deliver = async (
   message: SocketUpdateDataSource[keyof SocketUpdateDataSource],
 ) => {
-  await mocks.handlers.get("client-broadcast")!(
+  await getHandler("client-broadcast")(
     new TextEncoder().encode(JSON.stringify(message)),
     new Uint8Array(12),
   );
@@ -155,7 +179,7 @@ const getClientId = () => window.collab.getClientId()!;
 /** the server's member list (it always includes me, "my-socket") */
 const roomMembersAre = async (...socketIds: string[]) => {
   act(() => {
-    mocks.handlers.get("room-user-change")!(["my-socket", ...socketIds]);
+    getHandler("room-user-change")(["my-socket", ...socketIds]);
   });
 };
 
@@ -166,10 +190,11 @@ const roomMembersAre = async (...socketIds: string[]) => {
 const finishInitialization = async () => {
   // opening a room link joins asynchronously (client id, socket.io import),
   // which can take over waitFor's 1s default when the machine is busy
-  await waitFor(() => expect(mocks.handlers.has("first-in-room")).toBe(true), {
-    timeout: 5000,
-  });
-  await mocks.handlers.get("first-in-room")!();
+  await waitFor(
+    () => expect(getSocket()?.handlers.has("first-in-room")).toBe(true),
+    { timeout: 5000 },
+  );
+  await getHandler("first-in-room")();
   await waitFor(() =>
     expect(window.collab.portal.socketInitialized).toBe(true),
   );
@@ -198,9 +223,12 @@ const joinRoom = async (room: { roomId: string; roomKey: string }) => {
  * Storage (local and session) is kept, like in a real reload.
  */
 const openRoomLink = async (room: { roomId: string; roomKey: string }) => {
+  const previousCollab = window.collab;
   unmountComponent();
-  mocks.handlers.clear();
-  mocks.emitted.length = 0;
+  // a real reload starts with fresh module state. The app's Collab API lives
+  // in a global store that unmounting doesn't clear, so without this the new
+  // app would first start collaborating through the unmounted app's Collab
+  appJotaiStore.set(collabAPIAtom, null);
   window.history.replaceState(
     {},
     "",
@@ -209,6 +237,10 @@ const openRoomLink = async (room: { roomId: string; roomKey: string }) => {
   // the app keeps loading until the room is initialized, and `render` waits
   // for loading to finish, so initialize the room while it renders
   const rendering = render(<ExcalidrawApp />);
+  // until the new app's Collab mounts, `window.collab` is still the old one
+  await waitFor(() => expect(window.collab).not.toBe(previousCollab), {
+    timeout: 5000,
+  });
   await finishInitialization();
   await rendering;
 };
@@ -257,8 +289,6 @@ const receivePeerElement = async (id: string, creatorId: string) => {
 };
 
 beforeEach(async () => {
-  mocks.handlers.clear();
-  mocks.emitted.length = 0;
   mocks.storedRoomElements = null;
   localStorage.clear();
   sessionStorage.clear();
