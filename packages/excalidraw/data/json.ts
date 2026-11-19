@@ -56,6 +56,9 @@ export const serializeAsJSON = (
   files: BinaryFiles,
   type: "local" | "database",
 ): string => {
+  const allElements = appState.pages
+    ? appState.pages.flatMap((page) => page.elements)
+    : elements;
   const data: ExportedDataState = {
     type: EXPORT_DATA_TYPES.excalidraw,
     version: VERSIONS.excalidraw,
@@ -67,7 +70,7 @@ export const serializeAsJSON = (
         : clearAppStateForDatabase(appState),
     files:
       type === "local"
-        ? filterOutDeletedFiles(elements, files)
+        ? filterOutDeletedFiles(allElements, files)
         : // will be stripped from JSON
           undefined,
   };
@@ -75,7 +78,7 @@ export const serializeAsJSON = (
   // embed only the uploaded fonts the scene's text uses (#140); custom fonts
   // aren't synced through the database (collaboration is out of scope)
   if (type === "local") {
-    const customFonts = Fonts.getCustomFontsUsedBy(elements);
+    const customFonts = Fonts.getCustomFontsUsedBy(allElements);
     if (customFonts.length) {
       data.customFonts = customFonts;
     }

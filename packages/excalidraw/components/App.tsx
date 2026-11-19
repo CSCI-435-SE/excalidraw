@@ -2733,6 +2733,13 @@ class App extends React.Component<AppProps, AppState> {
     );
   };
 
+  public getPagesForPersistence = (): readonly DrawingPage[] => {
+    this.saveActivePage();
+    return this.pages;
+  };
+
+  public getActivePageId = (): string => this.activePageId;
+
   private selectPage = (pageId: string) => {
     const page = this.pages.find((candidate) => candidate.id === pageId);
     if (!page) {
@@ -3096,6 +3103,45 @@ class App extends React.Component<AppProps, AppState> {
     this.store.scheduleAction(actionResult.captureUpdate);
 
     let didUpdate = false;
+
+    const sceneActionResult = actionResult as Exclude<ActionResult, false>;
+    if (sceneActionResult.appState?.pages) {
+      const restoredPages = sceneActionResult.appState.pages
+        .filter(
+          (page): page is DrawingPage =>
+            typeof page?.id === "string" && Array.isArray(page.elements),
+        )
+        .map((page) => ({
+          ...page,
+          elements: restoreElements(page.elements, null, {
+            repairBindings: true,
+            deleteInvisibleElements: true,
+          }),
+          settings: {
+            ...getPageSettings(getDefaultAppState()),
+            ...page.settings,
+          },
+        }));
+      if (restoredPages.length) {
+        this.pages = restoredPages;
+        this.activePageId = restoredPages.some(
+          (page) => page.id === sceneActionResult.appState?.activePageId,
+        )
+          ? sceneActionResult.appState.activePageId!
+          : restoredPages[0].id;
+        const activePage = restoredPages.find(
+          (page) => page.id === this.activePageId,
+        )!;
+        actionResult = {
+          ...sceneActionResult,
+          elements: activePage.elements,
+          appState: {
+            ...sceneActionResult.appState,
+            ...activePage.settings,
+          },
+        };
+      }
+    }
 
     let editingTextElement: AppState["editingTextElement"] | null = null;
     if (actionResult.elements) {
@@ -4036,8 +4082,13 @@ class App extends React.Component<AppProps, AppState> {
     // init, which would trigger onChange with empty elements, which would then
     // override whatever is in localStorage currently.
     if (!this.state.isLoading) {
-      this.props.onChange?.(elements, this.state, this.files);
-      this.onChangeEmitter.trigger(elements, this.state, this.files);
+      const persistedAppState = {
+        ...this.state,
+        pages: this.getPagesForPersistence(),
+        activePageId: this.activePageId,
+      };
+      this.props.onChange?.(elements, persistedAppState, this.files);
+      this.onChangeEmitter.trigger(elements, persistedAppState, this.files);
     }
   }
 

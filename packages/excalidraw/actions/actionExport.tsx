@@ -197,8 +197,13 @@ function prepareDataForJSONExport(
   const signal = abortController.signal;
   // saved files only contain what's visible on this client
   const elements = getLocallyVisibleElements(allElements, appState);
-
   const dataPromise = new Promise<JSONExportData>(async (resolve) => {
+    const pages = app.getPagesForPersistence();
+    const persistedAppState = {
+      ...appState,
+      pages,
+      activePageId: app.getActivePageId(),
+    };
     try {
       if (app.props.onExport) {
         await handleOnExportResult(
@@ -206,7 +211,7 @@ function prepareDataForJSONExport(
             "json",
             {
               elements,
-              appState,
+              appState: persistedAppState,
               files,
             },
             {
@@ -237,7 +242,7 @@ function prepareDataForJSONExport(
 
     resolve({
       elements,
-      appState,
+      appState: persistedAppState,
       // return latest files in case they finished loading during onExport
       files: app.files,
     });
