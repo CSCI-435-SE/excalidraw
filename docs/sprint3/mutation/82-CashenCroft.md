@@ -2,7 +2,7 @@
 
 |  |  |
 | --- | --- |
-| **PR** | #82 PR, to be opened |
+| **PR** | #180 |
 | **Issue** | [#82 Add User Priority and Layering](https://github.com/CSCI-435-SE/excalidraw/issues/82) |
 | **Tool** | StrykerJS 10.1.1 (`@stryker-mutator/core`) with the Vitest runner (`@stryker-mutator/vitest-runner` 10.1.1) |
 | **Configuration** | [`stryker.config.json`](../../../stryker.config.json), [`vitest.stryker.config.mts`](../../../vitest.stryker.config.mts) |
