@@ -61,6 +61,7 @@ export type ActionName =
   | "pasteStrokeWidth"
   | "gridMode"
   | "gridSnapMode"
+  | "openPageInfo"
   | "changeGridScale"
   | "toggleGridSnapLink"
   | "changeGridSnapScale"

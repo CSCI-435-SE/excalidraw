@@ -110,6 +110,7 @@ import {
   isSelectionLikeTool,
   oneOf,
   getEffectiveStrokeWidth,
+  DEFAULT_GRID_OPACITY,
 } from "@excalidraw/common";
 
 import {
@@ -379,7 +380,13 @@ import {
   isEraserActive,
   isHandToolActive,
 } from "../appState";
-import { createPage, getPageSettings } from "../pages";
+import {
+  createPage,
+  getNextDefaultPageName,
+  getPageSettings,
+  isPageInfoValid,
+  validatePageInfo,
+} from "../pages";
 import {
   copyTextToSystemClipboard,
   parseClipboard,
@@ -528,7 +535,7 @@ import type {
 
 import type { ClipboardData, PastedMixedContent } from "../clipboard";
 import type { ExportedElements } from "../data";
-import type { DrawingPage } from "../pages";
+import type { DrawingPage, PageInfoPatch } from "../pages";
 import type { ContextMenuItems } from "./ContextMenu";
 import type { TextHyperlinkDialogResult } from "./TextHyperlinkDialog";
 
@@ -962,7 +969,9 @@ class App extends React.Component<AppProps, AppState> {
       height: window.innerHeight,
     };
 
-    this.pages = [createPage(nanoid())];
+    this.pages = [
+      createPage(nanoid(), getNextDefaultPageName([], t("labels.page"))),
+    ];
     this.activePageId = this.pages[0].id;
 
     this.refreshEditorInterface();
@@ -2404,6 +2413,7 @@ class App extends React.Component<AppProps, AppState> {
                             activePageId={this.activePageId}
                             onPageSelect={this.selectPage}
                             onPageCreate={this.createPage}
+                            onPageInfoOpen={this.openPageInfo}
                             isCollaborating={this.props.isCollaborating}
                             generateLinkForSelection={
                               this.props.generateLinkForSelection
@@ -2752,8 +2762,75 @@ class App extends React.Component<AppProps, AppState> {
     });
   };
 
+  public getActivePageId = () => this.activePageId;
+
+  public getPageForInfo = (pageId: string): DrawingPage | null =>
+    this.getPagesForUI().find((page) => page.id === pageId) ?? null;
+
+  public openPageInfo = (pageId: string) => {
+    if (!this.pages.some((page) => page.id === pageId)) {
+      return;
+    }
+    this.setState({ openDialog: { name: "pageInfo", pageId } });
+  };
+
+  public updatePageInfo = (pageId: string, patch: PageInfoPatch) => {
+    const target = this.pages.find((page) => page.id === pageId);
+    if (!target) {
+      return;
+    }
+
+    const name = patch.name.trim();
+    const validation = validatePageInfo(
+      { name, description: patch.description },
+      this.pages,
+      pageId,
+    );
+    if (!isPageInfoValid(validation)) {
+      return;
+    }
+
+    const isActive = pageId === this.activePageId;
+    const currentSettings = isActive
+      ? getPageSettings(this.state)
+      : target.settings;
+    const gridSettings = {
+      ...patch.grid,
+      // opacity 0 hid the grid, so showing it again starts fully visible
+      gridOpacity:
+        patch.grid.gridModeEnabled && currentSettings.gridOpacity === 0
+          ? DEFAULT_GRID_OPACITY
+          : currentSettings.gridOpacity,
+    };
+
+    this.pages = this.pages.map((page) =>
+      page.id === pageId
+        ? {
+            ...page,
+            name,
+            description: patch.description,
+            showThumbnail: patch.showThumbnail,
+            // the active page's settings live in this.state and are written
+            // back by saveActivePage(), so only inactive pages update here
+            settings: isActive
+              ? page.settings
+              : { ...page.settings, ...gridSettings },
+          }
+        : page,
+    );
+
+    if (isActive) {
+      this.setState({ ...gridSettings, openDialog: null });
+    } else {
+      this.setState({ openDialog: null });
+    }
+  };
+
   private createPage = () => {
-    const page = createPage(nanoid());
+    const page = createPage(
+      nanoid(),
+      getNextDefaultPageName(this.pages, t("labels.page")),
+    );
     this.saveActivePage();
     this.pages = [...this.pages, page];
     this.activePageId = page.id;
@@ -5591,7 +5668,10 @@ class App extends React.Component<AppProps, AppState> {
 
       // the text hyperlink dialog handles its own keys, and must not trigger
       // shortcuts such as Escape finalizing the edited text underneath it
-      if (this.state.openDialog?.name === "textHyperlink") {
+      if (
+        this.state.openDialog?.name === "textHyperlink" ||
+        this.state.openDialog?.name === "pageInfo"
+      ) {
         return;
       }
 

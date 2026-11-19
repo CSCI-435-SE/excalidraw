@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import React, { useEffect, useState } from "react";
 
 import { isNonDeletedElement } from "@excalidraw/element";
@@ -7,6 +8,8 @@ import { exportToCanvas } from "../scene/export";
 import { getDefaultAppState } from "../appState";
 import { t } from "../i18n";
 
+import { Tooltip } from "./Tooltip";
+
 import "./Pages.scss";
 
 import type { BinaryFiles, UIAppState } from "../types";
@@ -14,6 +17,8 @@ import type { DrawingPage } from "../pages";
 
 const PAGE_PREVIEW_WIDTH = 144;
 const PAGE_PREVIEW_HEIGHT = 96;
+/** opens the page info menu for the focused page tab */
+const PAGE_INFO_KEY = "F2";
 
 const PageIcon = () => (
   <svg
@@ -122,6 +127,63 @@ const PagePreview = React.memo(
     prevProps.appState.theme === nextProps.appState.theme,
 );
 
+const PageTab = ({
+  page,
+  isActive,
+  appState,
+  files,
+  onSelectPage,
+  onOpenPageInfo,
+}: {
+  page: DrawingPage;
+  isActive: boolean;
+  appState: UIAppState;
+  files: BinaryFiles;
+  onSelectPage: (pageId: string) => void;
+  onOpenPageInfo: (pageId: string) => void;
+}) => {
+  const tab = (
+    <button
+      type="button"
+      className={clsx("page-navigation__item", {
+        "page-navigation__item--no-thumbnail": !page.showThumbnail,
+      })}
+      aria-label={page.name}
+      aria-pressed={isActive}
+      onClick={() => onSelectPage(page.id)}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onOpenPageInfo(page.id);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === PAGE_INFO_KEY) {
+          event.preventDefault();
+          event.stopPropagation();
+          onOpenPageInfo(page.id);
+        }
+      }}
+    >
+      {page.showThumbnail ? (
+        <PagePreview page={page} files={files} appState={appState} />
+      ) : null}
+      <span className="page-navigation__item-title">
+        {!page.showThumbnail && <PageIcon />}
+        <span className="page-navigation__item-name">{page.name}</span>
+      </span>
+    </button>
+  );
+
+  // only show the hover metadata when there is something to show
+  return page.description ? (
+    <Tooltip label={page.description} long>
+      {tab}
+    </Tooltip>
+  ) : (
+    tab
+  );
+};
+
 export const Pages = ({
   pages,
   activePageId,
@@ -129,6 +191,7 @@ export const Pages = ({
   files,
   onSelectPage,
   onCreatePage,
+  onOpenPageInfo,
 }: {
   pages: readonly DrawingPage[];
   activePageId: string;
@@ -136,23 +199,20 @@ export const Pages = ({
   files: BinaryFiles;
   onSelectPage: (pageId: string) => void;
   onCreatePage: () => void;
+  onOpenPageInfo: (pageId: string) => void;
 }) => (
   <div className="page-navigation" role="region" aria-label={t("labels.pages")}>
     <div className="page-navigation__list">
-      {pages.map((page, index) => (
-        <button
-          type="button"
+      {pages.map((page) => (
+        <PageTab
           key={page.id}
-          className="page-navigation__item"
-          aria-label={`${t("labels.page")} ${index + 1}`}
-          aria-pressed={page.id === activePageId}
-          onClick={() => onSelectPage(page.id)}
-        >
-          <PagePreview page={page} files={files} appState={appState} />
-          <span className="page-navigation__item-title">
-            {t("labels.page")} {index + 1}
-          </span>
-        </button>
+          page={page}
+          isActive={page.id === activePageId}
+          appState={appState}
+          files={files}
+          onSelectPage={onSelectPage}
+          onOpenPageInfo={onOpenPageInfo}
+        />
       ))}
     </div>
     <button

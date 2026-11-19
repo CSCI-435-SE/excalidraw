@@ -516,7 +516,8 @@ export interface AppState {
     | { name: "textHyperlink"; initialDisplayText: string }
     | { name: "customFontUpload"; file: File }
     | { name: "charts"; data: Spreadsheet; rawText: string }
-    | { name: "duplicateRotated" };
+    | { name: "duplicateRotated" }
+    | { name: "pageInfo"; pageId: string };
   /**
    * Reflects user preference for whether the default sidebar should be docked.
    *
@@ -1001,6 +1002,9 @@ export type AppClassProperties = {
   setActiveTool: App["setActiveTool"];
   setOpenDialog: App["setOpenDialog"];
   closeTextHyperlinkDialog: App["closeTextHyperlinkDialog"];
+  getActivePageId: App["getActivePageId"];
+  getPageForInfo: App["getPageForInfo"];
+  updatePageInfo: App["updatePageInfo"];
   openCustomFontUploadDialog: App["openCustomFontUploadDialog"];
   closeCustomFontUploadDialog: App["closeCustomFontUploadDialog"];
   insertEmbeddableElement: App["insertEmbeddableElement"];
