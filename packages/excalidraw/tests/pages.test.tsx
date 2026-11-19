@@ -1,5 +1,11 @@
 import React from "react";
-import { act, configure, fireEvent, waitFor } from "@testing-library/react";
+import {
+  act,
+  configure,
+  fireEvent,
+  waitFor,
+  within,
+} from "@testing-library/react";
 
 import { KEYS } from "@excalidraw/common";
 
@@ -221,5 +227,103 @@ describe("page selection", () => {
     // the remaining page is now "Page 1" and must not inherit the selection
     expect(getByRole("button", { name: "Page 1" })).toBeTruthy();
     expect(queryByRole("button", { name: /^Page d+, selected$/ })).toBeNull();
+  });
+});
+
+describe("page deletion UI", () => {
+  const ctrlClick = { [KEYS.CTRL_OR_CMD]: true };
+  let queries: Awaited<ReturnType<typeof render>>;
+  let pageIds: string[];
+
+  const pageIdsNow = () => pageInternals().pages.map((page) => page.id);
+  const dialog = () => within(queries.getByRole("dialog"));
+
+  // three pages, page 3 active, pages sidebar open
+  beforeEach(async () => {
+    unmountComponent();
+    localStorage.clear();
+    queries = await render(<Excalidraw initialData={{ elements: [] }} />);
+    fireEvent.click(queries.getByRole("button", { name: "Pages" }));
+    fireEvent.click(queries.getByRole("button", { name: "Add page" }));
+    fireEvent.click(queries.getByRole("button", { name: "Add page" }));
+    pageIds = pageIdsNow();
+  });
+
+  it("deletes the current page after confirming", () => {
+    fireEvent.click(queries.getByRole("button", { name: "Delete page" }));
+    expect(dialog().getByText(/This will delete Page 3 and/)).toBeTruthy();
+
+    fireEvent.click(dialog().getByRole("button", { name: "Delete" }));
+
+    expect(queries.queryByRole("dialog")).toBeNull();
+    expect(pageIdsNow()).toEqual([pageIds[0], pageIds[1]]);
+    expect(pageInternals().activePageId).toBe(pageIds[1]);
+    expect(queries.queryByRole("button", { name: "Page 3" })).toBeNull();
+  });
+
+  it("keeps every page when the dialog is cancelled", () => {
+    fireEvent.click(queries.getByRole("button", { name: "Delete page" }));
+    fireEvent.click(dialog().getByRole("button", { name: "Cancel" }));
+
+    expect(queries.queryByRole("dialog")).toBeNull();
+    expect(pageIdsNow()).toEqual(pageIds);
+  });
+
+  it("deletes the selected pages and clears the selection", () => {
+    fireEvent.click(queries.getByRole("button", { name: "Page 1" }), ctrlClick);
+    fireEvent.click(queries.getByRole("button", { name: "Page 2" }), ctrlClick);
+    fireEvent.click(
+      queries.getByRole("button", { name: "Delete selected (2)" }),
+    );
+    expect(
+      dialog().getByText(/This will delete Page 1, Page 2 and/),
+    ).toBeTruthy();
+
+    fireEvent.click(dialog().getByRole("button", { name: "Delete" }));
+
+    expect(pageIdsNow()).toEqual([pageIds[2]]);
+    expect(pageInternals().activePageId).toBe(pageIds[2]);
+    expect(queries.getByRole("button", { name: "Delete page" })).toBeTruthy();
+  });
+
+  it("deletes all pages and leaves one new blank page", () => {
+    fireEvent.click(queries.getByRole("button", { name: "Delete all" }));
+    expect(dialog().getByText(/A new blank page will be created/)).toBeTruthy();
+
+    fireEvent.click(dialog().getByRole("button", { name: "Delete" }));
+
+    const remaining = pageIdsNow();
+    expect(remaining).toHaveLength(1);
+    expect(pageIds).not.toContain(remaining[0]);
+    expect(h.elements).toEqual([]);
+  });
+
+  it("deletes all but the current page", () => {
+    fireEvent.click(
+      queries.getByRole("button", { name: "Delete all but current" }),
+    );
+    expect(dialog().queryByText(/A new blank page/)).toBeNull();
+
+    fireEvent.click(dialog().getByRole("button", { name: "Delete" }));
+
+    expect(pageIdsNow()).toEqual([pageIds[2]]);
+    expect(
+      queries.getByRole("button", { name: "Delete all but current" }),
+    ).toHaveProperty("disabled", true);
+  });
+
+  it("disables every delete button in view mode", () => {
+    API.setAppState({ viewModeEnabled: true });
+
+    for (const name of [
+      "Delete page",
+      "Delete all",
+      "Delete all but current",
+    ]) {
+      expect(queries.getByRole("button", { name })).toHaveProperty(
+        "disabled",
+        true,
+      );
+    }
   });
 });

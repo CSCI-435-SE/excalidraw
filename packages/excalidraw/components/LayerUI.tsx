@@ -106,6 +106,7 @@ interface LayerUIProps {
   activePageId: string;
   onPageSelect: (pageId: string) => void;
   onPageCreate: () => void;
+  onPageDelete: (pageIds: readonly string[]) => void;
 }
 
 const DefaultMainMenu: React.FC<{
@@ -168,6 +169,7 @@ const LayerUI = ({
   activePageId,
   onPageSelect,
   onPageCreate,
+  onPageDelete,
 }: LayerUIProps) => {
   const editorInterface = useEditorInterface();
   const stylesPanelMode = useStylesPanelMode();
@@ -478,6 +480,7 @@ const LayerUI = ({
               files={files}
               onSelectPage={onPageSelect}
               onCreatePage={onPageCreate}
+              onDeletePages={onPageDelete}
             />
           </Sidebar.Tab>
         </DefaultSidebar.TabContents>

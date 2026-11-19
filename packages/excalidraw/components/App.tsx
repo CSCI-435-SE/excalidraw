@@ -2404,6 +2404,7 @@ class App extends React.Component<AppProps, AppState> {
                             activePageId={this.activePageId}
                             onPageSelect={this.selectPage}
                             onPageCreate={this.createPage}
+                            onPageDelete={this.deletePages}
                             isCollaborating={this.props.isCollaborating}
                             generateLinkForSelection={
                               this.props.generateLinkForSelection

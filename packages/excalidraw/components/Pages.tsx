@@ -8,7 +8,10 @@ import { isNonDeletedElement } from "@excalidraw/element";
 import { exportToCanvas } from "../scene/export";
 
 import { getDefaultAppState } from "../appState";
+import { getPageLabel } from "../pages";
 import { t } from "../i18n";
+
+import { PageDeleteDialog } from "./PageDeleteDialog";
 
 import "./Pages.scss";
 
@@ -125,10 +128,6 @@ const PagePreview = React.memo(
     prevProps.appState.theme === nextProps.appState.theme,
 );
 
-/** The one place page names are built, so page naming (#160) only changes this. */
-export const getPageLabel = (page: DrawingPage, index: number) =>
-  `${t("labels.page")} ${index + 1}`;
-
 /**
  * Ctrl/Cmd+click multi-selection of pages, kept out of the page tabs so other
  * page features (e.g. clearing, #159) can reuse it.
@@ -160,6 +159,7 @@ export const Pages = ({
   files,
   onSelectPage,
   onCreatePage,
+  onDeletePages,
 }: {
   pages: readonly DrawingPage[];
   activePageId: string;
@@ -167,8 +167,16 @@ export const Pages = ({
   files: BinaryFiles;
   onSelectPage: (pageId: string) => void;
   onCreatePage: () => void;
+  onDeletePages: (pageIds: readonly string[]) => void;
 }) => {
   const selection = usePageSelection(pages);
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<
+    readonly string[] | null
+  >(null);
+  const { selectedPageIds } = selection;
+  const otherPageIds = pages
+    .filter((page) => page.id !== activePageId)
+    .map((page) => page.id);
 
   return (
     <div
@@ -222,6 +230,52 @@ export const Pages = ({
         <span aria-hidden="true">+</span>
         {t("buttons.addPage")}
       </button>
+      <div className="page-navigation__delete-actions">
+        <button
+          type="button"
+          className="page-navigation__action"
+          onClick={() =>
+            setPendingDeleteIds(
+              selectedPageIds.length ? selectedPageIds : [activePageId],
+            )
+          }
+          disabled={appState.viewModeEnabled}
+        >
+          {selectedPageIds.length
+            ? t("buttons.deleteSelectedPages", {
+                count: selectedPageIds.length,
+              })
+            : t("buttons.deleteCurrentPage")}
+        </button>
+        <button
+          type="button"
+          className="page-navigation__action"
+          onClick={() => setPendingDeleteIds(pages.map((page) => page.id))}
+          disabled={appState.viewModeEnabled}
+        >
+          {t("buttons.deleteAllPages")}
+        </button>
+        <button
+          type="button"
+          className="page-navigation__action"
+          onClick={() => setPendingDeleteIds(otherPageIds)}
+          disabled={appState.viewModeEnabled || !otherPageIds.length}
+        >
+          {t("buttons.deleteOtherPages")}
+        </button>
+      </div>
+      {pendingDeleteIds && (
+        <PageDeleteDialog
+          pages={pages}
+          pageIds={pendingDeleteIds}
+          onConfirm={() => {
+            onDeletePages(pendingDeleteIds);
+            selection.clear();
+            setPendingDeleteIds(null);
+          }}
+          onCancel={() => setPendingDeleteIds(null)}
+        />
+      )}
     </div>
   );
 };

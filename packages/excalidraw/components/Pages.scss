@@ -76,6 +76,17 @@
     font-size: 0.875rem;
   }
 
+  .page-navigation__delete-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    .page-navigation__action {
+      flex: 1 1 auto;
+      padding: 0 0.75rem;
+    }
+  }
+
   .page-navigation__action {
     display: flex;
     align-items: center;

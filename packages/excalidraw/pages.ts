@@ -1,6 +1,7 @@
 import type { ExcalidrawElement } from "@excalidraw/element/types";
 
 import { getDefaultAppState } from "./appState";
+import { t } from "./i18n";
 
 import type { AppState } from "./types";
 
@@ -52,6 +53,10 @@ export const createPage = (id: string): DrawingPage => ({
   elements: [],
   settings: getPageSettings(getDefaultAppState()),
 });
+
+/** The one place page names are built, so page naming (#160) only changes this. */
+export const getPageLabel = (page: DrawingPage, index: number) =>
+  `${t("labels.page")} ${index + 1}`;
 
 /**
  * Removes the given pages. If the active page is removed, the closest
