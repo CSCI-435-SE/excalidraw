@@ -12,6 +12,8 @@
  * - E: elements are never changed (index/version)
  * - G: hidden/locked collaborators keep their place
  * - H: a collaborator appearing for the first time goes to the bottom
+ *   (replaced by #83 Criteria D: directly above miscellaneous, and #83 E:
+ *   never applied to me, who stays on top)
  * - default order (decision on #82): me on top, then join order (#116's
  *   collaborator directory, in the order it was filled), miscellaneous last
  *
@@ -480,7 +482,8 @@ describe("getCollaboratorLayerOrder (the order the rows show and the canvas uses
     expect(getCollaboratorLayerOrder(layered(order))).toEqual(order);
   });
 
-  it("AC-H: a collaborator who appears for the first time is added to the bottom", () => {
+  // #83 Criteria D replaces #82's Criteria H ("added to the bottom")
+  it("#83 AC-D: a collaborator who appears for the first time is added directly above miscellaneous", () => {
     const state = {
       collaborators: room("me", "alice", "carol"),
       collaboratorDirectory: directory("alice", "carol"),
@@ -490,12 +493,12 @@ describe("getCollaboratorLayerOrder (the order the rows show and the canvas uses
     expect(getCollaboratorLayerOrder(state)).toEqual([
       "alice",
       "me",
-      UNKNOWN_CREATOR_ID,
       "carol",
+      UNKNOWN_CREATOR_ID,
     ]);
   });
 
-  it("AC-H: several newcomers are added to the bottom in join order", () => {
+  it("#83 AC-D: several newcomers are added directly above miscellaneous in join order", () => {
     const state = {
       collaborators: room("me", "dave", "carol"),
       collaboratorDirectory: directory("carol", "dave"),
@@ -504,9 +507,40 @@ describe("getCollaboratorLayerOrder (the order the rows show and the canvas uses
     };
     expect(getCollaboratorLayerOrder(state)).toEqual([
       "me",
-      UNKNOWN_CREATOR_ID,
       "carol",
       "dave",
+      UNKNOWN_CREATOR_ID,
+    ]);
+  });
+
+  it("#83 AC-D: with miscellaneous moved up, a newcomer still goes directly above it", () => {
+    const state = {
+      collaborators: room("me", "alice", "carol"),
+      collaboratorDirectory: directory("me", "alice", "carol"),
+      collaboratorLayeringEnabled: true,
+      collaboratorLayerOrder: ["alice", UNKNOWN_CREATOR_ID, "me"],
+    };
+    expect(getCollaboratorLayerOrder(state)).toEqual([
+      "alice",
+      "carol",
+      UNKNOWN_CREATOR_ID,
+      "me",
+    ]);
+  });
+
+  it("#83 AC-E: my id missing from a stored order goes on top, not above miscellaneous", () => {
+    // e.g. a restored order from a tab of mine that had another client id
+    const state = {
+      collaborators: room("me-2", "alice"),
+      collaboratorDirectory: directory("me", "alice", "me-2"),
+      collaboratorLayeringEnabled: true,
+      collaboratorLayerOrder: ["alice", "me", UNKNOWN_CREATOR_ID],
+    };
+    expect(getCollaboratorLayerOrder(state)).toEqual([
+      "me-2",
+      "alice",
+      "me",
+      UNKNOWN_CREATOR_ID,
     ]);
   });
 

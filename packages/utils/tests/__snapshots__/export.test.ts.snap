@@ -82,6 +82,7 @@ exports[`exportToSvg > with default arguments 1`] = `
   "motionPathEditor": null,
   "multiElement": null,
   "name": "name",
+  "newCollaboratorDefault": "locked",
   "newElement": null,
   "objectsSnapModeEnabled": false,
   "openDialog": null,

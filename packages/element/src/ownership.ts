@@ -350,10 +350,30 @@ export const getDefaultCollaboratorLayerOrder = (
 };
 
 /**
+ * Returns `order` with `ids` added directly above the miscellaneous bucket,
+ * in the given (join) order (#83 D). My own id goes on top instead, like in
+ * the default order. Ids already in `order` are moved, never duplicated.
+ */
+const addToLayerOrder = (
+  order: readonly string[],
+  ids: readonly string[],
+  selfId: string | null,
+): string[] => {
+  const next = order.filter((id) => !ids.includes(id));
+  const miscIndex = next.indexOf(UNKNOWN_CREATOR_ID);
+  next.splice(
+    miscIndex === -1 ? next.length : miscIndex,
+    0,
+    ...ids.filter((id) => id !== selfId),
+  );
+  return selfId !== null && ids.includes(selfId) ? [selfId, ...next] : next;
+};
+
+/**
  * The layer order shown in the dropdown and used for drawing (#82): the
- * stored order (or the default one), with anyone not in it yet added to the
- * bottom in join order. Ids are never dropped, so collaborators who are
- * hidden or left keep their place.
+ * stored order (or the default one), with anyone not in it yet added
+ * directly above the miscellaneous bucket in join order (#83 D). Ids are
+ * never dropped, so collaborators who are hidden or left keep their place.
  */
 export const getCollaboratorLayerOrder = (
   state: CreatorLayering,
@@ -365,7 +385,78 @@ export const getCollaboratorLayerOrder = (
   }
   const known = new Set(stored);
   const newcomers = defaultOrder.filter((id) => !known.has(id));
-  return newcomers.length ? [...stored, ...newcomers] : stored;
+  return newcomers.length
+    ? addToLayerOrder(stored, newcomers, getSelfCreatorId(state))
+    : stored;
+};
+
+/** how a collaborator this client sees for the first time can start (#83) */
+export const NEW_COLLABORATOR_DEFAULTS = [
+  "visible",
+  "locked",
+  "hidden",
+] as const;
+
+export type NewCollaboratorDefault = typeof NEW_COLLABORATOR_DEFAULTS[number];
+
+export const DEFAULT_NEW_COLLABORATOR: NewCollaboratorDefault = "locked";
+
+/** structurally satisfied by the editor's AppState */
+export type CreatorNewcomer = CreatorLayering &
+  CreatorInteractivity & {
+    newCollaboratorDefault: NewCollaboratorDefault;
+  };
+
+/**
+ * The state `id` starts in when this client sees them for the first time
+ * (#83): `state.newCollaboratorDefault` applied to them, and their place in
+ * a stored layer order directly above the miscellaneous bucket. Pass the
+ * state from before the sighting is recorded in the directory.
+ *
+ * Returns `null` (nothing to change) for anyone already in the directory,
+ * for me, and for the miscellaneous bucket. Leftover state of a first-seen
+ * collaborator (e.g. pruned from the directory) is replaced.
+ */
+export const getNewcomerState = (
+  id: string,
+  state: CreatorNewcomer,
+): Required<
+  Pick<
+    CreatorNewcomer,
+    "hiddenCollaboratorIds" | "lockedCollaboratorIds" | "collaboratorLayerOrder"
+  >
+> | null => {
+  const selfId = getSelfCreatorId(state);
+  if (
+    id === selfId ||
+    id === UNKNOWN_CREATOR_ID ||
+    state.collaboratorDirectory?.has(id)
+  ) {
+    return null;
+  }
+  const mode = state.newCollaboratorDefault;
+
+  const hiddenCollaboratorIds = new Set(state.hiddenCollaboratorIds);
+  hiddenCollaboratorIds.delete(id);
+  if (mode === "hidden") {
+    hiddenCollaboratorIds.add(id);
+  }
+  // hidden → also locked, as #116's hide actions do (#81)
+  const lockedCollaboratorIds = addLockedCollaborators(
+    state.lockedCollaboratorIds,
+    [id],
+    selfId,
+  );
+  if (mode === "visible") {
+    lockedCollaboratorIds.delete(id);
+  }
+
+  const order = state.collaboratorLayerOrder;
+  return {
+    hiddenCollaboratorIds,
+    lockedCollaboratorIds,
+    collaboratorLayerOrder: order ? addToLayerOrder(order, [id], selfId) : null,
+  };
 };
 
 /**

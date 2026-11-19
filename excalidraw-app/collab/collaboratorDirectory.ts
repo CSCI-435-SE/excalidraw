@@ -34,19 +34,40 @@ const isEntry = (value: any): value is CollaboratorDirectoryEntry =>
   (value.username === null || typeof value.username === "string") &&
   typeof value.lastSeen === "number";
 
-const readRooms = (): StoredRooms => {
+const asObject = (value: unknown): Record<string, any> =>
+  value && typeof value === "object" && !Array.isArray(value) ? value : {};
+
+/**
+ * Reads a JSON object from localStorage; `{}` when missing, unreadable or
+ * not an object. Shared with `collaboratorSettings.ts` (#83).
+ */
+export const readStoredObject = (key: string): Record<string, any> => {
   try {
-    const parsed = JSON.parse(
-      localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_COLLABORATOR_DIRECTORY) ||
-        "{}",
-    );
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-      ? parsed
-      : {};
+    return asObject(JSON.parse(localStorage.getItem(key) || "{}"));
   } catch {
     return {};
   }
 };
+
+/**
+ * Returns `rooms` with `roomId` set to `current`, keeping only the most
+ * recently updated rooms. The current room is always kept (even when
+ * timestamps tie). Shared with `collaboratorSettings.ts` (#83).
+ */
+export const withRecentRooms = <T extends { updated: number }>(
+  rooms: unknown,
+  roomId: string,
+  current: T,
+): Record<string, T> => {
+  const { [roomId]: _previous, ...otherRooms } = asObject(rooms);
+  const recentOtherRooms = Object.entries(otherRooms)
+    .sort(([, a], [, b]) => (b?.updated ?? 0) - (a?.updated ?? 0))
+    .slice(0, MAX_ROOMS - 1);
+  return { ...Object.fromEntries(recentOtherRooms), [roomId]: current };
+};
+
+const readRooms = (): StoredRooms =>
+  readStoredObject(STORAGE_KEYS.LOCAL_STORAGE_COLLABORATOR_DIRECTORY);
 
 export const loadCollaboratorDirectory = (
   roomId: string,
@@ -70,8 +91,6 @@ export const saveCollaboratorDirectory = (
   roomId: string,
   directory: ReadonlyMap<string, CollaboratorDirectoryEntry>,
 ) => {
-  const { [roomId]: _previous, ...otherRooms } = readRooms();
-
   const currentRoom = {
     updated: Date.now(),
     entries: Object.fromEntries(
@@ -81,19 +100,10 @@ export const saveCollaboratorDirectory = (
     ),
   };
 
-  // the current room is always kept (even when timestamps tie); the rest
-  // are pruned by recency
-  const recentOtherRooms = Object.entries(otherRooms)
-    .sort(([, a], [, b]) => (b?.updated ?? 0) - (a?.updated ?? 0))
-    .slice(0, MAX_ROOMS - 1);
-
   try {
     localStorage.setItem(
       STORAGE_KEYS.LOCAL_STORAGE_COLLABORATOR_DIRECTORY,
-      JSON.stringify({
-        ...Object.fromEntries(recentOtherRooms),
-        [roomId]: currentRoom,
-      }),
+      JSON.stringify(withRecentRooms(readRooms(), roomId, currentRoom)),
     );
   } catch {
     // storage unavailable — directory stays in memory for this session
