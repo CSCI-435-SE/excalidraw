@@ -97,6 +97,16 @@ describe("parsePageRange", () => {
     expect(parsePageRange(input, pages)).toEqual(expected);
   });
 
+  it("handles two-digit page numbers in drawings with 10+ pages", () => {
+    const manyPages = makePages(
+      ...Array.from({ length: 12 }, (_, index) => `p${index + 1}`),
+    );
+
+    expect(parsePageRange("10-12", manyPages)).toEqual(["p10", "p11", "p12"]);
+    expect(parsePageRange("11", manyPages)).toEqual(["p11"]);
+    expect(parsePageRange("9-10", manyPages)).toEqual(["p9", "p10"]);
+  });
+
   it.each([
     "",
     "   ",

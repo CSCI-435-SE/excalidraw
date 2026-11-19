@@ -796,6 +796,27 @@ describe("deleting mode", () => {
     expect(h.elements).toEqual([]);
   });
 
+  it("doesn't promise a new blank page while some pages remain", () => {
+    enterDeletingMode();
+    checkPage("Page 1");
+    fireEvent.click(button("Delete"));
+
+    expect(
+      getConfirmDialog().getByText(/This will delete Page 1 and/),
+    ).toBeTruthy();
+    expect(getConfirmDialog().queryByText(/A new blank page/)).toBeNull();
+  });
+
+  it("opens only the delete confirmation, never the clear one", () => {
+    enterDeletingMode();
+    checkPage("Page 1");
+    fireEvent.click(button("Delete"));
+
+    expect(document.querySelectorAll(".confirm-dialog")).toHaveLength(1);
+    expect(document.body.textContent).not.toMatch(/remove all elements/);
+    expect(queries.queryByRole("button", { name: "Clear" })).toBeNull();
+  });
+
   it("keeps every page when the confirmation is cancelled", () => {
     enterDeletingMode();
     checkPage("Page 1");
@@ -939,6 +960,17 @@ describe("all but current", () => {
     },
   );
 
+  it("is available as soon as there are two pages", () => {
+    const [firstPage] = pageInternals().pages;
+    act(() => pageInternals().deletePages([firstPage.id]));
+    fireEvent.click(button("Enter deleting mode"));
+
+    expect(queries.getAllByRole("checkbox")).toHaveLength(2);
+    expect(button("All but current")).toHaveProperty("disabled", false);
+    fireEvent.click(button("All but current"));
+    expect(checkedPages()).toEqual(["Page 1"]);
+  });
+
   it("replaces an existing selection that included the current page", () => {
     fireEvent.click(button("Enter deleting mode"));
     fireEvent.click(button("Select all pages"));
@@ -1052,6 +1084,26 @@ describe("select pages by number", () => {
       expect(checkedPages()).toEqual(["Page 2"]);
     },
   );
+
+  it("treats a field of only spaces like an empty one", () => {
+    fireEvent.click(button("Enter deleting mode"));
+    typeRange("   ");
+
+    expect(queries.queryByRole("alert")).toBeNull();
+    expect(rangeInput().getAttribute("aria-invalid")).toBe("false");
+    expect(button("Select")).toHaveProperty("disabled", true);
+  });
+
+  it("links the error message to the field for screen readers", () => {
+    fireEvent.click(button("Enter deleting mode"));
+    typeRange("abc");
+
+    const describedBy = rangeInput().getAttribute("aria-describedby");
+    expect(describedBy).toBeTruthy();
+    expect(document.getElementById(describedBy!)).toBe(
+      queries.getByRole("alert"),
+    );
+  });
 
   it("disables Select without an error while the field is empty", () => {
     fireEvent.click(button("Enter clearing mode"));
