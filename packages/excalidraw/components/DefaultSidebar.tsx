@@ -89,7 +89,11 @@ export const DefaultSidebar = Object.assign(
         DefaultSidebarTabContentsTunnel,
       } = useTunnels();
 
-      const isForceDocked = appState.openSidebar?.tab === CANVAS_SEARCH_TAB;
+      const isForceDocked =
+        appState.openSidebar?.tab === CANVAS_SEARCH_TAB ||
+        // keep the page being edited visible next to the clearing menu
+        (appState.openSidebar?.tab === PAGES_SIDEBAR_TAB &&
+          appState.pageClearingSelection !== null);
 
       return (
         <Sidebar

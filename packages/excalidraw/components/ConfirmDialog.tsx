@@ -17,20 +17,39 @@ interface Props extends Omit<DialogProps, "onCloseRequest"> {
   onCancel: () => void;
   confirmText?: string;
   cancelText?: string;
+  /** optional second confirm action, rendered between cancel and confirm */
+  onSecondaryConfirm?: () => void;
+  secondaryConfirmText?: string;
 }
 const ConfirmDialog = (props: Props) => {
   const {
     onConfirm,
     onCancel,
+    onSecondaryConfirm,
     children,
     confirmText = t("buttons.confirm"),
     cancelText = t("buttons.cancel"),
+    secondaryConfirmText = t("buttons.confirm"),
     className = "",
     ...rest
   } = props;
   const setAppState = useExcalidrawSetAppState();
   const setIsLibraryMenuOpen = useSetAtom(isLibraryMenuOpenAtom);
   const { container } = useExcalidrawContainer();
+
+  const runAndRefocus = (callback: () => void) => {
+    setAppState({ openMenu: null });
+    setIsLibraryMenuOpen(false);
+    // flush any pending updates synchronously,
+    // otherwise it could lead to crash in some chromium versions (131.0.6778.86),
+    // when `.focus` is invoked with container in some intermediate state
+    // (container seems mounted in DOM, but focus still causes a crash)
+    flushSync(() => {
+      callback();
+    });
+
+    container?.focus();
+  };
 
   return (
     <Dialog
@@ -43,35 +62,18 @@ const ConfirmDialog = (props: Props) => {
       <div className="confirm-dialog-buttons">
         <DialogActionButton
           label={cancelText}
-          onClick={() => {
-            setAppState({ openMenu: null });
-            setIsLibraryMenuOpen(false);
-            // flush any pending updates synchronously,
-            // otherwise it could lead to crash in some chromium versions (131.0.6778.86),
-            // when `.focus` is invoked with container in some intermediate state
-            // (container seems mounted in DOM, but focus still causes a crash)
-            flushSync(() => {
-              onCancel();
-            });
-
-            container?.focus();
-          }}
+          onClick={() => runAndRefocus(onCancel)}
         />
+        {onSecondaryConfirm && (
+          <DialogActionButton
+            label={secondaryConfirmText}
+            onClick={() => runAndRefocus(onSecondaryConfirm)}
+            actionType="danger"
+          />
+        )}
         <DialogActionButton
           label={confirmText}
-          onClick={() => {
-            setAppState({ openMenu: null });
-            setIsLibraryMenuOpen(false);
-            // flush any pending updates synchronously,
-            // otherwise it leads to crash in some chromium versions (131.0.6778.86),
-            // when `.focus` is invoked with container in some intermediate state
-            // (container seems mounted in DOM, but focus still causes a crash)
-            flushSync(() => {
-              onConfirm();
-            });
-
-            container?.focus();
-          }}
+          onClick={() => runAndRefocus(onConfirm)}
           actionType="danger"
         />
       </div>

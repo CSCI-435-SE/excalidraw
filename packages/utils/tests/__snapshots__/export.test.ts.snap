@@ -90,6 +90,7 @@ exports[`exportToSvg > with default arguments 1`] = `
     "x": 0,
     "y": 0,
   },
+  "pageClearingSelection": null,
   "penDetected": false,
   "penMode": false,
   "pendingPathTarget": null,

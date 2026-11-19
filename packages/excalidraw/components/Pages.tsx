@@ -1,18 +1,15 @@
-import clsx from "clsx";
 import React, { useEffect, useState } from "react";
 
-import { KEYS } from "@excalidraw/common";
+import clsx from "clsx";
 
 import { isNonDeletedElement } from "@excalidraw/element";
 
 import { exportToCanvas } from "../scene/export";
 
 import { getDefaultAppState } from "../appState";
-import { getPageLabel } from "../pages";
 import { t } from "../i18n";
 
-import { PageDeleteDialog } from "./PageDeleteDialog";
-import { PageRangeDelete } from "./PageRangeDelete";
+import ConfirmDialog from "./ConfirmDialog";
 
 import "./Pages.scss";
 
@@ -129,30 +126,6 @@ const PagePreview = React.memo(
     prevProps.appState.theme === nextProps.appState.theme,
 );
 
-/**
- * Ctrl/Cmd+click multi-selection of pages, kept out of the page tabs so other
- * page features (e.g. clearing, #159) can reuse it.
- */
-export const usePageSelection = (pages: readonly DrawingPage[]) => {
-  const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
-  // in page order, and ignoring ids of pages that no longer exist
-  const selectedPageIds = pages
-    .filter((page) => selectedIds.includes(page.id))
-    .map((page) => page.id);
-
-  return {
-    selectedPageIds,
-    toggle: (pageId: string) =>
-      setSelectedIds((ids) =>
-        ids.includes(pageId)
-          ? ids.filter((id) => id !== pageId)
-          : [...ids, pageId],
-      ),
-    selectAll: () => setSelectedIds(pages.map((page) => page.id)),
-    clear: () => setSelectedIds([]),
-  };
-};
-
 export const Pages = ({
   pages,
   activePageId,
@@ -160,7 +133,12 @@ export const Pages = ({
   files,
   onSelectPage,
   onCreatePage,
-  onDeletePages,
+  clearingSelection,
+  onEnterClearingMode,
+  onExitClearingMode,
+  onTogglePageForClearing,
+  onSetAllPagesForClearing,
+  onClearSelectedPages,
 }: {
   pages: readonly DrawingPage[];
   activePageId: string;
@@ -168,16 +146,27 @@ export const Pages = ({
   files: BinaryFiles;
   onSelectPage: (pageId: string) => void;
   onCreatePage: () => void;
-  onDeletePages: (pageIds: readonly string[]) => void;
+  /** `null` when not in clearing mode */
+  clearingSelection: readonly string[] | null;
+  onEnterClearingMode: () => void;
+  onExitClearingMode: () => void;
+  onTogglePageForClearing: (pageId: string) => void;
+  onSetAllPagesForClearing: (selected: boolean) => void;
+  onClearSelectedPages: () => void;
 }) => {
-  const selection = usePageSelection(pages);
-  const [pendingDeleteIds, setPendingDeleteIds] = useState<
-    readonly string[] | null
-  >(null);
-  const { selectedPageIds } = selection;
-  const otherPageIds = pages
-    .filter((page) => page.id !== activePageId)
-    .map((page) => page.id);
+  // local state so the confirmation is scoped to this editor instance
+  const [isConfirmingClear, setIsConfirmingClear] = useState(false);
+  const isClearing = clearingSelection !== null;
+  const selectedCount = clearingSelection
+    ? pages.filter((page) => clearingSelection.includes(page.id)).length
+    : 0;
+  // there is always at least one page
+  const allSelected = selectedCount === pages.length;
+
+  // never carry a pending confirmation into or out of clearing mode
+  useEffect(() => {
+    setIsConfirmingClear(false);
+  }, [isClearing]);
 
   return (
     <div
@@ -185,102 +174,130 @@ export const Pages = ({
       role="region"
       aria-label={t("labels.pages")}
     >
+      {isClearing && (
+        <div className="page-navigation__clearing-header">
+          {t("labels.clearingMode")}
+        </div>
+      )}
       <div className="page-navigation__list">
         {pages.map((page, index) => {
-          const label = getPageLabel(page, index);
-          const isSelected = selection.selectedPageIds.includes(page.id);
-          return (
+          const isActive = page.id === activePageId;
+          const isSelected = !!clearingSelection?.includes(page.id);
+          const title = `${t("labels.page")} ${index + 1}`;
+          const content = (
+            <>
+              <PagePreview page={page} files={files} appState={appState} />
+              <span className="page-navigation__item-title">
+                {isClearing && (
+                  <span
+                    className={clsx("page-navigation__checkbox", {
+                      "page-navigation__checkbox--checked": isSelected,
+                    })}
+                    aria-hidden="true"
+                  >
+                    {isSelected ? "✓" : ""}
+                  </span>
+                )}
+                {title}
+                {isClearing && isActive && (
+                  <span className="page-navigation__current-badge">
+                    {t("labels.currentPage")}
+                  </span>
+                )}
+              </span>
+            </>
+          );
+
+          return isClearing ? (
             <button
               type="button"
               key={page.id}
+              role="checkbox"
               className={clsx("page-navigation__item", {
+                "page-navigation__item--current": isActive,
                 "page-navigation__item--selected": isSelected,
               })}
-              aria-label={
-                isSelected ? `${label}, ${t("labels.pageSelected")}` : label
-              }
-              aria-pressed={page.id === activePageId}
-              onClick={(event) => {
-                if (event[KEYS.CTRL_OR_CMD]) {
-                  selection.toggle(page.id);
-                  return;
-                }
-                selection.clear();
-                onSelectPage(page.id);
-              }}
+              aria-label={title}
+              aria-checked={isSelected}
+              aria-current={isActive ? "page" : undefined}
+              onClick={() => onTogglePageForClearing(page.id)}
             >
-              <PagePreview page={page} files={files} appState={appState} />
-              <span className="page-navigation__item-title">{label}</span>
+              {content}
+            </button>
+          ) : (
+            <button
+              type="button"
+              key={page.id}
+              className="page-navigation__item"
+              aria-label={title}
+              aria-pressed={isActive}
+              onClick={() => onSelectPage(page.id)}
+            >
+              {content}
             </button>
           );
         })}
       </div>
-      <button
-        type="button"
-        className="page-navigation__action"
-        onClick={selection.selectAll}
-      >
-        {t("labels.selectAll")}
-      </button>
-      <button
-        type="button"
-        className="page-navigation__action"
-        onClick={onCreatePage}
-        disabled={appState.viewModeEnabled}
-      >
-        <span aria-hidden="true">+</span>
-        {t("buttons.addPage")}
-      </button>
-      <div className="page-navigation__delete-actions">
-        <button
-          type="button"
-          className="page-navigation__action"
-          onClick={() =>
-            setPendingDeleteIds(
-              selectedPageIds.length ? selectedPageIds : [activePageId],
-            )
-          }
-          disabled={appState.viewModeEnabled}
-        >
-          {selectedPageIds.length
-            ? t("buttons.deleteSelectedPages", {
-                count: selectedPageIds.length,
-              })
-            : t("buttons.deleteCurrentPage")}
-        </button>
-        <button
-          type="button"
-          className="page-navigation__action"
-          onClick={() => setPendingDeleteIds(pages.map((page) => page.id))}
-          disabled={appState.viewModeEnabled}
-        >
-          {t("buttons.deleteAllPages")}
-        </button>
-        <button
-          type="button"
-          className="page-navigation__action"
-          onClick={() => setPendingDeleteIds(otherPageIds)}
-          disabled={appState.viewModeEnabled || !otherPageIds.length}
-        >
-          {t("buttons.deleteOtherPages")}
-        </button>
-      </div>
-      <PageRangeDelete
-        pages={pages}
-        disabled={appState.viewModeEnabled}
-        onDelete={setPendingDeleteIds}
-      />
-      {pendingDeleteIds && (
-        <PageDeleteDialog
-          pages={pages}
-          pageIds={pendingDeleteIds}
+      {isClearing ? (
+        <div className="page-navigation__actions">
+          <button
+            type="button"
+            className="page-navigation__add"
+            onClick={() => onSetAllPagesForClearing(!allSelected)}
+          >
+            {allSelected
+              ? t("buttons.deselectAllPages")
+              : t("buttons.selectAllPages")}
+          </button>
+          <button
+            type="button"
+            className="page-navigation__add page-navigation__add--danger"
+            onClick={() => setIsConfirmingClear(true)}
+            disabled={!selectedCount || appState.viewModeEnabled}
+          >
+            {t("buttons.clearPages")}
+          </button>
+          <button
+            type="button"
+            className="page-navigation__add"
+            onClick={onExitClearingMode}
+          >
+            {t("buttons.exitClearingMode")}
+          </button>
+        </div>
+      ) : (
+        <div className="page-navigation__actions">
+          <button
+            type="button"
+            className="page-navigation__add"
+            onClick={onCreatePage}
+            disabled={appState.viewModeEnabled}
+          >
+            <span aria-hidden="true">+</span>
+            {t("buttons.addPage")}
+          </button>
+          <button
+            type="button"
+            className="page-navigation__add"
+            onClick={onEnterClearingMode}
+            disabled={appState.viewModeEnabled}
+          >
+            {t("buttons.enterClearingMode")}
+          </button>
+        </div>
+      )}
+      {isClearing && isConfirmingClear && (
+        <ConfirmDialog
+          title={t("clearPagesDialog.title")}
+          confirmText={t("buttons.clearPages")}
           onConfirm={() => {
-            onDeletePages(pendingDeleteIds);
-            selection.clear();
-            setPendingDeleteIds(null);
+            setIsConfirmingClear(false);
+            onClearSelectedPages();
           }}
-          onCancel={() => setPendingDeleteIds(null)}
-        />
+          onCancel={() => setIsConfirmingClear(false)}
+        >
+          <p>{t("clearPagesDialog.content", { count: selectedCount })}</p>
+        </ConfirmDialog>
       )}
     </div>
   );
