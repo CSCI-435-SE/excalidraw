@@ -696,3 +696,213 @@ describe("page deletion", () => {
     ]);
   });
 });
+
+describe("deleting mode", () => {
+  let queries: Awaited<ReturnType<typeof render>>;
+  let pageIds: string[];
+
+  const pageIdsNow = () => pageInternals().pages.map((page) => page.id);
+  const button = (name: string) => queries.getByRole("button", { name });
+  const checkPage = (name: string) =>
+    fireEvent.click(queries.getByRole("checkbox", { name }));
+  const enterDeletingMode = () =>
+    fireEvent.click(button("Enter deleting mode"));
+
+  // three pages, page 3 active, pages sidebar open
+  beforeEach(async () => {
+    unmountComponent();
+    localStorage.clear();
+    queries = await render(<Excalidraw initialData={{ elements: [] }} />);
+    fireEvent.click(button("Pages"));
+    fireEvent.click(button("Add page"));
+    fireEvent.click(button("Add page"));
+    pageIds = pageIdsNow();
+  });
+
+  it("shows deleting options only while in deleting mode", () => {
+    expect(
+      queries.queryByText("Deleting mode: select pages to delete"),
+    ).toBeNull();
+    enterDeletingMode();
+
+    expect(
+      queries.getByText("Deleting mode: select pages to delete"),
+    ).toBeTruthy();
+    expect(queries.getAllByRole("checkbox")).toHaveLength(3);
+    expect(button("Delete")).toHaveProperty("disabled", true);
+    expect(queries.queryByRole("button", { name: "Add page" })).toBeNull();
+    expect(queries.queryByRole("button", { name: "Clear" })).toBeNull();
+
+    fireEvent.click(button("Exit deleting mode"));
+    expect(
+      queries.queryByText("Deleting mode: select pages to delete"),
+    ).toBeNull();
+    expect(button("Enter deleting mode")).toBeTruthy();
+  });
+
+  it("deletes the selected pages after confirming and stays in deleting mode", () => {
+    enterDeletingMode();
+    checkPage("Page 1");
+    checkPage("Page 2");
+    fireEvent.click(button("Delete"));
+    expect(
+      getConfirmDialog().getByText(/This will delete Page 1, Page 2 and/),
+    ).toBeTruthy();
+
+    fireEvent.click(getConfirmDialog().getByRole("button", { name: "Delete" }));
+
+    expect(pageIdsNow()).toEqual([pageIds[2]]);
+    expect(pageInternals().activePageId).toBe(pageIds[2]);
+    expect(
+      queries.getByText("Deleting mode: select pages to delete"),
+    ).toBeTruthy();
+    expect(
+      queries
+        .getByRole("checkbox", { name: "Page 1" })
+        .getAttribute("aria-checked"),
+    ).toBe("false");
+
+    // a second deletion in a row must not trip over the first one's pages
+    checkPage("Page 1");
+    fireEvent.click(button("Delete"));
+    fireEvent.click(getConfirmDialog().getByRole("button", { name: "Delete" }));
+    expect(pageIdsNow()).toHaveLength(1);
+    expect(pageIds).not.toContain(pageIdsNow()[0]);
+  });
+
+  it("moves to the previous page when the current page is deleted", () => {
+    enterDeletingMode();
+    checkPage("Page 3");
+    fireEvent.click(button("Delete"));
+    fireEvent.click(getConfirmDialog().getByRole("button", { name: "Delete" }));
+
+    expect(pageIdsNow()).toEqual([pageIds[0], pageIds[1]]);
+    expect(pageInternals().activePageId).toBe(pageIds[1]);
+  });
+
+  it("deletes every page and leaves one new blank page", () => {
+    enterDeletingMode();
+    fireEvent.click(button("Select all pages"));
+    fireEvent.click(button("Delete"));
+    expect(
+      getConfirmDialog().getByText(/A new blank page will be created/),
+    ).toBeTruthy();
+
+    fireEvent.click(getConfirmDialog().getByRole("button", { name: "Delete" }));
+
+    const remaining = pageIdsNow();
+    expect(remaining).toHaveLength(1);
+    expect(pageIds).not.toContain(remaining[0]);
+    expect(h.elements).toEqual([]);
+  });
+
+  it("keeps every page when the confirmation is cancelled", () => {
+    enterDeletingMode();
+    checkPage("Page 1");
+    fireEvent.click(button("Delete"));
+    fireEvent.click(getConfirmDialog().getByRole("button", { name: "Cancel" }));
+
+    expect(document.querySelector(".confirm-dialog")).toBeNull();
+    expect(pageIdsNow()).toEqual(pageIds);
+  });
+
+  it("clearing mode still clears after deleting mode was used", () => {
+    enterDeletingMode();
+    fireEvent.click(button("Exit deleting mode"));
+    fireEvent.click(button("Enter clearing mode"));
+
+    expect(
+      queries.getByText("Clearing mode: select pages to clear"),
+    ).toBeTruthy();
+    checkPage("Page 1");
+    fireEvent.click(button("Clear"));
+    expect(document.querySelector(".confirm-dialog")?.textContent).toMatch(
+      /remove all elements/,
+    );
+  });
+
+  it("can't be entered and doesn't delete in view mode", () => {
+    API.setAppState({ viewModeEnabled: true });
+    expect(button("Enter deleting mode")).toHaveProperty("disabled", true);
+
+    API.setAppState({ viewModeEnabled: false });
+    enterDeletingMode();
+    checkPage("Page 1");
+    API.setAppState({ viewModeEnabled: true });
+    expect(button("Delete")).toHaveProperty("disabled", true);
+  });
+});
+
+describe("deleting mode keeps the rest of the drawing intact", () => {
+  let queries: Awaited<ReturnType<typeof render>>;
+
+  const elementIds = () => h.elements.map((element) => element.id);
+  const button = (name: string) => queries.getByRole("button", { name });
+  const addUndoableElement = (
+    type: "rectangle" | "ellipse" | "diamond",
+    id: string,
+  ) =>
+    API.updateScene({
+      elements: [API.createElement({ type, id })],
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    });
+  const deletePagesNamed = (...names: string[]) => {
+    fireEvent.click(button("Enter deleting mode"));
+    for (const name of names) {
+      fireEvent.click(queries.getByRole("checkbox", { name }));
+    }
+    fireEvent.click(button("Delete"));
+    fireEvent.click(getConfirmDialog().getByRole("button", { name: "Delete" }));
+    fireEvent.click(button("Exit deleting mode"));
+  };
+
+  // page 1: "one", page 2: "two", page 3 (active): "three", each undoable
+  beforeEach(async () => {
+    unmountComponent();
+    localStorage.clear();
+    // so Ctrl+Z reaches the editor in tests
+    queries = await render(
+      <Excalidraw
+        handleKeyboardGlobally={true}
+        initialData={{ elements: [] }}
+      />,
+    );
+    fireEvent.click(button("Pages"));
+    addUndoableElement("rectangle", "one");
+    fireEvent.click(button("Add page"));
+    addUndoableElement("ellipse", "two");
+    fireEvent.click(button("Add page"));
+    addUndoableElement("diamond", "three");
+  });
+
+  it("keeps every other page's elements when a middle page is deleted", () => {
+    deletePagesNamed("Page 2");
+
+    // still on the old page 3, now listed second
+    expect(elementIds()).toEqual(["three"]);
+    expect(queries.queryByRole("button", { name: "Page 3" })).toBeNull();
+
+    fireEvent.click(button("Page 1"));
+    expect(elementIds()).toEqual(["one"]);
+    fireEvent.click(button("Page 2"));
+    expect(elementIds()).toEqual(["three"]);
+  });
+
+  it("keeps undo history when a page other than the current one is deleted", () => {
+    deletePagesNamed("Page 1");
+
+    expect(h.history.isUndoStackEmpty).toBe(false);
+    Keyboard.undo();
+    expect(h.elements.filter((element) => !element.isDeleted)).toEqual([]);
+  });
+
+  it("does not let undo replay the deleted page's edits on the next page", () => {
+    deletePagesNamed("Page 3");
+
+    expect(elementIds()).toEqual(["two"]);
+    expect(h.history.isUndoStackEmpty).toBe(true);
+    Keyboard.undo();
+    expect(elementIds()).toEqual(["two"]);
+    expect(h.elements[0].isDeleted).toBe(false);
+  });
+});

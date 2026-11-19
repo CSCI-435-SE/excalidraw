@@ -768,6 +768,8 @@ class App extends React.Component<AppProps, AppState> {
   private history: History;
   private pages: DrawingPage[];
   private activePageId: string;
+  /** what the page selection (`pageClearingSelection`) is for: #159 clearing or #158 deleting */
+  private pageSelectionMode: "clear" | "delete" = "clear";
   public excalidrawContainerValue: {
     container: HTMLDivElement | null;
     id: string;
@@ -2411,6 +2413,9 @@ class App extends React.Component<AppProps, AppState> {
                               this.setAllPagesForClearing
                             }
                             onClearSelectedPages={this.clearSelectedPages}
+                            pageSelectionMode={this.pageSelectionMode}
+                            onEnterPageDeletingMode={this.enterPageDeletingMode}
+                            onDeleteSelectedPages={this.deleteSelectedPages}
                             isCollaborating={this.props.isCollaborating}
                             generateLinkForSelection={
                               this.props.generateLinkForSelection
@@ -2839,6 +2844,12 @@ class App extends React.Component<AppProps, AppState> {
   };
 
   private enterPageClearingMode = () => {
+    this.pageSelectionMode = "clear";
+    this.setState({ pageClearingSelection: [] });
+  };
+
+  private enterPageDeletingMode = () => {
+    this.pageSelectionMode = "delete";
     this.setState({ pageClearingSelection: [] });
   };
 
@@ -2873,6 +2884,16 @@ class App extends React.Component<AppProps, AppState> {
     }
     this.clearPages(selection);
     // stay in clearing mode until the user explicitly exits it
+    this.setState({ pageClearingSelection: [] });
+  };
+
+  private deleteSelectedPages = () => {
+    const selection = this.state.pageClearingSelection;
+    if (!selection?.length) {
+      return;
+    }
+    this.deletePages(selection);
+    // like clearing mode, stay in deleting mode until the user exits it
     this.setState({ pageClearingSelection: [] });
   };
 
