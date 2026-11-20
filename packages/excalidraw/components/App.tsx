@@ -2893,8 +2893,6 @@ class App extends React.Component<AppProps, AppState> {
 
   public getPageIds = (): string[] => this.pages.map((page) => page.id);
 
-  public getActivePageId = (): string => this.activePageId;
-
   /**
    * Removes all elements from the given pages, keeping the (now empty) pages
    * and their settings. Clearing the active page is undoable; clearing other

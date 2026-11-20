@@ -1057,6 +1057,7 @@ export type AppClassProperties = {
 
   setAppState: App["setAppState"];
   getPageIds: App["getPageIds"];
+  getPagesForPersistence: App["getPagesForPersistence"];
   getActivePageId: App["getActivePageId"];
   clearPages: App["clearPages"];
 };
