@@ -3324,44 +3324,67 @@ class App extends React.Component<AppProps, AppState> {
 
     let didUpdate = false;
 
-    const sceneActionResult = actionResult as Exclude<ActionResult, false>;
-    if (sceneActionResult.appState?.pages) {
-      const restoredPages = sceneActionResult.appState.pages
-        .filter(
-          (page): page is DrawingPage =>
-            typeof page?.id === "string" && Array.isArray(page.elements),
-        )
-        .map((page) => ({
-          ...page,
-          elements: restoreElements(page.elements, null, {
-            repairBindings: true,
-            deleteInvisibleElements: true,
-          }),
-          settings: {
-            ...getPageSettings(getDefaultAppState()),
-            ...page.settings,
-          },
-        }));
-      if (restoredPages.length) {
-        this.pages = restoredPages;
-        this.activePageId = restoredPages.some(
-          (page) => page.id === sceneActionResult.appState?.activePageId,
-        )
-          ? sceneActionResult.appState.activePageId!
-          : restoredPages[0].id;
-        const activePage = restoredPages.find(
-          (page) => page.id === this.activePageId,
-        )!;
-        actionResult = {
-          ...sceneActionResult,
-          elements: activePage.elements,
-          appState: {
-            ...sceneActionResult.appState,
-            ...activePage.settings,
-          },
-        };
-      }
+    let sceneActionResult = actionResult as Exclude<ActionResult, false>;
+    if (sceneActionResult.loadedScene) {
+      const restoredPages = Array.isArray(sceneActionResult.appState?.pages)
+        ? sceneActionResult.appState.pages
+            .filter(
+              (page): page is DrawingPage =>
+                typeof page?.id === "string" && Array.isArray(page.elements),
+            )
+            .map((page) => ({
+              ...page,
+              elements: restoreElements(page.elements, null, {
+                repairBindings: true,
+                deleteInvisibleElements: true,
+              }),
+              settings: {
+                ...getPageSettings(getDefaultAppState()),
+                ...page.settings,
+              },
+            }))
+        : [];
+      const pages =
+        restoredPages.length > 0
+          ? restoredPages
+          : [
+              {
+                ...createPage(
+                  nanoid(),
+                  getNextDefaultPageName([], t("labels.page")),
+                ),
+                elements: sceneActionResult.elements || [],
+                settings: getPageSettings({
+                  ...getDefaultAppState(),
+                  ...(sceneActionResult.appState || {}),
+                }),
+              },
+            ];
+      this.pages = pages;
+      this.activePageId = pages.some(
+        (page) => page.id === sceneActionResult.appState?.activePageId,
+      )
+        ? sceneActionResult.appState!.activePageId!
+        : pages[0].id;
+      const activePage = pages.find((page) => page.id === this.activePageId)!;
+      sceneActionResult = {
+        ...sceneActionResult,
+        elements: activePage.elements,
+        appState: {
+          ...sceneActionResult.appState,
+          ...activePage.settings,
+        },
+      };
     }
+    if (sceneActionResult.appState) {
+      const {
+        pages: _pages,
+        activePageId: _activePageId,
+        ...appState
+      } = sceneActionResult.appState;
+      sceneActionResult = { ...sceneActionResult, appState };
+    }
+    actionResult = sceneActionResult;
 
     let editingTextElement: AppState["editingTextElement"] | null = null;
     if (actionResult.elements) {
@@ -3612,6 +3635,7 @@ class App extends React.Component<AppProps, AppState> {
       elements: restoredElements,
       appState: restoredAppState,
       files: initialData?.files,
+      loadedScene: true,
       captureUpdate: CaptureUpdateAction.NEVER,
     });
 
@@ -14023,6 +14047,7 @@ class App extends React.Component<AppProps, AppState> {
               ...(scene.appState || this.state),
               isLoading: false,
             },
+            loadedScene: true,
             replaceFiles: true,
             captureUpdate: CaptureUpdateAction.IMMEDIATELY,
           });
@@ -14178,6 +14203,7 @@ class App extends React.Component<AppProps, AppState> {
             ...(ret.data.appState || this.state),
             isLoading: false,
           },
+          loadedScene: true,
           replaceFiles: true,
           captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         });
