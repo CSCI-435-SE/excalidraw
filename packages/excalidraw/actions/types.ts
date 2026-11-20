@@ -29,8 +29,6 @@ export type ActionResult =
       files?: BinaryFiles | null;
       captureUpdate: CaptureUpdateActionType;
       replaceFiles?: boolean;
-      /** Replaces the document pages when loading persisted scene data. */
-      restorePages?: boolean;
     }
   | false;
 
