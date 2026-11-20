@@ -110,6 +110,7 @@ import {
   isSelectionLikeTool,
   oneOf,
   getEffectiveStrokeWidth,
+  memoize,
 } from "@excalidraw/common";
 
 import {
@@ -194,6 +195,8 @@ import {
   hitElementBoundText,
   hitElementBoundingBoxOnly,
   hitElementItself,
+  getCollaboratorLayerOrder,
+  orderElementsByCollaboratorLayer,
   getVisibleSceneBounds,
   cropElement,
   wrapText,
@@ -2308,6 +2311,7 @@ class App extends React.Component<AppProps, AppState> {
       frameToHighlight: this.state.frameToHighlight,
       hiddenCollaboratorIds: this.state.hiddenCollaboratorIds,
       collaboratorDirectory: this.state.collaboratorDirectory,
+      collaboratorLayerOrder: this.getLocalLayerOrder(),
     });
     this.visibleElements = visibleElements;
     this.hasRenderableElements = renderableElementsMap.size > 0;
@@ -3648,8 +3652,13 @@ class App extends React.Component<AppProps, AppState> {
             element,
             { customData: getCoOwnedCustomData(element, selfId) },
             // not a visual change for this client (it can already see and
-            // interact with what it just edited)
-            { informMutation: false, isDragging: false },
+            // interact with what it just edited), except while layering is on
+            // (#82): co-owned elements are drawn in their highest visible
+            // owner's layer, so it can move up and must be redrawn
+            {
+              informMutation: this.state.collaboratorLayeringEnabled,
+              isDragging: false,
+            },
           );
         }
       },
@@ -7085,13 +7094,85 @@ class App extends React.Component<AppProps, AppState> {
     }
   };
 
-  /** elements arrows may newly bind to (excludes hidden collaborators') */
+  /**
+   * elements arrows may newly bind to (excludes hidden collaborators'), in
+   * this client's drawing order so the shape on top is the one bound (#82)
+   */
   private getBindableElements() {
     return getLocallyVisibleElements(
-      this.scene.getNonDeletedElements(),
+      this.getElementsInDrawingOrder(),
       this.state,
       this.scene.getNonDeletedElementsMap(),
     );
+  }
+
+  /** see `getLocalLayerOrder` */
+  private localLayerOrder: readonly string[] | null = null;
+
+  /**
+   * The local layer order (#82) while layering is on, `null` while off.
+   * Returns the same array while its contents don't change, so memoized
+   * consumers (renderer, hit-testing) aren't invalidated by unrelated
+   * updates, e.g. collaborators' cursors replacing `collaborators`.
+   */
+  private getLocalLayerOrder(): readonly string[] | null {
+    if (!this.state.collaboratorLayeringEnabled) {
+      this.localLayerOrder = null;
+      return null;
+    }
+    const order = getCollaboratorLayerOrder(this.state);
+    const previous = this.localLayerOrder;
+    if (
+      !previous ||
+      previous.length !== order.length ||
+      order.some((id, index) => id !== previous[index])
+    ) {
+      this.localLayerOrder = order;
+    }
+    return this.localLayerOrder;
+  }
+
+  private getLayeredElements = memoize(
+    ({
+      collaboratorLayerOrder,
+      collaboratorDirectory,
+      hiddenCollaboratorIds,
+    }: {
+      // recomputed whenever the scene changes
+      sceneNonce: number | undefined;
+      collaboratorLayerOrder: readonly string[];
+      collaboratorDirectory: AppState["collaboratorDirectory"];
+      // co-owned elements follow their highest visible owner (#84)
+      hiddenCollaboratorIds: AppState["hiddenCollaboratorIds"];
+    }) =>
+      orderElementsByCollaboratorLayer(
+        this.scene.getNonDeletedElements(),
+        {
+          collaboratorLayeringEnabled: true,
+          collaboratorLayerOrder,
+          collaboratorDirectory,
+          hiddenCollaboratorIds,
+        },
+        this.scene.getNonDeletedElementsMap(),
+      ),
+  );
+
+  /**
+   * Non-deleted elements in the order they're drawn on this client: the
+   * shared order, or the local layer order while layering is on (#82). Used
+   * for hit-testing and binding so what's clicked is what's on top.
+   */
+  private getElementsInDrawingOrder() {
+    const collaboratorLayerOrder = this.getLocalLayerOrder();
+    if (!collaboratorLayerOrder) {
+      return this.scene.getNonDeletedElements();
+    }
+    return this.getLayeredElements({
+      sceneNonce: this.scene.getSceneNonce(),
+      collaboratorLayerOrder,
+      collaboratorDirectory: this.state.collaboratorDirectory,
+      hiddenCollaboratorIds: this.state.hiddenCollaboratorIds,
+    });
   }
 
   // NOTE: Hot path for hit testing, so avoid unnecessary computations
@@ -7106,18 +7187,18 @@ class App extends React.Component<AppProps, AppState> {
     const iframeLikes: Ordered<NonDeleted<ExcalidrawIframeElement>>[] = [];
 
     const elementsMap = this.scene.getNonDeletedElementsMap();
+    // in this client's drawing order, so the last hit is the one on top (#82)
+    const elementsInDrawingOrder = this.getElementsInDrawingOrder();
 
     const elements = (
       opts?.includeBoundTextElement && opts?.includeLockedElements
-        ? this.scene.getNonDeletedElements()
-        : this.scene
-            .getNonDeletedElements()
-            .filter(
-              (element) =>
-                (opts?.includeLockedElements || !element.locked) &&
-                (opts?.includeBoundTextElement ||
-                  !(isTextElement(element) && element.containerId)),
-            )
+        ? elementsInDrawingOrder
+        : elementsInDrawingOrder.filter(
+            (element) =>
+              (opts?.includeLockedElements || !element.locked) &&
+              (opts?.includeBoundTextElement ||
+                !(isTextElement(element) && element.containerId)),
+          )
     )
       // hidden or locked collaborators' elements can't be hit (#81: a locked
       // element behaves like empty canvas, so what's underneath gets hit)
@@ -7223,7 +7304,8 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   private getTextBindableContainerAtPosition(x: number, y: number) {
-    const elements = this.scene.getNonDeletedElements();
+    // front to back in this client's drawing order (#82)
+    const elements = this.getElementsInDrawingOrder();
     const selectedElements = this.scene.getSelectedElements(this.state);
     if (selectedElements.length === 1) {
       return isTextBindableContainer(selectedElements[0], false)

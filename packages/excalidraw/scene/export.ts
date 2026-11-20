@@ -33,11 +33,16 @@ import {
   getRootElements,
 } from "@excalidraw/element";
 
-import { syncInvalidIndices } from "@excalidraw/element";
+import {
+  orderElementsByCollaboratorLayer,
+  syncInvalidIndices,
+} from "@excalidraw/element";
 
 import { type Mutable } from "@excalidraw/common/utility-types";
 
 import { newTextElement } from "@excalidraw/element";
+
+import type { CreatorLayering } from "@excalidraw/element";
 
 import type { Bounds } from "@excalidraw/common";
 
@@ -148,16 +153,26 @@ const getFrameRenderingConfig = (
 };
 
 const prepareElementsForRender = ({
-  elements,
+  elements: sharedOrderElements,
   exportingFrame,
   frameRendering,
   exportWithDarkMode,
+  layering,
 }: {
   elements: readonly NonDeletedExcalidrawElement[];
   exportingFrame: ExcalidrawFrameLikeElement | null | undefined;
   frameRendering: AppState["frameRendering"];
   exportWithDarkMode: AppState["exportWithDarkMode"];
+  /** this client's layering state (#82); off → the shared order */
+  layering: CreatorLayering;
 }) => {
+  // exports follow this client's layer order (#82). Only the list to draw
+  // is reordered: the exported elements themselves (index sync, embedded
+  // scene) keep the shared order
+  const elements = orderElementsByCollaboratorLayer(
+    sharedOrderElements,
+    layering,
+  );
   let nextElements: readonly NonDeletedExcalidrawElement[];
 
   if (exportingFrame) {
@@ -223,6 +238,7 @@ export const exportToCanvas = async (
     exportingFrame,
     exportWithDarkMode: appState.exportWithDarkMode,
     frameRendering,
+    layering: appState,
   });
 
   if (exportingFrame) {
@@ -300,7 +316,16 @@ export const exportToSvg = async (
     exportWithDarkMode?: boolean;
     exportEmbedScene?: boolean;
     frameRendering?: AppState["frameRendering"];
-  },
+  } & Partial<
+    Pick<
+      AppState,
+      | "collaboratorLayeringEnabled"
+      | "collaboratorLayerOrder"
+      | "collaboratorDirectory"
+      | "collaborators"
+      | "hiddenCollaboratorIds"
+    >
+  >,
   files: BinaryFiles | null,
   opts?: {
     /**
@@ -332,6 +357,7 @@ export const exportToSvg = async (
     exportingFrame,
     exportWithDarkMode,
     frameRendering,
+    layering: appState,
   });
 
   if (exportingFrame) {

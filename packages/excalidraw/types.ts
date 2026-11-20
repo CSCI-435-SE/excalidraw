@@ -602,6 +602,16 @@ export interface AppState {
    */
   lockedCollaboratorIds: ReadonlySet<string>;
   /**
+   * whether collaborators' drawings are layered by `collaboratorLayerOrder`
+   * on this client only (never synced). Off → the shared drawing order.
+   */
+  collaboratorLayeringEnabled: boolean;
+  /**
+   * local layer order of creator ids, top row (drawn on top) first. `null`
+   * until layering is first turned on; kept while it's off.
+   */
+  collaboratorLayerOrder: readonly string[] | null;
+  /**
    * collaborators this client has seen in the current room, keyed by their
    * client id (= elements' creator id). Supplied by the host app; `null`
    * outside of a room.

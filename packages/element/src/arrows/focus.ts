@@ -21,7 +21,10 @@ import {
 } from "../typeChecks";
 import { LinearElementEditor } from "../linearElementEditor";
 import { getHoveredElementForFocusPoint, hitElementItself } from "../collision";
-import { excludeElementsByHiddenCreators } from "../ownership";
+import {
+  excludeElementsByHiddenCreators,
+  orderElementsByCollaboratorLayer,
+} from "../ownership";
 import { moveArrowAboveBindable } from "../zindex";
 
 import type {
@@ -239,9 +242,14 @@ export const handleFocusPointDrag = (
   const hit = getHoveredElementForFocusPoint(
     point,
     arrow,
-    // can't re-target the binding onto hidden collaborators' elements
-    excludeElementsByHiddenCreators(
-      scene.getNonDeletedElements(),
+    // can't re-target the binding onto hidden collaborators' elements;
+    // candidates in this client's drawing order (#82)
+    orderElementsByCollaboratorLayer(
+      excludeElementsByHiddenCreators(
+        scene.getNonDeletedElements(),
+        appState,
+        elementsMap,
+      ),
       appState,
       elementsMap,
     ),
