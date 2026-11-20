@@ -242,6 +242,110 @@
     }
   }
 
+  // #82: Layering switch + Reset order row
+  .CollaboratorVisibilityMenu__layering {
+    flex: 1 1 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 0.25rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+
+  // #83: "New collaborators" (Visible / Locked / Hidden)
+  .CollaboratorVisibilityMenu__newcomers {
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 0.25rem;
+  }
+
+  .CollaboratorVisibilityMenu__newcomers-title {
+    font-size: 0.75rem;
+  }
+
+  // #82: section titles shown per row while layering is on
+  .CollaboratorVisibilityMenu__row-section {
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-gray-50);
+  }
+
+  // #82: ↑ · ↓ controls
+  .CollaboratorVisibilityMenu__layer {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  // only the buttons are reset: `all: unset` would also remove the
+  // browser's `[draggable]` styles, so the handle could never be dragged
+  .CollaboratorVisibilityMenu__layer-btn {
+    all: unset;
+  }
+
+  .CollaboratorVisibilityMenu__layer-btn,
+  .CollaboratorVisibilityMenu__layer-handle {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 0.875rem;
+    border-radius: var(--border-radius-md);
+    color: var(--color-gray-60);
+
+    svg {
+      width: 0.75rem;
+      height: 0.75rem;
+    }
+  }
+
+  .CollaboratorVisibilityMenu__layer-btn {
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background-color: var(--button-hover-bg);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-primary);
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+  }
+
+  .CollaboratorVisibilityMenu__layer-handle {
+    cursor: grab;
+
+    &.is-disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+  }
+
+  .CollaboratorVisibilityMenu__row-wrapper {
+    &.is-dragged {
+      opacity: 0.5;
+    }
+
+    // drawn inside the row (inset): the list scrolls, so a line outside the
+    // first row would be clipped
+    &.is-drop-above {
+      box-shadow: inset 0 2px 0 var(--color-primary);
+    }
+
+    &.is-drop-below {
+      box-shadow: inset 0 -2px 0 var(--color-primary);
+    }
+  }
+
   .CollaboratorVisibilityMenu__lock {
     all: unset;
     box-sizing: border-box;

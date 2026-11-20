@@ -110,6 +110,8 @@ import {
   isSelectionLikeTool,
   oneOf,
   getEffectiveStrokeWidth,
+  DEFAULT_GRID_OPACITY,
+  memoize,
 } from "@excalidraw/common";
 
 import {
@@ -194,6 +196,8 @@ import {
   hitElementBoundText,
   hitElementBoundingBoxOnly,
   hitElementItself,
+  getCollaboratorLayerOrder,
+  orderElementsByCollaboratorLayer,
   getVisibleSceneBounds,
   cropElement,
   wrapText,
@@ -379,7 +383,14 @@ import {
   isEraserActive,
   isHandToolActive,
 } from "../appState";
-import { createPage, getPageSettings } from "../pages";
+import {
+  createPage,
+  deletePages,
+  getNextDefaultPageName,
+  getPageSettings,
+  isPageInfoValid,
+  validatePageInfo,
+} from "../pages";
 import {
   copyTextToSystemClipboard,
   parseClipboard,
@@ -528,7 +539,7 @@ import type {
 
 import type { ClipboardData, PastedMixedContent } from "../clipboard";
 import type { ExportedElements } from "../data";
-import type { DrawingPage } from "../pages";
+import type { DrawingPage, PageInfoPatch } from "../pages";
 import type { ContextMenuItems } from "./ContextMenu";
 import type { TextHyperlinkDialogResult } from "./TextHyperlinkDialog";
 
@@ -768,6 +779,8 @@ class App extends React.Component<AppProps, AppState> {
   private history: History;
   private pages: DrawingPage[];
   private activePageId: string;
+  /** what the page selection (`pageClearingSelection`) is for: #159 clearing or #158 deleting */
+  private pageSelectionMode: "clear" | "delete" = "clear";
   public excalidrawContainerValue: {
     container: HTMLDivElement | null;
     id: string;
@@ -962,7 +975,9 @@ class App extends React.Component<AppProps, AppState> {
       height: window.innerHeight,
     };
 
-    this.pages = [createPage(nanoid())];
+    this.pages = [
+      createPage(nanoid(), getNextDefaultPageName([], t("labels.page"))),
+    ];
     this.activePageId = this.pages[0].id;
 
     this.refreshEditorInterface();
@@ -2306,6 +2321,7 @@ class App extends React.Component<AppProps, AppState> {
       frameToHighlight: this.state.frameToHighlight,
       hiddenCollaboratorIds: this.state.hiddenCollaboratorIds,
       collaboratorDirectory: this.state.collaboratorDirectory,
+      collaboratorLayerOrder: this.getLocalLayerOrder(),
     });
     this.visibleElements = visibleElements;
     this.hasRenderableElements = renderableElementsMap.size > 0;
@@ -2404,6 +2420,18 @@ class App extends React.Component<AppProps, AppState> {
                             activePageId={this.activePageId}
                             onPageSelect={this.selectPage}
                             onPageCreate={this.createPage}
+                            onPageInfoOpen={this.openPageInfo}
+                            onEnterPageClearingMode={this.enterPageClearingMode}
+                            onExitPageClearingMode={this.exitPageClearingMode}
+                            onTogglePageForClearing={this.togglePageForClearing}
+                            onSetAllPagesForClearing={
+                              this.setAllPagesForClearing
+                            }
+                            onClearSelectedPages={this.clearSelectedPages}
+                            pageSelectionMode={this.pageSelectionMode}
+                            onEnterPageDeletingMode={this.enterPageDeletingMode}
+                            onSetPageSelection={this.setPageSelection}
+                            onDeleteSelectedPages={this.deleteSelectedPages}
                             isCollaborating={this.props.isCollaborating}
                             generateLinkForSelection={
                               this.props.generateLinkForSelection
@@ -2759,8 +2787,73 @@ class App extends React.Component<AppProps, AppState> {
     });
   };
 
+  public getPageForInfo = (pageId: string): DrawingPage | null =>
+    this.getPagesForUI().find((page) => page.id === pageId) ?? null;
+
+  public openPageInfo = (pageId: string) => {
+    if (!this.pages.some((page) => page.id === pageId)) {
+      return;
+    }
+    this.setState({ openDialog: { name: "pageInfo", pageId } });
+  };
+
+  public updatePageInfo = (pageId: string, patch: PageInfoPatch) => {
+    const target = this.pages.find((page) => page.id === pageId);
+    if (!target) {
+      return;
+    }
+
+    const name = patch.name.trim();
+    const validation = validatePageInfo(
+      { name, description: patch.description },
+      this.pages,
+      pageId,
+    );
+    if (!isPageInfoValid(validation)) {
+      return;
+    }
+
+    const isActive = pageId === this.activePageId;
+    const currentSettings = isActive
+      ? getPageSettings(this.state)
+      : target.settings;
+    const gridSettings = {
+      ...patch.grid,
+      // opacity 0 hid the grid, so showing it again starts fully visible
+      gridOpacity:
+        patch.grid.gridModeEnabled && currentSettings.gridOpacity === 0
+          ? DEFAULT_GRID_OPACITY
+          : currentSettings.gridOpacity,
+    };
+
+    this.pages = this.pages.map((page) =>
+      page.id === pageId
+        ? {
+            ...page,
+            name,
+            description: patch.description,
+            showThumbnail: patch.showThumbnail,
+            // the active page's settings live in this.state and are written
+            // back by saveActivePage(), so only inactive pages update here
+            settings: isActive
+              ? page.settings
+              : { ...page.settings, ...gridSettings },
+          }
+        : page,
+    );
+
+    if (isActive) {
+      this.setState({ ...gridSettings, openDialog: null });
+    } else {
+      this.setState({ openDialog: null });
+    }
+  };
+
   private createPage = () => {
-    const page = createPage(nanoid());
+    const page = createPage(
+      nanoid(),
+      getNextDefaultPageName(this.pages, t("labels.page")),
+    );
     this.saveActivePage();
     this.pages = [...this.pages, page];
     this.activePageId = page.id;
@@ -2770,6 +2863,135 @@ class App extends React.Component<AppProps, AppState> {
       appState: getPageActivationAppState(page.settings),
       captureUpdate: CaptureUpdateAction.NEVER,
     });
+  };
+
+  private deletePages = (pageIds: readonly string[]) => {
+    // shortcut: view mode is the only lock, revisit with real permissions
+    if (this.state.viewModeEnabled) {
+      return;
+    }
+    const previousActivePageId = this.activePageId;
+    const result = deletePages(this.pages, pageIds, this.activePageId, nanoid);
+    this.pages = [...result.pages];
+    this.activePageId = result.activePageId;
+
+    if (result.activePageId === previousActivePageId) {
+      // scene unchanged; re-render so the page list drops the deleted pages
+      this.triggerRender();
+      return;
+    }
+    const page = this.pages.find(
+      (candidate) => candidate.id === result.activePageId,
+    )!;
+    this.history.clear();
+    this.updateScene({
+      elements: page.elements,
+      appState: getPageActivationAppState(page.settings),
+      captureUpdate: CaptureUpdateAction.NEVER,
+    });
+  };
+
+  public getPageIds = (): string[] => this.pages.map((page) => page.id);
+
+  public getActivePageId = (): string => this.activePageId;
+
+  /**
+   * Removes all elements from the given pages, keeping the (now empty) pages
+   * and their settings. Clearing the active page is undoable; clearing other
+   * pages is not, since history only tracks the active page.
+   */
+  public clearPages = (pageIds: readonly string[]) => {
+    const ids = new Set(pageIds);
+
+    this.pages = this.pages.map((page) =>
+      ids.has(page.id) && page.id !== this.activePageId
+        ? { ...page, elements: [] }
+        : page,
+    );
+
+    if (ids.has(this.activePageId)) {
+      this.updateScene({
+        elements: this.scene
+          .getElementsIncludingDeleted()
+          .map((element) =>
+            element.isDeleted
+              ? element
+              : newElementWith(element, { isDeleted: true }),
+          ),
+        appState: {
+          selectedElementIds: {},
+          selectedGroupIds: {},
+          editingGroupId: null,
+        },
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+      });
+    } else {
+      // inactive pages live outside React state; re-render their previews
+      this.forceUpdate();
+    }
+  };
+
+  private enterPageClearingMode = () => {
+    this.pageSelectionMode = "clear";
+    this.setState({ pageClearingSelection: [] });
+  };
+
+  private enterPageDeletingMode = () => {
+    this.pageSelectionMode = "delete";
+    this.setState({ pageClearingSelection: [] });
+  };
+
+  private exitPageClearingMode = () => {
+    this.setState({ pageClearingSelection: null });
+  };
+
+  private togglePageForClearing = (pageId: string) => {
+    this.setState((state) => {
+      if (!state.pageClearingSelection) {
+        return null;
+      }
+      const selection = state.pageClearingSelection;
+      return {
+        pageClearingSelection: selection.includes(pageId)
+          ? selection.filter((id) => id !== pageId)
+          : [...selection, pageId],
+      };
+    });
+  };
+
+  /** Replaces the page selection of the active page mode (clearing/deleting). */
+  private setPageSelection = (pageIds: readonly string[]) => {
+    this.setState((state) =>
+      state.pageClearingSelection
+        ? { pageClearingSelection: [...pageIds] }
+        : null,
+    );
+  };
+
+  private setAllPagesForClearing = (selected: boolean) => {
+    this.setState({
+      pageClearingSelection: selected ? this.getPageIds() : [],
+    });
+  };
+
+  private clearSelectedPages = () => {
+    const selection = this.state.pageClearingSelection;
+    if (!selection?.length) {
+      return;
+    }
+    this.clearPages(selection);
+    // stay in clearing mode until the user explicitly exits it
+    this.setState({ pageClearingSelection: [] });
+  };
+
+  private deleteSelectedPages = () => {
+    const selection = this.state.pageClearingSelection;
+    if (!selection?.length) {
+      return;
+    }
+    this.deletePages(selection);
+    // like clearing mode, stay in deleting mode until the user exits it
+    this.setState({ pageClearingSelection: [] });
   };
 
   public onInsertElements = (elements: readonly ExcalidrawElement[]) => {
@@ -3552,8 +3774,13 @@ class App extends React.Component<AppProps, AppState> {
             element,
             { customData: getCoOwnedCustomData(element, selfId) },
             // not a visual change for this client (it can already see and
-            // interact with what it just edited)
-            { informMutation: false, isDragging: false },
+            // interact with what it just edited), except while layering is on
+            // (#82): co-owned elements are drawn in their highest visible
+            // owner's layer, so it can move up and must be redrawn
+            {
+              informMutation: this.state.collaboratorLayeringEnabled,
+              isDragging: false,
+            },
           );
         }
       },
@@ -5642,7 +5869,10 @@ class App extends React.Component<AppProps, AppState> {
 
       // the text hyperlink dialog handles its own keys, and must not trigger
       // shortcuts such as Escape finalizing the edited text underneath it
-      if (this.state.openDialog?.name === "textHyperlink") {
+      if (
+        this.state.openDialog?.name === "textHyperlink" ||
+        this.state.openDialog?.name === "pageInfo"
+      ) {
         return;
       }
 
@@ -6994,13 +7224,85 @@ class App extends React.Component<AppProps, AppState> {
     }
   };
 
-  /** elements arrows may newly bind to (excludes hidden collaborators') */
+  /**
+   * elements arrows may newly bind to (excludes hidden collaborators'), in
+   * this client's drawing order so the shape on top is the one bound (#82)
+   */
   private getBindableElements() {
     return getLocallyVisibleElements(
-      this.scene.getNonDeletedElements(),
+      this.getElementsInDrawingOrder(),
       this.state,
       this.scene.getNonDeletedElementsMap(),
     );
+  }
+
+  /** see `getLocalLayerOrder` */
+  private localLayerOrder: readonly string[] | null = null;
+
+  /**
+   * The local layer order (#82) while layering is on, `null` while off.
+   * Returns the same array while its contents don't change, so memoized
+   * consumers (renderer, hit-testing) aren't invalidated by unrelated
+   * updates, e.g. collaborators' cursors replacing `collaborators`.
+   */
+  private getLocalLayerOrder(): readonly string[] | null {
+    if (!this.state.collaboratorLayeringEnabled) {
+      this.localLayerOrder = null;
+      return null;
+    }
+    const order = getCollaboratorLayerOrder(this.state);
+    const previous = this.localLayerOrder;
+    if (
+      !previous ||
+      previous.length !== order.length ||
+      order.some((id, index) => id !== previous[index])
+    ) {
+      this.localLayerOrder = order;
+    }
+    return this.localLayerOrder;
+  }
+
+  private getLayeredElements = memoize(
+    ({
+      collaboratorLayerOrder,
+      collaboratorDirectory,
+      hiddenCollaboratorIds,
+    }: {
+      // recomputed whenever the scene changes
+      sceneNonce: number | undefined;
+      collaboratorLayerOrder: readonly string[];
+      collaboratorDirectory: AppState["collaboratorDirectory"];
+      // co-owned elements follow their highest visible owner (#84)
+      hiddenCollaboratorIds: AppState["hiddenCollaboratorIds"];
+    }) =>
+      orderElementsByCollaboratorLayer(
+        this.scene.getNonDeletedElements(),
+        {
+          collaboratorLayeringEnabled: true,
+          collaboratorLayerOrder,
+          collaboratorDirectory,
+          hiddenCollaboratorIds,
+        },
+        this.scene.getNonDeletedElementsMap(),
+      ),
+  );
+
+  /**
+   * Non-deleted elements in the order they're drawn on this client: the
+   * shared order, or the local layer order while layering is on (#82). Used
+   * for hit-testing and binding so what's clicked is what's on top.
+   */
+  private getElementsInDrawingOrder() {
+    const collaboratorLayerOrder = this.getLocalLayerOrder();
+    if (!collaboratorLayerOrder) {
+      return this.scene.getNonDeletedElements();
+    }
+    return this.getLayeredElements({
+      sceneNonce: this.scene.getSceneNonce(),
+      collaboratorLayerOrder,
+      collaboratorDirectory: this.state.collaboratorDirectory,
+      hiddenCollaboratorIds: this.state.hiddenCollaboratorIds,
+    });
   }
 
   // NOTE: Hot path for hit testing, so avoid unnecessary computations
@@ -7015,18 +7317,18 @@ class App extends React.Component<AppProps, AppState> {
     const iframeLikes: Ordered<NonDeleted<ExcalidrawIframeElement>>[] = [];
 
     const elementsMap = this.scene.getNonDeletedElementsMap();
+    // in this client's drawing order, so the last hit is the one on top (#82)
+    const elementsInDrawingOrder = this.getElementsInDrawingOrder();
 
     const elements = (
       opts?.includeBoundTextElement && opts?.includeLockedElements
-        ? this.scene.getNonDeletedElements()
-        : this.scene
-            .getNonDeletedElements()
-            .filter(
-              (element) =>
-                (opts?.includeLockedElements || !element.locked) &&
-                (opts?.includeBoundTextElement ||
-                  !(isTextElement(element) && element.containerId)),
-            )
+        ? elementsInDrawingOrder
+        : elementsInDrawingOrder.filter(
+            (element) =>
+              (opts?.includeLockedElements || !element.locked) &&
+              (opts?.includeBoundTextElement ||
+                !(isTextElement(element) && element.containerId)),
+          )
     )
       // hidden or locked collaborators' elements can't be hit (#81: a locked
       // element behaves like empty canvas, so what's underneath gets hit)
@@ -7132,7 +7434,8 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   private getTextBindableContainerAtPosition(x: number, y: number) {
-    const elements = this.scene.getNonDeletedElements();
+    // front to back in this client's drawing order (#82)
+    const elements = this.getElementsInDrawingOrder();
     const selectedElements = this.scene.getSelectedElements(this.state);
     if (selectedElements.length === 1) {
       return isTextBindableContainer(selectedElements[0], false)

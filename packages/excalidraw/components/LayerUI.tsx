@@ -51,6 +51,7 @@ import { TTDDialog } from "./TTDDialog/TTDDialog";
 import { Stats } from "./Stats";
 import ElementLinkDialog from "./ElementLinkDialog";
 import { TextHyperlinkDialog } from "./TextHyperlinkDialog";
+import { PageInfoDialog } from "./PageInfoDialog";
 import { CustomFontUploadDialog } from "./CustomFontUploadDialog";
 import { ErrorDialog } from "./ErrorDialog";
 import { EyeDropper, activeEyeDropperAtom } from "./EyeDropper";
@@ -106,6 +107,16 @@ interface LayerUIProps {
   activePageId: string;
   onPageSelect: (pageId: string) => void;
   onPageCreate: () => void;
+  onPageInfoOpen: (pageId: string) => void;
+  onEnterPageClearingMode: () => void;
+  onExitPageClearingMode: () => void;
+  onTogglePageForClearing: (pageId: string) => void;
+  onSetAllPagesForClearing: (selected: boolean) => void;
+  onClearSelectedPages: () => void;
+  pageSelectionMode: "clear" | "delete";
+  onEnterPageDeletingMode: () => void;
+  onSetPageSelection: (pageIds: readonly string[]) => void;
+  onDeleteSelectedPages: () => void;
 }
 
 const DefaultMainMenu: React.FC<{
@@ -168,6 +179,16 @@ const LayerUI = ({
   activePageId,
   onPageSelect,
   onPageCreate,
+  onPageInfoOpen,
+  onEnterPageClearingMode,
+  onExitPageClearingMode,
+  onTogglePageForClearing,
+  onSetAllPagesForClearing,
+  onClearSelectedPages,
+  pageSelectionMode,
+  onEnterPageDeletingMode,
+  onSetPageSelection,
+  onDeleteSelectedPages,
 }: LayerUIProps) => {
   const editorInterface = useEditorInterface();
   const stylesPanelMode = useStylesPanelMode();
@@ -470,7 +491,7 @@ const LayerUI = ({
           </Sidebar.TabTrigger>
         </DefaultSidebar.TabTriggers>
         <DefaultSidebar.TabContents>
-          <Sidebar.Tab tab={PAGES_SIDEBAR_TAB}>
+          <Sidebar.Tab tab={PAGES_SIDEBAR_TAB} className="page-navigation-tab">
             <Pages
               pages={pages}
               activePageId={activePageId}
@@ -478,6 +499,17 @@ const LayerUI = ({
               files={files}
               onSelectPage={onPageSelect}
               onCreatePage={onPageCreate}
+              onOpenPageInfo={onPageInfoOpen}
+              clearingSelection={appState.pageClearingSelection}
+              onEnterClearingMode={onEnterPageClearingMode}
+              onExitClearingMode={onExitPageClearingMode}
+              onTogglePageForClearing={onTogglePageForClearing}
+              onSetAllPagesForClearing={onSetAllPagesForClearing}
+              onClearSelectedPages={onClearSelectedPages}
+              selectionMode={pageSelectionMode}
+              onEnterDeletingMode={onEnterPageDeletingMode}
+              onSetPageSelection={onSetPageSelection}
+              onDeleteSelectedPages={onDeleteSelectedPages}
             />
           </Sidebar.Tab>
         </DefaultSidebar.TabContents>
@@ -596,6 +628,20 @@ const LayerUI = ({
           onCancel={() => app.closeTextHyperlinkDialog(null)}
         />
       )}
+      {appState.openDialog?.name === "pageInfo" &&
+        (() => {
+          const pageId = appState.openDialog.pageId;
+          const page = pages.find((candidate) => candidate.id === pageId);
+          return page ? (
+            <PageInfoDialog
+              key={page.id}
+              page={page}
+              pages={pages}
+              onSave={(patch) => app.updatePageInfo(pageId, patch)}
+              onClose={() => setAppState({ openDialog: null })}
+            />
+          ) : null;
+        })()}
       {appState.openDialog?.name === "customFontUpload" && (
         <CustomFontUploadDialog
           file={appState.openDialog.file}

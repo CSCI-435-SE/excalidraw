@@ -88,6 +88,7 @@ export {
 } from "./actionClipboard";
 
 export { actionToggleGridMode } from "./actionToggleGridMode";
+export { actionOpenPageInfo } from "./actionPageInfo";
 export { actionToggleGridSnapMode } from "./actionToggleGridSnapMode";
 export {
   actionChangeGridScale,
@@ -146,4 +147,8 @@ export {
   actionToggleCollaboratorLock,
   actionLockAllCollaborators,
   actionUnlockAllCollaborators,
+  actionToggleCollaboratorLayering,
+  actionMoveCollaboratorLayer,
+  actionResetCollaboratorLayerOrder,
+  actionSetNewCollaboratorDefault,
 } from "./actionCollaboratorVisibility";

@@ -17,6 +17,8 @@ import {
   isTestEnv,
 } from "@excalidraw/common";
 
+import { DEFAULT_NEW_COLLABORATOR } from "@excalidraw/element";
+
 import type { AppState, NormalizedZoomValue } from "./types";
 
 const defaultExportScale = EXPORT_SCALES.includes(devicePixelRatio)
@@ -99,6 +101,7 @@ export const getDefaultAppState = (): Omit<
     openPopup: null,
     openSidebar: null,
     openDialog: null,
+    pageClearingSelection: null,
     previousSelectedElementIds: {},
     resizingElement: null,
     scrolledOutside: false,
@@ -139,6 +142,9 @@ export const getDefaultAppState = (): Omit<
     followedBy: new Set(),
     hiddenCollaboratorIds: new Set(),
     lockedCollaboratorIds: new Set(),
+    collaboratorLayeringEnabled: false,
+    collaboratorLayerOrder: null,
+    newCollaboratorDefault: DEFAULT_NEW_COLLABORATOR,
     collaboratorDirectory: null,
     viewModeBeforeSelfHide: null,
     isCropping: false,
@@ -251,6 +257,7 @@ const APP_STATE_STORAGE_CONF = (<
   openPopup: { browser: false, export: false, server: false },
   openSidebar: { browser: true, export: false, server: false },
   openDialog: { browser: false, export: false, server: false },
+  pageClearingSelection: { browser: false, export: false, server: false },
   previousSelectedElementIds: { browser: true, export: false, server: false },
   resizingElement: { browser: false, export: false, server: false },
   scrolledOutside: { browser: true, export: false, server: false },
@@ -288,6 +295,14 @@ const APP_STATE_STORAGE_CONF = (<
   followedBy: { browser: false, export: false, server: false },
   hiddenCollaboratorIds: { browser: false, export: false, server: false },
   lockedCollaboratorIds: { browser: false, export: false, server: false },
+  collaboratorLayeringEnabled: {
+    browser: false,
+    export: false,
+    server: false,
+  },
+  collaboratorLayerOrder: { browser: false, export: false, server: false },
+  // #83: saved per device by the host app, never with the scene
+  newCollaboratorDefault: { browser: false, export: false, server: false },
   collaboratorDirectory: { browser: false, export: false, server: false },
   viewModeBeforeSelfHide: { browser: false, export: false, server: false },
   isCropping: { browser: false, export: false, server: false },

@@ -11,6 +11,8 @@ import type { LinearElementEditor } from "@excalidraw/element";
 
 import type { MaybeTransformHandleType } from "@excalidraw/element";
 
+import type { NewCollaboratorDefault } from "@excalidraw/element";
+
 import type {
   PointerType,
   ExcalidrawLinearElement,
@@ -520,7 +522,14 @@ export interface AppState {
     | { name: "textHyperlink"; initialDisplayText: string }
     | { name: "customFontUpload"; file: File }
     | { name: "charts"; data: Spreadsheet; rawText: string }
-    | { name: "duplicateRotated" };
+    | { name: "duplicateRotated" }
+    | { name: "pageInfo"; pageId: string };
+  /**
+   * Page clearing mode for this editor instance.
+   * `null` when clearing mode is closed; otherwise the ids of the pages the
+   * user has selected for clearing.
+   */
+  pageClearingSelection: readonly string[] | null;
   /**
    * Reflects user preference for whether the default sidebar should be docked.
    *
@@ -599,6 +608,21 @@ export interface AppState {
    * client only (never synced). Hidden creators are always non-interactive.
    */
   lockedCollaboratorIds: ReadonlySet<string>;
+  /**
+   * whether collaborators' drawings are layered by `collaboratorLayerOrder`
+   * on this client only (never synced). Off → the shared drawing order.
+   */
+  collaboratorLayeringEnabled: boolean;
+  /**
+   * local layer order of creator ids, top row (drawn on top) first. `null`
+   * until layering is first turned on; kept while it's off.
+   */
+  collaboratorLayerOrder: readonly string[] | null;
+  /**
+   * how a collaborator this client sees for the first time starts (#83):
+   * visible, visible but locked, or hidden. Local only (never synced).
+   */
+  newCollaboratorDefault: NewCollaboratorDefault;
   /**
    * collaborators this client has seen in the current room, keyed by their
    * client id (= elements' creator id). Supplied by the host app; `null`
@@ -1005,6 +1029,8 @@ export type AppClassProperties = {
   setActiveTool: App["setActiveTool"];
   setOpenDialog: App["setOpenDialog"];
   closeTextHyperlinkDialog: App["closeTextHyperlinkDialog"];
+  getPageForInfo: App["getPageForInfo"];
+  updatePageInfo: App["updatePageInfo"];
   openCustomFontUploadDialog: App["openCustomFontUploadDialog"];
   closeCustomFontUploadDialog: App["closeCustomFontUploadDialog"];
   insertEmbeddableElement: App["insertEmbeddableElement"];
@@ -1030,8 +1056,9 @@ export type AppClassProperties = {
   bindModeHandler: App["bindModeHandler"];
 
   setAppState: App["setAppState"];
-  getPagesForPersistence: App["getPagesForPersistence"];
+  getPageIds: App["getPageIds"];
   getActivePageId: App["getActivePageId"];
+  clearPages: App["clearPages"];
 };
 
 export type PointerDownState = Readonly<{

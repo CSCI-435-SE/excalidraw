@@ -45,7 +45,10 @@ import {
 } from "./heading";
 import { LinearElementEditor } from "./linearElementEditor";
 import { mutateElement } from "./mutateElement";
-import { excludeElementsByHiddenCreators } from "./ownership";
+import {
+  excludeElementsByHiddenCreators,
+  orderElementsByCollaboratorLayer,
+} from "./ownership";
 import { getBoundTextElement, handleBindTextResize } from "./textElement";
 import {
   isArrowElement,
@@ -618,9 +621,10 @@ export const getBindingStrategyForDraggingBindingElementEndpoints = (
 ): { start: BindingStrategy; end: BindingStrategy } => {
   // binding chokepoint: arrows can't newly bind to elements of collaborators
   // hidden on this client. Existing bindings are kept (`updateArrowBindings`
-  // intentionally uses the unfiltered elements)
-  const bindableElements = excludeElementsByHiddenCreators(
-    elements,
+  // intentionally uses the unfiltered elements). Candidates are in this
+  // client's drawing order, so the shape on top is the one bound (#82)
+  const bindableElements = orderElementsByCollaboratorLayer(
+    excludeElementsByHiddenCreators(elements, appState, elementsMap),
     appState,
     elementsMap,
   );

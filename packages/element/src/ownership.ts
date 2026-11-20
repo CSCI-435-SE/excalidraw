@@ -309,6 +309,233 @@ export const excludeNonInteractiveElements = <T extends ExcalidrawElement>(
   );
 };
 
+/** structurally satisfied by the editor's AppState */
+export type CreatorLayering = CreatorVisibility &
+  CreatorSelf & {
+    /** layering on → elements are drawn in `collaboratorLayerOrder` */
+    collaboratorLayeringEnabled?: boolean;
+    /**
+     * local layer order of visibility buckets, top row (drawn on top) first.
+     * `null`/omitted → the default order.
+     */
+    collaboratorLayerOrder?: readonly string[] | null;
+  };
+
+/**
+ * The layer order used when layering is first turned on, and on reset (#82):
+ * you on top, then everyone in join order, the miscellaneous bucket last.
+ *
+ * Join order is the order of `collaboratorDirectory` (#116), which records
+ * each collaborator the first time this client sees them (a `Map` keeps
+ * insertion order). Live collaborators not recorded yet follow it.
+ */
+export const getDefaultCollaboratorLayerOrder = (
+  state: CreatorVisibility & CreatorSelf,
+): string[] => {
+  const order = new Set<string>();
+  const selfId = getSelfCreatorId(state);
+  if (selfId) {
+    order.add(selfId);
+  }
+  for (const id of state.collaboratorDirectory?.keys() ?? []) {
+    order.add(id);
+  }
+  for (const collaborator of state.collaborators?.values() ?? []) {
+    if (collaborator.id) {
+      order.add(collaborator.id);
+    }
+  }
+  order.add(UNKNOWN_CREATOR_ID);
+  return [...order];
+};
+
+/**
+ * Returns `order` with `ids` added below every collaborator already in it,
+ * in the given (join) order (#83 D): directly above the miscellaneous bucket
+ * while it's the bottom row, otherwise at the very bottom. My own id goes on
+ * top instead, like in the default order. Ids already in `order` are moved,
+ * never duplicated.
+ */
+const addToLayerOrder = (
+  order: readonly string[],
+  ids: readonly string[],
+  selfId: string | null,
+): string[] => {
+  const next = order.filter((id) => !ids.includes(id));
+  const isMiscellaneousLast = next[next.length - 1] === UNKNOWN_CREATOR_ID;
+  next.splice(
+    isMiscellaneousLast ? next.length - 1 : next.length,
+    0,
+    ...ids.filter((id) => id !== selfId),
+  );
+  return selfId !== null && ids.includes(selfId) ? [selfId, ...next] : next;
+};
+
+/**
+ * The layer order shown in the dropdown and used for drawing (#82): the
+ * stored order (or the default one), with anyone not in it yet added below
+ * every collaborator already in it, in join order (#83 D, see
+ * `addToLayerOrder`). Ids are never dropped, so collaborators who are hidden
+ * or left keep their place.
+ */
+export const getCollaboratorLayerOrder = (
+  state: CreatorLayering,
+): readonly string[] => {
+  const defaultOrder = getDefaultCollaboratorLayerOrder(state);
+  const stored = state.collaboratorLayerOrder;
+  if (!stored) {
+    return defaultOrder;
+  }
+  const known = new Set(stored);
+  const newcomers = defaultOrder.filter((id) => !known.has(id));
+  return newcomers.length
+    ? addToLayerOrder(stored, newcomers, getSelfCreatorId(state))
+    : stored;
+};
+
+/** how a collaborator this client sees for the first time can start (#83) */
+export const NEW_COLLABORATOR_DEFAULTS = [
+  "visible",
+  "locked",
+  "hidden",
+] as const;
+
+export type NewCollaboratorDefault = typeof NEW_COLLABORATOR_DEFAULTS[number];
+
+export const DEFAULT_NEW_COLLABORATOR: NewCollaboratorDefault = "locked";
+
+/** structurally satisfied by the editor's AppState */
+export type CreatorNewcomer = CreatorLayering &
+  CreatorInteractivity & {
+    newCollaboratorDefault: NewCollaboratorDefault;
+  };
+
+/**
+ * The state `id` starts in when this client sees them for the first time
+ * (#83): `state.newCollaboratorDefault` applied to them, and their place in
+ * a stored layer order below every collaborator already in it (#83 D, see
+ * `addToLayerOrder`). Pass the state from before the sighting is recorded in
+ * the directory.
+ *
+ * Returns `null` (nothing to change) for anyone already in the directory,
+ * for me, and for the miscellaneous bucket. Leftover state of a first-seen
+ * collaborator (e.g. pruned from the directory) is replaced.
+ */
+export const getNewcomerState = (
+  id: string,
+  state: CreatorNewcomer,
+): Required<
+  Pick<
+    CreatorNewcomer,
+    "hiddenCollaboratorIds" | "lockedCollaboratorIds" | "collaboratorLayerOrder"
+  >
+> | null => {
+  const selfId = getSelfCreatorId(state);
+  if (
+    id === selfId ||
+    id === UNKNOWN_CREATOR_ID ||
+    state.collaboratorDirectory?.has(id)
+  ) {
+    return null;
+  }
+  const mode = state.newCollaboratorDefault;
+
+  const hiddenCollaboratorIds = new Set(state.hiddenCollaboratorIds);
+  hiddenCollaboratorIds.delete(id);
+  if (mode === "hidden") {
+    hiddenCollaboratorIds.add(id);
+  }
+  // hidden → also locked, as #116's hide actions do (#81)
+  const lockedCollaboratorIds = addLockedCollaborators(
+    state.lockedCollaboratorIds,
+    [id],
+    selfId,
+  );
+  if (mode === "visible") {
+    lockedCollaboratorIds.delete(id);
+  }
+
+  const order = state.collaboratorLayerOrder;
+  return {
+    hiddenCollaboratorIds,
+    lockedCollaboratorIds,
+    collaboratorLayerOrder: order ? addToLayerOrder(order, [id], selfId) : null,
+  };
+};
+
+/**
+ * Returns `order` with `id` moved to `toIndex` (clamped to the list), or
+ * `order` itself when nothing changes (unknown id, or already there).
+ */
+export const moveCollaboratorLayer = (
+  order: readonly string[],
+  id: string,
+  toIndex: number,
+): readonly string[] => {
+  const fromIndex = order.indexOf(id);
+  const targetIndex = Math.min(Math.max(toIndex, 0), order.length - 1);
+  if (fromIndex === -1 || fromIndex === targetIndex) {
+    return order;
+  }
+  const next = order.filter((other) => other !== id);
+  next.splice(targetIndex, 0, id);
+  return next;
+};
+
+/**
+ * The single layering rule (#82), used for rendering, hit-testing, binding
+ * and export: while layering is on, elements of a higher collaborator in the
+ * layer order are drawn after (above) every element of a lower one. The sort
+ * is stable, so each collaborator keeps the shared drawing order. Bound text
+ * follows its container's owners. Buckets missing from the order go below
+ * everyone.
+ *
+ * A co-owned element (#84) is drawn in the layer of its highest VISIBLE
+ * owner, like it follows its least restricted owner for visibility and
+ * locking. If every owner is hidden (it isn't drawn then), its highest owner
+ * is used.
+ *
+ * Never changes elements (their shared `index` stays as is). Returns the
+ * input array as-is while layering is off.
+ *
+ * @param elementsMap used to resolve bound text containers. Defaults to a map
+ * of `elements`, so pass the full scene map when `elements` is a subset.
+ */
+export const orderElementsByCollaboratorLayer = <T extends ExcalidrawElement>(
+  elements: readonly T[],
+  state: CreatorLayering,
+  elementsMap?: ElementsMap,
+): readonly T[] => {
+  if (!state.collaboratorLayeringEnabled) {
+    return elements;
+  }
+  const order = getCollaboratorLayerOrder(state);
+  // higher rank = drawn later (on top); missing buckets rank lowest (-1)
+  const rankByBucket = new Map(
+    order.map((id, index) => [id, order.length - 1 - index]),
+  );
+  const map = elementsMap ?? arrayToMap(elements);
+  const getRank = (element: T) => {
+    const buckets = getElementVisibilityBuckets(
+      element,
+      map,
+      state.collaboratorDirectory,
+    );
+    const visibleBuckets = buckets.filter(
+      (bucket) => !state.hiddenCollaboratorIds?.has(bucket),
+    );
+    return Math.max(
+      ...(visibleBuckets.length ? visibleBuckets : buckets).map(
+        (bucket) => rankByBucket.get(bucket) ?? -1,
+      ),
+    );
+  };
+  return elements
+    .map((element) => ({ element, rank: getRank(element) }))
+    .sort((a, b) => a.rank - b.rank)
+    .map(({ element }) => element);
+};
+
 /**
  * Filters out elements whose visibility bucket is hidden. Returns the input
  * array as-is when nothing is hidden.

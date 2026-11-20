@@ -291,7 +291,7 @@ describe("collaborator lock — Criteria C (no interactivity without visibility)
   });
 });
 
-describe("collaborator lock — Criteria G (local and non-persistent)", () => {
+describe("collaborator lock — Criteria G (local only; saved by the host app per #83)", () => {
   it("AC-G: lock settings are not saved to local storage", () => {
     execute("toggleCollaboratorLock", "alice");
     expect(clearAppStateForLocalStorage(h.state)).not.toHaveProperty(
@@ -313,10 +313,12 @@ describe("collaborator lock — Criteria G (local and non-persistent)", () => {
     );
   });
 
-  it("AC-G: lock settings reset when the page reloads", () => {
+  // #83 Criteria F replaces "reset on reload": lock settings are now saved
+  // per room by the host app (collaboratorSettings.ts), never with the scene
+  it("AC-G (#83 F): lock settings are not restored from the scene's local save", () => {
     execute("toggleCollaboratorLock", "alice");
 
-    // a reload restores app state from what was saved locally
+    // what the scene's own local save would give back on a reload
     const saved = clearAppStateForLocalStorage(h.state);
     const restored = restoreAppState(saved, null);
 

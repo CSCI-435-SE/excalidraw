@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from "react";
 
+import clsx from "clsx";
+
 import { isNonDeletedElement } from "@excalidraw/element";
 
 import { exportToCanvas } from "../scene/export";
 
 import { getDefaultAppState } from "../appState";
 import { t } from "../i18n";
+
+import ConfirmDialog from "./ConfirmDialog";
+import { PageDeleteDialog } from "./PageDeleteDialog";
+import { PageRangeSelect } from "./PageRangeSelect";
+import { Tooltip } from "./Tooltip";
 
 import "./Pages.scss";
 
@@ -14,6 +21,8 @@ import type { DrawingPage } from "../pages";
 
 const PAGE_PREVIEW_WIDTH = 144;
 const PAGE_PREVIEW_HEIGHT = 96;
+/** opens the page info menu for the focused page tab */
+const PAGE_INFO_KEY = "F2";
 
 const PageIcon = () => (
   <svg
@@ -122,6 +131,57 @@ const PagePreview = React.memo(
     prevProps.appState.theme === nextProps.appState.theme,
 );
 
+/**
+ * A page tab outside clearing mode: selects the page on click, opens its page
+ * info menu on right-click or F2, and shows its description on hover.
+ */
+const PageTab = ({
+  page,
+  isActive,
+  onSelectPage,
+  onOpenPageInfo,
+  children,
+}: {
+  page: DrawingPage;
+  isActive: boolean;
+  onSelectPage: (pageId: string) => void;
+  onOpenPageInfo: (pageId: string) => void;
+  children: React.ReactNode;
+}) => {
+  const tab = (
+    <button
+      type="button"
+      className="page-navigation__item"
+      aria-label={page.name}
+      aria-pressed={isActive}
+      onClick={() => onSelectPage(page.id)}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onOpenPageInfo(page.id);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === PAGE_INFO_KEY) {
+          event.preventDefault();
+          event.stopPropagation();
+          onOpenPageInfo(page.id);
+        }
+      }}
+    >
+      {children}
+    </button>
+  );
+
+  // only show the hover metadata when there is something to show
+  return page.description ? (
+    <Tooltip label={page.description} long>
+      {tab}
+    </Tooltip>
+  ) : (
+    tab
+  );
+};
+
 export const Pages = ({
   pages,
   activePageId,
@@ -129,6 +189,17 @@ export const Pages = ({
   files,
   onSelectPage,
   onCreatePage,
+  onOpenPageInfo,
+  clearingSelection,
+  onEnterClearingMode,
+  onExitClearingMode,
+  onTogglePageForClearing,
+  onSetAllPagesForClearing,
+  onClearSelectedPages,
+  selectionMode,
+  onEnterDeletingMode,
+  onDeleteSelectedPages,
+  onSetPageSelection,
 }: {
   pages: readonly DrawingPage[];
   activePageId: string;
@@ -136,35 +207,209 @@ export const Pages = ({
   files: BinaryFiles;
   onSelectPage: (pageId: string) => void;
   onCreatePage: () => void;
-}) => (
-  <div className="page-navigation" role="region" aria-label={t("labels.pages")}>
-    <div className="page-navigation__list">
-      {pages.map((page, index) => (
-        <button
-          type="button"
-          key={page.id}
-          className="page-navigation__item"
-          aria-label={`${t("labels.page")} ${index + 1}`}
-          aria-pressed={page.id === activePageId}
-          onClick={() => onSelectPage(page.id)}
-        >
-          <PagePreview page={page} files={files} appState={appState} />
-          <span className="page-navigation__item-title">
-            {t("labels.page")} {index + 1}
-          </span>
-        </button>
-      ))}
-    </div>
-    <button
-      type="button"
-      className="page-navigation__add"
-      onClick={onCreatePage}
-      disabled={appState.viewModeEnabled}
+  onOpenPageInfo: (pageId: string) => void;
+  /** `null` when not in clearing mode */
+  clearingSelection: readonly string[] | null;
+  onEnterClearingMode: () => void;
+  onExitClearingMode: () => void;
+  onTogglePageForClearing: (pageId: string) => void;
+  onSetAllPagesForClearing: (selected: boolean) => void;
+  onClearSelectedPages: () => void;
+  /** whether the page selection above is for clearing or deleting */
+  selectionMode: "clear" | "delete";
+  onEnterDeletingMode: () => void;
+  onDeleteSelectedPages: () => void;
+  onSetPageSelection: (pageIds: readonly string[]) => void;
+}) => {
+  // local state so the confirmation is scoped to this editor instance
+  const [isConfirmingClear, setIsConfirmingClear] = useState(false);
+  const isClearing = clearingSelection !== null;
+  // deleting mode (#158) reuses clearing mode's page selection
+  const isDeleting = isClearing && selectionMode === "delete";
+  const selectedCount = clearingSelection
+    ? pages.filter((page) => clearingSelection.includes(page.id)).length
+    : 0;
+  // there is always at least one page
+  const allSelected = selectedCount === pages.length;
+
+  // never carry a pending confirmation into or out of clearing mode
+  useEffect(() => {
+    setIsConfirmingClear(false);
+  }, [isClearing]);
+
+  return (
+    <div
+      className="page-navigation"
+      role="region"
+      aria-label={t("labels.pages")}
     >
-      <span aria-hidden="true">+</span>
-      {t("buttons.addPage")}
-    </button>
-  </div>
-);
+      {isClearing && (
+        <div className="page-navigation__clearing-header">
+          {isDeleting ? t("labels.deletingMode") : t("labels.clearingMode")}
+        </div>
+      )}
+      <div className="page-navigation__list">
+        {pages.map((page) => {
+          const isActive = page.id === activePageId;
+          const isSelected = !!clearingSelection?.includes(page.id);
+          const title = page.name;
+          const content = (
+            <>
+              {page.showThumbnail ? (
+                <PagePreview page={page} files={files} appState={appState} />
+              ) : null}
+              <span className="page-navigation__item-title">
+                {isClearing && (
+                  <span
+                    className={clsx("page-navigation__checkbox", {
+                      "page-navigation__checkbox--checked": isSelected,
+                    })}
+                    aria-hidden="true"
+                  >
+                    {isSelected ? "✓" : ""}
+                  </span>
+                )}
+                {!page.showThumbnail && <PageIcon />}
+                <span className="page-navigation__item-name">{title}</span>
+                {isClearing && isActive && (
+                  <span className="page-navigation__current-badge">
+                    {t("labels.currentPage")}
+                  </span>
+                )}
+              </span>
+            </>
+          );
+
+          return isClearing ? (
+            <button
+              type="button"
+              key={page.id}
+              role="checkbox"
+              className={clsx("page-navigation__item", {
+                "page-navigation__item--current": isActive,
+                "page-navigation__item--selected": isSelected,
+              })}
+              aria-label={title}
+              aria-checked={isSelected}
+              aria-current={isActive ? "page" : undefined}
+              onClick={() => onTogglePageForClearing(page.id)}
+            >
+              {content}
+            </button>
+          ) : (
+            <PageTab
+              key={page.id}
+              page={page}
+              isActive={isActive}
+              onSelectPage={onSelectPage}
+              onOpenPageInfo={onOpenPageInfo}
+            >
+              {content}
+            </PageTab>
+          );
+        })}
+      </div>
+      {isClearing ? (
+        <div className="page-navigation__actions">
+          <div className="page-navigation__actions-row">
+            <button
+              type="button"
+              className="page-navigation__add"
+              onClick={() => onSetAllPagesForClearing(!allSelected)}
+            >
+              {allSelected
+                ? t("buttons.deselectAllPages")
+                : t("buttons.selectAllPages")}
+            </button>
+            <button
+              type="button"
+              className="page-navigation__add"
+              onClick={() =>
+                onSetPageSelection(
+                  pages
+                    .filter((page) => page.id !== activePageId)
+                    .map((page) => page.id),
+                )
+              }
+              disabled={pages.length < 2}
+            >
+              {t("buttons.selectOtherPages")}
+            </button>
+          </div>
+          <PageRangeSelect pages={pages} onSelect={onSetPageSelection} />
+          <button
+            type="button"
+            className="page-navigation__add page-navigation__add--danger"
+            onClick={() => setIsConfirmingClear(true)}
+            disabled={!selectedCount || appState.viewModeEnabled}
+          >
+            {isDeleting ? t("labels.delete") : t("buttons.clearPages")}
+          </button>
+          <button
+            type="button"
+            className="page-navigation__add"
+            onClick={onExitClearingMode}
+          >
+            {isDeleting
+              ? t("buttons.exitDeletingMode")
+              : t("buttons.exitClearingMode")}
+          </button>
+        </div>
+      ) : (
+        <div className="page-navigation__actions">
+          <button
+            type="button"
+            className="page-navigation__add"
+            onClick={onCreatePage}
+            disabled={appState.viewModeEnabled}
+          >
+            <span aria-hidden="true">+</span>
+            {t("buttons.addPage")}
+          </button>
+          <button
+            type="button"
+            className="page-navigation__add"
+            onClick={onEnterClearingMode}
+            disabled={appState.viewModeEnabled}
+          >
+            {t("buttons.enterClearingMode")}
+          </button>
+          <button
+            type="button"
+            className="page-navigation__add"
+            onClick={onEnterDeletingMode}
+            disabled={appState.viewModeEnabled}
+          >
+            {t("buttons.enterDeletingMode")}
+          </button>
+        </div>
+      )}
+      {isDeleting && isConfirmingClear && (
+        <PageDeleteDialog
+          pages={pages}
+          pageIds={clearingSelection}
+          onConfirm={() => {
+            setIsConfirmingClear(false);
+            onDeleteSelectedPages();
+          }}
+          onCancel={() => setIsConfirmingClear(false)}
+        />
+      )}
+      {isClearing && !isDeleting && isConfirmingClear && (
+        <ConfirmDialog
+          title={t("clearPagesDialog.title")}
+          confirmText={t("buttons.clearPages")}
+          onConfirm={() => {
+            setIsConfirmingClear(false);
+            onClearSelectedPages();
+          }}
+          onCancel={() => setIsConfirmingClear(false)}
+        >
+          <p>{t("clearPagesDialog.content", { count: selectedCount })}</p>
+        </ConfirmDialog>
+      )}
+    </div>
+  );
+};
 
 export { PageIcon };

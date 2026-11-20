@@ -19,7 +19,7 @@ import {
   throttleRAF,
 } from "@excalidraw/common";
 import { decryptData } from "@excalidraw/excalidraw/data/encryption";
-import { getVisibleSceneBounds } from "@excalidraw/element";
+import { getNewcomerState, getVisibleSceneBounds } from "@excalidraw/element";
 import { newElementWith } from "@excalidraw/element";
 import { isImageElement, isInitializedImageElement } from "@excalidraw/element";
 import { AbortError } from "@excalidraw/excalidraw/errors";
@@ -43,6 +43,7 @@ import type {
   OrderedExcalidrawElement,
 } from "@excalidraw/element/types";
 import type {
+  AppState,
   BinaryFileData,
   ExcalidrawImperativeAPI,
   SocketId,
@@ -93,6 +94,11 @@ import {
   recordCollaboratorSighting,
   saveCollaboratorDirectory,
 } from "./collaboratorDirectory";
+import {
+  isSameCollaboratorSettings,
+  loadCollaboratorSettings,
+  saveCollaboratorSettings,
+} from "./collaboratorSettings";
 import { collabErrorIndicatorAtom } from "./CollabError";
 import { getElementsToStamp, getStampedCustomData } from "./creatorStamp";
 import {
@@ -102,6 +108,7 @@ import {
 import Portal from "./Portal";
 
 import type { CollaboratorDirectory } from "./collaboratorDirectory";
+import type { CollaboratorSettings } from "./collaboratorSettings";
 import type {
   SocketUpdateDataSource,
   SyncableExcalidrawElement,
@@ -130,6 +137,7 @@ export interface CollabAPI {
   startCollaboration: CollabInstance["startCollaboration"];
   stopCollaboration: CollabInstance["stopCollaboration"];
   syncElements: CollabInstance["syncElements"];
+  saveCollaboratorSettings: CollabInstance["saveCollaboratorSettings"];
   fetchImageFilesFromFirebase: CollabInstance["fetchImageFilesFromFirebase"];
   setUsername: CollabInstance["setUsername"];
   getUsername: CollabInstance["getUsername"];
@@ -164,6 +172,13 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   /** collaborators seen in the current room (see collaboratorDirectory.ts) */
   private collaboratorDirectory: CollaboratorDirectory = new Map();
   private directoryRoomId: string | null = null;
+  /**
+   * room whose saved dropdown settings (#83) are in the editor, `null` while
+   * they aren't (then nothing is saved, so defaults never overwrite them)
+   */
+  private settingsRoomId: string | null = null;
+  /** the settings last saved or restored, so they're saved only on change */
+  private savedSettings: CollaboratorSettings | null = null;
 
   constructor(props: CollabProps) {
     super(props);
@@ -257,6 +272,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       onPointerUpdate: this.onPointerUpdate,
       startCollaboration: this.startCollaboration,
       syncElements: this.syncElements,
+      saveCollaboratorSettings: this.saveCollaboratorSettings,
       fetchImageFilesFromFirebase: this.fetchImageFilesFromFirebase,
       stopCollaboration: this.stopCollaboration,
       setUsername: this.setUsername,
@@ -445,6 +461,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       this.collaborators = new Map();
       this.collaboratorDirectory = new Map();
       this.directoryRoomId = null;
+      this.settingsRoomId = null;
       this.excalidrawAPI.updateScene({
         collaborators: this.collaborators,
         appState: {
@@ -551,8 +568,8 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.excalidrawAPI.updateScene({
       appState: {
         collaboratorDirectory: this.collaboratorDirectory,
-        // visibility choices never carry over between rooms
-        hiddenCollaboratorIds: new Set(),
+        // this room's saved dropdown settings (#83), never another room's
+        ...this.loadRoomSettings(roomId),
       },
     });
 
@@ -597,7 +614,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
 
     if (existingRoomLinkData) {
       // when joining existing room, don't merge it with current scene data
-      this.excalidrawAPI.resetScene();
+      this.resetSceneKeepingSettings(roomId);
     } else {
       const elements = this.excalidrawAPI.getSceneElements().map((element) => {
         if (isImageElement(element) && element.status === "saved") {
@@ -799,7 +816,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       );
     }
     if (fetchScene && roomLinkData && this.portal.socket) {
-      this.excalidrawAPI.resetScene();
+      this.resetSceneKeepingSettings(roomLinkData.roomId);
 
       try {
         const elements = await loadFromFirebase(
@@ -1055,14 +1072,27 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     collaborators.set(socketId, user);
     this.collaborators = collaborators;
 
+    // #83: seen for the first time (checked before recording the sighting)
+    // → starts in the "New collaborators" default
+    const newcomerState =
+      user.id &&
+      this.directoryRoomId &&
+      !this.collaboratorDirectory.has(user.id)
+        ? getNewcomerState(user.id, {
+            ...this.excalidrawAPI.getAppState(),
+            collaboratorDirectory: this.collaboratorDirectory,
+          })
+        : null;
+
     if (user.id) {
       this.recordSighting(user.id, user.username);
     }
 
-    this.excalidrawAPI.updateScene({
-      collaborators,
-      appState: { collaboratorDirectory: this.collaboratorDirectory },
-    });
+    const appState: Pick<AppState, "collaboratorDirectory"> = {
+      ...newcomerState,
+      collaboratorDirectory: this.collaboratorDirectory,
+    };
+    this.excalidrawAPI.updateScene({ collaborators, appState });
   };
 
   public setLastBroadcastedOrReceivedSceneVersion = (version: number) => {
@@ -1108,6 +1138,43 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.excalidrawAPI.updateScene({
       appState: { collaboratorDirectory: this.collaboratorDirectory },
     });
+  };
+
+  /**
+   * Loads `roomId`'s saved dropdown settings (#83) to put in the editor, and
+   * from then on saves them when they change.
+   */
+  private loadRoomSettings = (roomId: string) => {
+    this.savedSettings = loadCollaboratorSettings(roomId, this.clientId);
+    this.settingsRoomId = roomId;
+    return this.savedSettings;
+  };
+
+  /**
+   * Resets the scene for joining `roomId`. The reset also resets appState,
+   * so this room's saved settings (#83) are put back right away, and not
+   * saved in between.
+   */
+  private resetSceneKeepingSettings = (roomId: string) => {
+    this.settingsRoomId = null;
+    this.excalidrawAPI.resetScene();
+    this.excalidrawAPI.updateScene({ appState: this.loadRoomSettings(roomId) });
+  };
+
+  /**
+   * Saves the dropdown's settings (#83) when they changed. Called on every
+   * editor change, so it only compares references until something changed.
+   */
+  saveCollaboratorSettings = (appState: AppState) => {
+    if (
+      !this.settingsRoomId ||
+      (this.savedSettings &&
+        isSameCollaboratorSettings(this.savedSettings, appState))
+    ) {
+      return;
+    }
+    this.savedSettings = appState;
+    saveCollaboratorSettings(this.settingsRoomId, appState, this.clientId);
   };
 
   private markRemoteElements = (
