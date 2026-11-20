@@ -6,14 +6,15 @@
 
 _**User (2026-11-20 02:23:32Z)**_
 
-Fill out the following template for milestone 3: | Issue Title | Owner | Estimated Points | Scope | Status |
-|---|---|---|---|---|
+| Fill out the following template for milestone 3: | Issue Title | Owner | Estimated Points | Scope | Status |
+| --- | --- | --- | --- | --- | --- |
 
 ---
 
 _**Agent (claude-opus-5-5 2026-11-20 02:23:37Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 List repo milestones
 
@@ -23,31 +24,35 @@ List repo milestones
 Exit code 127
 /usr/bin/bash: line 1: gh: command not found
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 02:23:41Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 List repo milestones via gh
 
 ```text
-gh : The term 'gh' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the 
+gh : The term 'gh' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the
 spelling of the name, or if a path was included, verify that the path is correct and try again.
 At line:1 char:302
 + ... y { $PSStyle.OutputRendering = 'PlainText' } catch {} } }; gh api "re ...
 +                                                                ~~
     + CategoryInfo          : ObjectNotFound: (gh:String) [], CommandNotFoundException
     + FullyQualifiedErrorId : CommandNotFoundException
- 
+
 origin	https://github.com/CSCI-435-SE/excalidraw (fetch)
 origin	https://github.com/CSCI-435-SE/excalidraw (push)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 02:23:48Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  pattern `(?i)milestone`
 
@@ -65,82 +70,86 @@ docs\sprint2\checkin\AntWill-08.md
 docs\sprint1\report.md
 ai-logs\sprint1\tuna-fisher\2026-10-06_claude-code_issue-67-gradient-transformations.md
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 02:23:52Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 List docs and find milestone tables
 
 ```text
-FullName                                                                           
---------                                                                           
-C:\Users\tmr10\excalidraw\docs\showcase1                                           
-C:\Users\tmr10\excalidraw\docs\showcase2                                           
-C:\Users\tmr10\excalidraw\docs\sprint0                                             
-C:\Users\tmr10\excalidraw\docs\sprint1                                             
-C:\Users\tmr10\excalidraw\docs\sprint2                                             
-C:\Users\tmr10\excalidraw\docs\sprint3                                             
-C:\Users\tmr10\excalidraw\docs\sprint4                                             
-C:\Users\tmr10\excalidraw\docs\showcase1\README.pdf                                
-C:\Users\tmr10\excalidraw\docs\showcase2\README.pdf                                
-C:\Users\tmr10\excalidraw\docs\sprint0\.gitkeep                                    
-C:\Users\tmr10\excalidraw\docs\sprint0\report.md                                   
-C:\Users\tmr10\excalidraw\docs\sprint0\standards.md                                
-C:\Users\tmr10\excalidraw\docs\sprint1\.gitkeep                                    
-C:\Users\tmr10\excalidraw\docs\sprint1\design.md                                   
-C:\Users\tmr10\excalidraw\docs\sprint1\report.md                                   
-C:\Users\tmr10\excalidraw\docs\sprint2\checkin                                     
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams                                    
-C:\Users\tmr10\excalidraw\docs\sprint2\.gitkeep                                    
-C:\Users\tmr10\excalidraw\docs\sprint2\report.md                                   
-C:\Users\tmr10\excalidraw\docs\sprint2\checkin\AntWill-08.md                       
-C:\Users\tmr10\excalidraw\docs\sprint2\checkin\CashenCroft.md                      
-C:\Users\tmr10\excalidraw\docs\sprint2\checkin\NotaThomas.md                       
-C:\Users\tmr10\excalidraw\docs\sprint2\checkin\tristanraab.md                      
-C:\Users\tmr10\excalidraw\docs\sprint2\checkin\tuna-fisher.md                      
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\114-AntWill-08-class.png           
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\114-AntWill-08-sequence.png        
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\114-AntWill-08.md                  
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\138-ThomasReilly-class.png         
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\138-ThomasReilly-sequence.png      
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\138-ThomasReilly.md                
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\60-CashenCroft-class.png           
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\60-CashenCroft-sequence.png        
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\60-CashenCroft.md                  
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\7-tristanraab-class.png            
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\7-tristanraab-sequence.png         
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\7-tristanraab.md                   
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\70-tuna-fisher-class.png           
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\70-tuna-fisher-sequence.png        
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\70-tuna-fisher.md                  
-C:\Users\tmr10\excalidraw\docs\sprint3\checkin                                     
-C:\Users\tmr10\excalidraw\docs\sprint3\mutation                                    
-C:\Users\tmr10\excalidraw\docs\sprint3\.gitkeep                                    
-C:\Users\tmr10\excalidraw\docs\sprint3\checkin\AntWill-08.md                       
-C:\Users\tmr10\excalidraw\docs\sprint3\checkin\CashenCroft.md                      
-C:\Users\tmr10\excalidraw\docs\sprint3\checkin\NotaThomas.md                       
-C:\Users\tmr10\excalidraw\docs\sprint3\checkin\tristanraab.md                      
-C:\Users\tmr10\excalidraw\docs\sprint3\checkin\tuna-fisher.md                      
-C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports                            
-C:\Users\tmr10\excalidraw\docs\sprint3\mutation\158-tuna-fisher.md                 
-C:\Users\tmr10\excalidraw\docs\sprint3\mutation\159-NotaThomas.md                  
-C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports\158-tuna-fisher-after.json 
+FullName
+--------
+C:\Users\tmr10\excalidraw\docs\showcase1
+C:\Users\tmr10\excalidraw\docs\showcase2
+C:\Users\tmr10\excalidraw\docs\sprint0
+C:\Users\tmr10\excalidraw\docs\sprint1
+C:\Users\tmr10\excalidraw\docs\sprint2
+C:\Users\tmr10\excalidraw\docs\sprint3
+C:\Users\tmr10\excalidraw\docs\sprint4
+C:\Users\tmr10\excalidraw\docs\showcase1\README.pdf
+C:\Users\tmr10\excalidraw\docs\showcase2\README.pdf
+C:\Users\tmr10\excalidraw\docs\sprint0\.gitkeep
+C:\Users\tmr10\excalidraw\docs\sprint0\report.md
+C:\Users\tmr10\excalidraw\docs\sprint0\standards.md
+C:\Users\tmr10\excalidraw\docs\sprint1\.gitkeep
+C:\Users\tmr10\excalidraw\docs\sprint1\design.md
+C:\Users\tmr10\excalidraw\docs\sprint1\report.md
+C:\Users\tmr10\excalidraw\docs\sprint2\checkin
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams
+C:\Users\tmr10\excalidraw\docs\sprint2\.gitkeep
+C:\Users\tmr10\excalidraw\docs\sprint2\report.md
+C:\Users\tmr10\excalidraw\docs\sprint2\checkin\AntWill-08.md
+C:\Users\tmr10\excalidraw\docs\sprint2\checkin\CashenCroft.md
+C:\Users\tmr10\excalidraw\docs\sprint2\checkin\NotaThomas.md
+C:\Users\tmr10\excalidraw\docs\sprint2\checkin\tristanraab.md
+C:\Users\tmr10\excalidraw\docs\sprint2\checkin\tuna-fisher.md
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\114-AntWill-08-class.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\114-AntWill-08-sequence.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\114-AntWill-08.md
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\138-ThomasReilly-class.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\138-ThomasReilly-sequence.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\138-ThomasReilly.md
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\60-CashenCroft-class.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\60-CashenCroft-sequence.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\60-CashenCroft.md
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\7-tristanraab-class.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\7-tristanraab-sequence.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\7-tristanraab.md
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\70-tuna-fisher-class.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\70-tuna-fisher-sequence.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\70-tuna-fisher.md
+C:\Users\tmr10\excalidraw\docs\sprint3\checkin
+C:\Users\tmr10\excalidraw\docs\sprint3\mutation
+C:\Users\tmr10\excalidraw\docs\sprint3\.gitkeep
+C:\Users\tmr10\excalidraw\docs\sprint3\checkin\AntWill-08.md
+C:\Users\tmr10\excalidraw\docs\sprint3\checkin\CashenCroft.md
+C:\Users\tmr10\excalidraw\docs\sprint3\checkin\NotaThomas.md
+C:\Users\tmr10\excalidraw\docs\sprint3\checkin\tristanraab.md
+C:\Users\tmr10\excalidraw\docs\sprint3\checkin\tuna-fisher.md
+C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports
+C:\Users\tmr10\excalidraw\docs\sprint3\mutation\158-tuna-fisher.md
+C:\Users\tmr10\excalidraw\docs\sprint3\mutation\159-NotaThomas.md
+C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports\158-tuna-fisher-after.json
 C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports\158-tuna-fisher-before.json
-C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports\159-NotaThomas-after.json  
-C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports\159-NotaThomas-before.json 
+C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports\159-NotaThomas-after.json
+C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports\159-NotaThomas-before.json
 C:\Users\tmr10\excalidraw\docs\sprint4\.gitkeep
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 02:24:01Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 Read prior session log for this task
 
-```text
+````text
 <!-- Generated by SpecStory, Markdown v2.1.0 -->
 
 # 2026-11-20 02:23:32Z
@@ -165,32 +174,36 @@ List repo milestones
 ```text
 Exit code 127
 /usr/bin/bash: line 1: gh: command not found
-```
+````
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 02:23:41Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 List repo milestones via gh
 
 ```text
-gh : The term 'gh' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the 
+gh : The term 'gh' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the
 spelling of the name, or if a path was included, verify that the path is correct and try again.
 At line:1 char:302
 + ... y { $PSStyle.OutputRendering = 'PlainText' } catch {} } }; gh api "re ...
 +                                                                ~~
     + CategoryInfo          : ObjectNotFound: (gh:String) [], CommandNotFoundException
     + FullyQualifiedErrorId : CommandNotFoundException
- 
+
 origin	https://github.com/CSCI-435-SE/excalidraw (fetch)
 origin	https://github.com/CSCI-435-SE/excalidraw (push)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 02:23:48Z)**_
 
 <tool-use data-tool-type="search" data-tool-name="Grep"><details>
+
 <summary>Tool use: **Grep**</summary>
  pattern `(?i)milestone`
 
@@ -208,73 +221,76 @@ docs\sprint2\checkin\AntWill-08.md
 docs\sprint1\report.md
 ai-logs\sprint1\tuna-fisher\2026-10-06_claude-code_issue-67-gradient-transformations.md
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 02:23:52Z)**_
 
 <tool-use data-tool-type="unknown" data-tool-name="PowerShell"><details>
+
 <summary>Tool use: **PowerShell**</summary>
 List docs and find milestone tables
 
 ```text
-FullName                                                                           
---------                                                                           
-C:\Users\tmr10\excalidraw\docs\showcase1                                           
-C:\Users\tmr10\excalidraw\docs\showcase2                                           
-C:\Users\tmr10\excalidraw\docs\sprint0                                             
-C:\Users\tmr10\excalidraw\docs\sprint1                                             
-C:\Users\tmr10\excalidraw\docs\sprint2                                             
-C:\Users\tmr10\excalidraw\docs\sprint3                                             
-C:\Users\tmr10\excalidraw\docs\sprint4                                             
-C:\Users\tmr10\excalidraw\docs\showcase1\README.pdf                                
-C:\Users\tmr10\excalidraw\docs\showcase2\README.pdf                                
-C:\Users\tmr10\excalidraw\docs\sprint0\.gitkeep                                    
-C:\Users\tmr10\excalidraw\docs\sprint0\report.md                                   
-C:\Users\tmr10\excalidraw\docs\sprint0\standards.md                                
-C:\Users\tmr10\excalidraw\docs\sprint1\.gitkeep                                    
-C:\Users\tmr10\excalidraw\docs\sprint1\design.md                                   
-C:\Users\tmr10\excalidraw\docs\sprint1\report.md                                   
-C:\Users\tmr10\excalidraw\docs\sprint2\checkin                                     
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams                                    
-C:\Users\tmr10\excalidraw\docs\sprint2\.gitkeep                                    
-C:\Users\tmr10\excalidraw\docs\sprint2\report.md                                   
-C:\Users\tmr10\excalidraw\docs\sprint2\checkin\AntWill-08.md                       
-C:\Users\tmr10\excalidraw\docs\sprint2\checkin\CashenCroft.md                      
-C:\Users\tmr10\excalidraw\docs\sprint2\checkin\NotaThomas.md                       
-C:\Users\tmr10\excalidraw\docs\sprint2\checkin\tristanraab.md                      
-C:\Users\tmr10\excalidraw\docs\sprint2\checkin\tuna-fisher.md                      
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\114-AntWill-08-class.png           
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\114-AntWill-08-sequence.png        
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\114-AntWill-08.md                  
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\138-ThomasReilly-class.png         
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\138-ThomasReilly-sequence.png      
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\138-ThomasReilly.md                
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\60-CashenCroft-class.png           
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\60-CashenCroft-sequence.png        
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\60-CashenCroft.md                  
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\7-tristanraab-class.png            
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\7-tristanraab-sequence.png         
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\7-tristanraab.md                   
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\70-tuna-fisher-class.png           
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\70-tuna-fisher-sequence.png        
-C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\70-tuna-fisher.md                  
-C:\Users\tmr10\excalidraw\docs\sprint3\checkin                                     
-C:\Users\tmr10\excalidraw\docs\sprint3\mutation                                    
-C:\Users\tmr10\excalidraw\docs\sprint3\.gitkeep                                    
-C:\Users\tmr10\excalidraw\docs\sprint3\checkin\AntWill-08.md                       
-C:\Users\tmr10\excalidraw\docs\sprint3\checkin\CashenCroft.md                      
-C:\Users\tmr10\excalidraw\docs\sprint3\checkin\NotaThomas.md                       
-C:\Users\tmr10\excalidraw\docs\sprint3\checkin\tristanraab.md                      
-C:\Users\tmr10\excalidraw\docs\sprint3\checkin\tuna-fisher.md                      
-C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports                            
-C:\Users\tmr10\excalidraw\docs\sprint3\mutation\158-tuna-fisher.md                 
-C:\Users\tmr10\excalidraw\docs\sprint3\mutation\159-NotaThomas.md                  
-C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports\158-tuna-fisher-after.json 
+FullName
+--------
+C:\Users\tmr10\excalidraw\docs\showcase1
+C:\Users\tmr10\excalidraw\docs\showcase2
+C:\Users\tmr10\excalidraw\docs\sprint0
+C:\Users\tmr10\excalidraw\docs\sprint1
+C:\Users\tmr10\excalidraw\docs\sprint2
+C:\Users\tmr10\excalidraw\docs\sprint3
+C:\Users\tmr10\excalidraw\docs\sprint4
+C:\Users\tmr10\excalidraw\docs\showcase1\README.pdf
+C:\Users\tmr10\excalidraw\docs\showcase2\README.pdf
+C:\Users\tmr10\excalidraw\docs\sprint0\.gitkeep
+C:\Users\tmr10\excalidraw\docs\sprint0\report.md
+C:\Users\tmr10\excalidraw\docs\sprint0\standards.md
+C:\Users\tmr10\excalidraw\docs\sprint1\.gitkeep
+C:\Users\tmr10\excalidraw\docs\sprint1\design.md
+C:\Users\tmr10\excalidraw\docs\sprint1\report.md
+C:\Users\tmr10\excalidraw\docs\sprint2\checkin
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams
+C:\Users\tmr10\excalidraw\docs\sprint2\.gitkeep
+C:\Users\tmr10\excalidraw\docs\sprint2\report.md
+C:\Users\tmr10\excalidraw\docs\sprint2\checkin\AntWill-08.md
+C:\Users\tmr10\excalidraw\docs\sprint2\checkin\CashenCroft.md
+C:\Users\tmr10\excalidraw\docs\sprint2\checkin\NotaThomas.md
+C:\Users\tmr10\excalidraw\docs\sprint2\checkin\tristanraab.md
+C:\Users\tmr10\excalidraw\docs\sprint2\checkin\tuna-fisher.md
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\114-AntWill-08-class.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\114-AntWill-08-sequence.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\114-AntWill-08.md
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\138-ThomasReilly-class.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\138-ThomasReilly-sequence.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\138-ThomasReilly.md
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\60-CashenCroft-class.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\60-CashenCroft-sequence.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\60-CashenCroft.md
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\7-tristanraab-class.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\7-tristanraab-sequence.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\7-tristanraab.md
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\70-tuna-fisher-class.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\70-tuna-fisher-sequence.png
+C:\Users\tmr10\excalidraw\docs\sprint2\diagrams\70-tuna-fisher.md
+C:\Users\tmr10\excalidraw\docs\sprint3\checkin
+C:\Users\tmr10\excalidraw\docs\sprint3\mutation
+C:\Users\tmr10\excalidraw\docs\sprint3\.gitkeep
+C:\Users\tmr10\excalidraw\docs\sprint3\checkin\AntWill-08.md
+C:\Users\tmr10\excalidraw\docs\sprint3\checkin\CashenCroft.md
+C:\Users\tmr10\excalidraw\docs\sprint3\checkin\NotaThomas.md
+C:\Users\tmr10\excalidraw\docs\sprint3\checkin\tristanraab.md
+C:\Users\tmr10\excalidraw\docs\sprint3\checkin\tuna-fisher.md
+C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports
+C:\Users\tmr10\excalidraw\docs\sprint3\mutation\158-tuna-fisher.md
+C:\Users\tmr10\excalidraw\docs\sprint3\mutation\159-NotaThomas.md
+C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports\158-tuna-fisher-after.json
 C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports\158-tuna-fisher-before.json
-C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports\159-NotaThomas-after.json  
-C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports\159-NotaThomas-before.json 
+C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports\159-NotaThomas-after.json
+C:\Users\tmr10\excalidraw\docs\sprint3\mutation\reports\159-NotaThomas-before.json
 C:\Users\tmr10\excalidraw\docs\sprint4\.gitkeep
 ```
+
 </details></tool-use>
 ```
 </details></tool-use>
@@ -282,82 +298,83 @@ C:\Users\tmr10\excalidraw\docs\sprint4\.gitkeep
 _**Agent (claude-opus-5-5 2026-11-20 02:24:01Z)**_
 
 <tool-use data-tool-type="read" data-tool-name="Read"><details>
+
 <summary>Tool use: **Read**</summary>
  `./docs/sprint2/report.md`
 
 ```text
 1	\# Team Name
-2	
+2
 3	Team Sketch
-4	
+4
 5	\# Team Members
-6	
+6
 7	Alex (@tuna-fisher) Anthony (@AntWill-08) Cashen (@CashenCroft) Thomas (@NotaThomas) Tristan (@tristanraab)
-8	
+8
 9	\# Project
-10	
+10
 11	Excalidraw \[[https\://github.com/CSCI-435-SE/excalidraw.git](https://github.com/CSCI-435-SE/excalidraw.git)\]
-12	
+12
 13	\# Sprint Overview
-14	
+14
 15	The team planned to complete 12 issues during Sprint 2 (two medium and one small for 535 students and two medium for 435 students). Two additional sub-issues were closed, as their modifications were implemented in a previous sub-issue or as a consequence of a similar issue. Most subissues covered separate issues, with continuation of Sprint 1’s large parent issues being completed.
-16	
+16
 17	The team delivered several features across language accessibility, display bugfixes, grid layering, shape masking, gradient color picker, and client-to-client QOL features. Work mainly covered front-end tool usage, but client-to-client features were implemented and back-end was understood thoroughly with discussion on future client-to-client work. Additional work included AI usage documentation, midpoint, and diagrams.
-18	
+18
 19	All assigned issues have been completed. Two issues were closed and replaced with newer issues due to previous implementation as stated above, and one issue was split into two subissues as integration was more complex than originally expected. Workflow was significantly more efficient in this sprint, likely due to better timings with exams, and midpoints implementation. AI usage of students has gotten more efficient and effective, and team members are seen communicating better with both agents and peers with higher consistency.
-20	
+20
 21	\# Sprint Backlog Summary
-22	
+22
 23	\[Sprint 2 Milestone\]([https\://github.com/CSCI-435-SE/excalidraw/milestone/2](https://github.com/CSCI-435-SE/excalidraw/milestone/2))
-24	
-25	\| Issue Title \| Owner \| Estimated Points \| Scope \| Status \|  
-26	\|---\|---\|---:\|---\|---\|  
-27	\| \[\#138 — Add Support for More Alphabets\](https\://github.com/CSCI-435-SE/excalidraw/issues/138) \| NotaThomas \| 8 \| Medium \| Merged \|  
-28	\| \[\#115 — Dark Mode Also Inverts Element Colors\](https\://github.com/CSCI-435-SE/excalidraw/issues/115) \| tristianraab \| S4 \| Small \| Merged \|  
-29	\| \[\#114 — Implement Gradient Color Picker\](https\://github.com/CSCI-435-SE/excalidraw/issues/114) \| AntWill-08 \| 8 \| Medium \| Merged \|  
-30	\| \[\#80 — Implement Per-User Visibility & Interactivity Controls\](https\://github.com/CSCI-435-SE/excalidraw/issues/80) \| CashenCroft \| 8 \| Medium \| Merged \|  
-31	\| \[\#74 — Add Mask Groups, Copy/Paste, and Persistence\](https\://github.com/CSCI-435-SE/excalidraw/issues/74) \| AntWill-08 \| 8 \| Medium \| Merged \|  
-32	\| \[\#73 — Enhance Mask Transformations and Selection\](https\://github.com/CSCI-435-SE/excalidraw/issues/73) \| AntWill-08 \| 8 \| Medium \| Merged \|  
-33	\| \[\#72 — Support Masked Content\](https\://github.com/CSCI-435-SE/excalidraw/issues/72) \| tuna-fisher \| 8 \| Medium \| Merged\|  
-34	\| \[\#70 — Implement Basic Shape Masking\](https\://github.com/CSCI-435-SE/excalidraw/issues/70) \| tuna-fisher \| 8 \| Medium \| Merged \|  
-35	\| \[\#60 — Implement Image Filter System\](https\://github.com/CSCI-435-SE/excalidraw/issues/60) \| CashenCroft \| 5 \| Medium \| Merged \|  
-36	\| \[\#59 — Add Grid Layer and Interaction Behavior\](https\://github.com/CSCI-435-SE/excalidraw/issues/59) \| tristianraab \| 5 \| Medium \| Open \|  
-37	\| \[\#58 — Implement Grid Snapping\](https\://github.com/CSCI-435-SE/excalidraw/issues/58) \| No-one (Completed by Other Issue) \| 5 \| Medium \| Closed \|  
-38	\| \[\#17 — Prevent Web Embeds from Always Appearing on Top\](https\://github.com/CSCI-435-SE/excalidraw/issues/17) \| No-one (Closed as not Planned) \| 3 \| Small \| Closed \|  
-39	\| \[\#7 — Add a HUD Size Slider to Preferences\](https\://github.com/CSCI-435-SE/excalidraw/issues/7) \| tristianraab \| S3 \| Medium \| Merged \|  
+24
+25	\| Issue Title \| Owner \| Estimated Points \| Scope \| Status \|
+26	\|---\|---\|---:\|---\|---\|
+27	\| \[\#138 — Add Support for More Alphabets\](https\://github.com/CSCI-435-SE/excalidraw/issues/138) \| NotaThomas \| 8 \| Medium \| Merged \|
+28	\| \[\#115 — Dark Mode Also Inverts Element Colors\](https\://github.com/CSCI-435-SE/excalidraw/issues/115) \| tristianraab \| S4 \| Small \| Merged \|
+29	\| \[\#114 — Implement Gradient Color Picker\](https\://github.com/CSCI-435-SE/excalidraw/issues/114) \| AntWill-08 \| 8 \| Medium \| Merged \|
+30	\| \[\#80 — Implement Per-User Visibility & Interactivity Controls\](https\://github.com/CSCI-435-SE/excalidraw/issues/80) \| CashenCroft \| 8 \| Medium \| Merged \|
+31	\| \[\#74 — Add Mask Groups, Copy/Paste, and Persistence\](https\://github.com/CSCI-435-SE/excalidraw/issues/74) \| AntWill-08 \| 8 \| Medium \| Merged \|
+32	\| \[\#73 — Enhance Mask Transformations and Selection\](https\://github.com/CSCI-435-SE/excalidraw/issues/73) \| AntWill-08 \| 8 \| Medium \| Merged \|
+33	\| \[\#72 — Support Masked Content\](https\://github.com/CSCI-435-SE/excalidraw/issues/72) \| tuna-fisher \| 8 \| Medium \| Merged\|
+34	\| \[\#70 — Implement Basic Shape Masking\](https\://github.com/CSCI-435-SE/excalidraw/issues/70) \| tuna-fisher \| 8 \| Medium \| Merged \|
+35	\| \[\#60 — Implement Image Filter System\](https\://github.com/CSCI-435-SE/excalidraw/issues/60) \| CashenCroft \| 5 \| Medium \| Merged \|
+36	\| \[\#59 — Add Grid Layer and Interaction Behavior\](https\://github.com/CSCI-435-SE/excalidraw/issues/59) \| tristianraab \| 5 \| Medium \| Open \|
+37	\| \[\#58 — Implement Grid Snapping\](https\://github.com/CSCI-435-SE/excalidraw/issues/58) \| No-one (Completed by Other Issue) \| 5 \| Medium \| Closed \|
+38	\| \[\#17 — Prevent Web Embeds from Always Appearing on Top\](https\://github.com/CSCI-435-SE/excalidraw/issues/17) \| No-one (Closed as not Planned) \| 3 \| Small \| Closed \|
+39	\| \[\#7 — Add a HUD Size Slider to Preferences\](https\://github.com/CSCI-435-SE/excalidraw/issues/7) \| tristianraab \| S3 \| Medium \| Merged \|
 40	\| \[\#6 — Filter Initial Pointer Jumps to Remove Artifacts at Higher Zoom\](https\://github.com/CSCI-435-SE/excalidraw/issues/6) \| CashenCroft \| S3 \| Medium \| Merged \|
-41	
+41
 42	\# Requirements and Design
-43	
+43
 44	Specs handled before coding are the Out of Scope, Acceptance Criteria, User Scenario, Summary, User Story and the Open Question.
-45	
+45
 46	The design decisions along with their alternatives, rationals, and consequences are handled before or during implementation. All design decisions were handled in Issue comments or PR comments so there is no Design Markdown this sprint.
-47	
+47
 48	\# Completed Issues
-49	
-50	\| Issue Title \| Issue Owner (Posted/Updated & Implement ) \| Associated PR(s): Link, Author, Reviewer(s), Status \| Brief Description of Changes \|  
-51	\|---\|---\|---\|---\|  
-52	\| \[\#6 — Filter initial pointer jumps to remove artifacts at higher zoom\](https\://github.com/CSCI-435-SE/excalidraw/issues/6) \| CashenCroft/NotaThomas \| \[PR \#126\](https\://github.com/CSCI-435-SE/excalidraw/pull/126) — Author: Thomas (@NotaThomas); Reviewer: Cashen (@CashenCroft); Merged \| Fixes issue where Excalidraw's freehand rendering engine produces sharp polygon-based artifacts and cuts along line borders when drawing a new stroke. \|  
-53	\| \[\#7 — Add a HUD size slider to preferences.\](https\://github.com/CSCI-435-SE/excalidraw/issues/7) \| CashenCroft/tristanraab \| \[PR \#130\](https\://github.com/CSCI-435-SE/excalidraw/pull/130) — Author: Tristan (@tristanraab); Reviewer: Anthony (@AntWill-08); Merged \| Adds slider to resize the HUD menu manually for different window sizes \|  
-54	\| \[\#59 — Add Grid Layer and Interaction Behavior\]([https\://github.com/CSCI-435-SE/excalidraw/issues/59](https://github.com/CSCI-435-SE/excalidraw/issues/59)) \| AntWill-08/tristanraab\| \[PR \#139\]([https\://github.com/CSCI-435-SE/excalidraw/pull/139](https://github.com/CSCI-435-SE/excalidraw/pull/139)) — Author: Tristan (@tristanraab ); Reviewer: Cashen (@CashenCroft ); Merged \| Implement the custom layering behavior required for the board grid. The grid should be able to appear above or below drawing content according to the user's chosen layer, while never becoming selectable as a normal top-level object. \|  
-55	\| \[\#60 — Implement Image Filter System\](https\://github.com/CSCI-435-SE/excalidraw/issues/60) \| AntWill-08/CashenCroft \| \[PR \#131\](https\://github.com/CSCI-435-SE/excalidraw/pull/131) — Author: Cashen (@CashenCroft); Reviewer: Anthony (@AntWill-08); Merged \| Integrating image-filter controls with the existing image rendering and editing workflow while preserving the original image data and existing image functionality. \|  
-56	\| \[\#70 — Implement Basic Shape Masking\](https\://github.com/CSCI-435-SE/excalidraw/issues/70) \| AntWill-08/tuna-fisher\| \[PR \#119\](https\://github.com/CSCI-435-SE/excalidraw/pull/119) — Author: Alex (@tuna-fisher); Reviewer: Anthony (@AntWill-08); Merged \| Introduces a new masking behavior that requires mask controls, clipping logic, and integration with existing element rendering and editing.\|  
-57	\| \[\#72 — Support Masked Content\](https\://github.com/CSCI-435-SE/excalidraw/issues/72) \| AntWill-08/tuna-fisher\| \[PR \#142\](https\://github.com/CSCI-435-SE/excalidraw/pull/142) — Author: Alex (@tuna-fisher); Reviewer: Thomas (@NotaThomas); Merged \| Images can now be masked, the same way as shapes, arrows, freedraw and text and hidden parts of a masked element can no longer be clicked, hovered or dragged. \|  
-58	\| \[\#73 — Enhance Mask Transformations and Selection \]([https\://github.com/CSCI-435-SE/excalidraw/issues/73](https://github.com/CSCI-435-SE/excalidraw/issues/73)) \| AntWill-08 \| \[PR \#141\]([https\://github.com/CSCI-435-SE/excalidraw/pull/141](https://github.com/CSCI-435-SE/excalidraw/pull/141)) — Author: Anthony (@AntWill-08); Reviewer: Thomas (@NotaThomas ); Merged \| A user creates a mask using one of the pre-built stamps and places content inside it. The user can then modify the mask's masking behavior, such as choosing whether the area inside or outside the mask is visible. \|  
-59	\| \[\#74 — Add Mask Groups, Copy/Paste, and Persistence\](https\://github.com/CSCI-435-SE/excalidraw/issues/74) \| AntWill-08 \| \[PR \#135\](https\://github.com/CSCI-435-SE/excalidraw/pull/135) — Author: Anthony (@AntWill-08 ); Reviewer: Tristan (@tristanraab ); Merged \| Adapting Excalidraw's grouping behavior to preserve mask-to-element relationships, including groups containing multiple masks and masks that share elements.\|  
-60	\| \[\#80 — Implement Per-User Visibility & Interactivity Controls\](https\://github.com/CSCI-435-SE/excalidraw/issues/80) \| AntWill-08/CashenCroft \| \[PR \#116\](https\://github.com/CSCI-435-SE/excalidraw/pull/116) — Author: Cashen (@CashenCroft ); Reviewer: Anthony (@AntWill-08 ); Merged \| Allow users to independently control which collaborators' drawings are visible and interactive on their own client.\|  
-61	\| \[\#114 — Implement Gradient Color Picker\](https\://github.com/CSCI-435-SE/excalidraw/issues/114) \| AntWill-08 \| \[PR \#117\](https\://github.com/CSCI-435-SE/excalidraw/pull/117) — Author: Anthony (@AntWill-08); Reviewer: Alex (@tuna-fisher); Merged \| Add a new method for choosing colors in the gradient other than just letting user color pick from colors already on the canvas. The new method for choosing colors for the gradient tool is a color wheel with darkness sliders.\|  
-62	\| \[\#115 — Dark mode also inverts element colors\](https\://github.com/CSCI-435-SE/excalidraw/issues/115) \| AntWill-08/tristanraab \| \[PR \#118\](https\://github.com/CSCI-435-SE/excalidraw/pull/118) — Author: Tristan (@tristanraab ); Reviewer: Anthony (@AntWill-08); Merged \| Excalidraw's dark mode seems to invert black and white across the entire application, including element fills, instead of just the background. For example, it changes light pinks to dark red when it is turned on.\|  
-63	\| \[\#138 — Add support for more alphabets \]([https\://github.com/CSCI-435-SE/excalidraw/issues/138](https://github.com/CSCI-435-SE/excalidraw/issues/138)) \| NotaThomas \| \[PR \#145\]([https\://github.com/CSCI-435-SE/excalidraw/pull/145](https://github.com/CSCI-435-SE/excalidraw/pull/145)) — Author: Thomas (@NotaThomas); Reviewer: Anthony (@AntWill-08 ); Merged \| Adding support for selecting all Unicode characters regardless of keyboard you are using, which doesn't currently exist. \|  
-64	\| \[\#17 — Prevent web embeds from always appearing on top\](https\://github.com/CSCI-435-SE/excalidraw/issues/17) \| NotaThomas\| Closed; invalid due to the implementation of another issue \| Web embeds always stack on top of other elements regardless of the stacking order. The app should allow users to render web embeds under other elements. \|  
+49
+50	\| Issue Title \| Issue Owner (Posted/Updated & Implement ) \| Associated PR(s): Link, Author, Reviewer(s), Status \| Brief Description of Changes \|
+51	\|---\|---\|---\|---\|
+52	\| \[\#6 — Filter initial pointer jumps to remove artifacts at higher zoom\](https\://github.com/CSCI-435-SE/excalidraw/issues/6) \| CashenCroft/NotaThomas \| \[PR \#126\](https\://github.com/CSCI-435-SE/excalidraw/pull/126) — Author: Thomas (@NotaThomas); Reviewer: Cashen (@CashenCroft); Merged \| Fixes issue where Excalidraw's freehand rendering engine produces sharp polygon-based artifacts and cuts along line borders when drawing a new stroke. \|
+53	\| \[\#7 — Add a HUD size slider to preferences.\](https\://github.com/CSCI-435-SE/excalidraw/issues/7) \| CashenCroft/tristanraab \| \[PR \#130\](https\://github.com/CSCI-435-SE/excalidraw/pull/130) — Author: Tristan (@tristanraab); Reviewer: Anthony (@AntWill-08); Merged \| Adds slider to resize the HUD menu manually for different window sizes \|
+54	\| \[\#59 — Add Grid Layer and Interaction Behavior\]([https\://github.com/CSCI-435-SE/excalidraw/issues/59](https://github.com/CSCI-435-SE/excalidraw/issues/59)) \| AntWill-08/tristanraab\| \[PR \#139\]([https\://github.com/CSCI-435-SE/excalidraw/pull/139](https://github.com/CSCI-435-SE/excalidraw/pull/139)) — Author: Tristan (@tristanraab ); Reviewer: Cashen (@CashenCroft ); Merged \| Implement the custom layering behavior required for the board grid. The grid should be able to appear above or below drawing content according to the user's chosen layer, while never becoming selectable as a normal top-level object. \|
+55	\| \[\#60 — Implement Image Filter System\](https\://github.com/CSCI-435-SE/excalidraw/issues/60) \| AntWill-08/CashenCroft \| \[PR \#131\](https\://github.com/CSCI-435-SE/excalidraw/pull/131) — Author: Cashen (@CashenCroft); Reviewer: Anthony (@AntWill-08); Merged \| Integrating image-filter controls with the existing image rendering and editing workflow while preserving the original image data and existing image functionality. \|
+56	\| \[\#70 — Implement Basic Shape Masking\](https\://github.com/CSCI-435-SE/excalidraw/issues/70) \| AntWill-08/tuna-fisher\| \[PR \#119\](https\://github.com/CSCI-435-SE/excalidraw/pull/119) — Author: Alex (@tuna-fisher); Reviewer: Anthony (@AntWill-08); Merged \| Introduces a new masking behavior that requires mask controls, clipping logic, and integration with existing element rendering and editing.\|
+57	\| \[\#72 — Support Masked Content\](https\://github.com/CSCI-435-SE/excalidraw/issues/72) \| AntWill-08/tuna-fisher\| \[PR \#142\](https\://github.com/CSCI-435-SE/excalidraw/pull/142) — Author: Alex (@tuna-fisher); Reviewer: Thomas (@NotaThomas); Merged \| Images can now be masked, the same way as shapes, arrows, freedraw and text and hidden parts of a masked element can no longer be clicked, hovered or dragged. \|
+58	\| \[\#73 — Enhance Mask Transformations and Selection \]([https\://github.com/CSCI-435-SE/excalidraw/issues/73](https://github.com/CSCI-435-SE/excalidraw/issues/73)) \| AntWill-08 \| \[PR \#141\]([https\://github.com/CSCI-435-SE/excalidraw/pull/141](https://github.com/CSCI-435-SE/excalidraw/pull/141)) — Author: Anthony (@AntWill-08); Reviewer: Thomas (@NotaThomas ); Merged \| A user creates a mask using one of the pre-built stamps and places content inside it. The user can then modify the mask's masking behavior, such as choosing whether the area inside or outside the mask is visible. \|
+59	\| \[\#74 — Add Mask Groups, Copy/Paste, and Persistence\](https\://github.com/CSCI-435-SE/excalidraw/issues/74) \| AntWill-08 \| \[PR \#135\](https\://github.com/CSCI-435-SE/excalidraw/pull/135) — Author: Anthony (@AntWill-08 ); Reviewer: Tristan (@tristanraab ); Merged \| Adapting Excalidraw's grouping behavior to preserve mask-to-element relationships, including groups containing multiple masks and masks that share elements.\|
+60	\| \[\#80 — Implement Per-User Visibility & Interactivity Controls\](https\://github.com/CSCI-435-SE/excalidraw/issues/80) \| AntWill-08/CashenCroft \| \[PR \#116\](https\://github.com/CSCI-435-SE/excalidraw/pull/116) — Author: Cashen (@CashenCroft ); Reviewer: Anthony (@AntWill-08 ); Merged \| Allow users to independently control which collaborators' drawings are visible and interactive on their own client.\|
+61	\| \[\#114 — Implement Gradient Color Picker\](https\://github.com/CSCI-435-SE/excalidraw/issues/114) \| AntWill-08 \| \[PR \#117\](https\://github.com/CSCI-435-SE/excalidraw/pull/117) — Author: Anthony (@AntWill-08); Reviewer: Alex (@tuna-fisher); Merged \| Add a new method for choosing colors in the gradient other than just letting user color pick from colors already on the canvas. The new method for choosing colors for the gradient tool is a color wheel with darkness sliders.\|
+62	\| \[\#115 — Dark mode also inverts element colors\](https\://github.com/CSCI-435-SE/excalidraw/issues/115) \| AntWill-08/tristanraab \| \[PR \#118\](https\://github.com/CSCI-435-SE/excalidraw/pull/118) — Author: Tristan (@tristanraab ); Reviewer: Anthony (@AntWill-08); Merged \| Excalidraw's dark mode seems to invert black and white across the entire application, including element fills, instead of just the background. For example, it changes light pinks to dark red when it is turned on.\|
+63	\| \[\#138 — Add support for more alphabets \]([https\://github.com/CSCI-435-SE/excalidraw/issues/138](https://github.com/CSCI-435-SE/excalidraw/issues/138)) \| NotaThomas \| \[PR \#145\]([https\://github.com/CSCI-435-SE/excalidraw/pull/145](https://github.com/CSCI-435-SE/excalidraw/pull/145)) — Author: Thomas (@NotaThomas); Reviewer: Anthony (@AntWill-08 ); Merged \| Adding support for selecting all Unicode characters regardless of keyboard you are using, which doesn't currently exist. \|
+64	\| \[\#17 — Prevent web embeds from always appearing on top\](https\://github.com/CSCI-435-SE/excalidraw/issues/17) \| NotaThomas\| Closed; invalid due to the implementation of another issue \| Web embeds always stack on top of other elements regardless of the stacking order. The app should allow users to render web embeds under other elements. \|
 65	\| \[\#58 — Implement Grid Snapping\](https\://github.com/CSCI-435-SE/excalidraw/issues/58) \| AntWill-08\| Closed; Completed due to parts being covered in other subissues \| Add optional snapping of elements to the grid. Which users can enable or disable grid snapping independently from grid visibility. Snapping should use the configured grid scale and work alongside Excalidraw's existing movement and alignment behavior. \|
-66	
+66
 67	\#Test Strategy
-68	
+68
 69	Our team used automated tests alongside individual implementation and review of tests to check new behavior and its functionality against pre-existing code. Test cases made by ai were reviewed line by line to understand implementation, alongside explanation by the agent to understand coverage and importance. Code implemented was reviewed by design flow of variables and location in the files directly to understand what changes occurred and how many files it affected.
-70	
+70
 71	Testing included:
-72	
+72
 73	- Unit and component tests for new functionality.
 74	- Regression testing for existing editor behavior.
 75	- Export tests for gradient and SVG behavior.
@@ -365,76 +382,77 @@ _**Agent (claude-opus-5-5 2026-11-20 02:24:01Z)**_
 77	- CI checks for typechecking, linting, formatting, and automated tests.
 78	- Individual checks to manually test functionality
 79	- Individual review of code by a peer to check for errors missed by author & ai.
-80	
+80
 81	Bucket size being the only CI check has been removed due to incompatibility with yarn monorepo.
-82	
+82
 83	\# Midpoint report
-84	
+84
 85	\[Midpoint report for team Sketch\]([https\://github.com/CSCI-435-SE/excalidraw/tree/master/docs/sprint2/checkin](https://github.com/CSCI-435-SE/excalidraw/tree/master/docs/sprint2/checkin))
-86	
+86
 87	\# UML Diagrams
-88	
-89	\[UML Link\] ([https\://github.com/CSCI-435-SE/excalidraw/tree/master/docs/sprint2/diagrams](https://github.com/CSCI-435-SE/excalidraw/tree/master/docs/sprint2/diagrams))  
-90	Alex: Issue \#70  
-91	Anthony: Issue \#114  
-92	Cashen: Issue \#60  
-93	Thomas: Issue \#138  
+88
+89	\[UML Link\] ([https\://github.com/CSCI-435-SE/excalidraw/tree/master/docs/sprint2/diagrams](https://github.com/CSCI-435-SE/excalidraw/tree/master/docs/sprint2/diagrams))
+90	Alex: Issue \#70
+91	Anthony: Issue \#114
+92	Cashen: Issue \#60
+93	Thomas: Issue \#138
 94	Tristan:Issue \#7
-95	
+95
 96	\# AI tool usage
-97	
-98	Alex: (@tuna-fisher) \[AI Logs Folder:\]([https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/tuna-fisher](https://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint1/tuna-fisher))  
-99	\*\*Used Claude Code\*\*  
-100	\*\*Sessions Logged:\*\* 2  
-101	\*\*Patterns:\*  
+97
+98	Alex: (@tuna-fisher) \[AI Logs Folder:\]([https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/tuna-fisher](https://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint1/tuna-fisher))
+99	\*\*Used Claude Code\*\*
+100	\*\*Sessions Logged:\*\* 2
+101	\*\*Patterns:\*
 102	Used claude code for the same reasons in all sprints.
-103	
-104	Anthony Williams (@AntWill-08)  
-105	\[AI Logs Folder:\]([https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/AntWill-08](https://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/AntWill-08))  
-106	\*\*Used Claude Code for…\*\*  
-107	Testing, Implementation, Debugging, rarely pushing issues  
-108	\*\*Sessions Logged:\*\* 3  
+103
+104	Anthony Williams (@AntWill-08)
+105	\[AI Logs Folder:\]([https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/AntWill-08](https://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/AntWill-08))
+106	\*\*Used Claude Code for…\*\*
+107	Testing, Implementation, Debugging, rarely pushing issues
+108	\*\*Sessions Logged:\*\* 3
 109	\*\*Patterns:\*\* In both Sprint 0 \- 2, I used Claude for the same reasons in all Sprints
-110	
-111	Cashen Croft (@CashenCroft) \[AI Logs Folder:\](https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/CashenCroft)  
-112	\*\*Used Claude Code for…\*\*  
-113	Agentic implementation of assigned Sprint 2 issues, architectural analysis, debugging, code review, and test development. I used Claude Code to implement per-user visibility and interactivity controls (\#80) and a grayscale image filter system (\#60). For both issues, I reviewed the generated changes and traced how they interacted with Excalidraw’s existing components, application state, element models, rendering pipeline, and tests. I focused on preserving existing functionality and ensuring the new features followed the codebase’s established abstractions and separation of concerns.  
-114	\*\*Sessions Logged:\*\*  
-115	Claude Code sessions documenting implementation, design decisions, debugging, code review, and testing for both assigned issues. I maintained dedicated AI interaction logs for Issue \#80 and Issue \#60. (2) Utilized AI for a test fix for long runtimes on CI check server, but was not implemented and therefore still contained within the branch. (+1)  
-116	\*\*Patterns:\*\*  
+110
+111	Cashen Croft (@CashenCroft) \[AI Logs Folder:\](https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/CashenCroft)
+112	\*\*Used Claude Code for…\*\*
+113	Agentic implementation of assigned Sprint 2 issues, architectural analysis, debugging, code review, and test development. I used Claude Code to implement per-user visibility and interactivity controls (\#80) and a grayscale image filter system (\#60). For both issues, I reviewed the generated changes and traced how they interacted with Excalidraw’s existing components, application state, element models, rendering pipeline, and tests. I focused on preserving existing functionality and ensuring the new features followed the codebase’s established abstractions and separation of concerns.
+114	\*\*Sessions Logged:\*\*
+115	Claude Code sessions documenting implementation, design decisions, debugging, code review, and testing for both assigned issues. I maintained dedicated AI interaction logs for Issue \#80 and Issue \#60. (2) Utilized AI for a test fix for long runtimes on CI check server, but was not implemented and therefore still contained within the branch. (+1)
+116	\*\*Patterns:\*\*
 117	I used an iterative implementation-and-review workflow, focusing on architectural consistency and data integrity. For Issue \#80, I separated local collaborator visibility and interactivity preferences from shared scene data. For Issue \#60, I integrated grayscale filtering into the existing image-editing workflow without modifying the original image data. Compared with Sprint 1, I used agentic AI more efficiently, documented design decisions more explicitly, and traced changes across components and rendering logic to validate correctness and reduce regressions. I focused more on visual understanding to understand flow and the chain effects visually through the Claude Code terminal. I also completed issue \#80 in \~6 large steps with stop with manual non-UI based injection testing into the webpage to test stamping and variables before implementing invasive UI controls.
-118	
-119	Thomas: (@NotaThomas) \[AI Logs Folder:\]([https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/NotaThomas](https://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint1/NotaThomas) )  
-120	\*\*Tools used\*\*: Claude code for scoping, implementation, testing  
-121	\*\*Sessions Logged\*\*: 3  
+118
+119	Thomas: (@NotaThomas) \[AI Logs Folder:\]([https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/NotaThomas](https://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint1/NotaThomas) )
+120	\*\*Tools used\*\*: Claude code for scoping, implementation, testing
+121	\*\*Sessions Logged\*\*: 3
 122	\*\*Patterns\*\*: I manually looked through the code for where I though I would need to make changes in order to solve my issues (\#6 and \#138). I then had the AI describe how it would go about implementing the change that I desired. When the AI’s description of the change matched what I believed needed to be done based on my own look through, I would allow the AI to implement the changes. I then had the AI assist me in making test cases, and I would also manually check that the feature worked as intended. All pushes and reviews were done manually. I used AI similarly to how I did in sprints 0 and 1\.
-123	
-124	Tristan: (@tristanraab) \[AI Logs Folder:\]([https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/tristanraab](https://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint1/tristanraab) )  
-125	Tools used: Copilot  
-126	Sessions Logged: 2  
+123
+124	Tristan: (@tristanraab) \[AI Logs Folder:\]([https\://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint2/tristanraab](https://github.com/CSCI-435-SE/excalidraw/tree/master/ai-logs/sprint1/tristanraab) )
+125	Tools used: Copilot
+126	Sessions Logged: 2
 127	Patterns: I used AI to implement my two medium issues (\#7) (\#59), while I personally did my small issue (\#115) without AI. It took around the same time to do the medium issues as the small issue, but the small issue was less annoying to implement because with AI, a lot of the time I would have to go back and fix the code it wrote. I also used AI to help create my two UML diagrams, which really helped as I am not super familiar with formatting UML diagrams. Then, when it created the diagrams, I could go back and manually edit it to make small fixes when they were necessary.
-128	
-129	\# Release  
-130	v0.1.0-csci435-s2  
+128
+129	\# Release
+130	v0.1.0-csci435-s2
 131	\[Release 2\]([https\://github.com/CSCI-435-SE/excalidraw/releases/tag/v0.1.0-csci435-s2](https://github.com/CSCI-435-SE/excalidraw/releases/tag/v0.1.0-csci435-s2))
-132	
+132
 133	\# Risks and Retrospective
-134	
+134
 135	Communication risks have severely lowered. While assignments are procrastinated, a noticeable uptick in when issues are completed has been noted. Risks related to communication have thankfully been mostly mitigated by this point. Bundle Size check has been dropped due to its incompatibility with the inherent characteristics of the mono-repo. Linting has not been an issue, past a miscommunication with excalidraw-room inclusion, but it was fixed.
-136	
+136
 137	Issues abandoned were implemented without issue, and most issues have been individual and user error.
-138	
+138
 139	Possible future risks cover mainly design philosophy in architectural design as our changes become more complex and innovative. The second biggest possible risk is the expanding risk of issues poorly covered by test cases, leading to future branch merges leading to failures of features not tracked by the issue, which could lead to silent bugs. To mitigate this possible risk we should likely focus on utilizing AI and external code-checkers to test coverage of newly implemented code.
-140	
+140
 141	\# Sprint 3 Plan
-142	
+142
 143	During Sprint 2, we implemented some of our most longstanding issues with Excalidraw. We also focused on completing a previously started large issues subissues and fully doing an entire other large issue. Besides that we started 2 new subissues focused on image filter editing and the other finally started the back end focus for client to client control on visibility and intractability. Lastly we broke issue 40 into 2 subissues to better handle it and completed 1 of the 2 of them this sprint.
-144	
+144
 145	The back-end client-to-client has been expanded and understood more. We still need deliberation whether client-based administration is worth implementation or a complete overhaul of the client-to-client connection. Our choice on how to go forward or whether we should scrap administrative features and stick to client-side QOL features will be decided and looked into for Sprint 3\.
-146	
+146
 147	For sprint 3 we want to continue these 3 large issues which are divided into an extra 9 subissue. As well as starting work on some more large issues since the last of the standalone medium and small issues were handled this sprint. We have no current reason to start more issues so we are focused on completing all that parts that these large issues are broken down into.
 148
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 02:24:03Z)**_
@@ -444,6 +462,7 @@ Building the Sprint 3 table from the GitHub milestone. `gh` isn't installed, so 
 _**Agent (claude-opus-5-5 2026-11-20 02:24:05Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Fetch milestones from GitHub public API
 
@@ -463,11 +482,13 @@ Fetch milestones from GitHub public API
     "open_issues": 6,
     "closed_issues": 12,
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 02:24:10Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 List Sprint 3 milestone issues with labels and assignees
 
@@ -498,11 +519,13 @@ for(const i of d){console.log([i.number,i.pull_request?"PR":"ISSUE",i.state,i.st
 62 | ISSUE | closed | completed | Implement Image Filter Transformations | tristanraab | enhancement | AntWill-08
 61 | ISSUE | closed | completed | Add Image Appearance Controls | AntWill-08 | enhancement | AntWill-08
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 02:24:15Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Extract point and scope hints from issue bodies
 
@@ -549,7 +572,7 @@ for(const i of d){if(i.pull_request)continue;const b=(i.body||"");const lines=b.
     ## Out of Scope
 #140 {"total":0,"completed":0,"percent_completed":0}
     ## Scope
-    **Generic:** Medium  
+    **Generic:** Medium
     **Specific:** Medium (suggested: 5 points)
     ## Out of Scope
 #84 {"total":0,"completed":0,"percent_completed":0}
@@ -568,7 +591,7 @@ for(const i of d){if(i.pull_request)continue;const b=(i.body||"");const lines=b.
     ## Scope
     **Generic:** Medium
     **Specific:** Greater Medium (8 points)
-    **Reason:** Builds on #116 and #81: ownership (`customData.creatorId`), the per-collaborator dropdown, and local-only AppState are already in place. This issue 
+    **Reason:** Builds on #116 and #81: ownership (`customData.creatorId`), the per-collaborator dropdown, and local-only AppState are already in place. This issue
     ## Out of Scope
 #81 {"total":0,"completed":0,"percent_completed":0}
     It adds a **visible-only (locked)** mode. A collaborator's drawings stay visible on my screen, but I can't select, edit, move, resize, erase, or delete them. Hi
@@ -576,7 +599,7 @@ for(const i of d){if(i.pull_request)continue;const b=(i.body||"");const lines=b.
     **Generic:** Small
     **Specific:** Small (3 points)
     **Reason:** Carryover of #80's interactivity criteria. #116 already provides element ownership (`customData.creatorId`), the central visibility rule (`element/o
-    - [ ] **Criteria E: Locked elements can't be changed.** From my client, a locked collaborator's elements can't be moved, resized, rotated, deleted, erased with 
+    - [ ] **Criteria E: Locked elements can't be changed.** From my client, a locked collaborator's elements can't be moved, resized, rotated, deleted, erased with
 #64 {"total":0,"completed":0,"percent_completed":0}
     ## Scope
     **Generic:** Small
@@ -594,16 +617,18 @@ for(const i of d){if(i.pull_request)continue;const b=(i.body||"");const lines=b.
     ## Out of Scope
 #61 {"total":0,"completed":0,"percent_completed":0}
     ## Scope
-    **Generic:** Medium  
-    **Specific:** Greater Medium (8 points)  
+    **Generic:** Medium
+    **Specific:** Greater Medium (8 points)
       - Filter settings should remain attached to their respective image elements when moved, resized, rotated, duplicated, or copied and pasted.
     ## Out of Scope
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 02:24:25Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 List recent PRs and referenced issues
 
@@ -654,6 +679,7 @@ const d=require(process.argv[1]);for(const p of d){console.log(p.number,p.state,
 132 closed merged CashenCroft | docs(repo): Diagrams CashenCroft | undefined
 131 closed merged CashenCroft | feat(editor): Add Grayscale Image Filter (#60) | #60,#61,#61,#61
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 02:24:36Z)**_
@@ -661,7 +687,7 @@ _**Agent (claude-opus-5-5 2026-11-20 02:24:36Z)**_
 Here's the table for Sprint 3. I pulled it from the [Sprint 3 milestone](https://github.com/CSCI-435-SE/excalidraw/milestone/3), which has 17 issues: 11 closed and 6 still open. The points and scope come from each issue's Scope section. The format matches your Sprint 2 report.
 
 | Issue Title | Owner | Estimated Points | Scope | Status |
-|---|---|---:|---|---|
+| --- | --- | --: | --- | --- |
 | [#165 — Implement Multi-Page Saving and Loading](https://github.com/CSCI-435-SE/excalidraw/issues/165) | tristanraab | 3 | Small | Open (PR #182 in review) |
 | [#162 — Implement Page Reordering](https://github.com/CSCI-435-SE/excalidraw/issues/162) | AntWill-08 | 3 | Small | Open |
 | [#160 — Implement Page Naming and Customization](https://github.com/CSCI-435-SE/excalidraw/issues/160) | AntWill-08 | 5 | Medium | Open (PR #184 in review) |
@@ -681,6 +707,7 @@ Here's the table for Sprint 3. I pulled it from the [Sprint 3 milestone](https:/
 Points add up to 82. The completed issues account for 53 of them.
 
 Two things to check before submitting:
+
 - **#63 and #64** are closed as completed, but I couldn't find a PR that references either one, so I marked them "Closed" instead of "Merged." If PR #172 (color invert and blur filters) actually covered them, change them to "Merged."
 - **Open statuses** are as of today. Update them if PRs #180, #182 or #184 get merged before the report is due.
 
@@ -695,6 +722,7 @@ fill out the completed issues table too
 _**Agent (claude-opus-5-5 2026-11-20 02:26:15Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Fetch PR reviewers and issue summaries
 
@@ -714,22 +742,24 @@ PR 171: AntWill-08:APPROVED | requested:  | merged_by: AntWill-08
 PR 170: tuna-fisher:APPROVED | requested:  | merged_by: tuna-fisher
 PR 156: tristanraab:APPROVED | requested:  | merged_by: tristanraab
 PR 154: tristanraab:APPROVED | requested:  | merged_by: AntWill-08
-#159 by AntWill-08 :: Allow users to remove elements from individual pages, multiple selected pages, or all pages without deleting the pages themselves. 
-#158 by AntWill-08 :: With the implementation of the 'pages' system, there comes an inherent need to add functionality to delete them. Without this stopgap in place, unnecessary bloat would be inevitable, and overall user control would be reduced. Allow users to delete individual pages or multiple selected pages while protecting against accidental data loss. 
-#157 by AntWill-08 :: Implement the ability to create pages within a drawing and navigate between them using a page navigation interface on right side of screen. Display a miniature preview of each page in the navigation interface. 
-#140 by CashenCroft :: Excalidraw currently offers a limited selection of fonts for text elements. Giving the user the option to add their own custom fonts, including fonts that support a wider variety of both languages and writing systems, would give users greater control and flexibility when creating diagrams 
+#159 by AntWill-08 :: Allow users to remove elements from individual pages, multiple selected pages, or all pages without deleting the pages themselves.
+#158 by AntWill-08 :: With the implementation of the 'pages' system, there comes an inherent need to add functionality to delete them. Without this stopgap in place, unnecessary bloat would be inevitable, and overall user control would be reduced. Allow users to delete individual pages or multiple selected pages while protecting against accidental data loss.
+#157 by AntWill-08 :: Implement the ability to create pages within a drawing and navigate between them using a page navigation interface on right side of screen. Display a miniature preview of each page in the navigation interface.
+#140 by CashenCroft :: Excalidraw currently offers a limited selection of fonts for text elements. Giving the user the option to add their own custom fonts, including fonts that support a wider variety of both languages and writing systems, would give users greater control and flexibility when creating diagrams
 #84 by AntWill-08 :: Implement support for group projects and shared ownership in collaborative editing sessions. When multiple peers edit or contribute to the same element or drawing cluster, the system must recognize and assign joint ownership to all participating collaborators. Consequently, visibility and control states must adapt such that a shared item remains visible if any of its co-owners are set to be visibl
 #81 by AntWill-08 :: **Carryover from #80.** #80 asked for per-collaborator visibility *and* interactivity controls. PR #116 implemented visibility (ownership tracking, the central visibility rule, and the collaborator dropdown) but not interactivity. This issue completes #80's remaining interactivity criteria. It adds a **visible-only (locked)** mode. A collaborator's drawings stay visible on my screen, but I can't s
-#64 by AntWill-08 :: Ensure image filters and transformations are saved as part of the image element and restored correctly when a drawing is reopened, copied, or otherwise persisted. 
-#63 by AntWill-08 :: Update image rendering and export functionality so that applied filters and transformations are correctly displayed and preserved when drawings are rendered or exported. 
-#62 by AntWill-08 :: Add support for user to turn on filter transformations that alter how an image is displayed, such as color inversion, blur and more. 
+#64 by AntWill-08 :: Ensure image filters and transformations are saved as part of the image element and restored correctly when a drawing is reopened, copied, or otherwise persisted.
+#63 by AntWill-08 :: Update image rendering and export functionality so that applied filters and transformations are correctly displayed and preserved when drawings are rendered or exported.
+#62 by AntWill-08 :: Add support for user to turn on filter transformations that alter how an image is displayed, such as color inversion, blur and more.
 #61 by AntWill-08 :: Expand the existing image filter implementation by adding a color shift filter and controls for configuring image filters and appearance adjustments. Users should be able to customize filter properties, adjust effects independently for individual images, and manage applied filters while editing an image.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 02:26:20Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Check how issues 63 and 64 were closed
 
@@ -737,20 +767,21 @@ Check how issues 63 and 64 were closed
 
 ```text
 #63
-issue_type_added AntWill-08   
-labeled AntWill-08   
-parent_issue_added AntWill-08   
-milestoned AntWill-08   
-assigned tristanraab   
-closed tristanraab   
+issue_type_added AntWill-08
+labeled AntWill-08
+parent_issue_added AntWill-08
+milestoned AntWill-08
+assigned tristanraab
+closed tristanraab
 #64
-labeled AntWill-08   
-parent_issue_added AntWill-08   
-issue_type_added AntWill-08   
-milestoned AntWill-08   
-assigned tristanraab   
+labeled AntWill-08
+parent_issue_added AntWill-08
+issue_type_added AntWill-08
+milestoned AntWill-08
+assigned tristanraab
 closed tristanraab
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 02:26:36Z)**_
@@ -758,7 +789,7 @@ _**Agent (claude-opus-5-5 2026-11-20 02:26:36Z)**_
 Here's the Completed Issues table. It covers the 11 closed Sprint 3 issues and uses the same columns as your Sprint 2 report. "Issue Owner" is the person who posted the issue, then the person who implemented it. Reviewers come from each PR's approvals on GitHub.
 
 | Issue Title | Issue Owner (Posted/Updated & Implement) | Associated PR(s): Link, Author, Reviewer(s), Status | Brief Description of Changes |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | [#61 — Add Image Appearance Controls](https://github.com/CSCI-435-SE/excalidraw/issues/61) | AntWill-08 | [PR #156](https://github.com/CSCI-435-SE/excalidraw/pull/156) — Author: Anthony (@AntWill-08); Reviewer: Tristan (@tristanraab); Merged | Expands the image filter system with a color shift filter and controls for configuring filters and appearance adjustments independently per image while editing. |
 | [#62 — Implement Image Filter Transformations](https://github.com/CSCI-435-SE/excalidraw/issues/62) | AntWill-08/tristanraab | [PR #172](https://github.com/CSCI-435-SE/excalidraw/pull/172) — Author: Tristan (@tristanraab); Reviewer: Anthony (@AntWill-08); Merged | Adds filter transformations that change how an image is displayed, including color inversion and blur. |
 | [#63 — Update Image Rendering and Export](https://github.com/CSCI-435-SE/excalidraw/issues/63) | AntWill-08/tristanraab | Closed; no linked PR, completed through other image filter subissues | Ensures applied filters and transformations display correctly and are preserved when drawings are rendered or exported. |
@@ -792,7 +823,7 @@ Here's the Markdown for both tables, ready to paste into your report.
 [Sprint 3 Milestone](https://github.com/CSCI-435-SE/excalidraw/milestone/3)
 
 | Issue Title | Owner | Estimated Points | Scope | Status |
-|---|---|---:|---|---|
+| --- | --- | --: | --- | --- |
 | [#165 — Implement Multi-Page Saving and Loading](https://github.com/CSCI-435-SE/excalidraw/issues/165) | tristanraab | 3 | Small | Open (PR #182 in review) |
 | [#162 — Implement Page Reordering](https://github.com/CSCI-435-SE/excalidraw/issues/162) | AntWill-08 | 3 | Small | Open |
 | [#160 — Implement Page Naming and Customization](https://github.com/CSCI-435-SE/excalidraw/issues/160) | AntWill-08 | 5 | Medium | Open (PR #184 in review) |
@@ -814,7 +845,7 @@ Here's the Markdown for both tables, ready to paste into your report.
 
 ```markdown
 | Issue Title | Issue Owner (Posted/Updated & Implement) | Associated PR(s): Link, Author, Reviewer(s), Status | Brief Description of Changes |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | [#61 — Add Image Appearance Controls](https://github.com/CSCI-435-SE/excalidraw/issues/61) | AntWill-08 | [PR #156](https://github.com/CSCI-435-SE/excalidraw/pull/156) — Author: Anthony (@AntWill-08); Reviewer: Tristan (@tristanraab); Merged | Expands the image filter system with a color shift filter and controls for configuring filters and appearance adjustments independently per image while editing. |
 | [#62 — Implement Image Filter Transformations](https://github.com/CSCI-435-SE/excalidraw/issues/62) | AntWill-08/tristanraab | [PR #172](https://github.com/CSCI-435-SE/excalidraw/pull/172) — Author: Tristan (@tristanraab); Reviewer: Anthony (@AntWill-08); Merged | Adds filter transformations that change how an image is displayed, including color inversion and blur. |
 | [#63 — Update Image Rendering and Export](https://github.com/CSCI-435-SE/excalidraw/issues/63) | AntWill-08/tristanraab | Closed; no linked PR, completed through other image filter subissues | Ensures applied filters and transformations display correctly and are preserved when drawings are rendered or exported. |
@@ -833,26 +864,16 @@ I need to correct two numbers I gave you earlier. Only 10 issues are closed, not
 
 _**User (2026-11-20 03:07:51Z)**_
 
-Fill out this template for PR #186 
+Fill out this template for PR #186
 
-<pasted_content id="0d01">
-| Criterion | Score (1–10) | Notes |
-|---|---|---|
-| Correctness — does the change do what the issue asked? | 10 | The change fulfills the goal of the issue to add New collaborators setting (Visible / Locked / Hidden, default Locked), newcomers placed below everyone already in, and have the dropdown menu's settings saved locally |
-| Test coverage — are tests present and meaningful? | 10 |  |
-| Code quality — consistent style, clear naming, no unnecessary duplication | 10 |  |
-| Documentation — inline comments and PR description are clear | 10 |  |
-| AI transparency — if AI was used, is there evidence of human verification? | 8 |  |
-| Test evidence — does every AC have a test? Are the expected values justified? Which tests did you run locally? | 9 |  |
-| Overall — would you merge this as-is? | 9 |  |
-</pasted_content id="0d01">
-
+<pasted_content id="0d01"> | Criterion | Score (1–10) | Notes | |---|---|---| | Correctness — does the change do what the issue asked? | 10 | The change fulfills the goal of the issue to add New collaborators setting (Visible / Locked / Hidden, default Locked), newcomers placed below everyone already in, and have the dropdown menu's settings saved locally | | Test coverage — are tests present and meaningful? | 10 | | | Code quality — consistent style, clear naming, no unnecessary duplication | 10 | | | Documentation — inline comments and PR description are clear | 10 | | | AI transparency — if AI was used, is there evidence of human verification? | 8 | | | Test evidence — does every AC have a test? Are the expected values justified? Which tests did you run locally? | 9 | | | Overall — would you merge this as-is? | 9 | | </pasted_content id="0d01">
 
 ---
 
 _**Agent (claude-opus-5-5 2026-11-20 03:07:59Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Fetch PR 186 details, files, and issue 83
 
@@ -864,7 +885,7 @@ console.log("\n=== ISSUE 83 ===\n",require("./i83.json").body);'
 ```
 
 ```text
-feat(editor): newcomer default and saved collaborator settings (#83) | CashenCroft | open null | + 20285 - 51 
+feat(editor): newcomer default and saved collaborator settings (#83) | CashenCroft | open null | + 20285 - 51
  Closes #83 (Sub-issue of #14)
 
 **Builds on #82 (merged in #180):** this branch is based on `master` after #180, so the diff contains only #83's commits.
@@ -1185,6 +1206,7 @@ A team lead runs a design session in a shared room. Before anyone new arrives, t
 Issue (#14): Allow a togglable Layer in which all users are compartmentalized by interactivity and visibility. (#14: "A default for new joining users so that you don't have to see all users.")
 Shell cwd was reset to C:\Users\tmr10\excalidraw
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 03:08:16Z)**_
@@ -1193,7 +1215,7 @@ Here's the filled-out review. I kept your scores and your Correctness note. Each
 
 ```markdown
 | Criterion | Score (1–10) | Notes |
-|---|---|---|
+| --- | --- | --- |
 | Correctness — does the change do what the issue asked? | 10 | The change fulfills the goal of the issue to add New collaborators setting (Visible / Locked / Hidden, default Locked), newcomers placed below everyone already in, and have the dropdown menu's settings saved locally |
 | Test coverage — are tests present and meaningful? | 10 | 79 tests (73 new, 6 updated in #81/#82 files) across unit, component, and app integration levels, covering every AC (A–I). "Nothing changes" tests are paired with controls that show the same setup does change when the feature applies, so they can't pass trivially. Removing the app wiring made 19 of 24 app tests fail, which shows they test real behavior. Changed-file coverage is high (`collaboratorSettings.ts` 100/100, `ownership.ts` 99.75/98.07). |
 | Code quality — consistent style, clear naming, no unnecessary duplication | 10 | The newcomer rule is one pure function (`getNewcomerState`) built on #81's `addLockedCollaborators` instead of new helpers. It's applied in one place (`Collab.updateCollaborator`) and merged into the existing `updateScene`. Persistence is a small versioned module that reuses #116's `readStoredObject`/`withRecentRooms` instead of copying them. The UI uses the existing `RadioGroup`. Naming matches the #81/#82 code. The duplicated test mocks and typed variable workaround are acknowledged in Tech Debt. |
@@ -1203,7 +1225,7 @@ Here's the filled-out review. I kept your scores and your Correctness note. Each
 | Overall — would you merge this as-is? | 9 | Yes. The feature is complete, well-tested, and stays within #14's local-only design. Small notes: consider moving the large AI log out of the feature diff (or into a separate docs PR) to keep reviews readable, and confirm the 3 failing snapshots are only the Windows ones before merging. |
 ```
 
-You need to fill in one thing yourself: the **"Locally I ran: [fill in]"** part of the Test evidence row. That criterion asks which tests the *reviewer* ran, and I haven't run anything on PR #186. If you want, I can check out the branch and run `yarn test:typecheck` plus the new test files, and then write in the actual results.
+You need to fill in one thing yourself: the **"Locally I ran: [fill in]"** part of the Test evidence row. That criterion asks which tests the _reviewer_ ran, and I haven't run anything on PR #186. If you want, I can check out the branch and run `yarn test:typecheck` plus the new test files, and then write in the actual results.
 
 ---
 
@@ -1216,6 +1238,7 @@ run all the tests locally on the PR
 _**Agent (claude-opus-5-5 2026-11-20 03:15:23Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Fetch PR 186 into a separate worktree
 
@@ -1227,6 +1250,7 @@ From https://github.com/CSCI-435-SE/excalidraw
 fa1cb2b8 docs(ai-logs): add AI log for the #83 implementation (#83)
 HEAD is now at fa1cb2b8 docs(ai-logs): add AI log for the #83 implementation (#83)
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 03:15:24Z)**_
@@ -1236,6 +1260,7 @@ I put the PR in a separate worktree so your branch and untracked files stay unto
 _**Agent (claude-opus-5-5 2026-11-20 03:17:20Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Install dependencies in PR worktree
 
@@ -1249,11 +1274,13 @@ husky - Git hooks installed
 Done in 112.47s.
 Shell cwd was reset to C:\Users\tmr10\excalidraw
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 03:17:23Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show test scripts
 
@@ -1273,6 +1300,7 @@ Show test scripts
     "test:ui": "yarn test --ui --coverage.enabled=true",
 Shell cwd was reset to C:\Users\tmr10\excalidraw
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 03:17:26Z)**_
@@ -1282,6 +1310,7 @@ I'll run the full `test:all` set: typecheck, lint, prettier and the full test su
 _**Agent (claude-opus-5-5 2026-11-20 03:17:29Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run full vitest suite on PR 186
 
@@ -1291,11 +1320,13 @@ Run full vitest suite on PR 186
 Command running in background with ID: b750siibs. Output is being written to: C:\Users\tmr10\AppData\Local\Temp\claude\9676580225587b53\7a55f4fc-53df-4d99-a1a1-0e6f62f70584\tasks\b750siibs.output. You will be notified when it completes — do not poll that file or sleep while waiting. Read the file only if the user asks for progress, or if you need a line it prints before you can go on, such as a server's ready line or port.
 Session cwd remains C:\Users\tmr10\excalidraw; directory changes made by the backgrounded command do not apply to subsequent commands.
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 03:25:02Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Run typecheck, lint, and prettier checks
 
@@ -1327,11 +1358,13 @@ Done in 65.16s.
 prettier exit 0
 Shell cwd was reset to C:\Users\tmr10\excalidraw
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 03:25:05Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Summarize test results and failures
 
@@ -1376,6 +1409,7 @@ exit 1
 ⎯⎯⎯⎯⎯⎯ Failed Tests 15 ⎯⎯⎯⎯⎯⎯⎯
 Shell cwd was reset to C:\Users\tmr10\excalidraw
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 03:25:07Z)**_
@@ -1385,6 +1419,7 @@ _**Agent (claude-opus-5-5 2026-11-20 03:25:07Z)**_
 _**Agent (claude-opus-5-5 2026-11-20 03:25:09Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Group failure error messages
 
@@ -1397,11 +1432,13 @@ Group failure error messages
       1 Error: still loading
 Shell cwd was reset to C:\Users\tmr10\excalidraw
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 03:25:11Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Show failure details
 
@@ -1462,18 +1499,19 @@ Received: "2"
      47|   );
 Shell cwd was reset to C:\Users\tmr10\excalidraw
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 03:25:14Z)**_
 
-<think><details><summary>Thought Process</summary>
-13 tests failed with "still loading" and one timed out, and the PR notes this happens on busy machines. I'm rerunning just those 14 files to check whether they pass when the machine is quieter.
+<think><details><summary>Thought Process</summary> 13 tests failed with "still loading" and one timed out, and the PR notes this happens on busy machines. I'm rerunning just those 14 files to check whether they pass when the machine is quieter.
 
 </details></think>
 
 _**Agent (claude-opus-5-5 2026-11-20 03:25:50Z)**_
 
 <tool-use data-tool-type="shell" data-tool-name="Bash"><details>
+
 <summary>Tool use: **Bash**</summary>
 Rerun only the 14 failed test files
 
@@ -1485,6 +1523,7 @@ Rerun only the 14 failed test files
  Test Files  14 passed (14)
 Shell cwd was reset to C:\Users\tmr10\excalidraw
 ```
+
 </details></tool-use>
 
 _**Agent (claude-opus-5-5 2026-11-20 03:26:01Z)**_
@@ -1492,7 +1531,7 @@ _**Agent (claude-opus-5-5 2026-11-20 03:26:01Z)**_
 I ran every check on PR #186 (latest commit `fa1cb2b8`), and everything passes. 15 tests failed in the full run, but all 15 passed when I reran their files.
 
 | Check | Result |
-|---|---|
+| --- | --- |
 | `yarn test:typecheck` | Pass |
 | `yarn test:code` (eslint, max warnings 0) | Pass |
 | `yarn test:other` (prettier) | Pass |
@@ -1500,6 +1539,7 @@ I ran every check on PR #186 (latest commit `fa1cb2b8`), and everything passes. 
 | Rerun of the 14 files with failures | **All 266 tests passed** |
 
 The 15 failures were caused by load, not by bugs:
+
 - **13 failed with "still loading"**: the app hadn't finished loading before the first test in the file began. The PR's Tech Debt section says this happens on a busy machine.
 - **1 hit the 5-second timeout** (`zindex`).
 - **2 snapshot mismatches** happened only because their tests started before the app had loaded (`regressionTests` counted 2 renders instead of 35, and the Mermaid input came up empty).
