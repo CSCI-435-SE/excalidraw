@@ -198,7 +198,7 @@ function prepareDataForJSONExport(
   // saved files only contain what's visible on this client
   const elements = getLocallyVisibleElements(allElements, appState);
   const dataPromise = new Promise<JSONExportData>(async (resolve) => {
-    const pages = app.getPagesForPersistence();
+    const pages = app.getPageIds();
     const persistedAppState = {
       ...appState,
       pages,
