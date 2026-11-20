@@ -71,7 +71,7 @@ describe("pages", () => {
   });
 
   it("creates pages and restores their elements, settings, and viewport", async () => {
-    const { getByRole, container } = await render(
+    const { getByRole, findByRole, container } = await render(
       <Excalidraw initialData={{ elements: [] }}>
         <DefaultSidebar>
           <DefaultSidebar.TabTriggers>
@@ -91,7 +91,8 @@ describe("pages", () => {
     });
 
     fireEvent.click(getByRole("button", { name: "Pages" }));
-    expect(getByRole("button", { name: "Page 1" })).toBeTruthy();
+    // the sidebar tab can render after the click on slow machines (CI)
+    expect(await findByRole("button", { name: "Page 1" })).toBeTruthy();
     fireEvent.click(getByRole("button", { name: "Add page" }));
 
     await waitFor(() => {
@@ -134,12 +135,14 @@ describe("pages", () => {
     const result = await render(
       <Excalidraw initialData={{ elements: [] }} handleKeyboardGlobally />,
     );
-    const { getByRole } = result;
+    const { getByRole, findByRole } = result;
 
     API.updateScene({
       elements: [API.createElement({ type: "rectangle", id: ids[0] })],
     });
     fireEvent.click(getByRole("button", { name: "Pages" }));
+    // the sidebar tab can render after the click on slow machines (CI)
+    await findByRole("button", { name: "Add page" });
 
     for (const id of ids.slice(1)) {
       fireEvent.click(getByRole("button", { name: "Add page" }));
