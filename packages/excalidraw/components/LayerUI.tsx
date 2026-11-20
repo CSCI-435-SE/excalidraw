@@ -51,6 +51,7 @@ import { TTDDialog } from "./TTDDialog/TTDDialog";
 import { Stats } from "./Stats";
 import ElementLinkDialog from "./ElementLinkDialog";
 import { TextHyperlinkDialog } from "./TextHyperlinkDialog";
+import { PageInfoDialog } from "./PageInfoDialog";
 import { CustomFontUploadDialog } from "./CustomFontUploadDialog";
 import { ErrorDialog } from "./ErrorDialog";
 import { EyeDropper, activeEyeDropperAtom } from "./EyeDropper";
@@ -106,6 +107,7 @@ interface LayerUIProps {
   activePageId: string;
   onPageSelect: (pageId: string) => void;
   onPageCreate: () => void;
+  onPageInfoOpen: (pageId: string) => void;
   onEnterPageClearingMode: () => void;
   onExitPageClearingMode: () => void;
   onTogglePageForClearing: (pageId: string) => void;
@@ -177,6 +179,7 @@ const LayerUI = ({
   activePageId,
   onPageSelect,
   onPageCreate,
+  onPageInfoOpen,
   onEnterPageClearingMode,
   onExitPageClearingMode,
   onTogglePageForClearing,
@@ -496,6 +499,7 @@ const LayerUI = ({
               files={files}
               onSelectPage={onPageSelect}
               onCreatePage={onPageCreate}
+              onOpenPageInfo={onPageInfoOpen}
               clearingSelection={appState.pageClearingSelection}
               onEnterClearingMode={onEnterPageClearingMode}
               onExitClearingMode={onExitPageClearingMode}
@@ -624,6 +628,20 @@ const LayerUI = ({
           onCancel={() => app.closeTextHyperlinkDialog(null)}
         />
       )}
+      {appState.openDialog?.name === "pageInfo" &&
+        (() => {
+          const pageId = appState.openDialog.pageId;
+          const page = pages.find((candidate) => candidate.id === pageId);
+          return page ? (
+            <PageInfoDialog
+              key={page.id}
+              page={page}
+              pages={pages}
+              onSave={(patch) => app.updatePageInfo(pageId, patch)}
+              onClose={() => setAppState({ openDialog: null })}
+            />
+          ) : null;
+        })()}
       {appState.openDialog?.name === "customFontUpload" && (
         <CustomFontUploadDialog
           file={appState.openDialog.file}

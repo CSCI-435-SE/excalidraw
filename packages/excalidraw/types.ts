@@ -518,7 +518,8 @@ export interface AppState {
     | { name: "textHyperlink"; initialDisplayText: string }
     | { name: "customFontUpload"; file: File }
     | { name: "charts"; data: Spreadsheet; rawText: string }
-    | { name: "duplicateRotated" };
+    | { name: "duplicateRotated" }
+    | { name: "pageInfo"; pageId: string };
   /**
    * Page clearing mode for this editor instance.
    * `null` when clearing mode is closed; otherwise the ids of the pages the
@@ -1024,6 +1025,8 @@ export type AppClassProperties = {
   setActiveTool: App["setActiveTool"];
   setOpenDialog: App["setOpenDialog"];
   closeTextHyperlinkDialog: App["closeTextHyperlinkDialog"];
+  getPageForInfo: App["getPageForInfo"];
+  updatePageInfo: App["updatePageInfo"];
   openCustomFontUploadDialog: App["openCustomFontUploadDialog"];
   closeCustomFontUploadDialog: App["closeCustomFontUploadDialog"];
   insertEmbeddableElement: App["insertEmbeddableElement"];

@@ -88,6 +88,7 @@ export {
 } from "./actionClipboard";
 
 export { actionToggleGridMode } from "./actionToggleGridMode";
+export { actionOpenPageInfo } from "./actionPageInfo";
 export { actionToggleGridSnapMode } from "./actionToggleGridSnapMode";
 export {
   actionChangeGridScale,

@@ -2,7 +2,7 @@ import { createPage, deletePages, parsePageRange } from "./pages";
 
 import type { DrawingPage } from "./pages";
 
-const makePages = (...ids: string[]) => ids.map((id) => createPage(id));
+const makePages = (...ids: string[]) => ids.map((id) => createPage(id, id));
 const ids = (pages: readonly DrawingPage[]) => pages.map((page) => page.id);
 const noNewId = () => {
   throw new Error("should not create a page");
@@ -53,7 +53,10 @@ describe("deletePages", () => {
   });
 
   it("keeps extra page fields (e.g. names added by other features)", () => {
-    const named = [{ ...createPage("a"), name: "Intro" }, createPage("b")];
+    const named = [
+      { ...createPage("a", "a"), description: "Intro page" },
+      createPage("b", "b"),
+    ];
     const result = deletePages(named, ["b"], "a", noNewId);
     expect(result.pages[0]).toBe(named[0]);
   });
