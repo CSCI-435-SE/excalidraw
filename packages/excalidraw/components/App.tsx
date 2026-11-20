@@ -2414,6 +2414,13 @@ class App extends React.Component<AppProps, AppState> {
                             onPageSelect={this.selectPage}
                             onPageCreate={this.createPage}
                             onPageInfoOpen={this.openPageInfo}
+                            onEnterPageClearingMode={this.enterPageClearingMode}
+                            onExitPageClearingMode={this.exitPageClearingMode}
+                            onTogglePageForClearing={this.togglePageForClearing}
+                            onSetAllPagesForClearing={
+                              this.setAllPagesForClearing
+                            }
+                            onClearSelectedPages={this.clearSelectedPages}
                             isCollaborating={this.props.isCollaborating}
                             generateLinkForSelection={
                               this.props.generateLinkForSelection
@@ -2762,8 +2769,6 @@ class App extends React.Component<AppProps, AppState> {
     });
   };
 
-  public getActivePageId = () => this.activePageId;
-
   public getPageForInfo = (pageId: string): DrawingPage | null =>
     this.getPagesForUI().find((page) => page.id === pageId) ?? null;
 
@@ -2840,6 +2845,84 @@ class App extends React.Component<AppProps, AppState> {
       appState: getPageActivationAppState(page.settings),
       captureUpdate: CaptureUpdateAction.NEVER,
     });
+  };
+
+  public getPageIds = (): string[] => this.pages.map((page) => page.id);
+
+  public getActivePageId = (): string => this.activePageId;
+
+  /**
+   * Removes all elements from the given pages, keeping the (now empty) pages
+   * and their settings. Clearing the active page is undoable; clearing other
+   * pages is not, since history only tracks the active page.
+   */
+  public clearPages = (pageIds: readonly string[]) => {
+    const ids = new Set(pageIds);
+
+    this.pages = this.pages.map((page) =>
+      ids.has(page.id) && page.id !== this.activePageId
+        ? { ...page, elements: [] }
+        : page,
+    );
+
+    if (ids.has(this.activePageId)) {
+      this.updateScene({
+        elements: this.scene
+          .getElementsIncludingDeleted()
+          .map((element) =>
+            element.isDeleted
+              ? element
+              : newElementWith(element, { isDeleted: true }),
+          ),
+        appState: {
+          selectedElementIds: {},
+          selectedGroupIds: {},
+          editingGroupId: null,
+        },
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+      });
+    } else {
+      // inactive pages live outside React state; re-render their previews
+      this.forceUpdate();
+    }
+  };
+
+  private enterPageClearingMode = () => {
+    this.setState({ pageClearingSelection: [] });
+  };
+
+  private exitPageClearingMode = () => {
+    this.setState({ pageClearingSelection: null });
+  };
+
+  private togglePageForClearing = (pageId: string) => {
+    this.setState((state) => {
+      if (!state.pageClearingSelection) {
+        return null;
+      }
+      const selection = state.pageClearingSelection;
+      return {
+        pageClearingSelection: selection.includes(pageId)
+          ? selection.filter((id) => id !== pageId)
+          : [...selection, pageId],
+      };
+    });
+  };
+
+  private setAllPagesForClearing = (selected: boolean) => {
+    this.setState({
+      pageClearingSelection: selected ? this.getPageIds() : [],
+    });
+  };
+
+  private clearSelectedPages = () => {
+    const selection = this.state.pageClearingSelection;
+    if (!selection?.length) {
+      return;
+    }
+    this.clearPages(selection);
+    // stay in clearing mode until the user explicitly exits it
+    this.setState({ pageClearingSelection: [] });
   };
 
   public onInsertElements = (elements: readonly ExcalidrawElement[]) => {
