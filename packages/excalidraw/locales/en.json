@@ -10,6 +10,7 @@
     "selectAll": "Select all",
     "pages": "Pages",
     "page": "Page",
+    "pageInfo": "Page info",
     "selectPageRange": "Select pages by number",
     "pageRangePlaceholder": "e.g. 2-4, 7",
     "currentPage": "Current",
@@ -292,6 +293,32 @@
     "displayTextPlaceholder": "Text to display",
     "url": "Link",
     "useTextColor": "Use text color"
+  },
+  "pageInfoDialog": {
+    "title": "Page info",
+    "name": "Name",
+    "description": "Description",
+    "descriptionPlaceholder": "Add a description (optional)",
+    "thumbnail": "Thumbnail",
+    "showThumbnail": "Show thumbnail",
+    "thumbnailShown": "Shown",
+    "thumbnailHidden": "Hidden",
+    "grid": "Grid",
+    "showGrid": "Show grid",
+    "snapToGrid": "Snap to grid",
+    "gridSize": "Grid size",
+    "gridShown": "Grid shown",
+    "gridHidden": "Grid hidden",
+    "snapOn": "Snapping on",
+    "snapOff": "Snapping off",
+    "save": "Save",
+    "charCount": "{{count}}/{{max}}",
+    "errors": {
+      "emptyName": "Page name can't be empty.",
+      "duplicateName": "Another page already uses this name.",
+      "nameTooLong": "Page name can't be longer than {{max}} characters.",
+      "descriptionTooLong": "Description can't be longer than {{max}} characters."
+    }
   },
   "customFontLicenseNotice": "This drawing uses custom fonts ({{fonts}}). They're embedded in what you export, so only share it if their licenses allow it.",
   "customFontDialog": {

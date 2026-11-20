@@ -12,6 +12,7 @@ import { t } from "../i18n";
 import ConfirmDialog from "./ConfirmDialog";
 import { PageDeleteDialog } from "./PageDeleteDialog";
 import { PageRangeSelect } from "./PageRangeSelect";
+import { Tooltip } from "./Tooltip";
 
 import "./Pages.scss";
 
@@ -20,6 +21,8 @@ import type { DrawingPage } from "../pages";
 
 const PAGE_PREVIEW_WIDTH = 144;
 const PAGE_PREVIEW_HEIGHT = 96;
+/** opens the page info menu for the focused page tab */
+const PAGE_INFO_KEY = "F2";
 
 const PageIcon = () => (
   <svg
@@ -128,6 +131,57 @@ const PagePreview = React.memo(
     prevProps.appState.theme === nextProps.appState.theme,
 );
 
+/**
+ * A page tab outside clearing mode: selects the page on click, opens its page
+ * info menu on right-click or F2, and shows its description on hover.
+ */
+const PageTab = ({
+  page,
+  isActive,
+  onSelectPage,
+  onOpenPageInfo,
+  children,
+}: {
+  page: DrawingPage;
+  isActive: boolean;
+  onSelectPage: (pageId: string) => void;
+  onOpenPageInfo: (pageId: string) => void;
+  children: React.ReactNode;
+}) => {
+  const tab = (
+    <button
+      type="button"
+      className="page-navigation__item"
+      aria-label={page.name}
+      aria-pressed={isActive}
+      onClick={() => onSelectPage(page.id)}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onOpenPageInfo(page.id);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === PAGE_INFO_KEY) {
+          event.preventDefault();
+          event.stopPropagation();
+          onOpenPageInfo(page.id);
+        }
+      }}
+    >
+      {children}
+    </button>
+  );
+
+  // only show the hover metadata when there is something to show
+  return page.description ? (
+    <Tooltip label={page.description} long>
+      {tab}
+    </Tooltip>
+  ) : (
+    tab
+  );
+};
+
 export const Pages = ({
   pages,
   activePageId,
@@ -135,6 +189,7 @@ export const Pages = ({
   files,
   onSelectPage,
   onCreatePage,
+  onOpenPageInfo,
   clearingSelection,
   onEnterClearingMode,
   onExitClearingMode,
@@ -152,6 +207,7 @@ export const Pages = ({
   files: BinaryFiles;
   onSelectPage: (pageId: string) => void;
   onCreatePage: () => void;
+  onOpenPageInfo: (pageId: string) => void;
   /** `null` when not in clearing mode */
   clearingSelection: readonly string[] | null;
   onEnterClearingMode: () => void;
@@ -193,13 +249,15 @@ export const Pages = ({
         </div>
       )}
       <div className="page-navigation__list">
-        {pages.map((page, index) => {
+        {pages.map((page) => {
           const isActive = page.id === activePageId;
           const isSelected = !!clearingSelection?.includes(page.id);
-          const title = `${t("labels.page")} ${index + 1}`;
+          const title = page.name;
           const content = (
             <>
-              <PagePreview page={page} files={files} appState={appState} />
+              {page.showThumbnail ? (
+                <PagePreview page={page} files={files} appState={appState} />
+              ) : null}
               <span className="page-navigation__item-title">
                 {isClearing && (
                   <span
@@ -211,7 +269,8 @@ export const Pages = ({
                     {isSelected ? "✓" : ""}
                   </span>
                 )}
-                {title}
+                {!page.showThumbnail && <PageIcon />}
+                <span className="page-navigation__item-name">{title}</span>
                 {isClearing && isActive && (
                   <span className="page-navigation__current-badge">
                     {t("labels.currentPage")}
@@ -238,16 +297,15 @@ export const Pages = ({
               {content}
             </button>
           ) : (
-            <button
-              type="button"
+            <PageTab
               key={page.id}
-              className="page-navigation__item"
-              aria-label={title}
-              aria-pressed={isActive}
-              onClick={() => onSelectPage(page.id)}
+              page={page}
+              isActive={isActive}
+              onSelectPage={onSelectPage}
+              onOpenPageInfo={onOpenPageInfo}
             >
               {content}
-            </button>
+            </PageTab>
           );
         })}
       </div>

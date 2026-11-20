@@ -16,8 +16,8 @@ export const PageDeleteDialog = ({
   onConfirm: () => void;
   onCancel: () => void;
 }) => {
-  const labels = pages.flatMap((page, index) =>
-    pageIds.includes(page.id) ? [getPageLabel(page, index)] : [],
+  const labels = pages.flatMap((page) =>
+    pageIds.includes(page.id) ? [getPageLabel(page)] : [],
   );
 
   return (
