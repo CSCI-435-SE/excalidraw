@@ -22,7 +22,9 @@ const FILES = [
 // mutate only the lines #158 added or changed, taken from git so the ranges
 // stay right if the code moves; compares the working tree to where the branch
 // left master
-const forkPoint = execSync("git merge-base origin/master HEAD").toString().trim();
+const forkPoint = execSync("git merge-base origin/master HEAD")
+  .toString()
+  .trim();
 const mutate = FILES.flatMap((file) =>
   execSync(`git diff -U0 ${forkPoint} -- ${file}`)
     .toString()

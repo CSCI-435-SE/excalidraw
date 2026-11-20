@@ -37,7 +37,7 @@ Line numbers refer to the reports. Paths are under `packages/excalidraw/`.
 | `components/PageRangeSelect.tsx:18` | `` `page-range-error-${nanoid()}` `` → ` `` ` | Test gap | Same gap: an empty id also breaks the `aria-describedby` link. |
 | `components/PageRangeSelect.tsx:20` | `input.trim()` → `input` | Test gap | A field holding only spaces would show the "invalid" error instead of being treated as empty & no test typed only spaces |
 | `components/Pages.tsx:276` | `pages.length < 2` → `pages.length <= 2` | Test gap | all but current" would be disabled with exactly two pages, where it should select the other page. The tests only tried three pages and one. |
-| `components/Pages.tsx:340` | `isClearing && !isDeleting` → `true` | Test gap |in deleting mode the clear pages menu would open ontop of delete dialogue and then confirming would clear and not delete. kind of irrelevant bc its impossible to have both thru the app, but good catch incase a user manages to do both simultaneously due to packet loss.|
+| `components/Pages.tsx:340` | `isClearing && !isDeleting` → `true` | Test gap | in deleting mode the clear pages menu would open ontop of delete dialogue and then confirming would clear and not delete. kind of irrelevant bc its impossible to have both thru the app, but good catch incase a user manages to do both simultaneously due to packet loss. |
 | `components/Pages.tsx:340` | `isClearing && !isDeleting` → `isClearing \|\| !isDeleting` | Test gap | Same gap as the mutant above: both dialogs open in deleting mode. |
 
 ## New or strengthened test
@@ -56,7 +56,13 @@ Commit: TODO (link the commit that adds the 5 tests) · Kills: see the table bel
 ## Questions
 
 1. What did the surviving mutants reveal about your tests?
-    surviving mutants really revealed a lot of holes in numeric testing! mostly in the case of the ranges/number of pages deleted /cleared at once, which is kind of irrelevant because like a lot of breaks weren't really found regarding this as the numbers shouldn't really matter and edge cases were already accounted for, but it's still good to test for these edge cases. additionally, when switching modes (delete/clear), a lot of edge cases regarding switching to "null"/empty weren't checked, which is fair but like they all default to clear, which is fine because the user can just exit clearing mode if anything happened. the only gaps noticed were like minor things like not throwing something 
+
+   surviving mutants really revealed a lot of holes in numeric testing! mostly in the case of the ranges/number of pages deleted /cleared at once, which is kind of irrelevant because like a lot of breaks weren't really found regarding this as the numbers shouldn't really matter and edge cases were already accounted for, but it's still good to test for these edge cases. additionally, when switching modes (delete/clear), a lot of edge cases regarding switching to "null"/empty weren't checked, which is fair but like they all default to clear, which is fine because the user can just exit clearing mode if anything happened. the only gaps noticed were like minor things like not throwing something
+
 2. Did any surviving mutant point to an assertion whose expected value was not based on the requirements? Explain.
-    A couple did, like the aforementioned mode of "", or blank. There's no way to obtain this mode outside of entering the console, and it defaults to the clearing mode, which is irrelevant. 
-3. If you used AI to configure the tool, analyze survivors, or write tests, what did it produce and what did you verify or correct? If AI was not used, write "N/A." used ai to configure the tool (i verified it based off of my teammate's config bc our issues closely overlapped), tests were written w ai - matches conventions for this repo. ai also did a first-pass survivor analysis bc mutants 10-17 (iirc) were determined to be easy enough to kill. I did some manual analysis but gaps in my knowledge were covered by ai.
+
+   A couple did, like the aforementioned mode of "", or blank. There's no way to obtain this mode outside of entering the console, and it defaults to the clearing mode, which is irrelevant.
+
+3. If you used AI to configure the tool, analyze survivors, or write tests, what did it produce and what did you verify or correct? If AI was not used, write "N/A."
+
+   used ai to configure the tool (i verified it based off of my teammate's config bc our issues closely overlapped), tests were written w ai - matches conventions for this repo. ai also did a first-pass survivor analysis bc mutants 10-17 (iirc) were determined to be easy enough to kill. I did some manual analysis but gaps in my knowledge were covered by ai.
