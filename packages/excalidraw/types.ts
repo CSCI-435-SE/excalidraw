@@ -63,6 +63,7 @@ import type Library from "./data/library";
 import type { ContextMenuItems } from "./components/ContextMenu";
 import type { SnapLine } from "./snapping";
 import type { ImportedDataState } from "./data/types";
+import type { DrawingPage } from "./pages";
 import type { SetViewportOptions } from "./viewport";
 
 import type { Language } from "./i18n";
@@ -347,6 +348,9 @@ export type ScrollConstraints = {
 };
 
 export interface AppState {
+  /** Persisted multi-page document data. */
+  pages?: readonly DrawingPage[];
+  activePageId?: string;
   contextMenu: {
     items: ContextMenuItems;
     top: number;
@@ -1057,6 +1061,7 @@ export type AppClassProperties = {
 
   setAppState: App["setAppState"];
   getPageIds: App["getPageIds"];
+  getPagesForPersistence: App["getPagesForPersistence"];
   getActivePageId: App["getActivePageId"];
   clearPages: App["clearPages"];
 };

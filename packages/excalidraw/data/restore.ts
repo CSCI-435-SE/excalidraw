@@ -1269,6 +1269,11 @@ export const restoreAppState = (
         : defaultValue;
   }
 
+  if (Array.isArray(appState.pages)) {
+    nextAppState.pages = appState.pages;
+    nextAppState.activePageId = appState.activePageId;
+  }
+
   const boxSelectionMode =
     appState.boxSelectionMode ?? localAppState?.boxSelectionMode;
   if (boxSelectionMode !== undefined) {
