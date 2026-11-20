@@ -25,7 +25,7 @@ The team delivered collaborator controls (a visible-only lock mode, per-collabor
 | Issue Title | Owner | Estimated Points | Scope | Status |
 | --- | --- | --- | --- | --- |
 | [#165 — Implement Multi-Page Saving and Loading](https://github.com/CSCI-435-SE/excalidraw/issues/165) | tristanraab | 3 | Small | Merged |
-| [#162 — Implement Page Reordering](https://github.com/CSCI-435-SE/excalidraw/issues/162) | AntWill-08 | 3 | Small | Open |
+| [#162 — Implement Page Reordering](https://github.com/CSCI-435-SE/excalidraw/issues/162) | AntWill-08 | 3 | Small | Closed |
 | [#160 — Implement Page Naming and Customization](https://github.com/CSCI-435-SE/excalidraw/issues/160) | AntWill-08 | 5 | Medium | Merged |
 | [#159 — Implement Page Clearing](https://github.com/CSCI-435-SE/excalidraw/issues/159) | NotaThomas | 5 | Medium | Merged |
 | [#158 — Implement Page Deletion](https://github.com/CSCI-435-SE/excalidraw/issues/158) | tuna-fisher | 5 | Medium | Merged |
@@ -62,7 +62,8 @@ Design followed previous sprints implementation, where architecture and design w
 | [#157 — Implement Page Creation and Navigation](https://github.com/CSCI-435-SE/excalidraw/issues/157) | AntWill-08/tristanraab | [PR #178](https://github.com/CSCI-435-SE/excalidraw/pull/178) — Author: Tristan (@tristanraab); Reviewer: Alex (@tuna-fisher); Merged | Adds the ability to create pages within a drawing and switch between them through a page navigation panel on the right side, with a miniature preview of each page. |
 | [#158 — Implement Page Deletion](https://github.com/CSCI-435-SE/excalidraw/issues/158) | AntWill-08/tuna-fisher | [PR #183](https://github.com/CSCI-435-SE/excalidraw/pull/183) — Author: Alex (@tuna-fisher); Reviewer: Anthony (@AntWill-08); Merged | Lets users delete individual or multiple selected pages, with safeguards against accidental data loss. |
 | [#159 — Implement Page Clearing](https://github.com/CSCI-435-SE/excalidraw/issues/159) | AntWill-08/NotaThomas | [PR #181](https://github.com/CSCI-435-SE/excalidraw/pull/181) — Author: Thomas (@NotaThomas); Reviewer: Alex (@tuna-fisher); Merged | Lets users remove all elements from individual pages, multiple selected pages, or all pages without deleting the pages themselves. |
-| [#160 — Implement Page Naming and Customization](https://github.com/CSCI-435-SE/excalidraw/issues/160) | AntWill-08 | [PR #184](https://github.com/CSCI-435-SE/excalidraw/pull/184) — Author: Anthony (@AntWill-08); Reviewer: Thomas (@NotaThomas); Merged | Adds a page info menu where users can rename pages, add a description (shown when hovering a page tab), hide or show a page's thumbnail, and set each page's own grid. |
+| [#160 — Implement Page Naming and Customization](https://github.com/CSCI-435-SE/excalidraw/issues/160) | AntWill-08 | [PR #184](https://github.com/CSCI-435-SE/excalidraw/pull/184) — Author: Anthony (@AntWill-08); Reviewer: Tristan (@tristanraab); Merged | Adds page reordering to new page system. |
+| [#162 — Implement Page Reordering](https://github.com/CSCI-435-SE/excalidraw/issues/162) | AntWill-08 | [PR #192](https://github.com/CSCI-435-SE/excalidraw/pull/192) — Author: Anthony (@AntWill-08); Reviewer: Trs (@CashenCroft); Merged | Saves every page, its settings and the active page with the drawing, so they come back after a reload or when a saved file is reopened. Older single-page files still open as one page. |
 | [#165 — Implement Multi-Page Saving and Loading](https://github.com/CSCI-435-SE/excalidraw/issues/165) | AntWill-08/tristanraab | [PR #182](https://github.com/CSCI-435-SE/excalidraw/pull/182) — Author: Tristan (@tristanraab); Reviewer: Cashen (@CashenCroft); Merged | Saves every page, its settings and the active page with the drawing, so they come back after a reload or when a saved file is reopened. Older single-page files still open as one page. |
 
 # Test Strategy
@@ -83,9 +84,7 @@ Thomas (@NotaThomas): [159-NotaThomas.md](https://github.com/CSCI-435-SE/excalid
 
 Cashen (@CashenCroft): [82-CashenCroft.md](https://github.com/CSCI-435-SE/excalidraw/blob/master/docs/sprint3/mutation/82-CashenCroft.md)
 
-Anthony (@AntWill-08): [160-AntWill-08.md](https://github.com/CSCI-435-SE/excalidraw/blob/master/docs/sprint3/mutation/160-AntWill-08.md)
-
-[162-AntWill-08.md](https://github.com/CSCI-435-SE/excalidraw/blob/master/docs/sprint3/mutation/162-AntWill-08.md)
+Anthony (@AntWill-08): [LINK]
 
 Tristan (@tristanraab): [LINK]
 
