@@ -85,6 +85,7 @@ Thomas (@NotaThomas): [159-NotaThomas.md](https://github.com/CSCI-435-SE/excalid
 Cashen (@CashenCroft): [82-CashenCroft.md](https://github.com/CSCI-435-SE/excalidraw/blob/master/docs/sprint3/mutation/82-CashenCroft.md)
 
 Anthony (@AntWill-08): [LINK]
+
 Tristan (@tristanraab): [LINK]
 
 # Suite Health
