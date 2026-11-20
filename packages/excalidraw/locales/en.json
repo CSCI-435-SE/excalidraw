@@ -10,6 +10,11 @@
     "selectAll": "Select all",
     "pages": "Pages",
     "page": "Page",
+    "selectPageRange": "Select pages by number",
+    "pageRangePlaceholder": "e.g. 2-4, 7",
+    "currentPage": "Current",
+    "clearingMode": "Clearing mode: select pages to clear",
+    "deletingMode": "Deleting mode: select pages to delete",
     "multiSelect": "Add element to selection",
     "moveCanvas": "Move canvas",
     "cut": "Cut",
@@ -325,6 +330,17 @@
   "buttons": {
     "clearReset": "Reset the canvas",
     "addPage": "Add page",
+    "selectPageRange": "Select",
+    "enterClearingMode": "Enter clearing mode",
+    "exitClearingMode": "Exit clearing mode",
+    "enterDeletingMode": "Enter deleting mode",
+    "exitDeletingMode": "Exit deleting mode",
+    "clearPages": "Clear",
+    "selectAllPages": "Select all pages",
+    "deselectAllPages": "Deselect all pages",
+    "selectOtherPages": "All but current",
+    "clearCanvasOnly": "Clear this canvas only",
+    "clearCanvasAndPages": "Clear canvas and all pages",
     "exportJSON": "Export to file",
     "exportImage": "Export image...",
     "export": "Save to...",
@@ -389,6 +405,7 @@
     "localStorageQuotaExceeded": "Browser storage quota exceeded. Changes will not be saved."
   },
   "errors": {
+    "invalidPageRange": "Enter page numbers from 1 to {{count}}, like 2-4, 7",
     "unsupportedFileType": "Unsupported file type.",
     "imageInsertError": "Couldn't insert image. Try again later...",
     "fileTooBig": "File is too big. Maximum allowed size is {{maxSize}}.",
@@ -574,8 +591,18 @@
     "cropStart": "Crop image",
     "cropFinish": "Finish image cropping"
   },
+  "deletePagesDialog": {
+    "title": "Delete pages",
+    "message": "This will delete {{pages}} and everything on them. This can't be undone.",
+    "allPagesNote": "A new blank page will be created in their place."
+  },
   "clearCanvasDialog": {
-    "title": "Clear canvas"
+    "title": "Clear canvas",
+    "withPages": "This drawing has other pages. Clear only the page you are on, or clear it and all other pages? Cleared pages are kept, but empty."
+  },
+  "clearPagesDialog": {
+    "title": "Clear pages",
+    "content": "This will remove all elements from {{count}} selected page(s). Are you sure?"
   },
   "publishDialog": {
     "title": "Publish library",

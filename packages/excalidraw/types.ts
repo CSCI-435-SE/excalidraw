@@ -518,6 +518,12 @@ export interface AppState {
     | { name: "charts"; data: Spreadsheet; rawText: string }
     | { name: "duplicateRotated" };
   /**
+   * Page clearing mode for this editor instance.
+   * `null` when clearing mode is closed; otherwise the ids of the pages the
+   * user has selected for clearing.
+   */
+  pageClearingSelection: readonly string[] | null;
+  /**
    * Reflects user preference for whether the default sidebar should be docked.
    *
    * NOTE this is only a user preference and does not reflect the actual docked
@@ -1036,6 +1042,9 @@ export type AppClassProperties = {
   bindModeHandler: App["bindModeHandler"];
 
   setAppState: App["setAppState"];
+  getPageIds: App["getPageIds"];
+  getActivePageId: App["getActivePageId"];
+  clearPages: App["clearPages"];
 };
 
 export type PointerDownState = Readonly<{

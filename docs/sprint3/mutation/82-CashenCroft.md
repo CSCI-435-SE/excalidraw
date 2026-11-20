@@ -5,8 +5,8 @@
 | **PR** | #180 |
 | **Issue** | [#82 Add User Priority and Layering](https://github.com/CSCI-435-SE/excalidraw/issues/82) |
 | **Tool** | StrykerJS 10.1.1 (`@stryker-mutator/core`) with the Vitest runner (`@stryker-mutator/vitest-runner` 10.1.1) |
-| **Configuration** | [`stryker.config.json`](../../../stryker.config.json), [`vitest.stryker.config.mts`](../../../vitest.stryker.config.mts) |
-| **Command** | `npx -p @stryker-mutator/core@10.1.1 -p @stryker-mutator/vitest-runner@10.1.1 stryker run` (after checking the test set passes with `npx vitest run --config vitest.stryker.config.mts`). Stryker isn't a project dependency: version 10 needs Node 22+, and CI runs Node 20, so it's run with `npx`, pinned to the version that produced the reports. Requires Node 22+ locally. |
+| **Configuration** | [`stryker.82.config.mjs`](../../../stryker.82.config.mjs), [`vitest.stryker.82.config.mts`](../../../vitest.stryker.82.config.mts), built on the team's shared setup (`stryker.config.mjs`, from #159) |
+| **Command** | `yarn test:mutation stryker.82.config.mjs` (after checking the test set passes with `npx vitest run --config vitest.stryker.82.config.mts`). Requires Node 22+ locally. The reports below were produced with StrykerJS 10.1.1 (`npx -p @stryker-mutator/core@10.1.1 -p @stryker-mutator/vitest-runner@10.1.1 stryker run stryker.82.config.mjs`), before the team's shared runner (9.6.1) was on `master`. |
 | **Reports** | Before: [`reports/82-CashenCroft-before.json`](reports/82-CashenCroft-before.json) · After: [`reports/82-CashenCroft-after.json`](reports/82-CashenCroft-after.json) |
 | **Run against** | `feat/issue-82-user-priority-and-layering` at `0232722d` ("82 merge implementation": after merging `master` with #84). The "after" run adds the new tests from [`5e3cd2c3`](https://github.com/CSCI-435-SE/excalidraw/commit/5e3cd2c3). |
 | **Mutation score** | **86.51% → 87.74%** (killed 494 → 501, survived 69 → 66, no coverage 8 → 4, of 571 mutants; 0 timeouts, 0 errors) |
@@ -22,7 +22,7 @@ These two files hold all of #82's decision logic, which was kept pure on purpose
 
 Both files also contain code from #116 (visibility), #81 (locking) and #84 (co-ownership). Each surviving mutant was attributed to its feature with `git blame` on its line.
 
-**Test set** (from `vitest.stryker.config.mts`): the unit, editor and collaboration tests of #116, #81, #84 and #82. That's 11 files and 396 tests at the "before" run.
+**Test set** (from `vitest.stryker.82.config.mts`): the unit, editor and collaboration tests of #116, #81, #84 and #82. That's 11 files and 396 tests at the "before" run.
 
 | File                  | Score before | Score after |
 | --------------------- | ------------ | ----------- |

@@ -382,7 +382,7 @@ import {
   isEraserActive,
   isHandToolActive,
 } from "../appState";
-import { createPage, getPageSettings } from "../pages";
+import { createPage, deletePages, getPageSettings } from "../pages";
 import {
   copyTextToSystemClipboard,
   parseClipboard,
@@ -771,6 +771,8 @@ class App extends React.Component<AppProps, AppState> {
   private history: History;
   private pages: DrawingPage[];
   private activePageId: string;
+  /** what the page selection (`pageClearingSelection`) is for: #159 clearing or #158 deleting */
+  private pageSelectionMode: "clear" | "delete" = "clear";
   public excalidrawContainerValue: {
     container: HTMLDivElement | null;
     id: string;
@@ -2408,6 +2410,17 @@ class App extends React.Component<AppProps, AppState> {
                             activePageId={this.activePageId}
                             onPageSelect={this.selectPage}
                             onPageCreate={this.createPage}
+                            onEnterPageClearingMode={this.enterPageClearingMode}
+                            onExitPageClearingMode={this.exitPageClearingMode}
+                            onTogglePageForClearing={this.togglePageForClearing}
+                            onSetAllPagesForClearing={
+                              this.setAllPagesForClearing
+                            }
+                            onClearSelectedPages={this.clearSelectedPages}
+                            pageSelectionMode={this.pageSelectionMode}
+                            onEnterPageDeletingMode={this.enterPageDeletingMode}
+                            onSetPageSelection={this.setPageSelection}
+                            onDeleteSelectedPages={this.deleteSelectedPages}
                             isCollaborating={this.props.isCollaborating}
                             generateLinkForSelection={
                               this.props.generateLinkForSelection
@@ -2767,6 +2780,135 @@ class App extends React.Component<AppProps, AppState> {
       appState: getPageActivationAppState(page.settings),
       captureUpdate: CaptureUpdateAction.NEVER,
     });
+  };
+
+  private deletePages = (pageIds: readonly string[]) => {
+    // shortcut: view mode is the only lock, revisit with real permissions
+    if (this.state.viewModeEnabled) {
+      return;
+    }
+    const previousActivePageId = this.activePageId;
+    const result = deletePages(this.pages, pageIds, this.activePageId, nanoid);
+    this.pages = [...result.pages];
+    this.activePageId = result.activePageId;
+
+    if (result.activePageId === previousActivePageId) {
+      // scene unchanged; re-render so the page list drops the deleted pages
+      this.triggerRender();
+      return;
+    }
+    const page = this.pages.find(
+      (candidate) => candidate.id === result.activePageId,
+    )!;
+    this.history.clear();
+    this.updateScene({
+      elements: page.elements,
+      appState: getPageActivationAppState(page.settings),
+      captureUpdate: CaptureUpdateAction.NEVER,
+    });
+  };
+
+  public getPageIds = (): string[] => this.pages.map((page) => page.id);
+
+  public getActivePageId = (): string => this.activePageId;
+
+  /**
+   * Removes all elements from the given pages, keeping the (now empty) pages
+   * and their settings. Clearing the active page is undoable; clearing other
+   * pages is not, since history only tracks the active page.
+   */
+  public clearPages = (pageIds: readonly string[]) => {
+    const ids = new Set(pageIds);
+
+    this.pages = this.pages.map((page) =>
+      ids.has(page.id) && page.id !== this.activePageId
+        ? { ...page, elements: [] }
+        : page,
+    );
+
+    if (ids.has(this.activePageId)) {
+      this.updateScene({
+        elements: this.scene
+          .getElementsIncludingDeleted()
+          .map((element) =>
+            element.isDeleted
+              ? element
+              : newElementWith(element, { isDeleted: true }),
+          ),
+        appState: {
+          selectedElementIds: {},
+          selectedGroupIds: {},
+          editingGroupId: null,
+        },
+        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+      });
+    } else {
+      // inactive pages live outside React state; re-render their previews
+      this.forceUpdate();
+    }
+  };
+
+  private enterPageClearingMode = () => {
+    this.pageSelectionMode = "clear";
+    this.setState({ pageClearingSelection: [] });
+  };
+
+  private enterPageDeletingMode = () => {
+    this.pageSelectionMode = "delete";
+    this.setState({ pageClearingSelection: [] });
+  };
+
+  private exitPageClearingMode = () => {
+    this.setState({ pageClearingSelection: null });
+  };
+
+  private togglePageForClearing = (pageId: string) => {
+    this.setState((state) => {
+      if (!state.pageClearingSelection) {
+        return null;
+      }
+      const selection = state.pageClearingSelection;
+      return {
+        pageClearingSelection: selection.includes(pageId)
+          ? selection.filter((id) => id !== pageId)
+          : [...selection, pageId],
+      };
+    });
+  };
+
+  /** Replaces the page selection of the active page mode (clearing/deleting). */
+  private setPageSelection = (pageIds: readonly string[]) => {
+    this.setState((state) =>
+      state.pageClearingSelection
+        ? { pageClearingSelection: [...pageIds] }
+        : null,
+    );
+  };
+
+  private setAllPagesForClearing = (selected: boolean) => {
+    this.setState({
+      pageClearingSelection: selected ? this.getPageIds() : [],
+    });
+  };
+
+  private clearSelectedPages = () => {
+    const selection = this.state.pageClearingSelection;
+    if (!selection?.length) {
+      return;
+    }
+    this.clearPages(selection);
+    // stay in clearing mode until the user explicitly exits it
+    this.setState({ pageClearingSelection: [] });
+  };
+
+  private deleteSelectedPages = () => {
+    const selection = this.state.pageClearingSelection;
+    if (!selection?.length) {
+      return;
+    }
+    this.deletePages(selection);
+    // like clearing mode, stay in deleting mode until the user exits it
+    this.setState({ pageClearingSelection: [] });
   };
 
   public onInsertElements = (elements: readonly ExcalidrawElement[]) => {

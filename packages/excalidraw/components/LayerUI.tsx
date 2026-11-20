@@ -106,6 +106,15 @@ interface LayerUIProps {
   activePageId: string;
   onPageSelect: (pageId: string) => void;
   onPageCreate: () => void;
+  onEnterPageClearingMode: () => void;
+  onExitPageClearingMode: () => void;
+  onTogglePageForClearing: (pageId: string) => void;
+  onSetAllPagesForClearing: (selected: boolean) => void;
+  onClearSelectedPages: () => void;
+  pageSelectionMode: "clear" | "delete";
+  onEnterPageDeletingMode: () => void;
+  onSetPageSelection: (pageIds: readonly string[]) => void;
+  onDeleteSelectedPages: () => void;
 }
 
 const DefaultMainMenu: React.FC<{
@@ -168,6 +177,15 @@ const LayerUI = ({
   activePageId,
   onPageSelect,
   onPageCreate,
+  onEnterPageClearingMode,
+  onExitPageClearingMode,
+  onTogglePageForClearing,
+  onSetAllPagesForClearing,
+  onClearSelectedPages,
+  pageSelectionMode,
+  onEnterPageDeletingMode,
+  onSetPageSelection,
+  onDeleteSelectedPages,
 }: LayerUIProps) => {
   const editorInterface = useEditorInterface();
   const stylesPanelMode = useStylesPanelMode();
@@ -470,7 +488,7 @@ const LayerUI = ({
           </Sidebar.TabTrigger>
         </DefaultSidebar.TabTriggers>
         <DefaultSidebar.TabContents>
-          <Sidebar.Tab tab={PAGES_SIDEBAR_TAB}>
+          <Sidebar.Tab tab={PAGES_SIDEBAR_TAB} className="page-navigation-tab">
             <Pages
               pages={pages}
               activePageId={activePageId}
@@ -478,6 +496,16 @@ const LayerUI = ({
               files={files}
               onSelectPage={onPageSelect}
               onCreatePage={onPageCreate}
+              clearingSelection={appState.pageClearingSelection}
+              onEnterClearingMode={onEnterPageClearingMode}
+              onExitClearingMode={onExitPageClearingMode}
+              onTogglePageForClearing={onTogglePageForClearing}
+              onSetAllPagesForClearing={onSetAllPagesForClearing}
+              onClearSelectedPages={onClearSelectedPages}
+              selectionMode={pageSelectionMode}
+              onEnterDeletingMode={onEnterPageDeletingMode}
+              onSetPageSelection={onSetPageSelection}
+              onDeleteSelectedPages={onDeleteSelectedPages}
             />
           </Sidebar.Tab>
         </DefaultSidebar.TabContents>

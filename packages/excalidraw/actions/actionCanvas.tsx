@@ -78,7 +78,9 @@ export const actionChangeViewBackgroundColor = register<Partial<AppState>>({
   },
 });
 
-export const actionClearCanvas = register({
+export const actionClearCanvas = register<{
+  scope?: "canvas" | "allPages";
+} | null>({
   name: "clearCanvas",
   label: "labels.clearCanvas",
   icon: TrashIcon,
@@ -90,7 +92,13 @@ export const actionClearCanvas = register({
       appState.openDialog?.name !== "elementLinkSelector"
     );
   },
-  perform: (elements, appState, _, app) => {
+  perform: (elements, appState, value, app) => {
+    if (value?.scope === "allPages") {
+      // the active page (the canvas) is cleared by the returned elements below;
+      // clear every other page (sub-canvas) here, keeping them as empty pages
+      const activePageId = app.getActivePageId();
+      app.clearPages(app.getPageIds().filter((id) => id !== activePageId));
+    }
     app.imageCache.clear();
     return {
       elements: elements.map((element) =>
@@ -115,6 +123,7 @@ export const actionClearCanvas = register({
         gridModeEnabled: appState.gridModeEnabled,
         gridSnapEnabled: appState.gridSnapEnabled,
         stats: appState.stats,
+        pageClearingSelection: appState.pageClearingSelection,
         activeTool:
           appState.activeTool.type === "image"
             ? {
