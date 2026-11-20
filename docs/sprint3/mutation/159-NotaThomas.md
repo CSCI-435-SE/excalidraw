@@ -1,6 +1,6 @@
 # Mutation testing: Issue #159 -- Implement Page Clearing
 
-**PR(s):** Not opened yet (branch `feat/issue-159-page-clearing`) **Tool:** StrykerJS 10.1.1 with `@stryker-mutator/vitest-runner` **Config:** [stryker.config.mjs](../../../stryker.config.mjs) + [vitest.stryker.config.mts](../../../vitest.stryker.config.mts) **Command:** `yarn test:mutation` **Reports:** [before](reports/159-NotaThomas-before.json) · [after](reports/159-NotaThomas-after.json) **Mutation score:** before 69.67% → after 90.40%
+**PR(s):** #181 (feat(editor): implement page clearing (#159)- #181) **Tool:** StrykerJS 10.1.1 with `@stryker-mutator/vitest-runner` **Config:** [stryker.config.mjs](../../../stryker.config.mjs) + [vitest.stryker.config.mts](../../../vitest.stryker.config.mts) **Command:** `yarn test:mutation` **Reports:** [before](reports/159-NotaThomas-before.json) · [after](reports/159-NotaThomas-after.json) **Mutation score:** before 69.67% → after 90.40%
 
 Stryker mutates only the lines changed for #159 (listed as line ranges in `mutate`), and Vitest runs the five test files that exercise them: `pages.test.tsx`, `shortcuts.test.tsx`, `excalidraw.test.tsx`, `search.test.tsx` and `DefaultSidebar.test.tsx`.
 
