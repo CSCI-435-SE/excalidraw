@@ -212,6 +212,35 @@ export type CollaboratorVisibilityRows = {
   miscellaneous: CollaboratorVisibilityRow;
 };
 
+/** a row while layering is on, labelled with its #116 section */
+export type CollaboratorLayerRow = CollaboratorVisibilityRow & {
+  section: keyof CollaboratorVisibilityRows;
+};
+
+/**
+ * The rows while layering is on (#82): a single list in layer order (top
+ * row = drawn on top), each row keeping its #116 section as a label.
+ *
+ * @param order the layer order, see `getCollaboratorLayerOrder`
+ */
+export const getCollaboratorLayerRows = (
+  { inRoom, previouslySeen, miscellaneous }: CollaboratorVisibilityRows,
+  order: readonly string[],
+): CollaboratorLayerRow[] => {
+  const rowsById = new Map<string, CollaboratorLayerRow>();
+  for (const row of inRoom) {
+    rowsById.set(row.id, { ...row, section: "inRoom" });
+  }
+  for (const row of previouslySeen) {
+    rowsById.set(row.id, { ...row, section: "previouslySeen" });
+  }
+  rowsById.set(miscellaneous.id, {
+    ...miscellaneous,
+    section: "miscellaneous",
+  });
+  return order.flatMap((id) => rowsById.get(id) ?? []);
+};
+
 /**
  * Whether "Lock all" / "Unlock all" would change anything (#81). Only rows
  * whose lock can change count: hidden collaborators (always locked) and

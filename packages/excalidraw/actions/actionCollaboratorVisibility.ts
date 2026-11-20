@@ -1,14 +1,20 @@
 import {
   CaptureUpdateAction,
   addLockedCollaborators,
+  getCollaboratorLayerOrder,
+  getDefaultCollaboratorLayerOrder,
+  moveCollaboratorLayer,
   toggleLockedCollaborator,
   unlockVisibleCollaborators,
 } from "@excalidraw/element";
 
 import {
+  BringForwardIcon,
+  BringToFrontIcon,
   eyeClosedIcon,
   eyeIcon,
   LockedIcon,
+  resetIcon,
   UnlockedIcon,
 } from "../components/icons";
 import {
@@ -142,6 +148,89 @@ export const actionLockAllCollaborators = register({
           getVisibilityBuckets(elements, appState),
           getSelfCollaboratorId(appState),
         ),
+      },
+      captureUpdate: CaptureUpdateAction.NEVER,
+    };
+  },
+});
+
+/*
+ * Local-only layering (#82): while on, the canvas draws collaborators in
+ * `appState.collaboratorLayerOrder` (top row on top). These only change
+ * local appState (never synced, never in history, elements untouched). The
+ * rules live in `element/ownership.ts`.
+ */
+
+/**
+ * turns layering on or off. The first time it's turned on, the default
+ * order is stored; turning it off keeps the order for when it's back on
+ */
+export const actionToggleCollaboratorLayering = register({
+  name: "toggleCollaboratorLayering",
+  label: "collaboratorLayer.toggle",
+  icon: BringToFrontIcon,
+  viewMode: true,
+  trackEvent: { category: "collab" },
+  perform(elements, appState) {
+    return {
+      appState: {
+        ...appState,
+        collaboratorLayeringEnabled: !appState.collaboratorLayeringEnabled,
+        collaboratorLayerOrder:
+          appState.collaboratorLayerOrder ??
+          getDefaultCollaboratorLayerOrder(appState),
+      },
+      captureUpdate: CaptureUpdateAction.NEVER,
+    };
+  },
+});
+
+/**
+ * moves a bucket to a position in the layer order (top = 0). Used by the
+ * ↑ / ↓ arrows (one place) and by dragging (any place); only while on
+ */
+export const actionMoveCollaboratorLayer = register<{
+  id: string;
+  toIndex: number;
+}>({
+  name: "moveCollaboratorLayer",
+  label: "collaboratorLayer.move",
+  icon: BringForwardIcon,
+  viewMode: true,
+  trackEvent: { category: "collab" },
+  perform(elements, appState, value) {
+    if (!value || !appState.collaboratorLayeringEnabled) {
+      return false;
+    }
+    return {
+      appState: {
+        ...appState,
+        collaboratorLayerOrder: moveCollaboratorLayer(
+          getCollaboratorLayerOrder(appState),
+          value.id,
+          value.toIndex,
+        ),
+      },
+      captureUpdate: CaptureUpdateAction.NEVER,
+    };
+  },
+});
+
+/** returns the layer order to the default (me on top, then join order) */
+export const actionResetCollaboratorLayerOrder = register({
+  name: "resetCollaboratorLayerOrder",
+  label: "collaboratorLayer.reset",
+  icon: resetIcon,
+  viewMode: true,
+  trackEvent: { category: "collab" },
+  perform(elements, appState) {
+    if (!appState.collaboratorLayeringEnabled) {
+      return false;
+    }
+    return {
+      appState: {
+        ...appState,
+        collaboratorLayerOrder: getDefaultCollaboratorLayerOrder(appState),
       },
       captureUpdate: CaptureUpdateAction.NEVER,
     };

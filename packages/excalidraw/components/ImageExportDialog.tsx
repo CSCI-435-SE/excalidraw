@@ -433,7 +433,15 @@ export const ImageExportDialog = ({
   // while the dialog is open
   const [{ appStateSnapshot, elementsSnapshot }] = useState(() => {
     return {
-      appStateSnapshot: cloneJSON(appState),
+      appStateSnapshot: {
+        ...cloneJSON(appState),
+        // Maps/Sets don't survive JSON cloning. The preview needs them to
+        // draw in this client's layer order (#82); without them it throws,
+        // and the preview retries endlessly, freezing the editor.
+        collaborators: appState.collaborators,
+        collaboratorDirectory: appState.collaboratorDirectory,
+        hiddenCollaboratorIds: appState.hiddenCollaboratorIds,
+      },
       elementsSnapshot: cloneJSON(elements),
     };
   });

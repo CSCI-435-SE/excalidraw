@@ -10,6 +10,8 @@ import { getDefaultAppState } from "../appState";
 import { t } from "../i18n";
 
 import ConfirmDialog from "./ConfirmDialog";
+import { PageDeleteDialog } from "./PageDeleteDialog";
+import { PageRangeSelect } from "./PageRangeSelect";
 import { Tooltip } from "./Tooltip";
 
 import "./Pages.scss";
@@ -194,6 +196,10 @@ export const Pages = ({
   onTogglePageForClearing,
   onSetAllPagesForClearing,
   onClearSelectedPages,
+  selectionMode,
+  onEnterDeletingMode,
+  onDeleteSelectedPages,
+  onSetPageSelection,
 }: {
   pages: readonly DrawingPage[];
   activePageId: string;
@@ -209,10 +215,17 @@ export const Pages = ({
   onTogglePageForClearing: (pageId: string) => void;
   onSetAllPagesForClearing: (selected: boolean) => void;
   onClearSelectedPages: () => void;
+  /** whether the page selection above is for clearing or deleting */
+  selectionMode: "clear" | "delete";
+  onEnterDeletingMode: () => void;
+  onDeleteSelectedPages: () => void;
+  onSetPageSelection: (pageIds: readonly string[]) => void;
 }) => {
   // local state so the confirmation is scoped to this editor instance
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
   const isClearing = clearingSelection !== null;
+  // deleting mode (#158) reuses clearing mode's page selection
+  const isDeleting = isClearing && selectionMode === "delete";
   const selectedCount = clearingSelection
     ? pages.filter((page) => clearingSelection.includes(page.id)).length
     : 0;
@@ -232,7 +245,7 @@ export const Pages = ({
     >
       {isClearing && (
         <div className="page-navigation__clearing-header">
-          {t("labels.clearingMode")}
+          {isDeleting ? t("labels.deletingMode") : t("labels.clearingMode")}
         </div>
       )}
       <div className="page-navigation__list">
@@ -298,29 +311,48 @@ export const Pages = ({
       </div>
       {isClearing ? (
         <div className="page-navigation__actions">
-          <button
-            type="button"
-            className="page-navigation__add"
-            onClick={() => onSetAllPagesForClearing(!allSelected)}
-          >
-            {allSelected
-              ? t("buttons.deselectAllPages")
-              : t("buttons.selectAllPages")}
-          </button>
+          <div className="page-navigation__actions-row">
+            <button
+              type="button"
+              className="page-navigation__add"
+              onClick={() => onSetAllPagesForClearing(!allSelected)}
+            >
+              {allSelected
+                ? t("buttons.deselectAllPages")
+                : t("buttons.selectAllPages")}
+            </button>
+            <button
+              type="button"
+              className="page-navigation__add"
+              onClick={() =>
+                onSetPageSelection(
+                  pages
+                    .filter((page) => page.id !== activePageId)
+                    .map((page) => page.id),
+                )
+              }
+              disabled={pages.length < 2}
+            >
+              {t("buttons.selectOtherPages")}
+            </button>
+          </div>
+          <PageRangeSelect pages={pages} onSelect={onSetPageSelection} />
           <button
             type="button"
             className="page-navigation__add page-navigation__add--danger"
             onClick={() => setIsConfirmingClear(true)}
             disabled={!selectedCount || appState.viewModeEnabled}
           >
-            {t("buttons.clearPages")}
+            {isDeleting ? t("labels.delete") : t("buttons.clearPages")}
           </button>
           <button
             type="button"
             className="page-navigation__add"
             onClick={onExitClearingMode}
           >
-            {t("buttons.exitClearingMode")}
+            {isDeleting
+              ? t("buttons.exitDeletingMode")
+              : t("buttons.exitClearingMode")}
           </button>
         </div>
       ) : (
@@ -342,9 +374,28 @@ export const Pages = ({
           >
             {t("buttons.enterClearingMode")}
           </button>
+          <button
+            type="button"
+            className="page-navigation__add"
+            onClick={onEnterDeletingMode}
+            disabled={appState.viewModeEnabled}
+          >
+            {t("buttons.enterDeletingMode")}
+          </button>
         </div>
       )}
-      {isClearing && isConfirmingClear && (
+      {isDeleting && isConfirmingClear && (
+        <PageDeleteDialog
+          pages={pages}
+          pageIds={clearingSelection}
+          onConfirm={() => {
+            setIsConfirmingClear(false);
+            onDeleteSelectedPages();
+          }}
+          onCancel={() => setIsConfirmingClear(false)}
+        />
+      )}
+      {isClearing && !isDeleting && isConfirmingClear && (
         <ConfirmDialog
           title={t("clearPagesDialog.title")}
           confirmText={t("buttons.clearPages")}

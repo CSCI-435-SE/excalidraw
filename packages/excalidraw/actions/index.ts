@@ -147,4 +147,7 @@ export {
   actionToggleCollaboratorLock,
   actionLockAllCollaborators,
   actionUnlockAllCollaborators,
+  actionToggleCollaboratorLayering,
+  actionMoveCollaboratorLayer,
+  actionResetCollaboratorLayerOrder,
 } from "./actionCollaboratorVisibility";

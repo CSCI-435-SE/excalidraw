@@ -2,6 +2,7 @@ import {
   getCommonFrameId,
   getFrameChildrenInsertionIndex,
   isElementInViewport,
+  orderElementsByCollaboratorLayer,
 } from "@excalidraw/element";
 
 import { arrayToMap, memoize, toBrandedType } from "@excalidraw/common";
@@ -39,6 +40,11 @@ type GetRenderableElementsOpts = {
   frameToHighlight: AppState["frameToHighlight"];
   hiddenCollaboratorIds: AppState["hiddenCollaboratorIds"];
   collaboratorDirectory: AppState["collaboratorDirectory"];
+  /**
+   * the local layer order (#82) while layering is on (`getCollaboratorLayerOrder`),
+   * otherwise `null`/omitted → the shared drawing order
+   */
+  collaboratorLayerOrder?: readonly string[] | null;
 };
 
 export class Renderer {
@@ -188,6 +194,7 @@ export class Renderer {
       newElement,
       hiddenCollaboratorIds,
       collaboratorDirectory,
+      collaboratorLayerOrder,
     }: Omit<
       GetRenderableElementsOpts,
       | "selectedElements"
@@ -196,7 +203,18 @@ export class Renderer {
     > & {
       canvasNonce: string;
     }) => {
-      const elements = this.scene.getNonDeletedElements();
+      // drawn in this client's layer order (#82); the shared order otherwise
+      const elements = orderElementsByCollaboratorLayer(
+        this.scene.getNonDeletedElements(),
+        {
+          collaboratorLayeringEnabled: !!collaboratorLayerOrder,
+          collaboratorLayerOrder,
+          collaboratorDirectory,
+          // co-owned elements follow their highest visible owner (#84)
+          hiddenCollaboratorIds,
+        },
+        this.scene.getNonDeletedElementsMap(),
+      );
 
       const { elementsMap, newElementCanvasElement } =
         this.getRenderableElementsMap({
@@ -251,6 +269,9 @@ export class Renderer {
       // creator moves between buckets), so these must be part of the memo key
       hiddenCollaboratorIds: opts.hiddenCollaboratorIds,
       collaboratorDirectory: opts.collaboratorDirectory,
+      // likewise for the local layer order (kept as the same array while
+      // its contents don't change, see App.getLocalLayerOrder)
+      collaboratorLayerOrder: opts.collaboratorLayerOrder ?? null,
     });
 
     // if we're dragging elements over a frame, reorder the selected elements

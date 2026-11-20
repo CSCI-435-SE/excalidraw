@@ -309,6 +309,138 @@ export const excludeNonInteractiveElements = <T extends ExcalidrawElement>(
   );
 };
 
+/** structurally satisfied by the editor's AppState */
+export type CreatorLayering = CreatorVisibility &
+  CreatorSelf & {
+    /** layering on → elements are drawn in `collaboratorLayerOrder` */
+    collaboratorLayeringEnabled?: boolean;
+    /**
+     * local layer order of visibility buckets, top row (drawn on top) first.
+     * `null`/omitted → the default order.
+     */
+    collaboratorLayerOrder?: readonly string[] | null;
+  };
+
+/**
+ * The layer order used when layering is first turned on, and on reset (#82):
+ * you on top, then everyone in join order, the miscellaneous bucket last.
+ *
+ * Join order is the order of `collaboratorDirectory` (#116), which records
+ * each collaborator the first time this client sees them (a `Map` keeps
+ * insertion order). Live collaborators not recorded yet follow it.
+ */
+export const getDefaultCollaboratorLayerOrder = (
+  state: CreatorVisibility & CreatorSelf,
+): string[] => {
+  const order = new Set<string>();
+  const selfId = getSelfCreatorId(state);
+  if (selfId) {
+    order.add(selfId);
+  }
+  for (const id of state.collaboratorDirectory?.keys() ?? []) {
+    order.add(id);
+  }
+  for (const collaborator of state.collaborators?.values() ?? []) {
+    if (collaborator.id) {
+      order.add(collaborator.id);
+    }
+  }
+  order.add(UNKNOWN_CREATOR_ID);
+  return [...order];
+};
+
+/**
+ * The layer order shown in the dropdown and used for drawing (#82): the
+ * stored order (or the default one), with anyone not in it yet added to the
+ * bottom in join order. Ids are never dropped, so collaborators who are
+ * hidden or left keep their place.
+ */
+export const getCollaboratorLayerOrder = (
+  state: CreatorLayering,
+): readonly string[] => {
+  const defaultOrder = getDefaultCollaboratorLayerOrder(state);
+  const stored = state.collaboratorLayerOrder;
+  if (!stored) {
+    return defaultOrder;
+  }
+  const known = new Set(stored);
+  const newcomers = defaultOrder.filter((id) => !known.has(id));
+  return newcomers.length ? [...stored, ...newcomers] : stored;
+};
+
+/**
+ * Returns `order` with `id` moved to `toIndex` (clamped to the list), or
+ * `order` itself when nothing changes (unknown id, or already there).
+ */
+export const moveCollaboratorLayer = (
+  order: readonly string[],
+  id: string,
+  toIndex: number,
+): readonly string[] => {
+  const fromIndex = order.indexOf(id);
+  const targetIndex = Math.min(Math.max(toIndex, 0), order.length - 1);
+  if (fromIndex === -1 || fromIndex === targetIndex) {
+    return order;
+  }
+  const next = order.filter((other) => other !== id);
+  next.splice(targetIndex, 0, id);
+  return next;
+};
+
+/**
+ * The single layering rule (#82), used for rendering, hit-testing, binding
+ * and export: while layering is on, elements of a higher collaborator in the
+ * layer order are drawn after (above) every element of a lower one. The sort
+ * is stable, so each collaborator keeps the shared drawing order. Bound text
+ * follows its container's owners. Buckets missing from the order go below
+ * everyone.
+ *
+ * A co-owned element (#84) is drawn in the layer of its highest VISIBLE
+ * owner, like it follows its least restricted owner for visibility and
+ * locking. If every owner is hidden (it isn't drawn then), its highest owner
+ * is used.
+ *
+ * Never changes elements (their shared `index` stays as is). Returns the
+ * input array as-is while layering is off.
+ *
+ * @param elementsMap used to resolve bound text containers. Defaults to a map
+ * of `elements`, so pass the full scene map when `elements` is a subset.
+ */
+export const orderElementsByCollaboratorLayer = <T extends ExcalidrawElement>(
+  elements: readonly T[],
+  state: CreatorLayering,
+  elementsMap?: ElementsMap,
+): readonly T[] => {
+  if (!state.collaboratorLayeringEnabled) {
+    return elements;
+  }
+  const order = getCollaboratorLayerOrder(state);
+  // higher rank = drawn later (on top); missing buckets rank lowest (-1)
+  const rankByBucket = new Map(
+    order.map((id, index) => [id, order.length - 1 - index]),
+  );
+  const map = elementsMap ?? arrayToMap(elements);
+  const getRank = (element: T) => {
+    const buckets = getElementVisibilityBuckets(
+      element,
+      map,
+      state.collaboratorDirectory,
+    );
+    const visibleBuckets = buckets.filter(
+      (bucket) => !state.hiddenCollaboratorIds?.has(bucket),
+    );
+    return Math.max(
+      ...(visibleBuckets.length ? visibleBuckets : buckets).map(
+        (bucket) => rankByBucket.get(bucket) ?? -1,
+      ),
+    );
+  };
+  return elements
+    .map((element) => ({ element, rank: getRank(element) }))
+    .sort((a, b) => a.rank - b.rank)
+    .map(({ element }) => element);
+};
+
 /**
  * Filters out elements whose visibility bucket is hidden. Returns the input
  * array as-is when nothing is hidden.
