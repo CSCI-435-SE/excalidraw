@@ -689,6 +689,8 @@ const ExcalidrawWrapper = () => {
   ) => {
     if (collabAPI?.isCollaborating()) {
       collabAPI.syncElements(elements);
+      // the collaborator dropdown's settings, saved per room (#83)
+      collabAPI.saveCollaboratorSettings(appState);
     }
 
     if (appState.name !== lastSyncedFileNameRef.current) {

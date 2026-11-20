@@ -140,6 +140,7 @@ export type ActionName =
   | "toggleCollaboratorLayering"
   | "moveCollaboratorLayer"
   | "resetCollaboratorLayerOrder"
+  | "setNewCollaboratorDefault"
   | "exportWithDarkMode"
   | "toggleTheme"
   | "increaseFontSize"

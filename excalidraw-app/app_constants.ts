@@ -50,6 +50,8 @@ export const STORAGE_KEYS = {
   SESSION_STORAGE_CLIENT_ID: "excalidraw-client-id",
   /** collaborators seen per room ("Previously seen"), keyed by room id */
   LOCAL_STORAGE_COLLABORATOR_DIRECTORY: "excalidraw-collaborator-directory",
+  /** the collaborator dropdown's saved settings (#83): global + per room */
+  LOCAL_STORAGE_COLLABORATOR_SETTINGS: "excalidraw-collaborator-settings",
   VERSION_DATA_STATE: "version-dataState",
   VERSION_FILES: "version-files",
 

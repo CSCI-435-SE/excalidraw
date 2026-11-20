@@ -149,4 +149,5 @@ export {
   actionToggleCollaboratorLayering,
   actionMoveCollaboratorLayer,
   actionResetCollaboratorLayerOrder,
+  actionSetNewCollaboratorDefault,
 } from "./actionCollaboratorVisibility";

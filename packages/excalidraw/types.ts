@@ -11,6 +11,8 @@ import type { LinearElementEditor } from "@excalidraw/element";
 
 import type { MaybeTransformHandleType } from "@excalidraw/element";
 
+import type { NewCollaboratorDefault } from "@excalidraw/element";
+
 import type {
   PointerType,
   ExcalidrawLinearElement,
@@ -611,6 +613,11 @@ export interface AppState {
    * until layering is first turned on; kept while it's off.
    */
   collaboratorLayerOrder: readonly string[] | null;
+  /**
+   * how a collaborator this client sees for the first time starts (#83):
+   * visible, visible but locked, or hidden. Local only (never synced).
+   */
+  newCollaboratorDefault: NewCollaboratorDefault;
   /**
    * collaborators this client has seen in the current room, keyed by their
    * client id (= elements' creator id). Supplied by the host app; `null`

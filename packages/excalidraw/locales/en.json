@@ -918,6 +918,15 @@
     "moveDown": "Move {{name}} down a layer",
     "dragHandle": "Drag to move {{name}}'s layer"
   },
+  "collaboratorNewcomer": {
+    "title": "New collaborators",
+    "visible": "Visible",
+    "locked": "Locked",
+    "hidden": "Hidden",
+    "visibleHint": "New collaborators start visible and editable",
+    "lockedHint": "New collaborators start visible but locked",
+    "hiddenHint": "New collaborators start hidden"
+  },
   "collaboratorEdit": {
     "deletedWhileEditing": "A collaborator deleted the element you were editing"
   },

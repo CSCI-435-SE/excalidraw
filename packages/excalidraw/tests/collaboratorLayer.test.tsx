@@ -13,9 +13,11 @@
  *   click through (#81 D)
  * - D: labels drawn with their container; frame children still clipped
  * - E: no element changes; Bring forward still works, within the layer
- * - F: local, not in history, reset on reload
+ * - F: local, not in history, reset on reload (replaced by #83 Criteria F:
+ *   saved per room by the host app, never with the scene)
  * - G: hiding/locking and moving don't affect each other
- * - H: newcomers go to the bottom
+ * - H: newcomers go to the bottom (replaced by #83 Criteria D: directly
+ *   above miscellaneous)
  * - I: PNG/SVG export follows the local order
  * - default/reset order (decision): me on top, then join order (#116's
  *   collaborator directory order), miscellaneous last
@@ -283,8 +285,9 @@ describe("collaborator layering — Criteria G (visibility and locking)", () => 
   });
 });
 
-describe("collaborator layering — Criteria H (new collaborators)", () => {
-  it("AC-H: a collaborator who joins while layering is on is added to the bottom", () => {
+// #83 Criteria D replaces #82's Criteria H ("added to the bottom")
+describe("collaborator layering — #83 Criteria D (new collaborators)", () => {
+  it("#83 AC-D: a collaborator who joins while layering is on is added directly above miscellaneous", () => {
     toggleLayering();
     act(() => {
       h.app.updateScene({
@@ -301,10 +304,16 @@ describe("collaborator layering — Criteria H (new collaborators)", () => {
       });
     });
 
-    expect(layerOrder()).toEqual([...DEFAULT_ORDER, "carol"]);
+    expect(layerOrder()).toEqual([
+      "me",
+      "alice",
+      "bob",
+      "carol",
+      UNKNOWN_CREATOR_ID,
+    ]);
   });
 
-  it("AC-H: the newcomer's drawings are drawn below everyone", () => {
+  it("#83 AC-D: the newcomer's drawings are drawn below every collaborator, above miscellaneous", () => {
     toggleLayering();
     act(() => {
       h.app.updateScene({
@@ -320,17 +329,25 @@ describe("collaborator layering — Criteria H (new collaborators)", () => {
         ]),
       });
     });
-    // carol draws on top of everything in the shared order
+    // an untagged (miscellaneous) shape, then carol's on top of everything
+    // in the shared order
     API.setElements([
       ...h.elements,
+      createSolidRect("untagged-top"),
       stamp(createSolidRect("carol-top"), "carol"),
     ]);
 
-    expect(drawnIds()[0]).toBe("carol-top");
+    // drawing order, bottom first: miscellaneous, carol, bob, alice
+    expect(drawnIds()).toEqual([
+      "untagged-top",
+      "carol-top",
+      "bob-over",
+      "alice-under",
+    ]);
   });
 });
 
-describe("collaborator layering — Criteria F (local and non-persistent)", () => {
+describe("collaborator layering — Criteria F (local only; saved by the host app per #83)", () => {
   it("AC-F: the switch, moves and reset add no undo history entries", () => {
     const undoStackSize = API.getUndoStack().length;
 
@@ -363,11 +380,14 @@ describe("collaborator layering — Criteria F (local and non-persistent)", () =
     expect(sent).not.toHaveProperty("collaboratorLayerOrder");
   });
 
-  it("AC-F: the layer order resets when the page reloads", () => {
+  // #83 Criteria F replaces "reset on reload": the switch and order are now
+  // saved per room by the host app (collaboratorSettings.ts), never with the
+  // scene. They reset only through Reset order.
+  it("AC-F (#83 F): the Layering switch and order are not restored from the scene's local save", () => {
     toggleLayering();
     move("bob", 0);
 
-    // a reload restores app state from what was saved locally
+    // what the scene's own local save would give back on a reload
     const restored = restoreAppState(
       clearAppStateForLocalStorage(h.state),
       null,

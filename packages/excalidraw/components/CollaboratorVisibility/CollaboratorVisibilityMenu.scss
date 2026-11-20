@@ -253,6 +253,17 @@
     cursor: pointer;
   }
 
+  // #83: "New collaborators" (Visible / Locked / Hidden)
+  .CollaboratorVisibilityMenu__newcomers {
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 0.25rem;
+  }
+
+  .CollaboratorVisibilityMenu__newcomers-title {
+    font-size: 0.75rem;
+  }
+
   // #82: section titles shown per row while layering is on
   .CollaboratorVisibilityMenu__row-section {
     font-size: 0.625rem;

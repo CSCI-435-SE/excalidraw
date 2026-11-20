@@ -17,6 +17,8 @@ import {
   isTestEnv,
 } from "@excalidraw/common";
 
+import { DEFAULT_NEW_COLLABORATOR } from "@excalidraw/element";
+
 import type { AppState, NormalizedZoomValue } from "./types";
 
 const defaultExportScale = EXPORT_SCALES.includes(devicePixelRatio)
@@ -142,6 +144,7 @@ export const getDefaultAppState = (): Omit<
     lockedCollaboratorIds: new Set(),
     collaboratorLayeringEnabled: false,
     collaboratorLayerOrder: null,
+    newCollaboratorDefault: DEFAULT_NEW_COLLABORATOR,
     collaboratorDirectory: null,
     viewModeBeforeSelfHide: null,
     isCropping: false,
@@ -298,6 +301,8 @@ const APP_STATE_STORAGE_CONF = (<
     server: false,
   },
   collaboratorLayerOrder: { browser: false, export: false, server: false },
+  // #83: saved per device by the host app, never with the scene
+  newCollaboratorDefault: { browser: false, export: false, server: false },
   collaboratorDirectory: { browser: false, export: false, server: false },
   viewModeBeforeSelfHide: { browser: false, export: false, server: false },
   isCropping: { browser: false, export: false, server: false },
