@@ -80,7 +80,12 @@ import type {
   UIAppState,
   AppClassProperties,
 } from "../types";
-import type { DrawingPage } from "../pages";
+import type {
+  DrawingPage,
+  PageDropPlacement,
+  PageNavRef,
+  PageTree,
+} from "../pages";
 
 interface LayerUIProps {
   actionManager: ActionManager;
@@ -117,6 +122,15 @@ interface LayerUIProps {
   onEnterPageDeletingMode: () => void;
   onSetPageSelection: (pageIds: readonly string[]) => void;
   onDeleteSelectedPages: () => void;
+  pageTree: PageTree;
+  onMovePageNavItem: (
+    dragged: PageNavRef,
+    target: PageNavRef,
+    placement: PageDropPlacement,
+  ) => void;
+  onCreatePageFolder: (pageIds: readonly string[], name: string) => void;
+  onTogglePageFolder: (folderId: string) => void;
+  onDeletePageFolder: (folderId: string) => void;
 }
 
 const DefaultMainMenu: React.FC<{
@@ -189,6 +203,11 @@ const LayerUI = ({
   onEnterPageDeletingMode,
   onSetPageSelection,
   onDeleteSelectedPages,
+  pageTree,
+  onMovePageNavItem,
+  onCreatePageFolder,
+  onTogglePageFolder,
+  onDeletePageFolder,
 }: LayerUIProps) => {
   const editorInterface = useEditorInterface();
   const stylesPanelMode = useStylesPanelMode();
@@ -510,6 +529,11 @@ const LayerUI = ({
               onEnterDeletingMode={onEnterPageDeletingMode}
               onSetPageSelection={onSetPageSelection}
               onDeleteSelectedPages={onDeleteSelectedPages}
+              pageTree={pageTree}
+              onMoveNavItem={onMovePageNavItem}
+              onCreateFolder={onCreatePageFolder}
+              onToggleFolder={onTogglePageFolder}
+              onDeleteFolder={onDeletePageFolder}
             />
           </Sidebar.Tab>
         </DefaultSidebar.TabContents>
@@ -638,6 +662,13 @@ const LayerUI = ({
               page={page}
               pages={pages}
               onSave={(patch) => app.updatePageInfo(pageId, patch)}
+              position={app.getPagePosition(pageId)}
+              onMoveToPosition={(input) =>
+                app.movePageToPosition(pageId, input)
+              }
+              isMoveDisabled={appState.viewModeEnabled}
+              isInFolder={app.isPageInFolder(pageId)}
+              onRemoveFromFolder={() => app.removePageFromFolder(pageId)}
               onClose={() => setAppState({ openDialog: null })}
             />
           ) : null;

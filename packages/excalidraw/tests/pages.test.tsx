@@ -71,7 +71,7 @@ describe("pages", () => {
   });
 
   it("creates pages and restores their elements, settings, and viewport", async () => {
-    const { getByRole, container } = await render(
+    const { getByRole, findByRole, container } = await render(
       <Excalidraw initialData={{ elements: [] }}>
         <DefaultSidebar>
           <DefaultSidebar.TabTriggers>
@@ -91,7 +91,8 @@ describe("pages", () => {
     });
 
     fireEvent.click(getByRole("button", { name: "Pages" }));
-    expect(getByRole("button", { name: "Page 1" })).toBeTruthy();
+    // the sidebar tab can render after the click on slow machines (CI)
+    expect(await findByRole("button", { name: "Page 1" })).toBeTruthy();
     fireEvent.click(getByRole("button", { name: "Add page" }));
 
     await waitFor(() => {
@@ -134,12 +135,14 @@ describe("pages", () => {
     const result = await render(
       <Excalidraw initialData={{ elements: [] }} handleKeyboardGlobally />,
     );
-    const { getByRole } = result;
+    const { getByRole, findByRole } = result;
 
     API.updateScene({
       elements: [API.createElement({ type: "rectangle", id: ids[0] })],
     });
     fireEvent.click(getByRole("button", { name: "Pages" }));
+    // the sidebar tab can render after the click on slow machines (CI)
+    await findByRole("button", { name: "Add page" });
 
     for (const id of ids.slice(1)) {
       fireEvent.click(getByRole("button", { name: "Add page" }));
@@ -1383,5 +1386,418 @@ describe("select pages by number", () => {
 
     expect(button("Select")).toHaveProperty("disabled", true);
     expect(queries.queryByRole("alert")).toBeNull();
+  });
+});
+
+describe("page reordering and folders (#162)", () => {
+  beforeEach(() => {
+    unmountComponent();
+    localStorage.clear();
+    editorJotaiStore.set(activeConfirmDialogAtom, null);
+  });
+
+  /** Renders Page 1..4 with the Pages sidebar open; Page 4 is active. */
+  const renderWithFourPages = async () => {
+    const result = await render(<Excalidraw handleKeyboardGlobally />);
+    fireEvent.click(result.getByRole("button", { name: "Pages" }));
+    for (let i = 0; i < 3; i++) {
+      fireEvent.click(result.getByRole("button", { name: "Add page" }));
+    }
+    await waitFor(() => {
+      expect(result.getByRole("button", { name: "Page 4" })).toBeTruthy();
+    });
+    return result;
+  };
+
+  /** Page and folder names in the order the navigation shows them. */
+  const navOrder = () =>
+    Array.from(
+      document.querySelectorAll(
+        ".page-navigation__list .page-navigation__item-name, .page-navigation__list .page-navigation__folder-name",
+      ),
+    ).map((node) => node.textContent);
+
+  const pageOrder = () =>
+    pageInternals().pages.map((page) => (page as DrawingPage).name);
+
+  const tab = (name: string) =>
+    document.querySelector<HTMLElement>(
+      `.page-navigation__list [aria-label="${name}"]:is(button)`,
+    )!;
+
+  const shiftDrag = (
+    from: HTMLElement,
+    to: HTMLElement,
+    placement: "before" | "after",
+  ) => {
+    fireEvent.pointerDown(from, { shiftKey: true, button: 0 });
+    // jsdom boxes are empty, so any clientY > 0 lands on the lower half
+    fireEvent.pointerMove(to, { clientY: placement === "after" ? 10 : 0 });
+    fireEvent.pointerUp(window);
+  };
+
+  const openInfo = (name: string) => fireEvent.contextMenu(tab(name));
+  const getDialog = () =>
+    within(document.querySelector<HTMLElement>(".PageInfoDialog")!);
+  const moveViaMenu = (name: string, input: string) => {
+    openInfo(name);
+    fireEvent.change(
+      getDialog().getByRole("textbox", { name: "Move to position" }),
+      { target: { value: input } },
+    );
+    fireEvent.click(getDialog().getByRole("button", { name: "Move" }));
+  };
+  const toastText = () =>
+    document.querySelector(".Toast__message")?.textContent ?? null;
+
+  describe("Criteria A: Shift + drag", () => {
+    it("reorders a page and keeps every page's name", async () => {
+      await renderWithFourPages();
+
+      shiftDrag(tab("Page 4"), tab("Page 1"), "before");
+
+      expect(navOrder()).toEqual(["Page 4", "Page 1", "Page 2", "Page 3"]);
+      expect(pageOrder()).toEqual(["Page 4", "Page 1", "Page 2", "Page 3"]);
+
+      shiftDrag(tab("Page 4"), tab("Page 2"), "after");
+      expect(navOrder()).toEqual(["Page 1", "Page 2", "Page 4", "Page 3"]);
+    });
+
+    it("does not switch pages or touch the scene", async () => {
+      await renderWithFourPages();
+      const activeBefore = pageInternals().activePageId;
+
+      shiftDrag(tab("Page 1"), tab("Page 3"), "after");
+      fireEvent.click(tab("Page 1"), { shiftKey: true });
+
+      expect(pageInternals().activePageId).toBe(activeBefore);
+      expect(tab("Page 4").getAttribute("aria-pressed")).toBe("true");
+    });
+
+    it("needs Shift to start a drag", async () => {
+      await renderWithFourPages();
+
+      fireEvent.pointerDown(tab("Page 4"), { button: 0 });
+      fireEvent.pointerMove(tab("Page 1"), { clientY: 0 });
+      fireEvent.pointerUp(window);
+
+      expect(navOrder()).toEqual(["Page 1", "Page 2", "Page 3", "Page 4"]);
+    });
+
+    it("cancels the drag on Escape", async () => {
+      await renderWithFourPages();
+
+      fireEvent.pointerDown(tab("Page 4"), { shiftKey: true, button: 0 });
+      fireEvent.pointerMove(tab("Page 1"), { clientY: 0 });
+      fireEvent.keyDown(window, { key: KEYS.ESCAPE });
+      fireEvent.pointerUp(window);
+
+      expect(navOrder()).toEqual(["Page 1", "Page 2", "Page 3", "Page 4"]);
+    });
+
+    it("does nothing in view mode", async () => {
+      await renderWithFourPages();
+      act(() => h.setState({ viewModeEnabled: true }));
+
+      shiftDrag(tab("Page 4"), tab("Page 1"), "before");
+
+      expect(navOrder()).toEqual(["Page 1", "Page 2", "Page 3", "Page 4"]);
+    });
+  });
+
+  describe("Criteria A, D, E, F: move to a typed position from the page menu", () => {
+    it("shows the page's position and moves it", async () => {
+      await renderWithFourPages();
+
+      openInfo("Page 3");
+      expect(getDialog().getByText("3 of 4")).toBeTruthy();
+
+      fireEvent.change(
+        getDialog().getByRole("textbox", { name: "Move to position" }),
+        { target: { value: "1" } },
+      );
+      fireEvent.click(getDialog().getByRole("button", { name: "Move" }));
+
+      expect(navOrder()).toEqual(["Page 3", "Page 1", "Page 2", "Page 4"]);
+      expect(getDialog().getByText("1 of 4")).toBeTruthy();
+    });
+
+    it("moves to the end for a number past the end (D)", async () => {
+      await renderWithFourPages();
+      moveViaMenu("Page 1", "99");
+      expect(navOrder()).toEqual(["Page 2", "Page 3", "Page 4", "Page 1"]);
+      expect(toastText()).toBeNull();
+    });
+
+    it("moves to the start for 0 (E)", async () => {
+      await renderWithFourPages();
+      moveViaMenu("Page 4", "0");
+      expect(navOrder()).toEqual(["Page 4", "Page 1", "Page 2", "Page 3"]);
+      expect(toastText()).toBeNull();
+    });
+
+    it.each(["-1", "abc", "1.5", ""])(
+      "rejects %j with a notification and does not move (F)",
+      async (input) => {
+        await renderWithFourPages();
+        moveViaMenu("Page 2", input);
+        expect(navOrder()).toEqual(["Page 1", "Page 2", "Page 3", "Page 4"]);
+        expect(toastText()).toBe(
+          "Invalid position. Enter a whole number of 0 or more.",
+        );
+      },
+    );
+  });
+
+  describe("Criteria B and C: folders", () => {
+    const selectForFolder = (...names: string[]) =>
+      names.forEach((name) =>
+        fireEvent.contextMenu(tab(name), { shiftKey: true }),
+      );
+
+    it("Shift + right-click selects pages instead of opening the page menu", async () => {
+      const { queryByRole, getByRole } = await renderWithFourPages();
+      expect(queryByRole("button", { name: "Create folder" })).toBeNull();
+
+      selectForFolder("Page 1", "Page 3");
+
+      expect(h.state.openDialog).toBeNull();
+      expect(tab("Page 1").dataset.folderSelected).toBe("true");
+      expect(tab("Page 2").dataset.folderSelected).toBeUndefined();
+      expect(getByRole("button", { name: "Create folder" })).toBeTruthy();
+
+      // a second Shift + right-click deselects
+      selectForFolder("Page 3");
+      expect(tab("Page 3").dataset.folderSelected).toBeUndefined();
+    });
+
+    it("creates a named folder at the end of the list", async () => {
+      const { getByRole } = await renderWithFourPages();
+
+      selectForFolder("Page 3", "Page 1");
+      const nameInput = getByRole("textbox", { name: "Folder name" });
+      expect((nameInput as HTMLInputElement).value).toBe("Folder 1");
+      fireEvent.change(nameInput, { target: { value: "Drafts" } });
+      fireEvent.click(getByRole("button", { name: "Create folder" }));
+
+      expect(navOrder()).toEqual([
+        "Page 2",
+        "Page 4",
+        "Drafts",
+        "Page 1",
+        "Page 3",
+      ]);
+      expect(pageOrder()).toEqual(["Page 2", "Page 4", "Page 1", "Page 3"]);
+      expect(tab("Page 1").dataset.folderSelected).toBeUndefined();
+    });
+
+    it("requires a folder name", async () => {
+      const { getByRole } = await renderWithFourPages();
+
+      selectForFolder("Page 1");
+      fireEvent.change(getByRole("textbox", { name: "Folder name" }), {
+        target: { value: "   " },
+      });
+
+      expect(getByRole("button", { name: "Create folder" })).toHaveProperty(
+        "disabled",
+        true,
+      );
+    });
+
+    it("cancels a folder selection", async () => {
+      const { getByRole, queryByRole } = await renderWithFourPages();
+
+      selectForFolder("Page 1");
+      fireEvent.click(getByRole("button", { name: "Cancel" }));
+
+      expect(queryByRole("button", { name: "Create folder" })).toBeNull();
+      expect(tab("Page 1").dataset.folderSelected).toBeUndefined();
+    });
+
+    it("collapses and expands a folder", async () => {
+      const { getByRole } = await renderWithFourPages();
+      selectForFolder("Page 1", "Page 2");
+      fireEvent.click(getByRole("button", { name: "Create folder" }));
+
+      const header = getByRole("button", { name: "Folder 1" });
+      expect(header.getAttribute("aria-expanded")).toBe("true");
+
+      fireEvent.click(header);
+      expect(header.getAttribute("aria-expanded")).toBe("false");
+      expect(navOrder()).toEqual(["Page 3", "Page 4", "Folder 1"]);
+
+      fireEvent.click(header);
+      expect(navOrder()).toEqual([
+        "Page 3",
+        "Page 4",
+        "Folder 1",
+        "Page 1",
+        "Page 2",
+      ]);
+    });
+
+    it("reorders a folder with Shift + drag", async () => {
+      const { getByRole } = await renderWithFourPages();
+      selectForFolder("Page 2", "Page 3");
+      fireEvent.click(getByRole("button", { name: "Create folder" }));
+
+      shiftDrag(
+        getByRole("button", { name: "Folder 1" }),
+        tab("Page 1"),
+        "before",
+      );
+
+      expect(navOrder()).toEqual([
+        "Folder 1",
+        "Page 2",
+        "Page 3",
+        "Page 1",
+        "Page 4",
+      ]);
+      expect(pageOrder()).toEqual(["Page 2", "Page 3", "Page 1", "Page 4"]);
+    });
+
+    it("drags a page into and out of a folder", async () => {
+      const { getByRole } = await renderWithFourPages();
+      selectForFolder("Page 1", "Page 2");
+      fireEvent.click(getByRole("button", { name: "Create folder" }));
+
+      shiftDrag(tab("Page 4"), tab("Page 1"), "after");
+      expect(navOrder()).toEqual([
+        "Page 3",
+        "Folder 1",
+        "Page 1",
+        "Page 4",
+        "Page 2",
+      ]);
+
+      shiftDrag(tab("Page 1"), tab("Page 3"), "before");
+      expect(navOrder()).toEqual([
+        "Page 1",
+        "Page 3",
+        "Folder 1",
+        "Page 4",
+        "Page 2",
+      ]);
+    });
+
+    it("moves a page within its folder by typed position", async () => {
+      const { getByRole } = await renderWithFourPages();
+      selectForFolder("Page 1", "Page 2", "Page 3");
+      fireEvent.click(getByRole("button", { name: "Create folder" }));
+
+      moveViaMenu("Page 3", "1");
+
+      expect(navOrder()).toEqual([
+        "Page 4",
+        "Folder 1",
+        "Page 3",
+        "Page 1",
+        "Page 2",
+      ]);
+    });
+
+    it("removes a folder once all its pages are deleted", async () => {
+      const { getByRole, queryByRole } = await renderWithFourPages();
+      selectForFolder("Page 1", "Page 2");
+      fireEvent.click(getByRole("button", { name: "Create folder" }));
+
+      const [page1, page2] = pageInternals().pages.filter((page) =>
+        ["Page 1", "Page 2"].includes((page as DrawingPage).name),
+      );
+      act(() => pageInternals().deletePages([page1.id, page2.id]));
+
+      expect(queryByRole("button", { name: "Folder 1" })).toBeNull();
+      expect(navOrder()).toEqual(["Page 3", "Page 4"]);
+    });
+
+    it("deletes a folder but keeps its pages in its place", async () => {
+      const { getByRole, queryByRole } = await renderWithFourPages();
+      selectForFolder("Page 2", "Page 3");
+      fireEvent.click(getByRole("button", { name: "Create folder" }));
+      shiftDrag(
+        getByRole("button", { name: "Folder 1" }),
+        tab("Page 1"),
+        "after",
+      );
+      const activeBefore = pageInternals().activePageId;
+
+      fireEvent.click(getByRole("button", { name: "Delete folder Folder 1" }));
+
+      expect(queryByRole("button", { name: "Folder 1" })).toBeNull();
+      expect(navOrder()).toEqual(["Page 1", "Page 2", "Page 3", "Page 4"]);
+      expect(pageInternals().pages).toHaveLength(4);
+      expect(pageInternals().activePageId).toBe(activeBefore);
+    });
+
+    it("hides folder deletion in view mode", async () => {
+      const { getByRole, queryByRole } = await renderWithFourPages();
+      selectForFolder("Page 1");
+      fireEvent.click(getByRole("button", { name: "Create folder" }));
+
+      act(() => h.setState({ viewModeEnabled: true }));
+
+      expect(
+        queryByRole("button", { name: "Delete folder Folder 1" }),
+      ).toBeNull();
+    });
+
+    it("removes a page from its folder via the page menu", async () => {
+      const { getByRole } = await renderWithFourPages();
+      selectForFolder("Page 1", "Page 2");
+      fireEvent.click(getByRole("button", { name: "Create folder" }));
+
+      openInfo("Page 1");
+      fireEvent.click(
+        getDialog().getByRole("button", { name: "Remove from folder" }),
+      );
+
+      expect(navOrder()).toEqual([
+        "Page 3",
+        "Page 4",
+        "Folder 1",
+        "Page 2",
+        "Page 1",
+      ]);
+      // no longer in a folder, so the option is gone
+      expect(
+        getDialog().queryByRole("button", { name: "Remove from folder" }),
+      ).toBeNull();
+
+      // removing the last page also removes the folder
+      openInfo("Page 2");
+      fireEvent.click(
+        getDialog().getByRole("button", { name: "Remove from folder" }),
+      );
+      expect(navOrder()).toEqual(["Page 3", "Page 4", "Page 2", "Page 1"]);
+    });
+
+    it("only offers Remove from folder for pages in a folder", async () => {
+      await renderWithFourPages();
+      openInfo("Page 1");
+      expect(
+        getDialog().queryByRole("button", { name: "Remove from folder" }),
+      ).toBeNull();
+    });
+
+    it("keeps page range selection working by position", async () => {
+      const { getByRole } = await renderWithFourPages();
+      shiftDrag(tab("Page 4"), tab("Page 1"), "before");
+
+      fireEvent.click(getByRole("button", { name: "Enter clearing mode" }));
+      fireEvent.change(
+        getByRole("textbox", { name: "Select pages by number" }),
+        { target: { value: "1" } },
+      );
+      fireEvent.click(getByRole("button", { name: "Select" }));
+
+      expect(
+        getByRole("checkbox", { name: "Page 4" }).getAttribute("aria-checked"),
+      ).toBe("true");
+      expect(
+        getByRole("checkbox", { name: "Page 1" }).getAttribute("aria-checked"),
+      ).toBe("false");
+    });
   });
 });

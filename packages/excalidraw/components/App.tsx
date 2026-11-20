@@ -385,10 +385,22 @@ import {
 } from "../appState";
 import {
   createPage,
+  createPageFolder,
+  createPageTree,
+  deletePageFolder,
   deletePages,
   getNextDefaultPageName,
+  getPageFolder,
+  getPagePosition,
   getPageSettings,
   isPageInfoValid,
+  moveNavItem,
+  movePageToPosition,
+  orderPages,
+  parsePagePosition,
+  removePageFromFolder,
+  syncPageTree,
+  togglePageFolder,
   validatePageInfo,
 } from "../pages";
 import {
@@ -539,7 +551,13 @@ import type {
 
 import type { ClipboardData, PastedMixedContent } from "../clipboard";
 import type { ExportedElements } from "../data";
-import type { DrawingPage, PageInfoPatch } from "../pages";
+import type {
+  DrawingPage,
+  PageDropPlacement,
+  PageInfoPatch,
+  PageNavRef,
+  PageTree,
+} from "../pages";
 import type { ContextMenuItems } from "./ContextMenu";
 import type { TextHyperlinkDialogResult } from "./TextHyperlinkDialog";
 
@@ -779,6 +797,8 @@ class App extends React.Component<AppProps, AppState> {
   private history: History;
   private pages: DrawingPage[];
   private activePageId: string;
+  /** page navigation order and folders (#162); `pages` follows its order */
+  private pageTree: PageTree;
   /** what the page selection (`pageClearingSelection`) is for: #159 clearing or #158 deleting */
   private pageSelectionMode: "clear" | "delete" = "clear";
   public excalidrawContainerValue: {
@@ -979,6 +999,7 @@ class App extends React.Component<AppProps, AppState> {
       createPage(nanoid(), getNextDefaultPageName([], t("labels.page"))),
     ];
     this.activePageId = this.pages[0].id;
+    this.pageTree = createPageTree(this.pages);
 
     this.refreshEditorInterface();
     this.stylesPanelMode = deriveStylesPanelMode(this.editorInterface);
@@ -2432,6 +2453,11 @@ class App extends React.Component<AppProps, AppState> {
                             onEnterPageDeletingMode={this.enterPageDeletingMode}
                             onSetPageSelection={this.setPageSelection}
                             onDeleteSelectedPages={this.deleteSelectedPages}
+                            pageTree={this.pageTree}
+                            onMovePageNavItem={this.movePageNavItem}
+                            onCreatePageFolder={this.createPageFolder}
+                            onTogglePageFolder={this.togglePageFolder}
+                            onDeletePageFolder={this.deletePageFolder}
                             isCollaborating={this.props.isCollaborating}
                             generateLinkForSelection={
                               this.props.generateLinkForSelection
@@ -2849,6 +2875,80 @@ class App extends React.Component<AppProps, AppState> {
     }
   };
 
+  /** Applies a new page order/folder layout; scene and history are untouched. */
+  private applyPageTree = (tree: PageTree) => {
+    this.pages = orderPages(this.pages, tree);
+    this.pageTree = tree;
+    this.triggerRender();
+  };
+
+  public getPageTree = (): PageTree => this.pageTree;
+
+  /** The page's 1-based position in its list (top level or its folder). */
+  public getPagePosition = (pageId: string) =>
+    getPagePosition(this.pageTree, pageId);
+
+  /**
+   * Moves the page to a typed 1-based position (#162). Zero means first and
+   * too-high numbers mean last; negatives and non-numbers are rejected with
+   * a toast and nothing moves. Returns whether the page moved.
+   */
+  public movePageToPosition = (pageId: string, input: string): boolean => {
+    if (this.state.viewModeEnabled) {
+      return false;
+    }
+    const position = parsePagePosition(input);
+    if (position === null) {
+      this.setToast({ message: t("errors.invalidPagePosition") });
+      return false;
+    }
+    this.applyPageTree(movePageToPosition(this.pageTree, pageId, position));
+    return true;
+  };
+
+  private movePageNavItem = (
+    dragged: PageNavRef,
+    target: PageNavRef,
+    placement: PageDropPlacement,
+  ) => {
+    if (this.state.viewModeEnabled) {
+      return;
+    }
+    this.applyPageTree(moveNavItem(this.pageTree, dragged, target, placement));
+  };
+
+  private createPageFolder = (pageIds: readonly string[], name: string) => {
+    if (this.state.viewModeEnabled || !pageIds.length || !name.trim()) {
+      return;
+    }
+    this.applyPageTree(
+      createPageFolder(this.pageTree, pageIds, nanoid(), name),
+    );
+  };
+
+  private togglePageFolder = (folderId: string) => {
+    this.applyPageTree(togglePageFolder(this.pageTree, folderId));
+  };
+
+  /** Deletes the folder only; its pages move back to the top level. */
+  private deletePageFolder = (folderId: string) => {
+    if (this.state.viewModeEnabled) {
+      return;
+    }
+    this.applyPageTree(deletePageFolder(this.pageTree, folderId));
+  };
+
+  public isPageInFolder = (pageId: string): boolean =>
+    !!getPageFolder(this.pageTree, pageId);
+
+  /** Moves the page out of its folder, right after that folder. */
+  public removePageFromFolder = (pageId: string) => {
+    if (this.state.viewModeEnabled || !getPageFolder(this.pageTree, pageId)) {
+      return;
+    }
+    this.applyPageTree(removePageFromFolder(this.pageTree, pageId));
+  };
+
   private createPage = () => {
     const page = createPage(
       nanoid(),
@@ -2856,6 +2956,7 @@ class App extends React.Component<AppProps, AppState> {
     );
     this.saveActivePage();
     this.pages = [...this.pages, page];
+    this.pageTree = syncPageTree(this.pageTree, this.pages);
     this.activePageId = page.id;
     this.history.clear();
     this.updateScene({
@@ -2874,6 +2975,7 @@ class App extends React.Component<AppProps, AppState> {
     const result = deletePages(this.pages, pageIds, this.activePageId, nanoid);
     this.pages = [...result.pages];
     this.activePageId = result.activePageId;
+    this.pageTree = syncPageTree(this.pageTree, this.pages);
 
     if (result.activePageId === previousActivePageId) {
       // scene unchanged; re-render so the page list drops the deleted pages
@@ -3361,6 +3463,9 @@ class App extends React.Component<AppProps, AppState> {
               },
             ];
       this.pages = pages;
+      // the loaded pages replace the old ones, so the order/folders (#162)
+      // start over from the loaded order
+      this.pageTree = createPageTree(pages);
       this.activePageId = pages.some(
         (page) => page.id === sceneActionResult.appState?.activePageId,
       )
