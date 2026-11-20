@@ -3463,6 +3463,9 @@ class App extends React.Component<AppProps, AppState> {
               },
             ];
       this.pages = pages;
+      // the loaded pages replace the old ones, so the order/folders (#162)
+      // start over from the loaded order
+      this.pageTree = createPageTree(pages);
       this.activePageId = pages.some(
         (page) => page.id === sceneActionResult.appState?.activePageId,
       )
