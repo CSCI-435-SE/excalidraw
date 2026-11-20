@@ -42,13 +42,26 @@ export const PageInfoDialog = ({
   pages,
   onSave,
   onClose,
+  position,
+  onMoveToPosition,
+  isMoveDisabled,
+  isInFolder,
+  onRemoveFromFolder,
 }: {
   page: DrawingPage;
   pages: readonly DrawingPage[];
   onSave: (patch: PageInfoPatch) => void;
   onClose: () => void;
+  /** 1-based position in the page's list (top level or its folder) (#162) */
+  position: { position: number; count: number };
+  /** returns whether the input was valid and the page moved */
+  onMoveToPosition: (input: string) => boolean;
+  isMoveDisabled: boolean;
+  isInFolder: boolean;
+  onRemoveFromFolder: () => void;
 }) => {
   const [draft, setDraft] = useState<PageInfoPatch | null>(null);
+  const [positionInput, setPositionInput] = useState("");
   // keep the raw text so the field can be cleared while typing
   const [gridSizeInput, setGridSizeInput] = useState("");
 
@@ -129,7 +142,46 @@ export const PageInfoDialog = ({
           {" · "}
           {t("pageInfoDialog.gridSize")}: {page.settings.gridSize}
         </dd>
+        <dt>{t("pageInfoDialog.position")}</dt>
+        <dd>{t("pageInfoDialog.positionOf", position)}</dd>
       </dl>
+      <form
+        className="PageInfoDialog__move"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (onMoveToPosition(positionInput)) {
+            setPositionInput("");
+          }
+        }}
+      >
+        <input
+          type="text"
+          inputMode="numeric"
+          className="PageInfoDialog__number"
+          aria-label={t("pageInfoDialog.moveToPosition")}
+          placeholder={t("pageInfoDialog.moveToPosition")}
+          value={positionInput}
+          onChange={(event) => setPositionInput(event.target.value)}
+          disabled={isMoveDisabled}
+        />
+        <button
+          type="submit"
+          className="PageInfoDialog__move-button"
+          disabled={isMoveDisabled}
+        >
+          {t("pageInfoDialog.move")}
+        </button>
+      </form>
+      {isInFolder && (
+        <button
+          type="button"
+          className="PageInfoDialog__move-button PageInfoDialog__remove-from-folder"
+          onClick={onRemoveFromFolder}
+          disabled={isMoveDisabled}
+        >
+          {t("pageInfoDialog.removeFromFolder")}
+        </button>
+      )}
       <div className="PageInfoDialog__actions">
         <DialogActionButton label={t("buttons.close")} onClick={onClose} />
         <DialogActionButton

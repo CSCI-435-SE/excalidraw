@@ -1027,6 +1027,10 @@ export type AppClassProperties = {
   closeTextHyperlinkDialog: App["closeTextHyperlinkDialog"];
   getPageForInfo: App["getPageForInfo"];
   updatePageInfo: App["updatePageInfo"];
+  getPagePosition: App["getPagePosition"];
+  isPageInFolder: App["isPageInFolder"];
+  removePageFromFolder: App["removePageFromFolder"];
+  movePageToPosition: App["movePageToPosition"];
   openCustomFontUploadDialog: App["openCustomFontUploadDialog"];
   closeCustomFontUploadDialog: App["closeCustomFontUploadDialog"];
   insertEmbeddableElement: App["insertEmbeddableElement"];
