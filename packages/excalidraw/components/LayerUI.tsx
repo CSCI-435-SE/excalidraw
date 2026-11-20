@@ -111,6 +111,10 @@ interface LayerUIProps {
   onTogglePageForClearing: (pageId: string) => void;
   onSetAllPagesForClearing: (selected: boolean) => void;
   onClearSelectedPages: () => void;
+  pageSelectionMode: "clear" | "delete";
+  onEnterPageDeletingMode: () => void;
+  onSetPageSelection: (pageIds: readonly string[]) => void;
+  onDeleteSelectedPages: () => void;
 }
 
 const DefaultMainMenu: React.FC<{
@@ -178,6 +182,10 @@ const LayerUI = ({
   onTogglePageForClearing,
   onSetAllPagesForClearing,
   onClearSelectedPages,
+  pageSelectionMode,
+  onEnterPageDeletingMode,
+  onSetPageSelection,
+  onDeleteSelectedPages,
 }: LayerUIProps) => {
   const editorInterface = useEditorInterface();
   const stylesPanelMode = useStylesPanelMode();
@@ -494,6 +502,10 @@ const LayerUI = ({
               onTogglePageForClearing={onTogglePageForClearing}
               onSetAllPagesForClearing={onSetAllPagesForClearing}
               onClearSelectedPages={onClearSelectedPages}
+              selectionMode={pageSelectionMode}
+              onEnterDeletingMode={onEnterPageDeletingMode}
+              onSetPageSelection={onSetPageSelection}
+              onDeleteSelectedPages={onDeleteSelectedPages}
             />
           </Sidebar.Tab>
         </DefaultSidebar.TabContents>

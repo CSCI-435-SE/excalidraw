@@ -144,6 +144,54 @@
     padding-bottom: 0.75rem;
   }
 
+  // buttons sharing one row of the actions column
+  .page-navigation__actions-row {
+    display: flex;
+    gap: 0.5rem;
+
+    > .page-navigation__add {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 0.25rem 0.5rem;
+      text-align: center;
+    }
+  }
+
+  .page-range-select {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    // the field grows; its button stays as wide as its label
+    .page-navigation__actions-row > .page-navigation__add {
+      flex: 0 0 auto;
+      padding: 0 0.75rem;
+    }
+  }
+
+  .page-range-select__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 2.5rem;
+    box-sizing: border-box;
+    padding: 0 0.5rem;
+    border: 1px solid var(--sidebar-border-color);
+    border-radius: var(--border-radius-md);
+    background: var(--island-bg-color);
+    color: var(--text-primary-color);
+    font: inherit;
+
+    &[aria-invalid="true"] {
+      border-color: var(--color-danger);
+    }
+  }
+
+  .page-range-select__error {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--color-danger);
+  }
+
   .page-navigation__add {
     display: flex;
     align-items: center;
