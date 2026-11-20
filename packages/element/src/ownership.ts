@@ -373,9 +373,10 @@ const addToLayerOrder = (
 
 /**
  * The layer order shown in the dropdown and used for drawing (#82): the
- * stored order (or the default one), with anyone not in it yet added
- * directly above the miscellaneous bucket in join order (#83 D). Ids are
- * never dropped, so collaborators who are hidden or left keep their place.
+ * stored order (or the default one), with anyone not in it yet added below
+ * every collaborator already in it, in join order (#83 D, see
+ * `addToLayerOrder`). Ids are never dropped, so collaborators who are hidden
+ * or left keep their place.
  */
 export const getCollaboratorLayerOrder = (
   state: CreatorLayering,
@@ -412,8 +413,9 @@ export type CreatorNewcomer = CreatorLayering &
 /**
  * The state `id` starts in when this client sees them for the first time
  * (#83): `state.newCollaboratorDefault` applied to them, and their place in
- * a stored layer order directly above the miscellaneous bucket. Pass the
- * state from before the sighting is recorded in the directory.
+ * a stored layer order below every collaborator already in it (#83 D, see
+ * `addToLayerOrder`). Pass the state from before the sighting is recorded in
+ * the directory.
  *
  * Returns `null` (nothing to change) for anyone already in the directory,
  * for me, and for the miscellaneous bucket. Leftover state of a first-seen
