@@ -1,6 +1,6 @@
 # Mutation testing: Issue #158 -- Implement Page Deletion
 
-**PR(s):** #TODO (not opened yet) **Tool:** StrykerJS 9.6.1 with `@stryker-mutator/vitest-runner` **Config:** [stryker.158.config.mjs](../../../stryker.158.config.mjs) + [vitest.stryker.158.config.mts](../../../vitest.stryker.158.config.mts), built on NotaThomas's #159 setup ([stryker.config.mjs](../../../stryker.config.mjs)) **Command:** `yarn test:mutation stryker.158.config.mjs` **Reports:** [before](reports/158-tuna-fisher-before.json) · [after](reports/158-tuna-fisher-after.json) **Mutation score:** before 91.98% → after 96.23%
+**PR(s):** [#183](https://github.com/CSCI-435-SE/excalidraw/pull/183) **Tool:** StrykerJS 9.6.1 with `@stryker-mutator/vitest-runner` **Config:** [stryker.158.config.mjs](../../../stryker.158.config.mjs) + [vitest.stryker.158.config.mts](../../../vitest.stryker.158.config.mts), built on NotaThomas's #159 setup ([stryker.config.mjs](../../../stryker.config.mjs)) **Command:** `yarn test:mutation stryker.158.config.mjs` **Reports:** [before](reports/158-tuna-fisher-before.json) · [after](reports/158-tuna-fisher-after.json) **Mutation score:** before 91.98% → after 96.23%
 
 Stryker mutates only the lines changed for #158 (computed from `git diff` against the branch's fork point from master) in `pages.ts`, `App.tsx`, `LayerUI.tsx`, `Pages.tsx`, `PageDeleteDialog.tsx` and `PageRangeSelect.tsx`. Vitest runs the two test files that exercise them: `tests/pages.test.tsx` and `pages.test.ts`. Static (module-level) mutants are skipped (`ignoreStatic`).
 
@@ -42,7 +42,7 @@ Line numbers refer to the reports. Paths are under `packages/excalidraw/`.
 
 ## New or strengthened test
 
-Commit: TODO (link the commit that adds the 5 tests) · Kills: see the table below
+Commit: [cf7e4f08](https://github.com/CSCI-435-SE/excalidraw/commit/cf7e4f083ceba3be47d744ce728bfc4b973d1310) · Kills: see the table below
 
 | Test | Kills |
 | --- | --- |
