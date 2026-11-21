@@ -147,6 +147,44 @@ describe("page persistence", () => {
     expect(h.elements.map(({ id }) => id)).toEqual(["loaded-file-element"]);
   });
 
+  it("ignores malformed persisted pages and keeps only valid page records", async () => {
+    await render(<Excalidraw initialData={{ elements: [] }} />);
+    const validElement = API.createElement({
+      type: "diamond",
+      id: "valid-page-element",
+    });
+
+    act(() => {
+      h.app.syncActionResult({
+        elements: [validElement],
+        appState: {
+          ...getDefaultAppState(),
+          pages: [
+            {
+              id: "valid-page",
+              name: "Valid",
+              elements: [validElement],
+              settings: {},
+            },
+            {
+              id: 42,
+              name: "Malformed",
+              elements: [],
+              settings: {},
+            },
+          ] as any,
+          activePageId: "valid-page",
+        },
+        loadedScene: true,
+        captureUpdate: CaptureUpdateAction.NEVER,
+      });
+    });
+
+    expect(pageInternals().pages).toHaveLength(1);
+    expect(pageInternals().pages[0].id).toBe("valid-page");
+    expect(pageInternals().activePageId).toBe("valid-page");
+  });
+
   it("omits hidden collaborator elements from saved page data", async () => {
     let exportData: JSONExportData | undefined;
     await render(
