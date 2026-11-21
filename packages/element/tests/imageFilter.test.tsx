@@ -257,6 +257,11 @@ describe("image filter", () => {
     expect("filter" in restored).toBe(false);
   });
 
+  it("defaults non-array filter data to no filters", () => {
+    expect(normalizeImageFilters(null)).toEqual([]);
+    expect(normalizeImageFilters({ type: "blur", radius: 5 })).toEqual([]);
+  });
+
   it("sanitizes invalid filters and adjustments on restore", () => {
     const [restored] = restoreElements(
       [
