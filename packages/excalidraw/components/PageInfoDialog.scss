@@ -116,6 +116,46 @@
       color: var(--text-primary-color);
     }
 
+    // move-to-position row (#162)
+    .PageInfoDialog__move {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+
+      .PageInfoDialog__number {
+        flex: 1 1 auto;
+        width: auto;
+        min-height: 2rem;
+        font: inherit;
+      }
+    }
+
+    .PageInfoDialog__move-button {
+      min-height: 2rem;
+      padding: 0 0.75rem;
+      border: 1px solid var(--default-border-color);
+      border-radius: var(--border-radius-md);
+      background: transparent;
+      color: var(--text-primary-color);
+      cursor: pointer;
+
+      &:hover:not(:disabled) {
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+      }
+
+      &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+    }
+
+    .PageInfoDialog__remove-from-folder {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+
     .PageInfoDialog__actions {
       display: flex;
       justify-content: flex-end;
