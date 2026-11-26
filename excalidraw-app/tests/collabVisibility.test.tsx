@@ -59,7 +59,12 @@ vi.mock("@excalidraw/excalidraw/data/encryption", () => ({
 }));
 
 vi.mock("../data/firebase", () => ({
-  loadFromFirebase: async () => mocks.storedRoomElements,
+  // the stored room: elements only, no page data (#167)
+  loadFromFirebase: async () =>
+    mocks.storedRoomElements && {
+      elements: mocks.storedRoomElements,
+      pageData: null,
+    },
   saveToFirebase: async () => null,
   isSavedToFirebase: () => true,
   loadFilesFromFirebase: async () => ({ loadedFiles: [], erroredFiles: [] }),
@@ -184,6 +189,8 @@ describe("collaborator visibility (collaboration)", () => {
       await triggerServerEvent("new-user", "peer-socket");
 
       expect(getSentMessages().map((message) => message.type)).toEqual([
+        // the room's pages first, so the elements can go to their pages (#167)
+        WS_SUBTYPES.PAGE_DATA,
         WS_SUBTYPES.INIT,
         WS_SUBTYPES.USER_IDENTITY,
       ]);

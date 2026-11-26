@@ -120,6 +120,31 @@
     white-space: nowrap;
   }
 
+  // collaborators on the page (#167)
+  .page-navigation__collaborators {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    margin-inline-start: auto;
+  }
+
+  .page-navigation__avatar {
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: 0.625rem;
+    cursor: default;
+
+    & + & {
+      margin-inline-start: -0.375rem;
+    }
+  }
+
+  .page-navigation__avatar-more {
+    margin-inline-start: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--color-gray-60);
+  }
+
   .page-navigation__clearing-header {
     font-size: 0.875rem;
     font-weight: 600;

@@ -469,6 +469,18 @@ const LayerUI = ({
                     icon={<PageIcon />}
                   />
                 )}
+                {/* view mode hides the sidebar buttons above, but pages can
+                    still be switched (#167), so their button stays */}
+                {appState.viewModeEnabled &&
+                  appState.openSidebar?.name !== DEFAULT_SIDEBAR.name && (
+                    <Sidebar.Trigger
+                      name={DEFAULT_SIDEBAR.name}
+                      tab={PAGES_SIDEBAR_TAB}
+                      title={t("labels.pages")}
+                      icon={<PageIcon />}
+                      className="default-sidebar-trigger"
+                    />
+                  )}
               </>
             )}
             {shouldShowStats && (
@@ -534,6 +546,7 @@ const LayerUI = ({
               onCreateFolder={onCreatePageFolder}
               onToggleFolder={onTogglePageFolder}
               onDeleteFolder={onDeletePageFolder}
+              isCollaborating={isCollaborating}
             />
           </Sidebar.Tab>
         </DefaultSidebar.TabContents>
@@ -667,6 +680,7 @@ const LayerUI = ({
                 app.movePageToPosition(pageId, input)
               }
               isMoveDisabled={appState.viewModeEnabled}
+              isSharedInfoReadOnly={appState.viewModeEnabled}
               isInFolder={app.isPageInFolder(pageId)}
               onRemoveFromFolder={() => app.removePageFromFolder(pageId)}
               onClose={() => setAppState({ openDialog: null })}

@@ -1,12 +1,12 @@
-import {
-  CaptureUpdateAction,
-  getSceneVersion,
-  restoreElements,
-  zoomToFitBounds,
-  reconcileElements,
-} from "@excalidraw/excalidraw";
+import { zoomToFitBounds, reconcileElements } from "@excalidraw/excalidraw";
 import { ErrorDialog } from "@excalidraw/excalidraw/components/ErrorDialog";
-import { APP_NAME, cloneJSON, EVENT, toBrandedType } from "@excalidraw/common";
+import {
+  APP_NAME,
+  arrayToMap,
+  cloneJSON,
+  EVENT,
+  toBrandedType,
+} from "@excalidraw/common";
 import {
   IDLE_THRESHOLD,
   ACTIVE_THRESHOLD,
@@ -20,7 +20,7 @@ import {
 } from "@excalidraw/common";
 import { decryptData } from "@excalidraw/excalidraw/data/encryption";
 import { getNewcomerState, getVisibleSceneBounds } from "@excalidraw/element";
-import { newElementWith } from "@excalidraw/element";
+import { getElementPageId, newElementWith } from "@excalidraw/element";
 import { isImageElement, isInitializedImageElement } from "@excalidraw/element";
 import { AbortError } from "@excalidraw/excalidraw/errors";
 import { t } from "@excalidraw/excalidraw/i18n";
@@ -30,6 +30,7 @@ import throttle from "lodash.throttle";
 import { PureComponent } from "react";
 
 import { bumpElementVersions } from "@excalidraw/excalidraw/data/restore";
+import { groupElementsByPageTag } from "@excalidraw/excalidraw/pages";
 
 import type {
   ReconciledExcalidrawElement,
@@ -51,6 +52,8 @@ import type {
   Gesture,
 } from "@excalidraw/excalidraw/types";
 import type { Mutable, ValueOf } from "@excalidraw/common/utility-types";
+
+import type { SharedPageInfo } from "@excalidraw/excalidraw/pages";
 
 import { appJotaiStore, atom } from "../app-jotai";
 import {
@@ -102,6 +105,22 @@ import {
 import { collabErrorIndicatorAtom } from "./CollabError";
 import { getElementsToStamp, getStampedCustomData } from "./creatorStamp";
 import {
+  getElementsToPageStamp,
+  getLocalElementsToPageStamp,
+  getPageStampedCustomData,
+} from "./pageStamp";
+import {
+  EMPTY_PAGE_DATA,
+  getLocalPageChanges,
+  getRoomVersion,
+  getSharedPageInfos,
+  isPageDeleted,
+  isSamePageData,
+  mergePageData,
+  parsePageData,
+  restoreElementsByPage,
+} from "./pageSync";
+import {
   getExpiredResurrections,
   getLocalElementsWithExpiredDeletion,
 } from "./expiredDeletions";
@@ -109,10 +128,15 @@ import Portal from "./Portal";
 
 import type { CollaboratorDirectory } from "./collaboratorDirectory";
 import type { CollaboratorSettings } from "./collaboratorSettings";
+import type { SharedPageData } from "./pageSync";
 import type {
   SocketUpdateDataSource,
   SyncableExcalidrawElement,
 } from "../data";
+
+/** a presence message's page (#167), when the sender included a valid one */
+const getPresencePage = (pageId: unknown): Pick<Collaborator, "pageId"> =>
+  typeof pageId === "string" && pageId ? { pageId } : {};
 
 export const collabAPIAtom = atom<CollabAPI | null>(null);
 export const isCollaboratingAtom = atom(false);
@@ -157,6 +181,10 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   idleTimeoutId: number | null;
 
   private socketInitializationTimer?: number;
+  /**
+   * fingerprint of every page's elements last broadcast or received
+   * (`getRoomVersion`); -1 when something still has to go out
+   */
   private lastBroadcastedOrReceivedSceneVersion: number = -1;
   private collaborators = new Map<SocketId, Collaborator>();
   /** this tab's collaborator id (see clientIdentity.ts) */
@@ -169,6 +197,18 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   private remoteElementIds = new Set<string>();
   /** ids of elements seen in the room's stored scene (after our saves) */
   private storedElementIds = new Set<string>();
+  /**
+   * our copy of the room's page data (#167), what our pages were last made
+   * to match. `null` until the room's pages are known (e.g. while joining),
+   * so local pages aren't shared before the room's replace them.
+   */
+  private pageData: SharedPageData | null = null;
+  /**
+   * room elements tagged for a page we don't have yet (its page data may
+   * arrive after them), by id. Routed once the page arrives; dropped if the
+   * page is deleted.
+   */
+  private pendingElements = new Map<string, RemoteExcalidrawElement>();
   /** collaborators seen in the current room (see collaboratorDirectory.ts) */
   private collaboratorDirectory: CollaboratorDirectory = new Map();
   private directoryRoomId: string | null = null;
@@ -253,6 +293,14 @@ class Collab extends PureComponent<CollabProps, CollabState> {
 
     const unsubOnUserFollow = this.excalidrawAPI.onUserFollow((payload) => {
       this.portal.socket && this.portal.broadcastUserFollowed(payload);
+      // like following a presenter in PowerPoint: start on their page (#167)
+      if (payload.action === "FOLLOW") {
+        const { socketId } = payload.userToFollow;
+        const pageId = this.collaborators.get(socketId)?.pageId;
+        if (pageId) {
+          this.followToPage(socketId, pageId);
+        }
+      }
     });
     const throttledRelayUserViewportBounds = throttleRAF(
       this.relayVisibleSceneBounds,
@@ -331,13 +379,13 @@ class Collab extends PureComponent<CollabProps, CollabState> {
 
   private beforeUnload = withBatchedUpdates((event: BeforeUnloadEvent) => {
     const syncableElements = getSyncableElements(
-      this.getSceneElementsIncludingDeleted(),
+      this.getAllPageElementsIncludingDeleted(),
     );
 
     if (
       this.isCollaborating() &&
       (this.fileManager.shouldPreventUnload(syncableElements) ||
-        !isSavedToFirebase(this.portal, syncableElements))
+        !isSavedToFirebase(this.portal, syncableElements, this.pageData))
     ) {
       // this won't run in time if user decides to leave the site, but
       //  the purpose is to run in immediately after user decides to stay
@@ -358,21 +406,26 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   ) => {
     syncableElements = cloneJSON(syncableElements);
     try {
-      const storedElements = await saveToFirebase(
+      const storedRoom = await saveToFirebase(
         this.portal,
         syncableElements,
         this.excalidrawAPI.getAppState(),
         this.isKnownToRoom,
+        this.pageData,
       );
 
       this.resetErrorIndicator();
 
-      if (this.isCollaborating() && storedElements) {
-        for (const element of storedElements) {
+      if (this.isCollaborating() && storedRoom) {
+        // the stored pages first (#167), so stored elements find their page
+        if (storedRoom.pageData) {
+          this.applyRemotePageData(storedRoom.pageData);
+        }
+        for (const element of storedRoom.elements) {
           this.storedElementIds.add(element.id);
         }
         this.handleRemoteSceneUpdate(
-          this._reconcileElements(storedElements, "storedScene"),
+          this._reconcileElements(storedRoom.elements, "storedScene"),
         );
       }
     } catch (error: any) {
@@ -408,9 +461,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.resetErrorIndicator(true);
 
     this.saveCollabRoomToFirebase(
-      getSyncableElements(
-        this.excalidrawAPI.getSceneElementsIncludingDeleted(),
-      ),
+      getSyncableElements(this.getAllPageElementsIncludingDeleted()),
     );
 
     if (this.portal.socket && this.fallbackInitializationHandler) {
@@ -433,19 +484,21 @@ class Collab extends PureComponent<CollabProps, CollabState> {
 
       LocalData.fileStorage.reset();
 
-      const elements = this.excalidrawAPI
-        .getSceneElementsIncludingDeleted()
-        .map((element) => {
-          if (isImageElement(element) && element.status === "saved") {
-            return newElementWith(element, { status: "pending" });
-          }
-          return element;
-        });
-
-      this.excalidrawAPI.updateScene({
-        elements,
-        captureUpdate: CaptureUpdateAction.NEVER,
-      });
+      // on every page (#167): the room's pages stay as the local drawing,
+      // so all their images must be saved locally again
+      this.excalidrawAPI.setPageElements(
+        new Map(
+          this.excalidrawAPI.getPages().map((page) => [
+            page.id,
+            page.elements.map((element) => {
+              if (isImageElement(element) && element.status === "saved") {
+                return newElementWith(element, { status: "pending" });
+              }
+              return element;
+            }),
+          ]),
+        ),
+      );
     }
   };
 
@@ -453,6 +506,9 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.lastBroadcastedOrReceivedSceneVersion = -1;
     this.remoteElementIds = new Set();
     this.storedElementIds = new Set();
+    // the room's pages stay as our local pages (#167); only the sync stops
+    this.pageData = null;
+    this.pendingElements = new Map();
     this.portal.close();
     this.fileManager.reset();
     if (!opts?.isUnload) {
@@ -616,27 +672,40 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       // when joining existing room, don't merge it with current scene data
       this.resetSceneKeepingSettings(roomId);
     } else {
-      const elements = this.excalidrawAPI.getSceneElements().map((element) => {
-        if (isImageElement(element) && element.status === "saved") {
-          return newElementWith(element, { status: "pending" });
-        }
-        return element;
-      });
-      // remove deleted elements from elements array to ensure we don't
-      // expose potentially sensitive user data in case user manually deletes
-      // existing elements (or clears scene), which would otherwise be persisted
-      // to database even if deleted before creating the room.
-      this.excalidrawAPI.updateScene({
-        elements,
-        captureUpdate: CaptureUpdateAction.NEVER,
-      });
+      // every page goes into the room (#167)
+      const elementsByPage = new Map(
+        this.excalidrawAPI.getPages().map((page) => [
+          page.id,
+          page.elements
+            // remove deleted elements to ensure we don't expose potentially
+            // sensitive user data in case user manually deletes existing
+            // elements (or clears pages), which would otherwise be persisted
+            // to database even if deleted before creating the room.
+            .filter((element) => !element.isDeleted)
+            .map((element) => {
+              if (isImageElement(element) && element.status === "saved") {
+                return newElementWith(element, { status: "pending" });
+              }
+              return element;
+            }),
+        ]),
+      );
+      this.excalidrawAPI.setPageElements(elementsByPage);
 
-      // a new room starts from our own canvas, so everything in it is ours.
-      // Stamp now (syncElements only stamps once the socket is initialized)
-      // so the room's stored scene carries the stamps from the first save
-      this.stampLocallyCreatedElements(elements);
+      // a new room starts from our own pages, so everything in it is ours,
+      // on the page it's on. Stamp now (syncElements only stamps once the
+      // socket is initialized) so the room's stored scene carries the stamps
+      // from the first save
+      for (const [pageId, elements] of elementsByPage) {
+        this.stampLocallyCreatedElements(elements, pageId);
+      }
+      // and our pages (order, names, descriptions, backgrounds) are the
+      // room's pages
+      this.establishPageData();
 
-      this.saveCollabRoomToFirebase(getSyncableElements(elements));
+      this.saveCollabRoomToFirebase(
+        getSyncableElements(this.getAllPageElementsIncludingDeleted()),
+      );
     }
 
     // fallback in case you're not alone in the room but still don't receive
@@ -676,7 +745,8 @@ class Collab extends PureComponent<CollabProps, CollabState> {
               this.handleRemoteSceneUpdate(reconciledElements);
               // noop if already resolved via init from firebase
               scenePromise.resolve({
-                elements: reconciledElements,
+                // the scene is the open page (#167)
+                elements: this.excalidrawAPI.getSceneElementsIncludingDeleted(),
                 scrollToContent: true,
               });
             }
@@ -693,9 +763,23 @@ class Collab extends PureComponent<CollabProps, CollabState> {
               ),
             );
             break;
+          case WS_SUBTYPES.PAGE_DATA: {
+            // a page message with bad data is ignored as a whole (#167)
+            const pageData = parsePageData(decryptedData.payload);
+            if (pageData) {
+              this.applyRemotePageData(pageData);
+            }
+            break;
+          }
           case WS_SUBTYPES.MOUSE_LOCATION: {
-            const { pointer, button, username, selectedElementIds, clientId } =
-              decryptedData.payload;
+            const {
+              pointer,
+              button,
+              username,
+              selectedElementIds,
+              clientId,
+              pageId,
+            } = decryptedData.payload;
 
             const socketId: SocketUpdateDataSource["MOUSE_LOCATION"]["payload"]["socketId"] =
               decryptedData.payload.socketId ||
@@ -708,14 +792,20 @@ class Collab extends PureComponent<CollabProps, CollabState> {
               selectedElementIds,
               username,
               ...(clientId ? { id: clientId } : {}),
+              ...getPresencePage(pageId),
             });
 
             break;
           }
 
           case WS_SUBTYPES.USER_IDENTITY: {
-            const { socketId, clientId, username } = decryptedData.payload;
-            this.updateCollaborator(socketId, { id: clientId, username });
+            const { socketId, clientId, username, pageId } =
+              decryptedData.payload;
+            this.updateCollaborator(socketId, {
+              id: clientId,
+              username,
+              ...getPresencePage(pageId),
+            });
             break;
           }
 
@@ -753,12 +843,13 @@ class Collab extends PureComponent<CollabProps, CollabState> {
           }
 
           case WS_SUBTYPES.IDLE_STATUS: {
-            const { userState, socketId, username, clientId } =
+            const { userState, socketId, username, clientId, pageId } =
               decryptedData.payload;
             this.updateCollaborator(socketId, {
               userState,
               username,
               ...(clientId ? { id: clientId } : {}),
+              ...getPresencePage(pageId),
             });
             break;
           }
@@ -819,22 +910,40 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       this.resetSceneKeepingSettings(roomLinkData.roomId);
 
       try {
-        const elements = await loadFromFirebase(
+        const storedRoom = await loadFromFirebase(
           roomLinkData.roomId,
           roomLinkData.roomKey,
           this.portal.socket,
         );
-        if (elements) {
-          this.setLastBroadcastedOrReceivedSceneVersion(
-            getSceneVersion(elements),
-          );
-          // the stored room scene is returned to the app directly (not via
-          // _reconcileElements), so mark it here. The scene was just reset,
-          // so all of it is remote.
+        if (storedRoom) {
+          const { elements, pageData } = storedRoom;
+          // the room's pages replace ours first (#167), so its elements can
+          // go to their pages
+          if (pageData) {
+            this.applyRemotePageData(pageData);
+          }
+          // the stored room scene replaces ours (not reconciled with it), so
+          // mark it here. The scene was just reset, so all of it is remote.
           this.markRemoteElements(elements, null);
 
+          // every page's elements are stored (#167): each goes to its page,
+          // the scene gets the open page's
+          const elementsByPage = this.routeStoredElements(elements);
+          this.excalidrawAPI.setPageElements(elementsByPage);
+          // what we got is what the room has, unless untagged elements were
+          // just stamped with a page: those stamps still have to go out
+          const stampedAny = getElementsToPageStamp(elements).length > 0;
+          this.setLastBroadcastedOrReceivedSceneVersion(
+            stampedAny
+              ? -1
+              : getRoomVersion(this.getAllPageElementsIncludingDeleted()),
+          );
+
           return {
-            elements,
+            elements:
+              (elementsByPage.get(this.excalidrawAPI.getActivePageId()) as
+                | readonly OrderedExcalidrawElement[]
+                | undefined) ?? [],
             scrollToContent: true,
           };
         }
@@ -843,12 +952,22 @@ class Collab extends PureComponent<CollabProps, CollabState> {
         console.error(error);
       } finally {
         this.portal.socketInitialized = true;
+        // a room without stored pages (new, or from before pages were
+        // shared) starts from the page we have (#167)
+        this.establishPageData();
         this.portal.broadcastUserIdentity();
         // resetScene() above wiped it from appState
         this.publishCollaboratorDirectory();
       }
     } else {
       this.portal.socketInitialized = true;
+      // a peer's INIT (fetchScene false): the room's pages come in their
+      // PAGE_DATA, which may arrive just after it. Our blank join page must
+      // not become a room page meanwhile, so we wait for theirs. (A new
+      // room we created already has its page data: this does nothing.)
+      if (fetchScene) {
+        this.establishPageData();
+      }
       this.portal.broadcastUserIdentity();
       this.publishCollaboratorDirectory();
     }
@@ -867,17 +986,20 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     source: "update" | "initialScene" | "storedScene" = "update",
     /** for updates: the sender's clock when it sent them */
     senderNow?: number,
-  ): ReconciledExcalidrawElement[] => {
+  ): Map<string, ReconciledExcalidrawElement[]> => {
     const appState = this.excalidrawAPI.getAppState();
 
-    const existingElements = this.getSceneElementsIncludingDeleted();
+    // every page's elements (#167): the room holds the whole drawing
+    const pages = this.excalidrawAPI.getPages();
+    const existingElements = pages.flatMap((page) => page.elements);
+    const existingElementsMap = arrayToMap(existingElements);
 
     // don't let a peer bring back elements whose deletion expired (see
     // expiredDeletions.ts)
     if (source === "update") {
       const expired = getExpiredResurrections(
         remoteElements,
-        this.excalidrawAPI.getSceneElementsMapIncludingDeleted(),
+        existingElementsMap,
         senderNow,
       );
       if (expired.size) {
@@ -886,59 +1008,82 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     }
 
     // peers' new elements (INIT/UPDATE) + stored-scene echoes. Our own
-    // elements are already in the scene, so they're never marked remote.
-    this.markRemoteElements(
-      remoteElements,
-      this.excalidrawAPI.getSceneElementsMapIncludingDeleted(),
-    );
+    // elements are already on our pages, so they're never marked remote.
+    this.markRemoteElements(remoteElements, existingElementsMap);
 
     // NOTE ideally we restore _after_ reconciliation but we can't do that
     // as we'd regenerate even elements such as appState.newElement which would
     // break the state
-    remoteElements = restoreElements(remoteElements, existingElements);
-
-    let reconciledElements = reconcileElements(
+    remoteElements = restoreElementsByPage(
+      // untagged elements go to the first page (#167)
+      this.pageStampRemoteElements(remoteElements),
       existingElements,
-      remoteElements,
-      appState,
-    );
+    ) as RemoteExcalidrawElement[];
 
-    reconciledElements = bumpElementVersions(
-      reconciledElements,
-      existingElements,
-    );
+    // reconciled page by page: each page orders its elements on its own
+    // (fractional indices repeat across pages), and an element's local and
+    // remote copies are always on the same page since tags never change
+    const remoteByPage = groupElementsByPageTag(remoteElements);
+    this.holdElementsForMissingPages(remoteByPage, pages);
+    const reconciledByPage = new Map<string, ReconciledExcalidrawElement[]>();
+    for (const page of pages) {
+      const remotePageElements = remoteByPage.get(page.id);
+      // the stored scene is the reference for every page (expired deletes
+      // below); otherwise only pages with remote elements change
+      if (!remotePageElements && source !== "storedScene") {
+        continue;
+      }
+      const reconciledElements = reconcileElements(
+        page.elements as OrderedExcalidrawElement[],
+        remotePageElements ?? [],
+        appState,
+      );
+      reconciledByPage.set(
+        page.id,
+        bumpElementVersions(reconciledElements, page.elements),
+      );
+    }
 
     // Avoid broadcasting to the rest of the collaborators the scene
-    // we just received!
+    // we just received! Every page is broadcast (#167), so this is the
+    // version of every page after the update.
     // Note: this needs to be set before updating the scene as it
     // synchronously calls render.
     this.setLastBroadcastedOrReceivedSceneVersion(
-      getSceneVersion(reconciledElements),
+      getRoomVersion(
+        pages.flatMap((page) => reconciledByPage.get(page.id) ?? page.elements),
+      ),
     );
 
     // our live copies of elements the room deleted so long ago it forgot:
     // delete them here too. After the line above, so the fresh deletes are
     // broadcast (to other clients that may hold stale copies too).
     if (source === "storedScene") {
-      const expired = new Set(
-        getLocalElementsWithExpiredDeletion(
-          reconciledElements,
-          new Set(remoteElements.map((el) => el.id)),
-          this.isKnownToRoom,
-        ).map((el) => el.id),
-      );
-      if (expired.size) {
-        reconciledElements = reconciledElements.map((el) =>
-          expired.has(el.id)
-            ? (newElementWith(el, {
-                isDeleted: true,
-              }) as ReconciledExcalidrawElement)
-            : el,
+      const remoteIds = new Set(remoteElements.map((el) => el.id));
+      for (const [pageId, reconciledElements] of reconciledByPage) {
+        const expired = new Set(
+          getLocalElementsWithExpiredDeletion(
+            reconciledElements,
+            remoteIds,
+            this.isKnownToRoom,
+          ).map((el) => el.id),
         );
+        if (expired.size) {
+          reconciledByPage.set(
+            pageId,
+            reconciledElements.map((el) =>
+              expired.has(el.id)
+                ? (newElementWith(el, {
+                    isDeleted: true,
+                  }) as ReconciledExcalidrawElement)
+                : el,
+            ),
+          );
+        }
       }
     }
 
-    return reconciledElements;
+    return reconciledByPage;
   };
 
   /**
@@ -953,7 +1098,8 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   private loadImageFiles = throttle(async () => {
     const { loadedFiles, erroredFiles } =
       await this.fetchImageFilesFromFirebase({
-        elements: this.excalidrawAPI.getSceneElementsIncludingDeleted(),
+        // every page's images, so they're there when a page is opened (#167)
+        elements: this.getAllPageElementsIncludingDeleted(),
       });
 
     this.excalidrawAPI.addFiles(loadedFiles);
@@ -965,13 +1111,11 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     });
   }, LOAD_IMAGES_TIMEOUT);
 
+  /** routes reconciled elements to their pages (#167) */
   private handleRemoteSceneUpdate = (
-    elements: ReconciledExcalidrawElement[],
+    elementsByPage: ReadonlyMap<string, ReconciledExcalidrawElement[]>,
   ) => {
-    this.excalidrawAPI.updateScene({
-      elements,
-      captureUpdate: CaptureUpdateAction.NEVER,
-    });
+    this.excalidrawAPI.setPageElements(elementsByPage);
 
     this.loadImageFiles();
   };
@@ -1060,6 +1204,7 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   }
 
   updateCollaborator = (socketId: SocketId, updates: Partial<Collaborator>) => {
+    const previousPageId = this.collaborators.get(socketId)?.pageId;
     const collaborators = new Map(this.collaborators);
     const user: Mutable<Collaborator> = Object.assign(
       {},
@@ -1093,6 +1238,41 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       collaboratorDirectory: this.collaboratorDirectory,
     };
     this.excalidrawAPI.updateScene({ collaborators, appState });
+
+    // follow mode: only when they move to another page, so a page we open
+    // ourselves while following stays open until they switch again
+    if (updates.pageId && updates.pageId !== previousPageId) {
+      this.followToPage(socketId, updates.pageId);
+    }
+  };
+
+  /**
+   * Follow mode (#167): when the collaborator we follow is on another page,
+   * we open it too. A page we don't have (e.g. its page data hasn't arrived)
+   * is ignored.
+   */
+  private followToPage = (socketId: SocketId, pageId: string) => {
+    if (
+      this.excalidrawAPI.getAppState().userToFollow?.socketId === socketId &&
+      pageId !== this.excalidrawAPI.getActivePageId() &&
+      this.excalidrawAPI.getPages().some((page) => page.id === pageId)
+    ) {
+      this.excalidrawAPI.selectPage(pageId);
+    }
+  };
+
+  /**
+   * Tells the room which page we're on when it changes (#167), so others can
+   * show us on its tab, hide our cursor from other pages and follow us.
+   * USER_IDENTITY: non-volatile, so a page switch isn't lost.
+   */
+  private announcePage = () => {
+    if (
+      this.portal.socketInitialized &&
+      this.portal.lastAnnouncedPageId !== this.excalidrawAPI.getActivePageId()
+    ) {
+      this.portal.broadcastUserIdentity();
+    }
   };
 
   public setLastBroadcastedOrReceivedSceneVersion = (version: number) => {
@@ -1107,7 +1287,19 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     return this.excalidrawAPI.getSceneElementsIncludingDeleted();
   };
 
+  /**
+   * every page's elements (#167): what the room holds, broadcasts and stores.
+   * The open page's come from the live scene.
+   */
+  public getAllPageElementsIncludingDeleted = (): OrderedExcalidrawElement[] =>
+    this.excalidrawAPI
+      .getPages()
+      .flatMap((page) => page.elements as OrderedExcalidrawElement[]);
+
   public getClientId = () => this.clientId;
+
+  /** our copy of the room's page data (#167), null outside a room */
+  public getPageData = () => this.pageData;
 
   /**
    * Records a sighting of `clientId` in the current room's directory, saving
@@ -1158,7 +1350,157 @@ class Collab extends PureComponent<CollabProps, CollabState> {
   private resetSceneKeepingSettings = (roomId: string) => {
     this.settingsRoomId = null;
     this.excalidrawAPI.resetScene();
+    // the pages too (#167): the room's pages replace the ones we had, as
+    // the room's scene replaces our canvas
+    this.excalidrawAPI.resetPages();
+    this.pageData = null;
+    this.pendingElements = new Map();
     this.excalidrawAPI.updateScene({ appState: this.loadRoomSettings(roomId) });
+  };
+
+  // ---------------------------------------------------------------------------
+  // page data (#167): see pageSync.ts
+  // ---------------------------------------------------------------------------
+
+  /** our pages as the room sees them, in order */
+  private getSharedPageInfosFromEditor = (): SharedPageInfo[] =>
+    this.excalidrawAPI.getPages().map((page) => ({
+      id: page.id,
+      name: page.name,
+      description: page.description,
+      viewBackgroundColor: page.settings.viewBackgroundColor,
+    }));
+
+  /**
+   * Once the room's pages are known, or the room has none (new, or saved
+   * before pages were shared): our pages become the room's pages.
+   */
+  private establishPageData = () => {
+    if (!this.pageData) {
+      this.pageData = getLocalPageChanges(
+        EMPTY_PAGE_DATA,
+        this.getSharedPageInfosFromEditor(),
+        Date.now(),
+      );
+    }
+  };
+
+  broadcastPageData = () => {
+    if (this.pageData && this.portal.socketInitialized) {
+      this.portal.broadcastPageData(this.pageData);
+    }
+  };
+
+  /**
+   * Sends local page changes (create, rename, description, reorder,
+   * background, delete) to the room. Called on every editor change, so it
+   * does nothing until something shared changed.
+   */
+  private syncPageData = () => {
+    if (!this.pageData || !this.portal.socketInitialized) {
+      return;
+    }
+    const changes = getLocalPageChanges(
+      this.pageData,
+      this.getSharedPageInfosFromEditor(),
+      Date.now(),
+      t("labels.page"),
+    );
+    if (changes) {
+      this.pageData = changes;
+      this.broadcastPageData();
+    }
+  };
+
+  /**
+   * Merges page data from a peer or room storage into ours and makes our
+   * pages match. If ours had something the sender's didn't, the merged copy
+   * is sent back so the sender catches up.
+   */
+  private applyRemotePageData = (remote: SharedPageData) => {
+    const merged = mergePageData(
+      this.pageData ?? EMPTY_PAGE_DATA,
+      remote,
+      t("labels.page"),
+    );
+    const changed = !this.pageData || !isSamePageData(merged, this.pageData);
+    this.pageData = merged;
+    if (changed) {
+      this.excalidrawAPI.applySharedPages(
+        getSharedPageInfos(merged),
+        Object.keys(merged.deletedPageIds),
+      );
+      this.routePendingElements();
+    }
+    if (!isSamePageData(merged, remote)) {
+      this.broadcastPageData();
+    }
+  };
+
+  /**
+   * After the socket reconnects (#167): pages and elements match the room's
+   * again, including changes made while we were offline, both ways. Others'
+   * changes come from the room's stored copy (peers answer our rejoin with
+   * their page data, but their INIT is ignored once we're initialized);
+   * ours go out as page data and a full resync, and are saved.
+   */
+  onReconnect = async () => {
+    const { roomId, roomKey, socket } = this.portal;
+    if (!roomId || !roomKey) {
+      return;
+    }
+    try {
+      const storedRoom = await loadFromFirebase(roomId, roomKey, socket);
+      if (storedRoom && this.isCollaborating()) {
+        if (storedRoom.pageData) {
+          this.applyRemotePageData(storedRoom.pageData);
+        }
+        for (const element of storedRoom.elements) {
+          this.storedElementIds.add(element.id);
+        }
+        this.handleRemoteSceneUpdate(
+          this._reconcileElements(
+            toBrandedType<readonly RemoteExcalidrawElement[]>(
+              storedRoom.elements,
+            ),
+            "storedScene",
+          ),
+        );
+      }
+    } catch (error: any) {
+      // peers' page data and the next full resync still catch us up
+      console.error(error);
+    }
+    this.broadcastPageData();
+    this.queueBroadcastAllElements.cancel();
+    this.queueBroadcastAllElements();
+    this.queueSaveToFirebase();
+  };
+
+  /** routes elements that were waiting for their page (see pendingElements) */
+  private routePendingElements = () => {
+    if (!this.pendingElements.size) {
+      return;
+    }
+    const pageIds = new Set(
+      this.excalidrawAPI.getPages().map((page) => page.id),
+    );
+    const ready: RemoteExcalidrawElement[] = [];
+    for (const [id, element] of this.pendingElements) {
+      const pageId = getElementPageId(element);
+      if (pageId && pageIds.has(pageId)) {
+        ready.push(element);
+        this.pendingElements.delete(id);
+      } else if (
+        !pageId ||
+        (this.pageData && isPageDeleted(this.pageData, pageId))
+      ) {
+        this.pendingElements.delete(id);
+      }
+    }
+    if (ready.length) {
+      this.handleRemoteSceneUpdate(this._reconcileElements(ready, "update"));
+    }
   };
 
   /**
@@ -1196,22 +1538,114 @@ class Collab extends PureComponent<CollabProps, CollabState> {
    */
   private stampLocallyCreatedElements = (
     elements: readonly ExcalidrawElement[],
+    /** the page `elements` are on; the open page for the scene */
+    pageId: string = this.excalidrawAPI.getActivePageId(),
   ) => {
-    if (!this.clientId) {
-      return;
-    }
-    for (const element of getElementsToStamp(
-      elements,
-      this.remoteElementIds,
-      this.clientId,
-    )) {
+    const toCreatorStamp = new Set<ExcalidrawElement>(
+      this.clientId
+        ? getElementsToStamp(elements, this.remoteElementIds, this.clientId)
+        : [],
+    );
+    // the page tag (#167): elements are only ever in their page's list, so
+    // the page they're on is the page they were created on. Our own copies
+    // carrying another page's tag (pasted, duplicated) are tagged here too.
+    const toPageStamp = new Set<ExcalidrawElement>(
+      getLocalElementsToPageStamp(elements, pageId, this.remoteElementIds),
+    );
+    for (const element of elements) {
+      if (!toCreatorStamp.has(element) && !toPageStamp.has(element)) {
+        continue;
+      }
+      let customData = element.customData;
+      if (toCreatorStamp.has(element)) {
+        customData = getStampedCustomData(element, this.clientId!);
+      }
+      if (toPageStamp.has(element)) {
+        customData = getPageStampedCustomData(
+          { ...element, customData },
+          pageId,
+        );
+      }
       this.excalidrawAPI.mutateElement(
         element as Mutable<ExcalidrawElement>,
-        { customData: getStampedCustomData(element, this.clientId) },
+        { customData },
         // not a visual change → no re-render needed
         false,
       );
     }
+  };
+
+  /**
+   * Groups the room's stored elements by page (#167), replacing what our
+   * pages had: every page we have gets the room's elements for it (none if
+   * the room has none). Untagged elements go to the first page; elements for
+   * pages we don't have are not drawn anywhere.
+   */
+  private routeStoredElements = <T extends ExcalidrawElement>(
+    elements: readonly T[],
+  ): Map<string, T[]> => {
+    const byTag = groupElementsByPageTag(
+      this.pageStampRemoteElements(elements),
+    );
+    this.holdElementsForMissingPages(byTag, this.excalidrawAPI.getPages());
+    return new Map(
+      this.excalidrawAPI
+        .getPages()
+        .map((page) => [page.id, byTag.get(page.id) ?? []]),
+    );
+  };
+
+  /**
+   * Elements for a page we don't have (yet) are drawn nowhere: they're kept
+   * until its page data arrives (see routePendingElements), or dropped if it
+   * is a deleted page. The newest copy of each is kept.
+   */
+  private holdElementsForMissingPages = (
+    elementsByPage: ReadonlyMap<string | null, readonly ExcalidrawElement[]>,
+    pages: readonly { id: string }[],
+  ) => {
+    for (const [pageId, pageElements] of elementsByPage) {
+      if (
+        pageId &&
+        !pages.some((page) => page.id === pageId) &&
+        !(this.pageData && isPageDeleted(this.pageData, pageId))
+      ) {
+        for (const element of pageElements) {
+          const pending = this.pendingElements.get(element.id);
+          if (!pending || pending.version < element.version) {
+            // (they came from the room)
+            this.pendingElements.set(
+              element.id,
+              element as unknown as RemoteExcalidrawElement,
+            );
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * Stamps elements that reached us from the room without a page tag (#167)
+   * with the first page, once. Returns new copies (versions bumped, so the
+   * tag syncs); tagged elements are returned as-is.
+   */
+  private pageStampRemoteElements = <T extends ExcalidrawElement>(
+    elements: readonly T[],
+  ): T[] => {
+    const untagged = new Set<ExcalidrawElement>(
+      getElementsToPageStamp(elements),
+    );
+    if (!untagged.size) {
+      return [...elements];
+    }
+    const firstPageId = this.excalidrawAPI.getPages()[0].id;
+    return elements.map((element) =>
+      untagged.has(element)
+        ? (newElementWith(element as ExcalidrawElement, {
+            customData: getPageStampedCustomData(element, firstPageId),
+          }) as T)
+        : element,
+    );
   };
 
   onPointerUpdate = throttle(
@@ -1244,48 +1678,52 @@ class Collab extends PureComponent<CollabProps, CollabState> {
     this.portal.broadcastIdleChange(userState);
   };
 
-  broadcastElements = (elements: readonly OrderedExcalidrawElement[]) => {
-    if (
-      getSceneVersion(elements) >
-      this.getLastBroadcastedOrReceivedSceneVersion()
-    ) {
+  /**
+   * Broadcasts what changed on any page (#167): changes to pages that aren't
+   * open (e.g. clearing them) are sent too. Portal only sends elements whose
+   * version it hasn't sent yet.
+   */
+  broadcastElements = (
+    elements: readonly OrderedExcalidrawElement[] = this.getAllPageElementsIncludingDeleted(),
+  ) => {
+    const version = getRoomVersion(elements);
+    if (version !== this.getLastBroadcastedOrReceivedSceneVersion()) {
       this.portal.broadcastScene(WS_SUBTYPES.UPDATE, elements, false);
-      this.lastBroadcastedOrReceivedSceneVersion = getSceneVersion(elements);
+      this.lastBroadcastedOrReceivedSceneVersion = version;
       this.queueBroadcastAllElements();
     }
   };
 
+  /** @param elements the scene, i.e. the open page's elements */
   syncElements = (elements: readonly OrderedExcalidrawElement[]) => {
     // only once the room's scene has loaded, so every room element is already
     // marked remote and can't be mistaken for one of ours
     if (this.portal.socketInitialized) {
       this.stampLocallyCreatedElements(elements);
     }
-    this.broadcastElements(elements);
+    // page changes first (#167), so a new page reaches peers before the
+    // elements drawn on it
+    this.syncPageData();
+    // and which page we're on, if we switched
+    this.announcePage();
+    this.broadcastElements();
     this.queueSaveToFirebase();
   };
 
   queueBroadcastAllElements = throttle(() => {
-    this.portal.broadcastScene(
-      WS_SUBTYPES.UPDATE,
-      this.excalidrawAPI.getSceneElementsIncludingDeleted(),
-      true,
-    );
-    const currentVersion = this.getLastBroadcastedOrReceivedSceneVersion();
-    const newVersion = Math.max(
-      currentVersion,
-      getSceneVersion(this.getSceneElementsIncludingDeleted()),
-    );
-    this.setLastBroadcastedOrReceivedSceneVersion(newVersion);
+    // the page data too, so dropped page messages are recovered (#167)
+    this.broadcastPageData();
+    const elements = this.getAllPageElementsIncludingDeleted();
+    this.portal.broadcastScene(WS_SUBTYPES.UPDATE, elements, true);
+    // everything has been sent
+    this.setLastBroadcastedOrReceivedSceneVersion(getRoomVersion(elements));
   }, SYNC_FULL_SCENE_INTERVAL_MS);
 
   queueSaveToFirebase = throttle(
     () => {
       if (this.portal.socketInitialized) {
         this.saveCollabRoomToFirebase(
-          getSyncableElements(
-            this.excalidrawAPI.getSceneElementsIncludingDeleted(),
-          ),
+          getSyncableElements(this.getAllPageElementsIncludingDeleted()),
         );
       }
     },

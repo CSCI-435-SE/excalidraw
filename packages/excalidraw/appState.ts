@@ -141,6 +141,7 @@ export const getDefaultAppState = (): Omit<
     userToFollow: null,
     followedBy: new Set(),
     hiddenCollaboratorIds: new Set(),
+    openPageId: null,
     lockedCollaboratorIds: new Set(),
     collaboratorLayeringEnabled: false,
     collaboratorLayerOrder: null,
@@ -294,6 +295,7 @@ const APP_STATE_STORAGE_CONF = (<
   userToFollow: { browser: false, export: false, server: false },
   followedBy: { browser: false, export: false, server: false },
   hiddenCollaboratorIds: { browser: false, export: false, server: false },
+  openPageId: { browser: false, export: false, server: false },
   lockedCollaboratorIds: { browser: false, export: false, server: false },
   collaboratorLayeringEnabled: {
     browser: false,

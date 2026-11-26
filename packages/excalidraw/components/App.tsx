@@ -557,6 +557,7 @@ import type {
   PageInfoPatch,
   PageNavRef,
   PageTree,
+  SharedPageInfo,
 } from "../pages";
 import type { ContextMenuItems } from "./ContextMenu";
 import type { TextHyperlinkDialogResult } from "./TextHyperlinkDialog";
@@ -938,6 +939,12 @@ class App extends React.Component<AppProps, AppState> {
       history: {
         clear: this.resetHistory,
       },
+      getPages: this.getPages,
+      getActivePageId: this.getActivePageId,
+      setPageElements: this.setPageElements,
+      selectPage: this.selectPage,
+      applySharedPages: this.applySharedPages,
+      resetPages: this.resetPages,
       setViewport: this.setViewport,
       getViewportOffsets: this.getViewportOffsets,
       getSceneElements: this.getSceneElements,
@@ -1000,6 +1007,11 @@ class App extends React.Component<AppProps, AppState> {
     ];
     this.activePageId = this.pages[0].id;
     this.pageTree = createPageTree(this.pages);
+    // set up front when mounted in a room, so it needs no extra render (#167)
+    this.state = {
+      ...this.state,
+      openPageId: this.getOpenPageId(this.activePageId),
+    };
 
     this.refreshEditorInterface();
     this.stylesPanelMode = deriveStylesPanelMode(this.editorInterface);
@@ -2343,6 +2355,7 @@ class App extends React.Component<AppProps, AppState> {
       hiddenCollaboratorIds: this.state.hiddenCollaboratorIds,
       collaboratorDirectory: this.state.collaboratorDirectory,
       collaboratorLayerOrder: this.getLocalLayerOrder(),
+      openPageId: this.state.openPageId,
     });
     this.visibleElements = visibleElements;
     this.hasRenderableElements = renderableElementsMap.size > 0;
@@ -2794,7 +2807,178 @@ class App extends React.Component<AppProps, AppState> {
 
   public getActivePageId = (): string => this.activePageId;
 
-  private selectPage = (pageId: string) => {
+  /**
+   * `openPageId` (#167): the open page while collaborating, `null` otherwise.
+   * Page tags only mean something in a room, so outside of one the safety
+   * net is off.
+   */
+  private getOpenPageId = (pageId: string): AppState["openPageId"] =>
+    this.props.isCollaborating ? pageId : null;
+
+  /** appState for opening `page` */
+  private getPageActivationState = (page: DrawingPage) => ({
+    ...getPageActivationAppState(page.settings),
+    openPageId: this.getOpenPageId(page.id),
+  });
+
+  /**
+   * Every page in order (#167), the open one with the scene's elements and
+   * this.state's settings. Read only: nothing is written back.
+   */
+  public getPages = (): readonly DrawingPage[] => this.getPagesForUI();
+
+  /**
+   * Replaces the elements of the given pages (#167), e.g. with elements
+   * reconciled from the room. The open page goes through the scene, without
+   * touching history; other pages update their stored elements, which
+   * re-renders their previews. Unknown page ids are ignored.
+   */
+  public setPageElements = (
+    elementsByPageId: ReadonlyMap<string, readonly ExcalidrawElement[]>,
+  ) => {
+    let didUpdateInactivePage = false;
+    this.pages = this.pages.map((page) => {
+      const elements = elementsByPageId.get(page.id);
+      if (!elements || page.id === this.activePageId) {
+        return page;
+      }
+      didUpdateInactivePage = true;
+      return { ...page, elements };
+    });
+
+    const activeElements = elementsByPageId.get(this.activePageId);
+    if (activeElements) {
+      this.updateScene({
+        elements: activeElements,
+        captureUpdate: CaptureUpdateAction.NEVER,
+      });
+    } else if (didUpdateInactivePage) {
+      // inactive pages live outside React state; re-render their previews
+      this.triggerRender();
+    }
+  };
+
+  /**
+   * Makes the pages match the room's (#167): adds, removes, renames and
+   * reorders them and sets their backgrounds. Personal settings (scroll,
+   * zoom, grid, thumbnail) are kept. If the open page is removed, the page
+   * before it opens (or the next one), as when deleting pages (#158).
+   * Folders aren't shared, so pages show flat, in the shared order.
+   *
+   * @param deletedPageIds pages a collaborator deleted: if the open page is
+   * one of them, a toast names it and whatever was being drawn on it is
+   * discarded. (Pages replaced on joining a room aren't deleted ones.)
+   */
+  public applySharedPages = (
+    sharedPages: readonly SharedPageInfo[],
+    deletedPageIds: readonly string[] = [],
+  ) => {
+    if (!sharedPages.length) {
+      return;
+    }
+    this.saveActivePage();
+    const previousPages = this.pages;
+    const previousById = new Map(previousPages.map((page) => [page.id, page]));
+    const pages = sharedPages.map((info): DrawingPage => {
+      const page = previousById.get(info.id) ?? createPage(info.id, info.name);
+      return {
+        ...page,
+        name: info.name,
+        description: info.description,
+        settings: {
+          ...page.settings,
+          viewBackgroundColor: info.viewBackgroundColor,
+        },
+      };
+    });
+
+    const pageIds = new Set(pages.map((page) => page.id));
+    let activePageId = this.activePageId;
+    if (!pageIds.has(activePageId)) {
+      const activeIndex = previousPages.findIndex(
+        (page) => page.id === activePageId,
+      );
+      const survivor =
+        previousPages
+          .slice(0, activeIndex)
+          .reverse()
+          .find((page) => pageIds.has(page.id)) ??
+        previousPages
+          .slice(activeIndex + 1)
+          .find((page) => pageIds.has(page.id)) ??
+        pages[0];
+      activePageId = survivor.id;
+    }
+
+    const removedActivePage =
+      activePageId !== this.activePageId
+        ? previousById.get(this.activePageId)
+        : undefined;
+
+    // UI that points at a removed page goes away with it
+    const { openDialog, pageClearingSelection } = this.state;
+    const uiState = {
+      openDialog:
+        openDialog?.name === "pageInfo" && !pageIds.has(openDialog.pageId)
+          ? null
+          : openDialog,
+      pageClearingSelection:
+        pageClearingSelection &&
+        pageClearingSelection.filter((id) => pageIds.has(id)),
+      toast:
+        removedActivePage && deletedPageIds.includes(removedActivePage.id)
+          ? {
+              message: t("toast.pageDeletedByCollaborator", {
+                name: removedActivePage.name,
+              }),
+            }
+          : this.state.toast,
+    };
+
+    this.pages = pages;
+    this.pageTree = createPageTree(pages);
+    const activePage = pages.find((page) => page.id === activePageId)!;
+    if (removedActivePage) {
+      this.activePageId = activePageId;
+      this.history.clear();
+      // the page is gone: so is anything being drawn on it (the activation
+      // state drops the element in progress)
+      this.updateScene({
+        elements: activePage.elements,
+        appState: { ...this.getPageActivationState(activePage), ...uiState },
+        captureUpdate: CaptureUpdateAction.NEVER,
+      });
+    } else {
+      // (also re-renders the page list: inactive pages live outside state)
+      this.setState({
+        ...uiState,
+        viewBackgroundColor: activePage.settings.viewBackgroundColor,
+      });
+    }
+  };
+
+  /**
+   * Replaces every page with one new blank page (#167), as `resetScene` does
+   * for the canvas: joining a room replaces the pages you had.
+   */
+  public resetPages = () => {
+    const page = createPage(
+      nanoid(),
+      getNextDefaultPageName([], t("labels.page")),
+    );
+    this.pages = [page];
+    this.activePageId = page.id;
+    this.pageTree = createPageTree(this.pages);
+    this.history.clear();
+    this.updateScene({
+      elements: page.elements,
+      appState: this.getPageActivationState(page),
+      captureUpdate: CaptureUpdateAction.NEVER,
+    });
+  };
+
+  /** opens the page (also used to follow a collaborator to theirs, #167) */
+  public selectPage = (pageId: string) => {
     const page = this.pages.find((candidate) => candidate.id === pageId);
     if (!page) {
       throw new Error(`Cannot select unknown page ${pageId}`);
@@ -2808,7 +2992,7 @@ class App extends React.Component<AppProps, AppState> {
     this.history.clear();
     this.updateScene({
       elements: page.elements,
-      appState: getPageActivationAppState(page.settings),
+      appState: this.getPageActivationState(page),
       captureUpdate: CaptureUpdateAction.NEVER,
     });
   };
@@ -2827,6 +3011,11 @@ class App extends React.Component<AppProps, AppState> {
     const target = this.pages.find((page) => page.id === pageId);
     if (!target) {
       return;
+    }
+    // view mode (#167): the name and description are shared, so they can't
+    // change; the grid and thumbnail are personal, so they still can
+    if (this.state.viewModeEnabled) {
+      patch = { ...patch, name: target.name, description: target.description };
     }
 
     const name = patch.name.trim();
@@ -2918,7 +3107,13 @@ class App extends React.Component<AppProps, AppState> {
   };
 
   private createPageFolder = (pageIds: readonly string[], name: string) => {
-    if (this.state.viewModeEnabled || !pageIds.length || !name.trim()) {
+    if (
+      this.state.viewModeEnabled ||
+      // folders aren't shared, so they're off in a room (#167)
+      this.props.isCollaborating ||
+      !pageIds.length ||
+      !name.trim()
+    ) {
       return;
     }
     this.applyPageTree(
@@ -2950,6 +3145,10 @@ class App extends React.Component<AppProps, AppState> {
   };
 
   private createPage = () => {
+    // view mode: pages can be switched, not changed (#158, #167)
+    if (this.state.viewModeEnabled) {
+      return;
+    }
     const page = createPage(
       nanoid(),
       getNextDefaultPageName(this.pages, t("labels.page")),
@@ -2961,7 +3160,7 @@ class App extends React.Component<AppProps, AppState> {
     this.history.clear();
     this.updateScene({
       elements: page.elements,
-      appState: getPageActivationAppState(page.settings),
+      appState: this.getPageActivationState(page),
       captureUpdate: CaptureUpdateAction.NEVER,
     });
   };
@@ -2988,7 +3187,7 @@ class App extends React.Component<AppProps, AppState> {
     this.history.clear();
     this.updateScene({
       elements: page.elements,
-      appState: getPageActivationAppState(page.settings),
+      appState: this.getPageActivationState(page),
       captureUpdate: CaptureUpdateAction.NEVER,
     });
   };
@@ -2999,13 +3198,27 @@ class App extends React.Component<AppProps, AppState> {
    * Removes all elements from the given pages, keeping the (now empty) pages
    * and their settings. Clearing the active page is undoable; clearing other
    * pages is not, since history only tracks the active page.
+   *
+   * Elements are marked deleted rather than dropped, on every page, so the
+   * deletion reaches collaborators like any other change (#167).
    */
   public clearPages = (pageIds: readonly string[]) => {
+    // view mode: pages can be switched, not changed (#158, #167)
+    if (this.state.viewModeEnabled) {
+      return;
+    }
     const ids = new Set(pageIds);
 
     this.pages = this.pages.map((page) =>
       ids.has(page.id) && page.id !== this.activePageId
-        ? { ...page, elements: [] }
+        ? {
+            ...page,
+            elements: page.elements.map((element) =>
+              element.isDeleted
+                ? element
+                : newElementWith(element, { isDeleted: true }),
+            ),
+          }
         : page,
     );
 
@@ -3478,6 +3691,7 @@ class App extends React.Component<AppProps, AppState> {
         appState: {
           ...sceneActionResult.appState,
           ...activePage.settings,
+          openPageId: this.getOpenPageId(activePage.id),
         },
       };
     }
@@ -4183,6 +4397,25 @@ class App extends React.Component<AppProps, AppState> {
 
     this.appStateObserver.flush(prevState);
 
+    // catch-all for `openPageId` (#167): page activations set it directly,
+    // this covers joining/leaving a room and scene resets
+    const openPageId = this.getOpenPageId(this.activePageId);
+    if (this.state.openPageId !== openPageId) {
+      this.setState({ openPageId });
+    }
+    // collaborators' laser trails are drawn on their page only
+    if (prevState.openPageId !== this.state.openPageId) {
+      this.laserTrails.updateCollabTrails(this.state.collaborators);
+    }
+    // folders aren't shared (#167): a room shows the pages flat, in the
+    // shared order, and they stay flat after leaving
+    if (
+      this.props.isCollaborating &&
+      this.pageTree.some((node) => node.type === "folder")
+    ) {
+      this.applyPageTree(createPageTree(this.pages));
+    }
+
     this.updateEmbeddables();
     const elements = this.scene.getElementsIncludingDeleted();
     const elementsMap = this.scene.getElementsMapIncludingDeleted();
@@ -4203,7 +4436,8 @@ class App extends React.Component<AppProps, AppState> {
       prevState.hiddenCollaboratorIds !== this.state.hiddenCollaboratorIds ||
       prevState.lockedCollaboratorIds !== this.state.lockedCollaboratorIds ||
       // a creator can move into a hidden bucket (e.g. miscellaneous)
-      prevState.collaboratorDirectory !== this.state.collaboratorDirectory
+      prevState.collaboratorDirectory !== this.state.collaboratorDirectory ||
+      prevState.openPageId !== this.state.openPageId
     ) {
       const visibleSelection = getSelectionWithoutHiddenElements(
         this.state,

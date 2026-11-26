@@ -95,6 +95,11 @@ export type Collaborator = Readonly<{
   isInCall?: boolean;
   isSpeaking?: boolean;
   isMuted?: boolean;
+  /**
+   * the page the collaborator has open (#167). Omitted by clients that
+   * predate multi-page rooms.
+   */
+  pageId?: string;
 }>;
 
 /** a collaborator seen at some point in the current room */
@@ -269,6 +274,8 @@ export type InteractiveCanvasAppState = Readonly<
     elementsToHighlight: AppState["elementsToHighlight"];
     // Collaborators
     collaborators: AppState["collaborators"];
+    // collaborators on other pages aren't drawn (#167)
+    openPageId: AppState["openPageId"];
     // SnapLines
     snapLines: AppState["snapLines"];
     zenModeEnabled: AppState["zenModeEnabled"];
@@ -603,6 +610,13 @@ export interface AppState {
   followedBy: Set<SocketId>;
   /** creator ids whose elements are hidden on this client only (never synced) */
   hiddenCollaboratorIds: ReadonlySet<string>;
+  /**
+   * the open page's id while collaborating, `null` otherwise (#167). Local
+   * only: elements tagged for another page are hidden and non-interactive,
+   * like a hidden collaborator's, and collaborators on other pages aren't
+   * drawn on the canvas.
+   */
+  openPageId: string | null;
   /**
    * creator ids whose elements are visible but non-interactive on this
    * client only (never synced). Hidden creators are always non-interactive.
@@ -1173,6 +1187,17 @@ export interface ExcalidrawImperativeAPI {
   history: {
     clear: InstanceType<typeof App>["resetHistory"];
   };
+  /** every page in order, the open one with the live scene (#167) */
+  getPages: InstanceType<typeof App>["getPages"];
+  getActivePageId: InstanceType<typeof App>["getActivePageId"];
+  /** replaces the elements of the given pages, e.g. from a room (#167) */
+  setPageElements: InstanceType<typeof App>["setPageElements"];
+  /** opens a page, e.g. to follow a collaborator to theirs (#167) */
+  selectPage: InstanceType<typeof App>["selectPage"];
+  /** makes the pages match a room's shared pages (#167) */
+  applySharedPages: InstanceType<typeof App>["applySharedPages"];
+  /** replaces every page with one blank page, e.g. on joining a room */
+  resetPages: InstanceType<typeof App>["resetPages"];
   getSceneElements: InstanceType<typeof App>["getSceneElements"];
   getAppState: () => InstanceType<typeof App>["state"];
   getFiles: () => InstanceType<typeof App>["files"];

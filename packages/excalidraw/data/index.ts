@@ -52,8 +52,14 @@ export const prepareElementsForExport = (
     selectedElementIds,
     hiddenCollaboratorIds,
     collaboratorDirectory,
+    openPageId,
   }: Pick<AppState, "selectedElementIds"> &
-    Partial<Pick<AppState, "hiddenCollaboratorIds" | "collaboratorDirectory">>,
+    Partial<
+      Pick<
+        AppState,
+        "hiddenCollaboratorIds" | "collaboratorDirectory" | "openPageId"
+      >
+    >,
   exportSelectionOnly: boolean,
 ) => {
   const nonDeletedElements = getNonDeletedElements(allElements);
@@ -62,6 +68,7 @@ export const prepareElementsForExport = (
     ? getLocallyVisibleElements(nonDeletedElements, {
         hiddenCollaboratorIds,
         collaboratorDirectory: collaboratorDirectory ?? null,
+        openPageId,
       })
     : nonDeletedElements;
   const elementsMap = arrayToMap(elements);

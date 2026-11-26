@@ -1,4 +1,3 @@
-import { reconcileElements } from "@excalidraw/excalidraw";
 import { MIME_TYPES, toBrandedType } from "@excalidraw/common";
 
 import { decompressData } from "@excalidraw/excalidraw/data/encode";
@@ -6,8 +5,8 @@ import {
   encryptData,
   decryptData,
 } from "@excalidraw/excalidraw/data/encryption";
-import { restoreElements } from "@excalidraw/excalidraw/data/restore";
 import { getSceneVersion } from "@excalidraw/element";
+import { t } from "@excalidraw/excalidraw/i18n";
 import { initializeApp } from "firebase/app";
 import {
   getFirestore,
@@ -32,12 +31,21 @@ import type {
 } from "@excalidraw/excalidraw/types";
 
 import { getLocalElementsWithExpiredDeletion } from "../collab/expiredDeletions";
+import {
+  excludeElementsOnDeletedPages,
+  mergePageData,
+  parsePageData,
+  reconcileElementsByPage,
+  restoreElementsByPage,
+  serializePageData,
+} from "../collab/pageSync";
 
 import { FILE_CACHE_MAX_AGE_SEC } from "../app_constants";
 
 import { getSyncableElements } from ".";
 
 import type { SyncableExcalidrawElement } from ".";
+import type { SharedPageData } from "../collab/pageSync";
 import type Portal from "../collab/Portal";
 import type { Socket } from "socket.io-client";
 
@@ -91,25 +99,39 @@ type FirebaseStoredScene = {
   sceneVersion: number;
   iv: Bytes;
   ciphertext: Bytes;
+  /**
+   * the room's page data (#167), encrypted separately so the elements keep
+   * their format. Missing in rooms saved before pages were shared.
+   */
+  pagesIv?: Bytes;
+  pagesCiphertext?: Bytes;
 };
 
-const encryptElements = async (
+/** what the room stores: every page's elements and the page data (#167) */
+export type StoredRoom = {
+  elements: readonly SyncableExcalidrawElement[];
+  /** null when missing or invalid (see `parsePageData`) */
+  pageData: SharedPageData | null;
+};
+
+const encryptJSON = async (
   key: string,
-  elements: readonly ExcalidrawElement[],
+  value: unknown,
 ): Promise<{ ciphertext: ArrayBuffer; iv: Uint8Array }> => {
-  const json = JSON.stringify(elements);
+  const json = JSON.stringify(value);
   const encoded = new TextEncoder().encode(json);
   const { encryptedBuffer, iv } = await encryptData(key, encoded);
 
   return { ciphertext: encryptedBuffer, iv };
 };
 
-const decryptElements = async (
-  data: FirebaseStoredScene,
+const decryptJSON = async (
+  ivBytes: Bytes,
+  ciphertextBytes: Bytes,
   roomKey: string,
-): Promise<readonly ExcalidrawElement[]> => {
-  const ciphertext = data.ciphertext.toUint8Array() as Uint8Array<ArrayBuffer>;
-  const iv = data.iv.toUint8Array() as Uint8Array<ArrayBuffer>;
+): Promise<unknown> => {
+  const ciphertext = ciphertextBytes.toUint8Array() as Uint8Array<ArrayBuffer>;
+  const iv = ivBytes.toUint8Array() as Uint8Array<ArrayBuffer>;
 
   const decrypted = await decryptData(iv, ciphertext, roomKey);
   const decodedData = new TextDecoder("utf-8").decode(
@@ -118,27 +140,67 @@ const decryptElements = async (
   return JSON.parse(decodedData);
 };
 
+const decryptElements = async (data: FirebaseStoredScene, roomKey: string) =>
+  (await decryptJSON(
+    data.iv,
+    data.ciphertext,
+    roomKey,
+  )) as readonly ExcalidrawElement[];
+
+const decryptPageData = async (
+  data: FirebaseStoredScene,
+  roomKey: string,
+): Promise<SharedPageData | null> => {
+  if (!data.pagesIv || !data.pagesCiphertext) {
+    return null;
+  }
+  try {
+    return parsePageData(
+      await decryptJSON(data.pagesIv, data.pagesCiphertext, roomKey),
+    );
+  } catch (error: any) {
+    console.error(error);
+    return null;
+  }
+};
+
+/** what was last saved to or loaded from the room, per socket */
 class FirebaseSceneVersionCache {
-  private static cache = new WeakMap<Socket, number>();
+  private static cache = new WeakMap<
+    Socket,
+    { sceneVersion: number; pageData: string | null }
+  >();
   static get = (socket: Socket) => {
     return FirebaseSceneVersionCache.cache.get(socket);
   };
   static set = (
     socket: Socket,
     elements: readonly SyncableExcalidrawElement[],
+    pageData: SharedPageData | null,
   ) => {
-    FirebaseSceneVersionCache.cache.set(socket, getSceneVersion(elements));
+    FirebaseSceneVersionCache.cache.set(socket, {
+      sceneVersion: getSceneVersion(elements),
+      pageData: pageData && serializePageData(pageData),
+    });
   };
 }
 
+/**
+ * @param pageData the room's page data (#167): a page change is unsaved too.
+ * Omit it to compare elements only.
+ */
 export const isSavedToFirebase = (
   portal: Portal,
   elements: readonly ExcalidrawElement[],
+  pageData?: SharedPageData | null,
 ): boolean => {
   if (portal.socket && portal.roomId && portal.roomKey) {
-    const sceneVersion = getSceneVersion(elements);
-
-    return FirebaseSceneVersionCache.get(portal.socket) === sceneVersion;
+    const saved = FirebaseSceneVersionCache.get(portal.socket);
+    return (
+      saved?.sceneVersion === getSceneVersion(elements) &&
+      (pageData === undefined ||
+        saved.pageData === (pageData && serializePageData(pageData)))
+    );
   }
   // if no room exists, consider the room saved so that we don't unnecessarily
   // prevent unload (there's nothing we could do at that point anyway)
@@ -176,14 +238,24 @@ export const saveFilesToFirebase = async ({
 
 const createFirebaseSceneDocument = async (
   elements: readonly SyncableExcalidrawElement[],
+  pageData: SharedPageData | null,
   roomKey: string,
 ) => {
   const sceneVersion = getSceneVersion(elements);
-  const { ciphertext, iv } = await encryptElements(roomKey, elements);
+  const { ciphertext, iv } = await encryptJSON(roomKey, elements);
+  const pages = pageData && (await encryptJSON(roomKey, pageData));
   return {
     sceneVersion,
     ciphertext: Bytes.fromUint8Array(new Uint8Array(ciphertext)),
     iv: Bytes.fromUint8Array(iv),
+    ...(pages
+      ? {
+          pagesCiphertext: Bytes.fromUint8Array(
+            new Uint8Array(pages.ciphertext),
+          ),
+          pagesIv: Bytes.fromUint8Array(pages.iv),
+        }
+      : {}),
   } as FirebaseStoredScene;
 };
 
@@ -191,20 +263,27 @@ const createFirebaseSceneDocument = async (
  * @param isKnownToRoom whether an element was ever in the room's scene as
  * far as this client knows. Local elements the stored scene no longer has
  * because their deletion expired aren't saved (see expiredDeletions.ts).
+ * @param pageData our copy of the room's page data (#167), merged with the
+ * stored copy
+ * @returns what the room stores after the save, or null if nothing was saved
  */
 export const saveToFirebase = async (
   portal: Portal,
   elements: readonly SyncableExcalidrawElement[],
   appState: AppState,
   isKnownToRoom?: (elementId: string) => boolean,
-) => {
+  pageData: SharedPageData | null = null,
+): Promise<{
+  elements: RemoteExcalidrawElement[];
+  pageData: SharedPageData | null;
+} | null> => {
   const { roomId, roomKey, socket } = portal;
   if (
     // bail if no room exists as there's nothing we can do at this point
     !roomId ||
     !roomKey ||
     !socket ||
-    isSavedToFirebase(portal, elements)
+    isSavedToFirebase(portal, elements, pageData)
   ) {
     return null;
   }
@@ -216,7 +295,11 @@ export const saveToFirebase = async (
     const snapshot = await transaction.get(docRef);
 
     if (!snapshot.exists()) {
-      const storedScene = await createFirebaseSceneDocument(elements, roomKey);
+      const storedScene = await createFirebaseSceneDocument(
+        elements,
+        pageData,
+        roomKey,
+      );
 
       transaction.set(docRef, storedScene);
 
@@ -225,7 +308,11 @@ export const saveToFirebase = async (
 
     const prevStoredScene = snapshot.data() as FirebaseStoredScene;
     const prevStoredElements = getSyncableElements(
-      restoreElements(await decryptElements(prevStoredScene, roomKey), null),
+      // page by page (#167)
+      restoreElementsByPage(
+        await decryptElements(prevStoredScene, roomKey),
+        null,
+      ),
     );
     // don't save our live copies of elements whose deletion expired
     const expiredIds = isKnownToRoom
@@ -238,15 +325,25 @@ export const saveToFirebase = async (
         )
       : new Set<string>();
     const reconciledElements = getSyncableElements(
-      reconcileElements(
+      reconcileElementsByPage(
         elements.filter((el) => !expiredIds.has(el.id)),
         prevStoredElements as OrderedExcalidrawElement[] as RemoteExcalidrawElement[],
         appState,
       ),
     );
+    // the same merge as for peers' page data, so storage converges too
+    const prevPageData = await decryptPageData(prevStoredScene, roomKey);
+    const mergedPageData =
+      pageData && prevPageData
+        ? mergePageData(prevPageData, pageData, t("labels.page"))
+        : pageData ?? prevPageData;
 
     const storedScene = await createFirebaseSceneDocument(
-      reconciledElements,
+      // a deleted page's elements go with it, whoever still had them
+      mergedPageData
+        ? excludeElementsOnDeletedPages(reconciledElements, mergedPageData)
+        : reconciledElements,
+      mergedPageData,
       roomKey,
     );
 
@@ -257,19 +354,23 @@ export const saveToFirebase = async (
   });
 
   const storedElements = getSyncableElements(
-    restoreElements(await decryptElements(storedScene, roomKey), null),
+    restoreElementsByPage(await decryptElements(storedScene, roomKey), null),
   );
+  const storedPageData = await decryptPageData(storedScene, roomKey);
 
-  FirebaseSceneVersionCache.set(socket, storedElements);
+  FirebaseSceneVersionCache.set(socket, storedElements, storedPageData);
 
-  return toBrandedType<RemoteExcalidrawElement[]>(storedElements);
+  return {
+    elements: toBrandedType<RemoteExcalidrawElement[]>(storedElements),
+    pageData: storedPageData,
+  };
 };
 
 export const loadFromFirebase = async (
   roomId: string,
   roomKey: string,
   socket: Socket | null,
-): Promise<readonly SyncableExcalidrawElement[] | null> => {
+): Promise<StoredRoom | null> => {
   const firestore = _getFirestore();
   const docRef = doc(firestore, "scenes", roomId);
   const docSnap = await getDoc(docRef);
@@ -278,16 +379,17 @@ export const loadFromFirebase = async (
   }
   const storedScene = docSnap.data() as FirebaseStoredScene;
   const elements = getSyncableElements(
-    restoreElements(await decryptElements(storedScene, roomKey), null, {
+    restoreElementsByPage(await decryptElements(storedScene, roomKey), null, {
       deleteInvisibleElements: true,
     }),
   );
+  const pageData = await decryptPageData(storedScene, roomKey);
 
   if (socket) {
-    FirebaseSceneVersionCache.set(socket, elements);
+    FirebaseSceneVersionCache.set(socket, elements, pageData);
   }
 
-  return elements;
+  return { elements, pageData };
 };
 
 export const loadFilesFromFirebase = async (

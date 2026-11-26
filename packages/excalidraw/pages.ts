@@ -1,9 +1,11 @@
+import { getElementPageId } from "@excalidraw/element";
+
 import type { ExcalidrawElement } from "@excalidraw/element/types";
 
 import { getDefaultAppState } from "./appState";
 import { t } from "./i18n";
 
-import type { AppState } from "./types";
+import type { AppState, Collaborator } from "./types";
 
 export type PageSettings = Pick<
   AppState,
@@ -33,6 +35,15 @@ export type DrawingPage = Readonly<{
   settings: PageSettings;
 }>;
 
+/**
+ * What collaborators share about a page in a room (#167). Everything else
+ * (scroll, zoom, grid, `showThumbnail`) stays personal.
+ */
+export type SharedPageInfo = Readonly<
+  Pick<DrawingPage, "id" | "name" | "description"> &
+    Pick<PageSettings, "viewBackgroundColor">
+>;
+
 export const PAGE_NAME_MAX_LENGTH = 50;
 export const PAGE_DESCRIPTION_MAX_LENGTH = 350;
 
@@ -53,7 +64,9 @@ export type PageInfoValidation = {
   descriptionError?: "tooLong";
 };
 
-const normalizePageName = (name: string) => name.trim().toLocaleLowerCase();
+/** how page names compare: trimmed, case-insensitive */
+export const normalizePageName = (name: string) =>
+  name.trim().toLocaleLowerCase();
 
 /**
  * Returns `${baseName} N` using the smallest N >= 1 whose name isn't already
@@ -133,10 +146,46 @@ export const createPage = (id: string, name: string): DrawingPage => ({
 /** The label shown for a page: its user-editable name (#160). */
 export const getPageLabel = (page: DrawingPage) => page.name;
 
+const escapeRegExp = (text: string) =>
+  text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Whether the page still has a default name: `${baseName} N` for any whole
+ * number N (case-insensitive, trimmed), e.g. "Page 2" or "Page 10000".
+ */
+export const hasDefaultPageName = (
+  page: Pick<DrawingPage, "name">,
+  baseName: string,
+) =>
+  new RegExp(`^${escapeRegExp(normalizePageName(baseName))} \\d+$`).test(
+    normalizePageName(page.name),
+  );
+
+/**
+ * Default page names follow their page's position: every page still named
+ * `${baseName} N` is renamed to `${baseName} <its 1-based position>`, so
+ * after page 1 is deleted "Page 2" becomes "Page 1". Pages the user named
+ * themselves keep their names. Positions are unique, so the new names can't
+ * collide with each other or with a custom name.
+ */
+export const renumberDefaultPageNames = (
+  pages: readonly DrawingPage[],
+  baseName: string,
+): DrawingPage[] =>
+  pages.map((page, index) => {
+    if (!hasDefaultPageName(page, baseName)) {
+      return page;
+    }
+    const name = `${baseName} ${index + 1}`;
+    return name === page.name ? page : { ...page, name };
+  });
+
 /**
  * Removes the given pages. If the active page is removed, the closest
  * surviving page before it becomes active (or the first one after it).
- * Removing every page leaves a single fresh blank page.
+ * Removing every page leaves a single fresh blank page. Pages still named
+ * "Page N" are renumbered to their new positions (see
+ * `renumberDefaultPageNames`).
  */
 export const deletePages = (
   pages: readonly DrawingPage[],
@@ -158,7 +207,10 @@ export const deletePages = (
     throw new Error(`Active page ${activePageId} does not exist`);
   }
 
-  const remaining = pages.filter((page) => !toDelete.has(page.id));
+  const remaining = renumberDefaultPageNames(
+    pages.filter((page) => !toDelete.has(page.id)),
+    t("labels.page"),
+  );
   if (!remaining.length) {
     const page = createPage(
       generateId(),
@@ -175,6 +227,51 @@ export const deletePages = (
     .find((page) => !toDelete.has(page.id));
   // no survivor before the active page => remaining[0] is the first after it
   return { pages: remaining, activePageId: (previous ?? remaining[0]).id };
+};
+
+/**
+ * Whether a collaborator is on the given page (#167). Collaborators whose
+ * page isn't known (clients that predate multi-page rooms) count as on
+ * every page, as before; no open page (outside a room) means everyone.
+ */
+export const isCollaboratorOnPage = (
+  collaborator: Pick<Collaborator, "pageId">,
+  pageId: string | null | undefined,
+): boolean => !pageId || !collaborator.pageId || collaborator.pageId === pageId;
+
+/**
+ * The collaborators on the open page (#167): only their cursors,
+ * selections and laser trails are drawn. Returns the map as-is outside a
+ * room.
+ */
+export const getCollaboratorsOnPage = <K>(
+  collaborators: ReadonlyMap<K, Collaborator>,
+  pageId: string | null | undefined,
+): Map<K, Collaborator> =>
+  new Map(
+    [...collaborators].filter(([, collaborator]) =>
+      isCollaboratorOnPage(collaborator, pageId),
+    ),
+  );
+
+/**
+ * Groups elements by their page tag (#167), keeping their relative order.
+ * Untagged elements are grouped under `null`.
+ */
+export const groupElementsByPageTag = <T extends ExcalidrawElement>(
+  elements: readonly T[],
+): Map<string | null, T[]> => {
+  const groups = new Map<string | null, T[]>();
+  for (const element of elements) {
+    const pageId = getElementPageId(element);
+    const group = groups.get(pageId);
+    if (group) {
+      group.push(element);
+    } else {
+      groups.set(pageId, [element]);
+    }
+  }
+  return groups;
 };
 
 /**

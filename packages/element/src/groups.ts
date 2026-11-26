@@ -175,7 +175,9 @@ export const selectGroupsForSelectedElements = (function () {
     elements: readonly NonDeletedExcalidrawElement[],
     prevAppState: InteractiveCanvasAppState &
       Pick<AppState, "hiddenCollaboratorIds" | "collaboratorDirectory"> &
-      Partial<Pick<AppState, "lockedCollaboratorIds" | "collaborators">>,
+      Partial<
+        Pick<AppState, "lockedCollaboratorIds" | "collaborators" | "openPageId">
+      >,
     /**
      * supply null in cases where you don't have access to App instance and
      * you don't care about optimizing selectElements retrieval
@@ -192,7 +194,9 @@ export const selectGroupsForSelectedElements = (function () {
     // group (optional chaining: exported API, host apps may pass partial states)
     if (
       prevAppState.hiddenCollaboratorIds?.size ||
-      prevAppState.lockedCollaboratorIds?.size
+      prevAppState.lockedCollaboratorIds?.size ||
+      // another page's elements (#167 safety net)
+      prevAppState.openPageId
     ) {
       const elementsMap = arrayToMap(elements);
       elements = excludeNonInteractiveElements(

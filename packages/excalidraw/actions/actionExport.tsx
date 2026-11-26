@@ -200,7 +200,12 @@ function prepareDataForJSONExport(
   const dataPromise = new Promise<JSONExportData>(async (resolve) => {
     const pages = app.getPagesForPersistence().map((page) => ({
       ...page,
-      elements: getLocallyVisibleElements(page.elements, appState),
+      // each page against itself, so the #167 safety net (elements tagged
+      // for another page than the open one) doesn't empty inactive pages
+      elements: getLocallyVisibleElements(page.elements, {
+        ...appState,
+        openPageId: appState.openPageId && page.id,
+      }),
     }));
     const persistedAppState = {
       ...appState,

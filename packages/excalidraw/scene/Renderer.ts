@@ -40,6 +40,8 @@ type GetRenderableElementsOpts = {
   frameToHighlight: AppState["frameToHighlight"];
   hiddenCollaboratorIds: AppState["hiddenCollaboratorIds"];
   collaboratorDirectory: AppState["collaboratorDirectory"];
+  /** the open page while collaborating (#167 safety net) */
+  openPageId?: AppState["openPageId"];
   /**
    * the local layer order (#82) while layering is on (`getCollaboratorLayerOrder`),
    * otherwise `null`/omitted → the shared drawing order
@@ -102,12 +104,14 @@ export class Renderer {
     newElement,
     hiddenCollaboratorIds,
     collaboratorDirectory,
+    openPageId,
   }: {
     elements: readonly NonDeletedExcalidrawElement[];
     editingTextElement: AppState["editingTextElement"];
     newElement: AppState["newElement"];
     hiddenCollaboratorIds: AppState["hiddenCollaboratorIds"];
     collaboratorDirectory: AppState["collaboratorDirectory"];
+    openPageId: AppState["openPageId"];
   }) {
     const elementsMap = toBrandedType<RenderableElementsMap>(new Map());
     const newElementCanvasElement = newElement?.frameId ? null : newElement;
@@ -122,6 +126,7 @@ export class Renderer {
         isElementHiddenLocally(element, allElementsMap, {
           hiddenCollaboratorIds,
           collaboratorDirectory,
+          openPageId,
         })
       ) {
         continue;
@@ -195,6 +200,7 @@ export class Renderer {
       hiddenCollaboratorIds,
       collaboratorDirectory,
       collaboratorLayerOrder,
+      openPageId,
     }: Omit<
       GetRenderableElementsOpts,
       | "selectedElements"
@@ -223,6 +229,7 @@ export class Renderer {
           newElement,
           hiddenCollaboratorIds,
           collaboratorDirectory,
+          openPageId: openPageId ?? null,
         });
 
       const visibleElements = this.getVisibleCanvasElements({
@@ -272,6 +279,9 @@ export class Renderer {
       // likewise for the local layer order (kept as the same array while
       // its contents don't change, see App.getLocalLayerOrder)
       collaboratorLayerOrder: opts.collaboratorLayerOrder ?? null,
+      // and for the open page (#167): joining a room sets it without
+      // touching the scene
+      openPageId: opts.openPageId ?? null,
     });
 
     // if we're dragging elements over a frame, reorder the selected elements

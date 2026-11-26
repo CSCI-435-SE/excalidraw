@@ -22,6 +22,16 @@ import "./PageInfoDialog.scss";
 import type { DrawingPage, PageInfoPatch } from "../pages";
 import type { KeyboardEvent } from "react";
 
+/**
+ * Marks a personal page setting (#167): collaborators never see it, unlike
+ * the page's name, description and background.
+ */
+const OnlyYouNote = () => (
+  <span className="PageInfoDialog__only-you">
+    {t("pageInfoDialog.onlyYouSeeThis")}
+  </span>
+);
+
 const getPatchFromPage = (page: DrawingPage): PageInfoPatch => ({
   name: page.name,
   description: page.description,
@@ -47,6 +57,7 @@ export const PageInfoDialog = ({
   isMoveDisabled,
   isInFolder,
   onRemoveFromFolder,
+  isSharedInfoReadOnly = false,
 }: {
   page: DrawingPage;
   pages: readonly DrawingPage[];
@@ -59,6 +70,11 @@ export const PageInfoDialog = ({
   isMoveDisabled: boolean;
   isInFolder: boolean;
   onRemoveFromFolder: () => void;
+  /**
+   * view mode (#167): the name and description are shared, so they can't be
+   * edited; the personal settings still can
+   */
+  isSharedInfoReadOnly?: boolean;
 }) => {
   const [draft, setDraft] = useState<PageInfoPatch | null>(null);
   const [positionInput, setPositionInput] = useState("");
@@ -124,13 +140,19 @@ export const PageInfoDialog = ({
             <dd className="PageInfoDialog__description">{page.description}</dd>
           </>
         )}
-        <dt>{t("pageInfoDialog.thumbnail")}</dt>
+        <dt>
+          {t("pageInfoDialog.thumbnail")}
+          <OnlyYouNote />
+        </dt>
         <dd>
           {page.showThumbnail
             ? t("pageInfoDialog.thumbnailShown")
             : t("pageInfoDialog.thumbnailHidden")}
         </dd>
-        <dt>{t("pageInfoDialog.grid")}</dt>
+        <dt>
+          {t("pageInfoDialog.grid")}
+          <OnlyYouNote />
+        </dt>
         <dd>
           {page.settings.gridModeEnabled
             ? t("pageInfoDialog.gridShown")
@@ -202,7 +224,8 @@ export const PageInfoDialog = ({
             value={draft.name}
             onChange={(name) => updateDraft({ name })}
             onKeyDown={handleNameKeyDown}
-            selectOnRender
+            selectOnRender={!isSharedInfoReadOnly}
+            readonly={isSharedInfoReadOnly}
             fullWidth
           />
           {nameErrorMessage && (
@@ -219,6 +242,7 @@ export const PageInfoDialog = ({
             value={draft.description}
             placeholder={t("pageInfoDialog.descriptionPlaceholder")}
             rows={4}
+            readOnly={isSharedInfoReadOnly}
             onChange={(event) =>
               updateDraft({ description: event.target.value })
             }
@@ -249,9 +273,13 @@ export const PageInfoDialog = ({
           onChange={(showThumbnail) => updateDraft({ showThumbnail })}
         >
           {t("pageInfoDialog.showThumbnail")}
+          <OnlyYouNote />
         </CheckboxItem>
         <fieldset className="PageInfoDialog__grid">
-          <legend>{t("pageInfoDialog.grid")}</legend>
+          <legend>
+            {t("pageInfoDialog.grid")}
+            <OnlyYouNote />
+          </legend>
           <label className="PageInfoDialog__row">
             <span>{t("pageInfoDialog.showGrid")}</span>
             <Switch

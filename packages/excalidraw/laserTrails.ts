@@ -4,6 +4,7 @@ import type { LaserPointerOptions } from "@excalidraw/laser-pointer";
 
 import { AnimatedTrail } from "./animatedTrail";
 import { getClientColor } from "./clients";
+import { getCollaboratorsOnPage } from "./pages";
 
 import type { Trail } from "./animatedTrail";
 import type App from "./components/App";
@@ -76,7 +77,12 @@ export class LaserTrails implements Trail {
     }
   }
 
-  updateCollabTrails(collaborators: App["state"]["collaborators"]) {
+  updateCollabTrails(allCollaborators: App["state"]["collaborators"]) {
+    // only collaborators on the open page leave trails here (#167)
+    const collaborators = getCollaboratorsOnPage(
+      allCollaborators,
+      this.app.state.openPageId,
+    );
     this.stopCollabTrails(collaborators);
 
     if (!this.container || collaborators.size === 0) {

@@ -1,11 +1,13 @@
-import { CaptureUpdateAction } from "@excalidraw/excalidraw";
 import { trackEvent } from "@excalidraw/excalidraw/analytics";
 import { encryptData } from "@excalidraw/excalidraw/data/encryption";
 import { newElementWith } from "@excalidraw/element";
 import throttle from "lodash.throttle";
 
 import type { UserIdleState } from "@excalidraw/common";
-import type { OrderedExcalidrawElement } from "@excalidraw/element/types";
+import type {
+  ExcalidrawElement,
+  OrderedExcalidrawElement,
+} from "@excalidraw/element/types";
 import type {
   OnUserFollowedPayload,
   SocketId,
@@ -20,6 +22,7 @@ import type {
   SyncableExcalidrawElement,
 } from "../data";
 import type { TCollabClass } from "./Collab";
+import type { SharedPageData } from "./pageSync";
 import type { Socket } from "socket.io-client";
 
 class Portal {
@@ -29,6 +32,8 @@ class Portal {
   roomId: string | null = null;
   roomKey: string | null = null;
   broadcastedElementVersions: Map<string, number> = new Map();
+  /** the open page we last told the room about (#167), see USER_IDENTITY */
+  lastAnnouncedPageId: string | null = null;
 
   constructor(collab: TCollabClass) {
     this.collab = collab;
@@ -44,12 +49,19 @@ class Portal {
       if (this.socket) {
         this.socket.emit("join-room", this.roomId);
         trackEvent("share", "room joined");
+        // sent again when the socket reconnects: catch up with the room
+        if (this.socketInitialized) {
+          this.collab.onReconnect();
+        }
       }
     });
     this.socket.on("new-user", async (_socketId: string) => {
+      // the pages first, so the elements that follow can go to their pages
+      this.collab.broadcastPageData();
       this.broadcastScene(
         WS_SUBTYPES.INIT,
-        this.collab.getSceneElementsIncludingDeleted(),
+        // every page (#167)
+        this.collab.getAllPageElementsIncludingDeleted(),
         /* syncAll */ true,
       );
       // introduce ourselves so the newcomer knows our name/id right away
@@ -74,6 +86,7 @@ class Portal {
     this.roomKey = null;
     this.socketInitialized = false;
     this.broadcastedElementVersions = new Map();
+    this.lastAnnouncedPageId = null;
   }
 
   isOpen() {
@@ -107,7 +120,8 @@ class Portal {
   queueFileUpload = throttle(async () => {
     try {
       await this.collab.fileManager.saveFiles({
-        elements: this.collab.excalidrawAPI.getSceneElementsIncludingDeleted(),
+        // every page's images (#167)
+        elements: this.collab.getAllPageElementsIncludingDeleted(),
         files: this.collab.excalidrawAPI.getFiles(),
       });
     } catch (error: any) {
@@ -120,10 +134,12 @@ class Portal {
       }
     }
 
-    let isChanged = false;
-    const newElements = this.collab.excalidrawAPI
-      .getSceneElementsIncludingDeleted()
-      .map((element) => {
+    // every page's images (#167): an image on a page that isn't open must
+    // be marked saved too, or collaborators never load it
+    const changedPages = new Map<string, readonly ExcalidrawElement[]>();
+    for (const page of this.collab.excalidrawAPI.getPages()) {
+      let isChanged = false;
+      const newElements = page.elements.map((element) => {
         if (this.collab.fileManager.shouldUpdateImageElementStatus(element)) {
           isChanged = true;
           // this will signal collaborators to pull image data from server
@@ -133,12 +149,14 @@ class Portal {
         }
         return element;
       });
+      if (isChanged) {
+        changedPages.set(page.id, newElements);
+      }
+    }
 
-    if (isChanged) {
-      this.collab.excalidrawAPI.updateScene({
-        elements: newElements,
-        captureUpdate: CaptureUpdateAction.NEVER,
-      });
+    if (changedPages.size) {
+      // (the open page through the scene, without history, as before)
+      this.collab.excalidrawAPI.setPageElements(changedPages);
     }
   }, FILE_UPLOAD_TIMEOUT);
 
@@ -166,6 +184,11 @@ class Portal {
       return acc;
     }, [] as SyncableExcalidrawElement[]);
 
+    // nothing new to send (e.g. only a deleted page's elements went away, #167)
+    if (!syncAll && !syncableElements.length) {
+      return;
+    }
+
     const data: SocketUpdateDataSource[typeof updateType] = {
       type: updateType,
       payload: {
@@ -186,6 +209,18 @@ class Portal {
     await this._broadcastSocketData(data as SocketUpdateData);
   };
 
+  /**
+   * The room's page data (#167). Non-volatile: a dropped page change would
+   * leave clients with different pages until the next full resync.
+   */
+  broadcastPageData = (pageData: SharedPageData) => {
+    const data: SocketUpdateDataSource["PAGE_DATA"] = {
+      type: WS_SUBTYPES.PAGE_DATA,
+      payload: pageData,
+    };
+    return this._broadcastSocketData(data as SocketUpdateData);
+  };
+
   broadcastIdleChange = (userState: UserIdleState) => {
     if (this.socket?.id) {
       const data: SocketUpdateDataSource["IDLE_STATUS"] = {
@@ -195,6 +230,7 @@ class Portal {
           userState,
           username: this.collab.state.username,
           clientId: this.collab.getClientId() ?? undefined,
+          pageId: this.collab.excalidrawAPI.getActivePageId(),
         },
       };
       return this._broadcastSocketData(
@@ -214,11 +250,14 @@ class Portal {
   broadcastUserIdentity = (username = this.collab.state.username) => {
     const clientId = this.collab.getClientId();
     if (this.socket?.id && this.socketInitialized && clientId) {
+      const pageId = this.collab.excalidrawAPI.getActivePageId();
+      this.lastAnnouncedPageId = pageId;
       const data: SocketUpdateDataSource["USER_IDENTITY"] = {
         type: WS_SUBTYPES.USER_IDENTITY,
         payload: {
           socketId: this.socket.id as SocketId,
           clientId,
+          pageId,
           username,
         },
       };
@@ -241,6 +280,7 @@ class Portal {
             this.collab.excalidrawAPI.getAppState().selectedElementIds,
           username: this.collab.state.username,
           clientId: this.collab.getClientId() ?? undefined,
+          pageId: this.collab.excalidrawAPI.getActivePageId(),
         },
       };
 
