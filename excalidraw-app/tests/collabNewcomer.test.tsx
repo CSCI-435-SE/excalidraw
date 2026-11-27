@@ -38,6 +38,7 @@ import {
 } from "@excalidraw/excalidraw/tests/test-utils";
 import {
   CREATOR_ID_KEY,
+  PAGE_ID_KEY,
   UNKNOWN_CREATOR_ID,
   excludeElementsByHiddenCreators,
   newElementWith,
@@ -55,13 +56,17 @@ import { appJotaiStore } from "../app-jotai";
 import { collabAPIAtom } from "../collab/Collab";
 import { saveCollaboratorDirectory } from "../collab/collaboratorDirectory";
 import { saveCollaboratorSettings } from "../collab/collaboratorSettings";
+import { EMPTY_PAGE_DATA, getLocalPageChanges } from "../collab/pageSync";
 
 import type { SocketUpdateDataSource } from "../data";
+import type { SharedPageData } from "../collab/pageSync";
 
 const { h } = window;
 
 const mocks = vi.hoisted(() => ({
   storedRoomElements: null as readonly any[] | null,
+  /** the stored room's page data (#167) */
+  storedPageData: null as SharedPageData | null,
 }));
 
 /**
@@ -111,7 +116,11 @@ vi.mock("@excalidraw/excalidraw/data/encryption", () => ({
 }));
 
 vi.mock("../data/firebase", () => ({
-  loadFromFirebase: async () => mocks.storedRoomElements,
+  loadFromFirebase: async () =>
+    mocks.storedRoomElements && {
+      elements: mocks.storedRoomElements,
+      pageData: mocks.storedPageData,
+    },
   saveToFirebase: async () => null,
   isSavedToFirebase: () => true,
   loadFilesFromFirebase: async () => ({ loadedFiles: [], erroredFiles: [] }),
@@ -290,6 +299,7 @@ const receivePeerElement = async (id: string, creatorId: string) => {
 
 beforeEach(async () => {
   mocks.storedRoomElements = null;
+  mocks.storedPageData = null;
   localStorage.clear();
   sessionStorage.clear();
   // a previous test's room link would make the app auto-join that room
@@ -632,8 +642,23 @@ describe("newcomer default and saved settings — Criteria G and H (local only, 
   });
 
   it("AC-H: restoring saved settings on join sends nothing and changes no element", async () => {
+    // a room as stored since #167: one page, with alice's element on it
+    mocks.storedPageData = getLocalPageChanges(
+      EMPTY_PAGE_DATA,
+      [
+        {
+          id: "room-page",
+          name: "Page 1",
+          description: "",
+          viewBackgroundColor: "#ffffff",
+        },
+      ],
+      1,
+    );
     mocks.storedRoomElements = syncInvalidIndices([
-      stamp(API.createElement({ id: "theirs" }), "alice"),
+      newElementWith(stamp(API.createElement({ id: "theirs" }), "alice"), {
+        customData: { [CREATOR_ID_KEY]: "alice", [PAGE_ID_KEY]: "room-page" },
+      }),
     ]);
     saveCollaboratorSettings(
       ROOM.roomId,

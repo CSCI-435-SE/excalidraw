@@ -3,7 +3,11 @@ import {
   createRedoAction,
   createUndoAction,
 } from "@excalidraw/excalidraw/actions/actionHistory";
-import { CREATOR_ID_KEY, syncInvalidIndices } from "@excalidraw/element";
+import {
+  CREATOR_ID_KEY,
+  PAGE_ID_KEY,
+  syncInvalidIndices,
+} from "@excalidraw/element";
 import { API } from "@excalidraw/excalidraw/tests/helpers/api";
 import { act, render, waitFor } from "@excalidraw/excalidraw/tests/test-utils";
 import { vi } from "vitest";
@@ -276,10 +280,12 @@ describe("collaboration", () => {
 
     await waitFor(() => {
       const clientId = window.collab.getClientId();
+      const pageId = h.app.getActivePageId();
       expect(clientId).toBeTruthy();
       expect(h.elements.map((el) => el.customData)).toEqual([
-        { [CREATOR_ID_KEY]: clientId },
-        { [CREATOR_ID_KEY]: clientId, keep: true },
+        // and the page they are on (#167)
+        { [CREATOR_ID_KEY]: clientId, [PAGE_ID_KEY]: pageId },
+        { [CREATOR_ID_KEY]: clientId, keep: true, [PAGE_ID_KEY]: pageId },
       ]);
     });
 

@@ -6,10 +6,14 @@ import { KEYS } from "@excalidraw/common";
 import { isNonDeletedElement } from "@excalidraw/element";
 
 import { exportToCanvas } from "../scene/export";
+import { getLocallyVisibleElements } from "../scene/visibility";
 
 import { getDefaultAppState } from "../appState";
 import { t } from "../i18n";
 
+import { getClientColor } from "../clients";
+
+import { Avatar } from "./Avatar";
 import ConfirmDialog from "./ConfirmDialog";
 import { PageDeleteDialog } from "./PageDeleteDialog";
 import { PageRangeSelect } from "./PageRangeSelect";
@@ -25,6 +29,55 @@ import type {
   PageNavRef,
   PageTree,
 } from "../pages";
+
+/** avatars shown on a page tab before the rest are summed up as "+N" */
+const MAX_PAGE_TAB_AVATARS = 3;
+
+/**
+ * The collaborators currently on a page (#167), as avatars on its tab.
+ * Not you: your page is the highlighted one.
+ */
+const PageCollaborators = ({
+  pageId,
+  collaborators,
+}: {
+  pageId: string;
+  collaborators: UIAppState["collaborators"];
+}) => {
+  const onPage = [...collaborators].filter(
+    ([, collaborator]) =>
+      !collaborator.isCurrentUser && collaborator.pageId === pageId,
+  );
+  if (!onPage.length) {
+    return null;
+  }
+  const names = onPage.map(
+    ([, collaborator]) => collaborator.username || t("labels.unknownUser"),
+  );
+  const extra = onPage.length - MAX_PAGE_TAB_AVATARS;
+  return (
+    <span
+      className="page-navigation__collaborators"
+      role="group"
+      aria-label={t("labels.collaboratorsOnPage", { names: names.join(", ") })}
+      title={names.join(", ")}
+    >
+      {onPage.slice(0, MAX_PAGE_TAB_AVATARS).map(([socketId, collaborator]) => (
+        <Avatar
+          key={socketId}
+          className="page-navigation__avatar"
+          color={getClientColor(socketId, collaborator)}
+          name={collaborator.username || ""}
+          src={collaborator.avatarUrl}
+          onClick={() => {}}
+        />
+      ))}
+      {extra > 0 && (
+        <span className="page-navigation__avatar-more">+{extra}</span>
+      )}
+    </span>
+  );
+};
 
 const PAGE_PREVIEW_WIDTH = 144;
 const PAGE_PREVIEW_HEIGHT = 96;
@@ -62,7 +115,18 @@ const PagePreview = React.memo(
 
     useEffect(() => {
       let active = true;
-      const elements = page.elements.filter(isNonDeletedElement);
+      // what this client sees of the page: hidden collaborators' elements
+      // aren't drawn in previews either (#167, #80)
+      const visibility = {
+        hiddenCollaboratorIds: appState.hiddenCollaboratorIds,
+        collaboratorDirectory: appState.collaboratorDirectory,
+        // checked against this page, not the open one
+        openPageId: appState.openPageId && page.id,
+      };
+      const elements = getLocallyVisibleElements(
+        page.elements.filter(isNonDeletedElement),
+        visibility,
+      );
 
       if (!elements.length) {
         setPreviewUrl(null);
@@ -75,6 +139,7 @@ const PagePreview = React.memo(
           ...defaultAppState,
           ...appState,
           ...page.settings,
+          ...visibility,
           width: appState.width,
           height: appState.height,
           offsetTop: 0,
@@ -135,7 +200,13 @@ const PagePreview = React.memo(
     prevProps.files === nextProps.files &&
     prevProps.appState.exportWithDarkMode ===
       nextProps.appState.exportWithDarkMode &&
-    prevProps.appState.theme === nextProps.appState.theme,
+    prevProps.appState.theme === nextProps.appState.theme &&
+    // hiding or showing a collaborator redraws previews (#167)
+    prevProps.appState.hiddenCollaboratorIds ===
+      nextProps.appState.hiddenCollaboratorIds &&
+    prevProps.appState.collaboratorDirectory ===
+      nextProps.appState.collaboratorDirectory &&
+    prevProps.appState.openPageId === nextProps.appState.openPageId,
 );
 
 type DropTarget = { ref: PageNavRef; placement: PageDropPlacement };
@@ -236,6 +307,7 @@ export const Pages = ({
   onCreateFolder,
   onToggleFolder,
   onDeleteFolder,
+  isCollaborating = false,
 }: {
   pages: readonly DrawingPage[];
   activePageId: string;
@@ -267,6 +339,8 @@ export const Pages = ({
   onToggleFolder: (folderId: string) => void;
   /** deletes the folder only; its pages move back to the top level */
   onDeleteFolder: (folderId: string) => void;
+  /** in a room (#167): folders are off, pages show in the shared order */
+  isCollaborating?: boolean;
 }) => {
   // local state so the confirmation is scoped to this editor instance
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
@@ -280,6 +354,9 @@ export const Pages = ({
   const allSelected = selectedCount === pages.length;
   // reordering and folders (#162) are off in view mode and page modes
   const canOrganize = !isClearing && !appState.viewModeEnabled;
+  // folders aren't shared, so they're off in a room (#167); reordering is
+  // shared, so it stays
+  const canUseFolders = canOrganize && !isCollaborating;
 
   // Shift + drag reordering
   const [drag, setDrag] = useState<PageNavRef | null>(null);
@@ -427,6 +504,10 @@ export const Pages = ({
           )}
           {!page.showThumbnail && <PageIcon />}
           <span className="page-navigation__item-name">{title}</span>
+          <PageCollaborators
+            pageId={page.id}
+            collaborators={appState.collaborators}
+          />
           {isClearing && isActive && (
             <span className="page-navigation__current-badge">
               {t("labels.currentPage")}
@@ -460,7 +541,7 @@ export const Pages = ({
         onSelectPage={onSelectPage}
         onOpenPageInfo={onOpenPageInfo}
         onShiftContextMenu={(id) => {
-          if (canOrganize) {
+          if (canUseFolders) {
             toggleFolderSelection(id);
           }
         }}
@@ -513,7 +594,7 @@ export const Pages = ({
               {folder.pageIds.length}
             </span>
           </button>
-          {canOrganize && (
+          {canUseFolders && (
             <button
               type="button"
               className="page-navigation__folder-delete"
@@ -602,7 +683,7 @@ export const Pages = ({
         </div>
       ) : (
         <div className="page-navigation__actions">
-          {canOrganize && validFolderSelection.length > 0 ? (
+          {canUseFolders && validFolderSelection.length > 0 ? (
             <form
               className="page-folder-create"
               onSubmit={(event) => {
@@ -646,7 +727,9 @@ export const Pages = ({
           ) : (
             !appState.viewModeEnabled && (
               <p className="page-navigation__hint">
-                {t("labels.pageOrganizeHint")}
+                {isCollaborating
+                  ? t("labels.pageReorderHint")
+                  : t("labels.pageOrganizeHint")}
               </p>
             )
           )}

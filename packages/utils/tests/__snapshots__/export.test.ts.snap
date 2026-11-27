@@ -87,6 +87,7 @@ exports[`exportToSvg > with default arguments 1`] = `
   "objectsSnapModeEnabled": false,
   "openDialog": null,
   "openMenu": null,
+  "openPageId": null,
   "openPopup": null,
   "openSidebar": null,
   "originSnapOffset": {

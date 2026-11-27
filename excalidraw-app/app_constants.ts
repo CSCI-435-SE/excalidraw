@@ -29,6 +29,11 @@ export enum WS_SUBTYPES {
   USER_VISIBLE_SCENE_BOUNDS = "USER_VISIBLE_SCENE_BOUNDS",
   /** announces a client's stable id + name on join (non-volatile) */
   USER_IDENTITY = "USER_IDENTITY",
+  /**
+   * the room's pages (#167): order, names, descriptions, backgrounds,
+   * change times and deleted pages (non-volatile)
+   */
+  PAGE_DATA = "PAGE_DATA",
 }
 
 export const FIREBASE_STORAGE_PREFIXES = {

@@ -17,7 +17,9 @@ import type { AppState } from "../types";
 export type LocalVisibilityState = Pick<
   AppState,
   "hiddenCollaboratorIds" | "collaboratorDirectory"
->;
+> &
+  // optional: callers outside a room (or of a single page) can omit it
+  Partial<Pick<AppState, "openPageId">>;
 
 /**
  * Whether the element is hidden on this client by the collaborator
@@ -80,7 +82,8 @@ export const getSelectionWithoutHiddenElements = (
 > | null => {
   if (
     !appState.hiddenCollaboratorIds.size &&
-    !appState.lockedCollaboratorIds?.size
+    !appState.lockedCollaboratorIds?.size &&
+    !appState.openPageId
   ) {
     return null;
   }

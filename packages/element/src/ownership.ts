@@ -27,6 +27,34 @@ export const EDITOR_SEQS_KEY = "editorSeqs";
 /** bucket for elements without (valid) creator metadata, e.g. legacy rooms */
 export const UNKNOWN_CREATOR_ID = "__unknown__";
 
+/**
+ * `customData` key holding the id of the page the element was created on
+ * (#167). Stamped once when the element reaches a room, never changed.
+ */
+export const PAGE_ID_KEY = "pageId";
+
+/** the element's page tag, or `null` if it has none (yet) */
+export const getElementPageId = (element: ExcalidrawElement): string | null => {
+  const pageId = element.customData?.[PAGE_ID_KEY];
+  return typeof pageId === "string" && pageId ? pageId : null;
+};
+
+/**
+ * Whether the element is tagged for a page other than the open one (#167).
+ * Such an element should never be in the scene; if it is, the visibility
+ * rule treats it like a hidden collaborator's element (safety net).
+ */
+export const isElementOnOtherPage = (
+  element: ExcalidrawElement,
+  openPageId: string | null | undefined,
+): boolean => {
+  if (!openPageId) {
+    return false;
+  }
+  const pageId = getElementPageId(element);
+  return pageId !== null && pageId !== openPageId;
+};
+
 const getStampedCreatorId = (element: ExcalidrawElement): string | null => {
   const creatorId = element.customData?.[CREATOR_ID_KEY];
   return typeof creatorId === "string" && creatorId ? creatorId : null;
@@ -100,6 +128,11 @@ export type CreatorVisibility = {
    * (e.g. outside of a room) → every stamped creator is its own bucket.
    */
   collaboratorDirectory?: ReadonlyMap<string, unknown> | null;
+  /**
+   * the page open on this client, set only while collaborating (#167).
+   * Elements tagged for another page are hidden (see `isElementOnOtherPage`).
+   */
+  openPageId?: string | null;
 };
 
 /** an owner's bucket: `UNKNOWN_CREATOR_ID` if this client never saw them */
@@ -155,8 +188,15 @@ export const getElementVisibilityBuckets = (
 export const isElementByHiddenCreator = (
   element: ExcalidrawElement,
   elementsMap: ElementsMap,
-  { hiddenCollaboratorIds, collaboratorDirectory }: CreatorVisibility,
+  {
+    hiddenCollaboratorIds,
+    collaboratorDirectory,
+    openPageId,
+  }: CreatorVisibility,
 ): boolean => {
+  if (isElementOnOtherPage(element, openPageId)) {
+    return true;
+  }
   if (!hiddenCollaboratorIds?.size) {
     return false;
   }
@@ -277,6 +317,8 @@ export const isElementInteractive = (
   state: CreatorInteractivity & CreatorSelf,
   selfId: string | null = getSelfCreatorId(state),
 ): boolean =>
+  // another page's element is never interactive (#167 safety net)
+  !isElementOnOtherPage(element, state.openPageId) &&
   getElementVisibilityBuckets(
     element,
     elementsMap,
@@ -298,7 +340,8 @@ export const excludeNonInteractiveElements = <T extends ExcalidrawElement>(
 ): readonly T[] => {
   if (
     !state.hiddenCollaboratorIds?.size &&
-    !state.lockedCollaboratorIds?.size
+    !state.lockedCollaboratorIds?.size &&
+    !state.openPageId
   ) {
     return elements;
   }
@@ -548,7 +591,7 @@ export const excludeElementsByHiddenCreators = <T extends ExcalidrawElement>(
   visibility: CreatorVisibility,
   elementsMap?: ElementsMap,
 ): readonly T[] => {
-  if (!visibility.hiddenCollaboratorIds?.size) {
+  if (!visibility.hiddenCollaboratorIds?.size && !visibility.openPageId) {
     return elements;
   }
   const map = elementsMap ?? arrayToMap(elements);

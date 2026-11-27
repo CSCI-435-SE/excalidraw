@@ -353,6 +353,11 @@ const initializeScene = async (opts: {
           // necessary if we're invoking from a hashchange handler which doesn't
           // go through App.initializeScene() that resets this flag
           isLoading: false,
+          // the room's pages (#167), already applied by Collab: loading this
+          // scene keeps them, instead of replacing them with a single new
+          // page holding only the open page's elements
+          pages: excalidrawAPI.getPages(),
+          activePageId: excalidrawAPI.getActivePageId(),
         },
         elements: reconcileElements(
           scene?.elements || [],
@@ -552,11 +557,18 @@ const ExcalidrawWrapper = () => {
         initializeScene({ collabAPI, excalidrawAPI }).then((data) => {
           loadImages(data);
           if (data.scene) {
+            // pages aren't editor state: a room's pages are applied by Collab
+            // (#167), and updateScene would copy these keys into appState
+            const {
+              pages: _pages,
+              activePageId: _activePageId,
+              ...appState
+            } = restoreAppState(data.scene.appState, null);
             excalidrawAPI.updateScene({
               elements: restoreElements(data.scene.elements, null, {
                 repairBindings: true,
               }),
-              appState: restoreAppState(data.scene.appState, null),
+              appState,
               captureUpdate: CaptureUpdateAction.IMMEDIATELY,
             });
           }

@@ -31,7 +31,11 @@ import { DefaultSidebar, Excalidraw, Sidebar } from "../index";
 import {
   PAGE_DESCRIPTION_MAX_LENGTH,
   PAGE_NAME_MAX_LENGTH,
+  createPage,
+  deletePages,
   getNextDefaultPageName,
+  hasDefaultPageName,
+  renumberDefaultPageNames,
   validatePageInfo,
 } from "../pages";
 
@@ -369,7 +373,9 @@ describe("pages", () => {
       // pages are kept, but empty
       expect(getByRole("button", { name: "Page 2" })).toBeTruthy();
       fireEvent.click(getByRole("button", { name: "Page 1" }));
-      await waitFor(() => expect(window.h.elements).toHaveLength(0));
+      // cleared, not emptied: deleted copies stay so collaborators get the
+      // deletion too (#167)
+      await waitFor(() => expect(liveIds()).toEqual([]));
     });
 
     it("keeps the single confirm option when there is only one page", async () => {
@@ -1030,15 +1036,16 @@ describe("deleting mode", () => {
     expect(
       queries.getByText("Deleting mode: select pages to delete"),
     ).toBeTruthy();
-    // pages keep their names (#160), so the survivor is still "Page 3"
+    // the survivor was "Page 3": a default name follows its position, so
+    // with pages 1 and 2 gone it is "Page 1" now
     expect(
       queries
-        .getByRole("checkbox", { name: "Page 3" })
+        .getByRole("checkbox", { name: "Page 1" })
         .getAttribute("aria-checked"),
     ).toBe("false");
 
     // a second deletion in a row must not trip over the first one's pages
-    checkPage("Page 3");
+    checkPage("Page 1");
     fireEvent.click(button("Delete"));
     fireEvent.click(getConfirmDialog().getByRole("button", { name: "Delete" }));
     expect(pageIdsNow()).toHaveLength(1);
@@ -1174,13 +1181,14 @@ describe("deleting mode keeps the rest of the drawing intact", () => {
   it("keeps every other page's elements when a middle page is deleted", () => {
     deletePagesNamed("Page 2");
 
-    // still on page 3, now listed second; pages keep their names (#160)
+    // still on the old page 3, now second: its default name follows its
+    // position, so it is "Page 2" now and there is no "Page 3"
     expect(elementIds()).toEqual(["three"]);
-    expect(queries.queryByRole("button", { name: "Page 2" })).toBeNull();
+    expect(queries.queryByRole("button", { name: "Page 3" })).toBeNull();
 
     fireEvent.click(button("Page 1"));
     expect(elementIds()).toEqual(["one"]);
-    fireEvent.click(button("Page 3"));
+    fireEvent.click(button("Page 2"));
     expect(elementIds()).toEqual(["three"]);
   });
 
@@ -1243,8 +1251,9 @@ describe("all but current", () => {
     expect(queries.getAllByRole("checkbox")).toHaveLength(2);
     expect(button("All but current")).toHaveProperty("disabled", false);
     fireEvent.click(button("All but current"));
-    // "Page 1" was deleted; the others keep their names (#160)
-    expect(checkedPages()).toEqual(["Page 2"]);
+    // "Page 1" was deleted, so the others were renumbered: old page 2 is
+    // "Page 1", and the current old page 3 is "Page 2"
+    expect(checkedPages()).toEqual(["Page 1"]);
   });
 
   it("replaces an existing selection that included the current page", () => {
@@ -1709,7 +1718,8 @@ describe("page reordering and folders (#162)", () => {
       act(() => pageInternals().deletePages([page1.id, page2.id]));
 
       expect(queryByRole("button", { name: "Folder 1" })).toBeNull();
-      expect(navOrder()).toEqual(["Page 3", "Page 4"]);
+      // the old pages 3 and 4, renumbered to their new positions
+      expect(navOrder()).toEqual(["Page 1", "Page 2"]);
     });
 
     it("deletes a folder but keeps its pages in its place", async () => {
@@ -1799,5 +1809,99 @@ describe("page reordering and folders (#162)", () => {
         getByRole("checkbox", { name: "Page 1" }).getAttribute("aria-checked"),
       ).toBe("false");
     });
+  });
+});
+
+// default page names follow their position after deleting pages: a page
+// still named "Page N" is renumbered, a page the user named keeps its name
+describe("default page names after deleting pages", () => {
+  const pagesNamed = (...names: string[]) =>
+    names.map((name, i) => createPage(`p${i + 1}`, name));
+
+  const namesAfterDeleting = (pages: DrawingPage[], ...ids: string[]) =>
+    deletePages(
+      pages,
+      ids,
+      pages[pages.length - 1].id,
+      () => "new-page",
+    ).pages.map((page) => page.name);
+
+  it("deleting page 1 makes page 2 'Page 1'", () => {
+    expect(
+      namesAfterDeleting(pagesNamed("Page 1", "Page 2", "Page 3"), "p1"),
+    ).toEqual(["Page 1", "Page 2"]);
+  });
+
+  it("keeps the names users gave their pages", () => {
+    expect(
+      namesAfterDeleting(
+        pagesNamed("Page 1", "Architecture", "Page 3", "Database"),
+        "p1",
+      ),
+    ).toEqual(["Architecture", "Page 2", "Database"]);
+  });
+
+  it("renumbers any 'Page <number>', e.g. 'Page 10000' third becomes 'Page 2'", () => {
+    expect(
+      namesAfterDeleting(pagesNamed("Page 1", "Notes", "Page 10000"), "p1"),
+    ).toEqual(["Notes", "Page 2"]);
+  });
+
+  it("matches default names case-insensitively, ignoring outer spaces", () => {
+    expect(
+      namesAfterDeleting(pagesNamed("Page 1", " page 7 ", "PAGE 9"), "p1"),
+    ).toEqual(["Page 1", "Page 2"]);
+  });
+
+  it("leaves names that only look similar", () => {
+    expect(
+      namesAfterDeleting(
+        pagesNamed(
+          "Page 1",
+          "Page 2a",
+          "Pages 3",
+          "Page",
+          "Page -4",
+          "Page 1.5",
+        ),
+        "p1",
+      ),
+    ).toEqual(["Page 2a", "Pages 3", "Page", "Page -4", "Page 1.5"]);
+  });
+
+  it("a page already at its number keeps the same page object", () => {
+    const pages = pagesNamed("Page 1", "Page 2");
+    expect(renumberDefaultPageNames(pages, "Page")[1]).toBe(pages[1]);
+  });
+
+  it("deleting every page still leaves one 'Page 1'", () => {
+    expect(
+      namesAfterDeleting(pagesNamed("Page 1", "Notes"), "p1", "p2"),
+    ).toEqual(["Page 1"]);
+  });
+
+  it("hasDefaultPageName", () => {
+    expect(hasDefaultPageName({ name: "Page 12" }, "Page")).toBe(true);
+    expect(hasDefaultPageName({ name: "Page 12 copy" }, "Page")).toBe(false);
+    // the base name is matched literally, not as a pattern
+    expect(hasDefaultPageName({ name: "P.ge 1" }, "Pa.e")).toBe(false);
+  });
+
+  it("in the editor, deleting a page renames the tabs that follow", async () => {
+    const { getByRole, queryByRole } = await render(
+      <Excalidraw handleKeyboardGlobally />,
+    );
+    act(() => {
+      pageInternals().createPage();
+      pageInternals().createPage();
+    });
+    const [first] = pageInternals().pages;
+    act(() => pageInternals().deletePages([first.id]));
+    fireEvent.click(getByRole("button", { name: "Pages" }));
+
+    expect(
+      pageInternals().pages.map((page) => (page as DrawingPage).name),
+    ).toEqual(["Page 1", "Page 2"]);
+    expect(queryByRole("button", { name: "Page 3" })).toBeNull();
   });
 });

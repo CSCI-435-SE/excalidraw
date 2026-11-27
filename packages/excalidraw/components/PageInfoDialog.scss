@@ -162,5 +162,13 @@
       gap: 0.75rem;
       margin-top: 1.5rem;
     }
+
+    // a personal setting (#167)
+    &__only-you {
+      margin-inline-start: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: normal;
+      color: var(--color-gray-60);
+    }
   }
 }

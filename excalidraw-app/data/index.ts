@@ -38,6 +38,8 @@ import {
 import { encodeFilesForUpload } from "./FileManager";
 import { saveFilesToFirebase } from "./firebase";
 
+import type { SharedPageData } from "../collab/pageSync";
+
 import type { WS_SUBTYPES } from "../app_constants";
 
 export type SyncableExcalidrawElement = OrderedExcalidrawElement &
@@ -108,6 +110,8 @@ export type SocketUpdateDataSource = {
       username: string;
       /** optional: clients predating collaborator visibility omit it */
       clientId?: string;
+      /** the sender's open page (#167); clients predating multi-page rooms omit it */
+      pageId?: string;
     };
   };
   USER_VISIBLE_SCENE_BOUNDS: {
@@ -126,6 +130,8 @@ export type SocketUpdateDataSource = {
       username: string;
       /** optional: clients predating collaborator visibility omit it */
       clientId?: string;
+      /** the sender's open page (#167); clients predating multi-page rooms omit it */
+      pageId?: string;
     };
   };
   USER_IDENTITY: {
@@ -134,8 +140,15 @@ export type SocketUpdateDataSource = {
       socketId: SocketId;
       /** stable per-tab id, matches elements' `customData.creatorId` */
       clientId: string;
+      /** the sender's open page (#167); clients predating multi-page rooms omit it */
+      pageId?: string;
       username: string;
     };
+  };
+  PAGE_DATA: {
+    type: WS_SUBTYPES.PAGE_DATA;
+    /** validated with `parsePageData` before use (see pageSync.ts) */
+    payload: SharedPageData;
   };
 };
 

@@ -90,11 +90,13 @@ const checkpoint = (name: string) => {
   );
   // `scrolledOutside` does not appear to be stable between test runs
   // `selectedLinearElemnt` includes `startBindingElement` containing seed and versionNonce
+  // `openPageId` is the (random) page id while collaborating (#167)
   const {
     name: _,
     scrolledOutside,
     selectedLinearElement,
     uiScale: _uiScale,
+    openPageId: _openPageId,
     ...strippedAppState
   } = h.state;
   expect(strippedAppState).toMatchSnapshot(`[${name}] appState`);
